@@ -61,5 +61,19 @@
       }
     }
   },
-  "defaultProject": "whiteBook"
+  "defaultProject": "whiteBook",
+  "schematics": {
+    "@schematics/angular:service": {
+      "spec": false
+    },
+    "@schematics/angular:module": {
+      "spec": false
+    },
+    "@schematics/angular:component": {
+      "spec": false
+    },
+    "@schematics/angular:class": {
+      "spec": false
+    }
+  }
 }

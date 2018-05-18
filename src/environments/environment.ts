@@ -3,7 +3,24 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+
+  firebase: {
+    app: {
+      apiKey: "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
+      authDomain: "whitefire-dev.firebaseapp.com",
+      databaseURL: "https://whitefire-dev.firebaseio.com",
+      projectId: "whitefire-dev",
+      storageBucket: "whitefire-dev.appspot.com",
+      messagingSenderId: "919087826501",
+    },
+
+    config: {
+      name: 'whiteFire',
+      automaticDataCollectionEnabled: true,
+      // timestampsInSnapshots: true,
+    }
+  }
 };
 
 /*
