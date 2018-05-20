@@ -40,19 +40,19 @@ export class SnapService {
   }
 
   private dispatch(dbg: Function, store: Store, snaps: DocumentChangeAction<{}>[]) {
-
+    // snaps.forEach(snap => snap.payload.doc.data)
   }
 
   /** sync the public data */
-  private snapClient(store: Store, snaps: DocumentChangeAction<{}>[]) {
+  private snapClient(store: Store, snaps: DocumentChangeAction<IClientSlice>[]) {
     snaps.forEach(snap => {
       switch (snap.type) {
         case 'added':
         case 'modified':
-          store.dispatch(new SetClient(snap.payload.doc));
+          store.dispatch(new SetClient(snap.payload.doc.data()));
           break;
         case 'removed':
-          store.dispatch(new DelClient(snap.payload.doc as IClientSlice));
+          store.dispatch(new DelClient(snap.payload.doc.data()));
       }
     })
   }
