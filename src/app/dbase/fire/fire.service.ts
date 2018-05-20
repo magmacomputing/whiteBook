@@ -6,37 +6,28 @@ import { Observable, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { DBaseModule } from '@app/dbase/dbase.module';
+import { SnapService } from '@app/dbase/fire/snap.service';
+import { AuthService } from '@app/dbase/auth/auth.service';
+
 import { isFunction } from '@lib/object.library';
 import { dbg } from '@lib/log.library';
 
-@Injectable({
-  providedIn: DBaseModule
-})
+@Injectable({ providedIn: DBaseModule })
 export class FireService {
   private dbg: Function = dbg.bind(this);
-  private listener: { [collection: string]: Subscription; } = {};
 
-  constructor(private af: AngularFirestore, private store: Store) {
-    this.init();
-  }
-
-  private init() {
+  constructor(private af: AngularFirestore, private snap: SnapService, private store: Store) {
     this.dbg('init');
-    this.snapOn('/client', this.snapStore);
+    this.snapOn('client', 'public');
   }
 
   /** FireService will manage the sync of data from FireStore down to the client */
-  public snapOn(collection: string, onNext?: (value: DocumentChangeAction<{}>[]) => void) {
-    this.snapOff(collection);                 // turn off any prior Subscription
-
-    this.listener[collection] = this.af.collection(collection)
-      .snapshotChanges()
-      .subscribe(snaps => this.dispatch(this.dbg, onNext, snaps))
+  public snapOn(collection: string, slice: string, onNext?: (value: DocumentChangeAction<{}>[]) => void) {
+    this.snap.snapOn(collection, slice, onNext);
   }
 
   public snapOff(collection: string) {
-    if (this.listener[collection])
-      this.listener[collection];
+    this.snap.snapOff(collection);
   }
 
   /** This is run as a callback */
