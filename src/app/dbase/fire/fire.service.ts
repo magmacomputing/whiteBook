@@ -6,7 +6,7 @@ import { Store, Select } from '@ngxs/store';
 import { IClientState, ClientSlice } from '@app/state/client.state';
 
 import { DBaseModule } from '@app/dbase/dbase.module';
-import { SyncService } from '@app/dbase/fire/sync.service';
+import { SyncService } from '@app/dbase/sync/sync.service';
 
 import { COLLECTION } from '@app/dbase/fire/fire.define';
 import { dbg } from '@lib/log.library';

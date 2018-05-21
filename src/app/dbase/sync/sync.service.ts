@@ -9,7 +9,7 @@ import { SetClient, DelClient } from '@app/state/client.action';
 import { IClientDoc } from '@app/state/client.state';
 
 import { DBaseModule } from '@app/dbase/dbase.module';
-import { IListen } from '@app/dbase/fire/sync.define';
+import { IListen } from '@app/dbase/sync/sync.define';
 import { FIELD } from '@app/dbase/fire/fire.define';
 
 import { isFunction } from '@lib/object.library';
@@ -41,7 +41,7 @@ export class SyncService {
 
     this.dbg('off: %s', collection);
     if (isFunction(listen && listen.subscribe.unsubscribe))
-      listen.subscribe.unsubscribe;
+      listen.subscribe.unsubscribe();
     delete this.listener[collection];
   }
 
