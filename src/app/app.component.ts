@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FireService } from '@app/dbase/fire/fire.service';
 
 @Component({
@@ -6,12 +6,8 @@ import { FireService } from '@app/dbase/fire/fire.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
   constructor(private fire: FireService) { }
 
-  ngOnInit() {
-    // this.fire.sync('client')
-    // .subscribe()
-  }
 }

@@ -3,22 +3,30 @@ import { AngularFirestore } from 'angularfire2/firestore';
 
 import { Observable } from 'rxjs';
 import { Store, Select } from '@ngxs/store';
-import { IClientState } from '@app/state/client.state';
+import { IClientState, ClientSlice } from '@app/state/client.state';
 
 import { DBaseModule } from '@app/dbase/dbase.module';
-import { SnapService } from '@app/dbase/fire/snap.service';
+import { SyncService } from '@app/dbase/fire/sync.service';
 
 import { COLLECTION } from '@app/dbase/fire/fire.define';
 import { dbg } from '@lib/log.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
-  @Select((state: any) => state.client) client$!: Observable<IClientState | null>;
   private dbg: Function = dbg.bind(this);
 
-  constructor(private af: AngularFirestore, private snap: SnapService, private store: Store) {
+  constructor(private af: AngularFirestore, private sync: SyncService, private store: Store) {
     this.dbg('init');
-    snap.on(COLLECTION.Client, 'client');       // initialize a listener to /client Collection
+    this.sync.on(COLLECTION.Client, ClientSlice);     // initialize a listener to /client Collection
+  }
+
+  snap(store: string) {
+    this.store.selectOnce(state => state.client.provider)
+      .subscribe(list => this.dbg('snap: %j', list))
+  }
+
+  off() {
+    this.sync.off(COLLECTION.Client);
   }
 
 }
