@@ -5,17 +5,26 @@ import { FIELD } from '@app/dbase/fire/fire.define';
 
 import { dbg } from '@lib/log.library';
 
-export interface IClientSlice {
-	[FIELD.id]: string;
+export interface IClientDoc {
 	store: string;
-	[name: string]: any;
+	[key: string]: any;
 }
 export interface IClientState {
-	store: [IClientSlice]
+	[store: string]: IClientDoc[];
 }
 
+/**
+ * The 'client' state contains a copy of the remote /client Collection,
+ * separated into distinct 'store' objects.
+ * For example:
+ * client: {
+ * 		class: [ {class documents} ],
+ *  	price: [ {price documents} ],
+ * 		...
+ * 	}
+ */
 @State<IClientState>({
-	name: 'client',
+	name: 'client'
 })
 export class ClientState {
 	private dbg: Function = dbg.bind(this);

@@ -6,3 +6,7 @@ export interface IListen {
 	next?: (value: DocumentChangeAction<{}>[]) => void;
 	subscribe: Subscription;
 };
+
+export interface IDocumentChange<T> {
+	(value: DocumentChangeAction<T>[]): void;
+}
