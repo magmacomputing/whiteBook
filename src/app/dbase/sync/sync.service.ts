@@ -39,9 +39,10 @@ export class SyncService {
   public off(collection: string) {
     const listen = this.listener[collection];
 
-    this.dbg('off: %s', collection);
-    if (isFunction(listen && listen.subscribe.unsubscribe))
+    if (isFunction(listen && listen.subscribe.unsubscribe)) {
       listen.subscribe.unsubscribe();
+      this.dbg('off: %s', collection);
+    }
     delete this.listener[collection];
   }
 
@@ -66,7 +67,7 @@ export class SyncService {
           break;
 
         case 'removed':
-        this.store.dispatch(new DelClient(data));
+          this.store.dispatch(new DelClient(data));
       }
     })
   }
