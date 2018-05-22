@@ -3,7 +3,8 @@ import { AngularFirestore } from 'angularfire2/firestore';
 
 import { Observable } from 'rxjs';
 import { Store, Select } from '@ngxs/store';
-import { IClientState, ClientSlice } from '@app/state/client.state';
+import { SLICE } from '@app/state/state.define';
+import { IClientState } from '@app/state/client.state';
 
 import { DBaseModule } from '@app/dbase/dbase.module';
 import { SyncService } from '@app/dbase/sync/sync.service';
@@ -17,7 +18,7 @@ export class FireService {
 
   constructor(private af: AngularFirestore, private sync: SyncService, private store: Store) {
     this.dbg('init');
-    this.sync.on(COLLECTION.Client, ClientSlice);     // initialize a listener to /client Collection
+    this.sync.on(COLLECTION.Client, SLICE.client);     // initialize a listener to /client Collection
   }
 
   snap(store: string) {

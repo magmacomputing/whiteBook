@@ -1,11 +1,10 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
-import { SetClient, DelClient } from '@app/state/client.action';
+import { SLICE } from '@app/state/state.define';
+import { SetClient, DelClient, TruncClient } from '@app/state/client.action';
 
 import { FIELD } from '@app/dbase/fire/fire.define';
 
 import { dbg } from '@lib/log.library';
-
-export const ClientSlice = 'client';
 
 export interface IClientDoc {
 	[FIELD.id]: string;
@@ -27,7 +26,7 @@ export interface IClientState {
  * 	}
  */
 @State<IClientState>({
-	name: ClientSlice,
+	name: SLICE.client,
 	defaults: {}
 })
 export class ClientState {
@@ -53,6 +52,12 @@ export class ClientState {
 		this.dbg('delClient: %j', payload);
 		patchState({ ...state });
 	}
+
+	@Action(TruncClient)
+	truncClient({ setState }: StateContext<IClientState>) {
+		this.dbg('truncClient');
+		setState({});
+	}	
 
 	/** remove an item from the Client Store */
 	private filterClient(state: IClientState, payload: IClientDoc) {

@@ -12,3 +12,9 @@ export class DelClient {
 	static type = '[Sync Service] Delete Client';
 	constructor(public payload: IClientDoc) { };
 }
+
+// Truncate a Client object from the Store
+export class TruncClient {
+	static type = '[Sync Service] Truncate Client';
+	// constructor(public payload: string) { };
+}
