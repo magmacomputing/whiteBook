@@ -1,4 +1,4 @@
-import { Query, WhereFilterOp, FirebaseFirestore } from '@firebase/firestore-types';
+import { WhereFilterOp, Query } from '@firebase/firestore-types';
 import { AngularFirestoreCollection } from 'angularfire2/firestore';
 import { IQuery, IWhere, IOrderBy } from '@app/dbase/fire/fire.interface';
 

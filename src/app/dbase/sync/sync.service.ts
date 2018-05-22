@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { SnapshotMetadata } from '@firebase/firestore-types';
 import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
 
 import { Subscription } from 'rxjs';
@@ -18,6 +17,7 @@ import { fnQuery } from '@app/dbase/fire/fire.library';
 import { isFunction } from '@lib/object.library';
 import { getHash } from '@lib/utility.library';
 import { dbg } from '@lib/log.library';
+import { SnapshotMetadata } from '@firebase/firestore-types';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
