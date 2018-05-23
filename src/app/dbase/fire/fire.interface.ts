@@ -1,4 +1,3 @@
-// import { FieldPath,  } from 'angularfire2/firestore';
 import { WhereFilterOp, FieldPath } from '@firebase/firestore-types';
 
 /** Query.where */
