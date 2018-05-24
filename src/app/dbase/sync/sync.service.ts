@@ -36,7 +36,7 @@ export class SyncService {
     this.off(collection);                             // detach any prior Subscription
     this.listener[collection] = {
       slice: slice,
-      cnt: -1,                                        // first snapshot will be '0'
+      cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
       subscribe: this.af.collection(collection, fnQuery(query))
         .stateChanges()                               // only watch for changes since last snapshot
         .subscribe(snapDispatch)
