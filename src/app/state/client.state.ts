@@ -1,8 +1,8 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
-import { SLICE } from '@app/state/state.define';
-import { SetClient, DelClient, TruncClient } from '@app/state/client.action';
+import { SLICE } from '@state/state.define';
+import { SetClient, DelClient, TruncClient } from '@state/client.action';
 
-import { FIELD } from '@app/dbase/fire/fire.define';
+import { FIELD } from '@dbase/fire/fire.define';
 
 import { dbg } from '@lib/log.library';
 

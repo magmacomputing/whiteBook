@@ -1,15 +1,13 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from 'angularfire2/firestore';
+import { DBaseModule } from '@dbase/dbase.module';
 
-import { Observable } from 'rxjs';
-import { Store, Select } from '@ngxs/store';
-import { SLICE } from '@app/state/state.define';
-import { IClientState } from '@app/state/client.state';
+import { Store } from '@ngxs/store';
+import { SLICE } from '@state/state.define';
 
-import { DBaseModule } from '@app/dbase/dbase.module';
-import { SyncService } from '@app/dbase/sync/sync.service';
+import { COLLECTION } from '@dbase/fire/fire.define';
+import { SyncService } from '@dbase/sync/sync.service';
 
-import { COLLECTION } from '@app/dbase/fire/fire.define';
 import { dbg } from '@lib/log.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -22,7 +20,7 @@ export class FireService {
   }
 
   snap(store: string) {
-    this.store.selectOnce(state => state.client.provider)
+    this.store.selectOnce(state => state.client[store])
       .subscribe(list => this.dbg('snap: %j', list))
   }
 

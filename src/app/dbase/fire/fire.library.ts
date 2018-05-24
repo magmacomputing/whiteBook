@@ -1,6 +1,6 @@
 import { WhereFilterOp, Query } from '@firebase/firestore-types';
 import { AngularFirestoreCollection } from 'angularfire2/firestore';
-import { IQuery, IWhere, IOrderBy } from '@app/dbase/fire/fire.interface';
+import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 
 import { getType } from '@lib/object.library';
 import { isNumeric } from '@lib/string.library';

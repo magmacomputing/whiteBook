@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { RoutingModule } from '@route/routing.module';
 import { AppComponent } from './app.component';
-import { DBaseModule } from '@app/dbase/dbase.module';
+import { DBaseModule } from '@dbase/dbase.module';
 
 @NgModule({
   declarations: [

@@ -1,5 +1,5 @@
-import { IClientDoc } from '@app/state/client.state';
-import { FIELD } from '@app/dbase/fire/fire.define';
+import { IClientDoc } from '@state/client.state';
+import { FIELD } from '@dbase/fire/fire.define';
 
 // Add a Client object into the Store
 export class SetClient {

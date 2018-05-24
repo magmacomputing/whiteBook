@@ -50,6 +50,7 @@ export const enum FIELD {					//  common Field names
 	id = '_id',
 	uid = 'uid',
 	key = '_key',
+	store = 'store',
 	memberId = 'memberId'
 };
 

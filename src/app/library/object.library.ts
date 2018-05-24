@@ -36,6 +36,21 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
     }, col);
 };
 
+/** sort Object by multiple keys */
+export const sortKeys = (keys: any[] = []): any => (a: any, b: any) => {
+	const key = keys[0];														// take out the first key
+	switch (true) {
+		case keys.length === 0:
+			return 0;
+		case a[key] < b[key]:
+			return -1;
+		case a[key] > b[key]:
+			return 1;
+		default:
+			return sortKeys(keys.slice(1))(a, b);
+	}
+}
+
 /** lowerCase Object keys */
 export const lowerObj = (obj: any) => {
   if (!isObject(obj))

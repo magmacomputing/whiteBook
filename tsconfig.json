@@ -28,6 +28,9 @@
       "@lib/*": [
         "src/app/library/*"
       ],
+      "@dbase/*": [
+        "src/app/dbase/*"
+      ],
       "@svc/*": [
         "src/app/service/*"
       ],

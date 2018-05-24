@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FireService } from '@app/dbase/fire/fire.service';
+import { FireService } from '@dbase/fire/fire.service';
 
 @Component({
   selector: 'wb-root',
