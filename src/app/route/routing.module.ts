@@ -11,7 +11,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-	imports: [RouterModule.forRoot(routes), CommonModule],
+	imports: [CommonModule, RouterModule.forRoot(routes)],
 	exports: [RouterModule],
 	declarations: [LoginComponent]
 })
