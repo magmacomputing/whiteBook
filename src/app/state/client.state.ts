@@ -4,7 +4,7 @@ import { SetClient, DelClient, TruncClient } from '@state/client.action';
 
 import { FIELD } from '@dbase/fire/fire.define';
 
-import { dbg } from '@lib/log.library';
+import { dbg } from '@lib/logger.library';
 
 export interface IClientDoc {
 	[FIELD.id]: string;

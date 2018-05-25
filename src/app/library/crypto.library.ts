@@ -9,14 +9,6 @@ export const getHash = async (source: string | Object, len: number = 40) => {
 	return toHex([...(new Uint8Array(hash))]);
 }
 
-export const getSign = async (source: any) => {
-	const str = isString(source) ? source : JSON.stringify(source);
-	const buffer = toArrayBuffer(str);
-	const key = new CryptoKey();
-
-	const sign = await crypto.subtle.sign('sha-256', key, buffer);
-}
-
 const toArrayBuffer = (str: string) => {
 	const buf = new ArrayBuffer(str.length * 2);		// 2 bytes for each char
 	const bufView = new Uint16Array(buf);
@@ -43,7 +35,8 @@ const asymetricKey = crypto.subtle.generateKey({
 
 export const cryptoEncrypt = async (data: any) => {
 	return crypto.subtle.encrypt({ name: 'AES-CBC', iv: vector }, await cryptoKey, toArrayBuffer(data))
-		// .then(result => new Uint8Array(result));
+		.then(result => new Uint16Array(result))
+		.then(fromArrayBuffer);
 }
 
 export const cryptoDecrypt = async (secret: Promise<ArrayBuffer>) => {
@@ -53,9 +46,11 @@ export const cryptoDecrypt = async (secret: Promise<ArrayBuffer>) => {
 }
 
 export const cryptoSign = async (doc: any) => {
-	return crypto.subtle.sign('RSASSA-PKCS1-v1_5', (await asymetricKey).privateKey, toArrayBuffer(doc));
+	return crypto.subtle.sign('RSASSA-PKCS1-v1_5', (await asymetricKey).privateKey, toArrayBuffer(doc))
+		.then(result => new Uint16Array(result))
+		.then(fromArrayBuffer);
 }
 
-export const cryptoVerify = async (signature: Promise<ArrayBuffer>, doc:any) => {
+export const cryptoVerify = async (signature: Promise<ArrayBuffer>, doc: any) => {
 	return crypto.subtle.verify('RSASSA-PKCS1-v1_5', (await asymetricKey).publicKey, await signature, toArrayBuffer(doc));
 }

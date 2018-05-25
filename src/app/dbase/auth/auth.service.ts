@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import {dbg } from '@lib/log.library';
+import {dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class AuthService {

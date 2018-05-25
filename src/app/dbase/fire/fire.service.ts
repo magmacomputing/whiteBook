@@ -8,7 +8,7 @@ import { SLICE } from '@state/state.define';
 import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';
 
-import { dbg } from '@lib/log.library';
+import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class FireService {

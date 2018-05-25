@@ -2,22 +2,20 @@ import { Injectable } from '@angular/core';
 import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
 import { SnapshotMetadata } from '@firebase/firestore-types';
 
-import { Subscription } from 'rxjs';
-
 import { Store } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
 import { SetClient, DelClient, TruncClient } from '@state/client.action';
 import { IClientDoc } from '@state/client.state';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { IListen, StoreStorage, StoreHash } from '@dbase/sync/sync.define';
+import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { FIELD, COLLECTION } from '@dbase/fire/fire.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isFunction, sortKeys } from '@lib/object.library';
-import { getHash } from '@lib/utility.library';
-import { dbg } from '@lib/log.library';
+import { getHash } from '@lib/crypto.library';
+import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -30,8 +28,9 @@ export class SyncService {
   }
 
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
-  public async on(collection: string, slice: string, query?: IQuery) {
+  public async on(collection: string, slice?: string, query?: IQuery) {
     const snapDispatch = this.snapDispatch.bind(this, collection);
+    slice = slice || collection;                      // default to same-name as collection
 
     this.off(collection);                             // detach any prior Subscription
     this.listener[collection] = {
@@ -77,7 +76,8 @@ export class SyncService {
         getHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
         getHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
       ])
-      if (localHash === storeHash)
+
+      if (localHash === storeHash)                  // compare what is in Snap-0 with localStorage
         return;                                     // already sync'd  
       this.store.dispatch(new TruncClient());       // otherwise, reset Store
     }
