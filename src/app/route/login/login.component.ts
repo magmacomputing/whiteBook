@@ -12,7 +12,7 @@ import { FireService } from '@dbase/fire/fire.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  @Select((state: IClientState) => state.provider) providers!: Observable<IProvider[]>;
+  @Select((state: any) => state.client['provider']) providers!: Observable<IProvider[]>;
 
   constructor(public readonly fire: FireService) { }
 
