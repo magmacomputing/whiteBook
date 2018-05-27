@@ -21,7 +21,7 @@
     "@ngxs/storage-plugin": "^3.0.1",
     "@ngxs/store": "^3.0.1",
     "angularfire2": "^5.0.0-rc.10",
-    "core-js": "^2.5.4",
+    "core-js": "^2.5.7",
     "firebase": "^5.0.4",
     "moment": "^2.22.1",
     "rxjs": "^6.2.0",
