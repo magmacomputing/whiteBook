@@ -1,6 +1,7 @@
 import { isString, isArray, isNumber, isFunction } from '@lib/object.library';
 import { toHex } from '@lib/number.library';
 
+// TODO: new TextEncoder() when Typescript 2.8
 export const getHash = async (source: string | Object, len: number = 40) => {
 	const str = isString(source) ? source : JSON.stringify(source);
 	const buffer = toArrayBuffer(str);

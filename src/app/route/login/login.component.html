@@ -4,7 +4,9 @@
 
 <div>
   <ul>
-    <li *ngFor="let provider of providers | async">{{provider.name}}, {{provider._disable}}, {{provider._expire}}</li>
+    <li *ngFor="let provider of providers | async">
+      {{provider.name}} , {{provider._expire}}{{provider._disable}}
+    </li>
   </ul>
 
 </div>

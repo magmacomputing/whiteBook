@@ -5,6 +5,7 @@ import { SetClient, DelClient, TruncClient } from '@state/client.action';
 import { FIELD } from '@dbase/fire/fire.define';
 
 import { dbg } from '@lib/logger.library';
+import { stateNameErrorMessage } from '@ngxs/store/src/state';
 
 export interface IClientDoc {
 	[FIELD.id]: string;
@@ -57,12 +58,18 @@ export class ClientState {
 	truncClient({ setState }: StateContext<IClientState>) {
 		this.dbg('truncClient');
 		setState({});
-	}	
+	}
 
 	/** remove an item from the Client Store */
 	private filterClient(state: IClientState, payload: IClientDoc) {
 		const curr = state && state[payload.store] || [];
 
 		return curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id]);
+	}
+
+	/** Selectors */
+	@Selector()
+	static providers(state: IClientState) {
+		return state['provider'].filter(itm => !itm[FIELD.expire])
 	}
 }

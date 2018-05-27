@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Select } from '@ngxs/store';
-import { IClientState } from '@app/state/client.state';
+import { ClientState } from '@state/client.state';
 
 import { IProvider } from '@func/app/app.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -12,10 +12,9 @@ import { FireService } from '@dbase/fire/fire.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  @Select((state: any) => state.client['provider']) providers!: Observable<IProvider[]>;
+  @Select(ClientState.providers) providers!: Observable<IProvider[]>;
 
   constructor(public readonly fire: FireService) { }
 
   ngOnInit() { }
-
 }
