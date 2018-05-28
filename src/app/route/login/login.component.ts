@@ -1,10 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Select } from '@ngxs/store';
-import { ClientState } from '@state/client.state';
+import { map } from 'rxjs/operators';
 
+import { Select } from '@ngxs/store';
+import { SLICE } from '@state/state.define';
+import { ClientState } from '@state/client.state';
+import { IClientState } from '@state/client.define';
+
+import { FIELD } from '@dbase/fire/fire.define';
 import { IProvider } from '@func/app/app.interface';
-import { FireService } from '@dbase/fire/fire.service';
+import { dbg } from '@lib/logger.library';
 
 @Component({
   selector: 'wb-login',
@@ -12,9 +17,12 @@ import { FireService } from '@dbase/fire/fire.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  @Select(ClientState.providers) providers!: Observable<IProvider[]>;
+  private dbg: Function = dbg.bind(this);
+  @Select((state: any) => state[SLICE.client]['provider']
+    .filter((itm: any) => !itm[FIELD.expire]))
+  providers!: Observable<IProvider[]>;
 
-  constructor(public readonly fire: FireService) { }
+  constructor() { }
 
   ngOnInit() { }
 }

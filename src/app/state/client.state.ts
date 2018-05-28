@@ -44,12 +44,12 @@ export class ClientState {
 	private filterClient(state: IClientState, payload: IClientDoc) {
 		const curr = state && state[payload.store] || [];
 
-		return curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id]);
+		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
 
 	/** Selectors */
 	@Selector()
 	static providers(state: IClientState) {
-		return state['provider'].filter(itm => !itm[FIELD.expire])
+		return [...state['provider'].filter(itm => !itm[FIELD.expire])];
 	}
 }
