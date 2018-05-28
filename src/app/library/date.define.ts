@@ -1,5 +1,3 @@
-import { IObject } from "@lib/object.library";
-
 /** an array of Formats for Moment() to try against a string Date */
 export const MOMENT_FMT = [
 	'DD-MMM-YYYY',
@@ -29,9 +27,7 @@ export interface IDate {
 	elapse: string;
 }
 
-type TDate = { [K in keyof IDate]: string; }
-
-export const DATE_FMT: TDate = {
+export const DATE_FMT: Record<keyof IDate, string> = {
 	cell: 'ddd, YYYY-MMM-DD HH:mm:ss',      // used to parse Check-In dates from a cell
 	short: 'ddd, YYYY-MMM-DD',              // used when time-portion is not relevant
 	display: 'YYYY-MM-DD HH:mm:ss',         // used to format a date for display

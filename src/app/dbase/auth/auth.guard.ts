@@ -1,31 +1,38 @@
-// import { Injectable } from '@angular/core';
-// import { Router, CanActivate } from '@angular/router';
-// import { RoutingModule } from '@route/routing.module';
+import { Injectable } from '@angular/core';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
-// import { Observable } from 'rxjs';
-// import { Store } from '@ngxs/store';
-// import { IAuthState, AuthState } from '@svc/state/auth.state';
-// import { StateService } from '@svc/state/state.service';
-// import { TTokenClaims, JWT } from './auth.interface';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Select, Store } from '@ngxs/store';
 
-// import { getStamp } from '@lib/date.library';
-// import { dbg } from '@lib/log.library';
-// import { isUndefined } from '@app/library/object.library';
+import { AuthModule } from '@dbase/auth/auth.module';
+import { JWT } from '@dbase/auth/auth.interface';
+import { LoginRedirect, IAuthState } from '@state/auth.define';
+import { isNull, isUndefined } from '@lib/object.library';
+import { getStamp } from '@lib/date.library';
+import { dbg } from '@lib/logger.library';
 
-// @Injectable()
-// export class AuthGuard implements CanActivate {
-// 	private dbg: Function = dbg.bind(this);
+@Injectable({ providedIn: AuthModule })
+export class AuthGuard implements CanActivate {
+  private dbg: Function = dbg.bind(this);
+  @Select() auth$!: Observable<IAuthState>;         // current Authentication object
 
-// 	constructor(private router: Router, private state: StateService) { }
+  constructor(private store: Store) { }
 
-// 	canActivate() {
-// 		const claims = this.state.selectSnapshot<TTokenClaims>((state: any) => state.auth && state.auth.claims);
-
-// 		if (claims && claims[JWT.expires] > getStamp()) {				// is expiration later than now()
-// 			return true;
-// 		}
-
-// 		this.router.navigate(['/login']);
-// 		return false;
-// 	}
-// }
+  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    return this.auth$.pipe(
+      map(auth => {
+        this.dbg('auth: %j', auth);
+        if (isNull(auth) || isUndefined(auth)) {
+          this.store.dispatch(new LoginRedirect()); // not logged-in
+          return false;
+        }
+        if (auth && auth.userToken && auth.userToken[JWT.expires] < getStamp()) {
+          this.store.dispatch(new LoginRedirect()); // authentication expired
+          // return false;
+        }
+        return true;                                // ok to access Route
+      })
+    );
+  }
+}

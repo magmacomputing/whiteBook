@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { DBaseModule } from '@dbase/dbase.module';
+import { AuthModule } from '@dbase/auth/auth.module';
 
 import {dbg } from '@lib/logger.library';
 
-@Injectable({ providedIn: DBaseModule })
+@Injectable({ providedIn: AuthModule })
 export class AuthService {
   private dbg: Function = dbg.bind(this);
 

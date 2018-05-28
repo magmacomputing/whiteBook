@@ -1,31 +1,11 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
-import { SetClient, DelClient, TruncClient } from '@state/client.action';
+import { IClientState, IClientDoc } from '@state/client.define';
+import { SetClient, DelClient, TruncClient } from '@state/client.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
-
 import { dbg } from '@lib/logger.library';
-import { stateNameErrorMessage } from '@ngxs/store/src/state';
 
-export interface IClientDoc {
-	[FIELD.id]: string;
-	store: string;
-	[key: string]: any;
-}
-export interface IClientState {
-	[store: string]: IClientDoc[];
-}
-
-/**
- * The 'client' state contains a copy of the remote /client Collection,
- * separated into distinct 'store' objects.
- * For example:
- * client: {
- * 		class: [ {class documents} ],
- *  	price: [ {price documents} ],
- * 		...
- * 	}
- */
 @State<IClientState>({
 	name: SLICE.client,
 	defaults: {}

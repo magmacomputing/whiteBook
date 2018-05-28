@@ -4,8 +4,7 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 
 import { Store } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
-import { SetClient, DelClient, TruncClient } from '@state/client.action';
-import { IClientDoc } from '@state/client.state';
+import { IClientDoc, SetClient, DelClient, TruncClient } from '@state/client.define';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
