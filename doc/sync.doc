@@ -1,0 +1,40 @@
+onAuthStateChanged()
+
+if User === undefined (logged-out)
+	sync.unSubscribe()
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+otherwise
+await
+	fireService()				// wait for Firebase and IndexedDB to sync
+	getUID()						// Claims-object on the auth-token   {uid}
+
+this.stamp = read idb.wf_member.profile.{UID}
+
+snapDoc(/member/{UID})
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+onSnap(snap)
+storeList = await this.idb.cursorPrimaryKey(SCHEMA.Schema);
+storeSnaps: Promise<any>[] = [];
+
+Object.keys(snap).forEach(store => {				// look through the /member/{UID} document fields
+	if (snap[store] !== -1) {									// sync is not disabled
+		if (snap[store] !== this.tstamp[store]) {// if we dont have the latest version
+			if (storeList.includes(store))				// must be an already-created ObjectStore
+				storeSnaps.push(this.updateStore(store, snap[store]))
+		}
+	}
+})
+
+return Promise.all(storeSnaps);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+updateStore(store) {
+																						// we should not have any doc later than the server's
+																						// this will assist with sync'ing server-deletes
+	delList = this.idb.cursorPrimaryKey(store, '_modify' >= snap[store])
+		.forEach(doc => this.idb.delete(store, doc));
+																						// see if the server has any later documents for us
+	docs = this.fs.getAll(store, '_modify' >= this.stamp[store]   &&   'uid === {UID})
+	this.idb.putAll(docs);
+}

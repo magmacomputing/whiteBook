@@ -1,0 +1,85 @@
+~~~~~~~~
+fire.service
+	inject IdbService					(which creates wf_admin._schema_)
+
+new SyncClient('/public/client', dbase==='admin_')					# /_schema_, /_config_
+new SyncClient('/public/client', dbase==='public')					# /class, /event/, /price, /provider, /schedule
+
+~~~~~~~~
+auth.service
+	inject IdbService,
+	inject FireService
+
+new SyncClient('/member/data',  dbase==='data')							# /attend, /account, /profile
+new SyncClient('/member/{uid}', dbase==='member')						# /message, /history
+
+~~~~~~~~
+class SyncClient() {
+	static promise: Promise<boolean>;
+	static resolve: IResolve<any>;
+	static reject: IReject;
+
+	private listeners = [];
+	private stores = [];
+
+	constructor(dbase) {
+		isAdmin = dbase === 'admin_';
+		if (isAdmin){
+			SyncClient.admin = 0;															set the initial Promise
+			first = true;																			# we expect 'admin_' to be the first instance
+		}															
+		 else	await SyncClient.admin;												# schema upgrade in progress
+		
+		cb = isAdmin ? syncAdmin : syncStore;
+		this.listeners = getStores(dbase).map(store => new SnapStore(store, {callback: cb}))
+	}
+
+~~~~~~~~
+	syncAdmin() {
+		if (!first)
+			SyncClient.admin = 0;															# start a new Promise
+		if (snap.cnt === 0) {
+			idbCnt = await this.idb.count(store);
+			if (snap.size === idbCnt) return;
+		}
+
+		this.idb.upgrade(snap['insert']);
+		this.idb.upgrade(snap['modify']);
+		# this.idb.dropStore(snap['delete']);								# TODO:   delete an ObjectStore
+
+		SyncClient.fulfil = true;														# let SyncClient instances continue
+		first = false;
+	}
+
+~~~~~~~~
+	syncStore(snap) {
+		SyncClient.admin.then(_ => {												# check again for schema-upgrade in progress
+			if (snap.cnt === 0) {
+				idbCnt = await this.idb.count(store);
+				if (snap.size !== idbCnt)												# first snap should always return a full-set
+					await idb.clear(store);
+			}
+
+			this.idb.putAll(snap['insert']);
+			this.idb.putAll(snap['modify']);
+			this.idb.deleteAll(snap['delete']);
+		})
+
+	}
+
+~~~~~~~~
+	getStores(dbase) {
+		stores = await this.idb.cursorPrimaryKey(_schema_.byDBase, IDBKeyRange.only(dbase))
+		return stores.filter(store => store._expire === 0)
+	}
+}
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+v2.0
+~~~~~~~~~~~~~~~~~~~~~~~~
+fire.service
+	inject IdbService					(which creates wf_admin._schema_)
+
+new SyncClient('/public/client', dbase==='public')					# /class, /event/, /price, /provider, /schedule (, /config?)

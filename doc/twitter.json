@@ -1,0 +1,31 @@
+{
+    "uid": "ijaPNWJqfmah4t50OGkt8diZ3lS2",
+    "displayName": "Michael Anonymous",
+    "photoURL": "https://pbs.twimg.com/profile_images/479577183250173952/3g1ffwee_normal.png",
+    "email": null,
+    "emailVerified": false,
+    "phoneNumber": null,
+    "isAnonymous": false,
+    "providerData": [
+        {
+            "uid": "2391800215",
+            "displayName": "Michael Anonymous",
+            "photoURL": "https://pbs.twimg.com/profile_images/479577183250173952/3g1ffwee_normal.png",
+            "email": "michael@magmacomputing.com.au",
+            "phoneNumber": null,
+            "providerId": "twitter.com"
+        }
+    ],
+    "apiKey": "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
+    "appName": "[DEFAULT]",
+    "authDomain": "whitefire-dev.firebaseapp.com",
+    "stsTokenManager": {
+        "apiKey": "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
+        "refreshToken": "AEoYo8vgUnuNyDaXUv9mttHNaaXyuRNSwrAeFwr3uqtHFLc4WewUKoyqDiPD0ss43jyPMrtJhVcr2Bucu1UiiX-jO827fDVpI3dtI0AVHbUv16Ycq7wslc7UBRdNVPuD6IsviIlcHBazcWDBFNkKFNqu89bE0S1WXS4kYPrlcSUNlcEtAdkOk6i45ez6-1hFeyeLEdhXz3LW3S5_I3CI0iT3AERjm2M3zFiRvGoqNRIbJlA6YO-Jv9XRL9ku0PpMTr2LZHpDc1Tbn0ljdN5hgEden6xKkcawqRPvDgspYQR2WSkm7Xcug5J8TIC9vx-0u-zKRKbmg7cltPuqc1l-ZfSjJM1TZtuFL32Yi8-9eb0D2dvphdPRvUQ",
+        "accessToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ1Y2I0NzI3ODBhOTdjMTY3MzYxNDBlNzEzMjI5ZWQxZjlmNWNjODEifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hpdGVmaXJlLWRldiIsIm5hbWUiOiJNaWNoYWVsIEFub255bW91cyIsInBpY3R1cmUiOiJodHRwczovL3Bicy50d2ltZy5jb20vcHJvZmlsZV9pbWFnZXMvNDc5NTc3MTgzMjUwMTczOTUyLzNnMWZmd2VlX25vcm1hbC5wbmciLCJhdWQiOiJ3aGl0ZWZpcmUtZGV2IiwiYXV0aF90aW1lIjoxNTEzMjkwNTY5LCJ1c2VyX2lkIjoiaWphUE5XSnFmbWFoNHQ1ME9Ha3Q4ZGlaM2xTMiIsInN1YiI6ImlqYVBOV0pxZm1haDR0NTBPR2t0OGRpWjNsUzIiLCJpYXQiOjE1MTMyOTA1NjksImV4cCI6MTUxMzI5NDE2OSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJ0d2l0dGVyLmNvbSI6WyIyMzkxODAwMjE1Il19LCJzaWduX2luX3Byb3ZpZGVyIjoidHdpdHRlci5jb20ifX0.eWis4cJpUULD6OEHWNJU8nnK4pBpK5Ao1IZSbK2sgoZ-Ule0c5uA3DrcoOm4F7HLgzHMvqdomDqIdbRT4YXoscpSZX-0QFZjFK1S-nIsCTKCJFLYdFjVr0jRzyYj7uEBy-9SPavVe3zjldJwvY1TBhzkUKsTshqNm5fdpFulrqH6bkQ5rgLBhkXyNC9aWy5v4VTGpDWen5X7Lrs3YOWw4t1vyNB5oQVt6rGzzfnKpUR624UWZFdYy3C2yZbjZlvmaAzX0sDV8Sfk3do8sSYUZMnQvs-kohVgg-qfdWHgo1Keznn9_OgIdJN-migmsTc9DFeo6lXs0J1cWXJ8A-SeDQ",
+        "expirationTime": 1513294170020
+    },
+    "redirectEventId": null,
+    "lastLoginAt": "1513290569000",
+    "createdAt": "1513290238000"
+}

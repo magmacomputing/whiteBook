@@ -1,0 +1,57 @@
+/**
+ * each write request goes to FireService
+ *	which sends to backend, via fire.library setDoc()
+ *	which triggers a snapshot (both cache, and after commit)
+ *	which triggers SnapStore (onSnapShot) and FireSync (via callBack)
+ *  which triggers a sync-event, from FB down to IDB
+ *	which triggers a re-load of FireSync cache
+ *
+ * each read request goes to FireService
+ *	which proxies to FireSync
+ *	which returns cache of latest snapshots from IDB
+ */
+
+IDBService
+*> on Init
+		connect to IndexedDB, else instantiate Admin IDB
+
+FireService
+*> on Init,
+		if this.idb.count(SCHEMA.Schema) > 2
+			resolve(fireService)  as ready
+		setup listener on /public/client document, callback syncClient()
+
+		snapshot('/public/client/sync')
+			.forEach(sync)
+		setup listener on /notify
+
+*> on Notify,
+		determine what to sync (might be AuthService?)
+
+*> syncClient(curr)
+	prev = this.idb.get('_config_', 'client')				// the latest timestamps for each IDBObjectStore
+	where curr._schema_ > prev._schema_
+		await idb.upgrade()
+		change prev._schema_ = curr._schema_
+  where curr > prev
+		idb.truncate(prev)
+	this.idb.put('_config_', prev);									// re-write local _config_/client document
+
+
+*~~~
+/public/client/sync
+	{
+		calendar: 123
+
+	}
+
+sync(snap) {
+	read _config_, 'sync' || {}
+	if (snap.ts > sync[store]))
+		get /public/client/{store}
+		idb.clear(store)
+		idb.putAll(store, {get})
+		sync[store] = snap.ts
+	)
+	write _config_, 'sync'
+}

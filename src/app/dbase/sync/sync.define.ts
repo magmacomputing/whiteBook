@@ -3,7 +3,6 @@ import { Subscription } from 'rxjs';
 export interface IListen {
 	slice: string;
 	cnt: number;
-	// hash: string;
 	subscribe: Subscription;
 };
 
