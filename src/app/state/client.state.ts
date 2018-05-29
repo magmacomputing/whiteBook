@@ -15,8 +15,8 @@ export class ClientState implements NgxsOnInit {
 
 	constructor() { this.dbg('new'); }
 
-	ngxsOnInit(ctx: StateContext<IClientState>) {
-		// ctx.dispatch(new CheckSession());		// TODO: why this does not fire?
+  ngxsOnInit(ctx: StateContext<IClientState>) {		// TODO: why this does not fire?
+		// ctx.dispatch(new CheckSession());
 		this.dbg('onInit:');
 	}
 
@@ -27,7 +27,6 @@ export class ClientState implements NgxsOnInit {
 
 		store.push(payload);										// push the changed ClientDoc into the Store
 		state[payload.store] = store;
-		this.dbg('setClient: %j', payload);
 		patchState({ ...state });
 	}
 

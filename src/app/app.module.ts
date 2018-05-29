@@ -17,12 +17,12 @@ import { StoreStorage } from '@dbase/sync/sync.define';
   ],
   imports: [
     BrowserModule,
-    RoutingModule,
-    DBaseModule,
-    AuthModule,
     NgxsModule.forRoot([]),
     NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
     NgxsRouterPluginModule.forRoot(),
+    RoutingModule,
+    DBaseModule,
+    AuthModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

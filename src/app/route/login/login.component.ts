@@ -1,10 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { Observable, from } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
 
-import { Select, Store } from '@ngxs/store';
+import { Select, StateContext } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
-import { ClientState } from '@state/client.state';
 import { IClientState, IClientDoc } from '@state/client.define';
 
 import { FireService } from '@dbase/fire/fire.service';
@@ -17,10 +15,9 @@ import { dbg } from '@lib/logger.library';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
   private dbg: Function = dbg.bind(this);
   @Select((state:any) => state[SLICE.client]['provider'])  provider$!: Observable<IProvider[]>;
-  // @Select((state: any) => state.client.provider) provider$!: Observable<IProvider[]>;
 
   constructor(private readonly fire: FireService) {
     // this.fire.snap('provider');       // for some reason, we need to kick-start 1st-time subscribers
@@ -28,9 +25,5 @@ export class LoginComponent implements OnInit {
     //   .collection<IClientDoc>(COLLECTION.Client)
     //   .valueChanges()
     //   .subscribe(snap => { sub.unsubscribe() })
-  }
-
-  ngOnInit() { 
-    this.fire.snap('provider');
   }
 }
