@@ -8,15 +8,14 @@ import { dbg } from '@lib/logger.library';
 
 @State<IClientState>({
 	name: SLICE.client,
-	defaults: {}
+	defaults: { }
 })
 export class ClientState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
 	constructor() { this.dbg('new'); }
 
-  ngxsOnInit(ctx: StateContext<IClientState>) {		// TODO: why this does not fire?
-		// ctx.dispatch(new CheckSession());
+	ngxsOnInit(ctx: StateContext<IClientState>) {
 		this.dbg('onInit:');
 	}
 
@@ -27,6 +26,7 @@ export class ClientState implements NgxsOnInit {
 
 		store.push(payload);										// push the changed ClientDoc into the Store
 		state[payload.store] = store;
+		this.dbg('setClient: %j', payload);
 		patchState({ ...state });
 	}
 

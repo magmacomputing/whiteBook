@@ -3,9 +3,7 @@
 </p>
 
 <div>
-  <ul>
-    <li *ngFor="let provider of provider$ | async">
-      {{provider.name}} , {{provider._expire}}{{provider._disable}}
-    </li>
-  </ul>
+  <div *ngFor="let provider of provider$ | async">
+    <button [disabled]="provider._disable" (click)='fire.signIn(provider._id)'>{{provider.name}}</button>
+  </div>
 </div>

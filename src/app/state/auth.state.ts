@@ -45,7 +45,7 @@ export class AuthState implements NgxsOnInit {
 				this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 				if (user)
 					sc.dispatch(new LoginSuccess(user))
-				else sc.dispatch(new Navigate(['/login']));
+				// else sc.dispatch(new Navigate(['/login']));
 			})
 		);
 	}

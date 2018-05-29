@@ -13,6 +13,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isFunction, sortKeys } from '@lib/object.library';
+import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
 
@@ -30,23 +31,27 @@ export class SyncService {
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
   public async on(collection: string, slice?: string, query?: IQuery) {
     const snapDispatch = this.snapDispatch.bind(this, collection);
+    const ready = createPromise<boolean>();
     slice = slice || collection;                      // default to same-name as collection
 
     this.off(collection);                             // detach any prior Subscription
     this.listener[collection] = {
       slice: slice,
+      ready: ready,
       cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
       subscribe: this.af.collection(collection, fnQuery(query))
         .stateChanges()                               // only watch for changes since last snapshot
         .subscribe(snapDispatch)
     }
+
+    return ready.promise;                             // indicate when snap0 is complete
   }
 
   /** detach an existing snapshot listener */
   public off(collection: string) {
     const listen = this.listener[collection];
 
-    if (isFunction(listen && listen.subscribe.unsubscribe)) {
+    if (listen && isFunction(listen.subscribe.unsubscribe)) {
       listen.subscribe.unsubscribe();
       this.dbg('off: %s', collection);
     }
@@ -77,8 +82,11 @@ export class SyncService {
         cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
       ])
 
+      listen.ready.resolve(true);                   // indicate snap0 is ready
+
       if (localHash === storeHash)                  // compare what is in Snap-0 with localStorage
         return;                                     // already sync'd  
+
       this.store.dispatch(new TruncClient());       // otherwise, reset Store
     }
 

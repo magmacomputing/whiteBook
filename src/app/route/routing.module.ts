@@ -9,7 +9,7 @@ import { AttendComponent } from '@route/attend/attend.component';
 const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
 	{ path: 'attend', component: AttendComponent, canActivate: [AuthGuard] },
-	{ path: '**', redirectTo: '/login', pathMatch: 'full' },
+	// { path: '**', redirectTo: '/login', pathMatch: 'full' },
 ];
 
 @NgModule({
