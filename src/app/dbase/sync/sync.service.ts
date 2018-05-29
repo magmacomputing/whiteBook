@@ -13,7 +13,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isFunction, sortKeys } from '@lib/object.library';
-import { getHash } from '@lib/crypto.library';
+import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -24,6 +24,7 @@ export class SyncService {
 
   constructor(private af: AngularFirestore, private store: Store) {
     this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
+    this.dbg('new');
   }
 
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
@@ -72,8 +73,8 @@ export class SyncService {
 
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
       let [localHash, storeHash] = await Promise.all([
-        getHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
-        getHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
+        cryptoHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
+        cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
       ])
 
       if (localHash === storeHash)                  // compare what is in Snap-0 with localStorage

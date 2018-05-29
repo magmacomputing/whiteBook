@@ -3,7 +3,7 @@ import { AngularFireAuth } from 'angularfire2/auth';
 import { User, UserInfo } from '@firebase/auth-types';
 
 import { take, tap } from 'rxjs/operators';
-import { State, Selector, StateContext, Action, Store } from '@ngxs/store';
+import { State, Selector, StateContext, Action, Store, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@app/state/state.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess } from '@state/auth.define';
@@ -17,7 +17,7 @@ import { dbg } from '@lib/logger.library';
 		userToken: null,
 	}
 })
-export class AuthState {
+export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
 	constructor(private store: Store, private afAuth: AngularFireAuth, private ref: ApplicationRef) { }

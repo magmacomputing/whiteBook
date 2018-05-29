@@ -1,4 +1,4 @@
-import { State, Action, StateContext, Selector } from '@ngxs/store';
+import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
 import { IClientState, IClientDoc } from '@state/client.define';
 import { SetClient, DelClient, TruncClient } from '@state/client.define';
@@ -10,11 +10,18 @@ import { dbg } from '@lib/logger.library';
 	name: SLICE.client,
 	defaults: {}
 })
-export class ClientState {
+export class ClientState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
+	constructor() { this.dbg('new'); }
+
+	ngxsOnInit(ctx: StateContext<IClientState>) {
+		// ctx.dispatch(new CheckSession());		// TODO: why this does not fire?
+		this.dbg('onInit:');
+	}
+
 	@Action(SetClient)
-	setClient({ patchState, getState }: StateContext<IClientState>, { payload }: SetClient) {
+	setClient({ patchState, getState, setState }: StateContext<IClientState>, { payload }: SetClient) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 

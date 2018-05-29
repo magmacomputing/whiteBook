@@ -7,5 +7,7 @@ import {dbg } from '@lib/logger.library';
 export class AuthService {
   private dbg: Function = dbg.bind(this);
 
-  constructor() { }
+  constructor() {
+    this.dbg('new');
+   }
 }

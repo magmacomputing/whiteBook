@@ -1,12 +1,11 @@
 <p>
-  login works!
+  Please select a Login-Provider from the list below...
 </p>
 
 <div>
   <ul>
-    <li *ngFor="let provider of providers | async">
+    <li *ngFor="let provider of provider$ | async">
       {{provider.name}} , {{provider._expire}}{{provider._disable}}
     </li>
   </ul>
-
 </div>
