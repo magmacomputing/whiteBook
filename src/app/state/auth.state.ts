@@ -20,8 +20,12 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private store: Store, private afAuth: AngularFireAuth, private ref: ApplicationRef) { }
+	constructor(private store: Store, private afAuth: AngularFireAuth, private ref: ApplicationRef) {
+		this.dbg('new');
+	}
+
 	ngxsOnInit(sc: StateContext<IAuthState>) {
+		this.dbg('onInit');
 		sc.dispatch(new CheckSession());								/** Dispatch CheckSession on start */
 	}
 
@@ -34,10 +38,11 @@ export class AuthState implements NgxsOnInit {
 	/** Commands */
 	@Action(CheckSession)
 	checkSession(sc: StateContext<IAuthState>) {
+		this.dbg('checkSession');
 		return this.afAuth.authState.pipe(
 			take(1),
 			tap((user: User | null) => {
-				this.dbg('checkSession: ', user ? `${user.displayName} is logged in` : 'no user found');
+				this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 				if (user)
 					sc.dispatch(new LoginSuccess(user))
 				else sc.dispatch(new Navigate(['/login']));
@@ -46,31 +51,31 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	/** Events */
-  @Action(LoginSuccess)
-  onLoginSuccess(sc: StateContext<IAuthState>) {
-    this.dbg('onLoginSuccess, navigating to /attend');
-    sc.dispatch(new Navigate(['/attend']));
-    this.ref.tick();
-  }
+	@Action(LoginSuccess)
+	onLoginSuccess(sc: StateContext<IAuthState>) {
+		this.dbg('onLoginSuccess, navigating to /attend');
+		sc.dispatch(new Navigate(['/attend']));
+		this.ref.tick();
+	}
 
-  @Action(LoginSuccess)
-  setUserStateOnSuccess(sc: StateContext<IAuthState>, event: LoginSuccess) {
-    this.dbg('setUserStateOnSuccess');
-    sc.setState({ userInfo: event.user, userToken: null });
-  }
+	@Action(LoginSuccess)
+	setUserStateOnSuccess(sc: StateContext<IAuthState>, event: LoginSuccess) {
+		this.dbg('setUserStateOnSuccess');
+		sc.setState({ userInfo: event.user, userToken: null });
+	}
 
 
-  @Action(LoginRedirect)
-  onLoginRedirect(sc: StateContext<AuthState>) {
-    this.dbg('onLoginRedirect, navigating to /login');
+	@Action(LoginRedirect)
+	onLoginRedirect(sc: StateContext<AuthState>) {
+		this.dbg('onLoginRedirect, navigating to /login');
 		sc.dispatch(new Navigate(['/login']));
 		this.ref.tick();
-  }
+	}
 
-  @Action([LoginFailed, LogoutSuccess])
-  setUserStateOnFailure(sc: StateContext<IAuthState>) {
-    sc.setState({ userInfo: null, userToken: null });
+	@Action([LoginFailed, LogoutSuccess])
+	setUserStateOnFailure(sc: StateContext<IAuthState>) {
+		sc.setState({ userInfo: null, userToken: null });
 		sc.dispatch(new LoginRedirect());
 		this.ref.tick();
-  }
+	}
 }
