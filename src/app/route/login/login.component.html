@@ -2,8 +2,10 @@
   Please select a Login-Provider from the list below...
 </p>
 
-<div>
-  <div *ngFor="let provider of provider$ | async">
-    <button [disabled]="provider._disable" (click)='fire.signIn(provider._id)'>{{provider.name}}</button>
-  </div>
-</div>
+<mat-card>
+  <mat-card-content *ngFor="let provider of provider$ | async">
+    <button mat-raised-button [disabled]="provider._disable" (click)="fire.signIn(provider._id)">
+      Login with {{provider.name}}
+    </button>
+  </mat-card-content>
+</mat-card>

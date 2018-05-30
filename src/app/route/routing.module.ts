@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { MaterialModule } from '@app/route/material.module';
 import { Routes, RouterModule } from '@angular/router';
 import { AuthGuard } from '@dbase/auth/auth.guard';
 import { LoginComponent } from '@route/login/login.component';
@@ -13,7 +14,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-	imports: [CommonModule, RouterModule.forRoot(routes),],
+	imports: [CommonModule, MaterialModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule,],
 	declarations: [LoginComponent, AttendComponent],
 })
