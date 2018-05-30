@@ -23,9 +23,12 @@ export class FireService {
       .then(ready => this.snap(''))                   // try this to kick-start Observable
   }
 
+  /** Make Store data available as Promise and Observable */
   snap<T>(store: string, slice: string = SLICE.client) {
     const snap = this.store.selectOnce<T[]>(state => state[slice][store])
     this.snapshot[store] = snap.toPromise();          // stash the current snap result
+    this.snapshot[store]
+      .then(list => this.dbg(`snap[${store}]: %j`, list))
     return snap;
   }
 
