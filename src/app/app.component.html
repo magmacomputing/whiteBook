@@ -2,7 +2,7 @@
 	<button (click)="fire.snap('provider')">Snap Provider</button>
 	<div *ngIf="fire.snapshot.provider | async as p">
 		<ul>
-			<li *ngFor="let provider of p">{{provider.name}}</li>
+			<li *ngFor="let provider of p">{{provider.name}},{{provider._expire}}</li>
 		</ul>
 	</div>
 	<p></p>
