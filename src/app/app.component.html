@@ -1,5 +1,15 @@
-
 <router-outlet>
 	<button (click)="fire.snap('provider')">Snap Provider</button>
-	<div *ngIf="snap | async as p">P</div>
+	<div *ngIf="fire.snapshot.provider | async as p">
+		<ul>
+			<li *ngFor="let provider of p">{{provider.name}}</li>
+		</ul>
+	</div>
+	<p></p>
+	<button (click)="fire.snap('class')">Snap Class</button>
+	<div *ngIf="fire.snapshot.class | async as c">
+		<ul>
+			<li *ngFor="let class of c">{{class.name}}</li>
+		</ul>
+	</div>
 </router-outlet>

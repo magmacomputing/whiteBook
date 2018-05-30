@@ -15,7 +15,7 @@ import { dbg } from '@lib/logger.library';
 export class FireService {
   private dbg: Function = dbg.bind(this);
   public ready!: Promise<boolean>;
-  public snap!: Promise<any>;
+  public snapshot: { [store: string]: Promise<any[]>; } = {};
 
   constructor(private af: AngularFirestore, private sync: SyncService, private readonly auth: AuthService, private store: Store) {
     this.dbg('new');
@@ -24,9 +24,9 @@ export class FireService {
   }
 
   snap<T>(store: string, slice: string = SLICE.client) {
-    return this.store
-      .selectOnce<T[]>(state => state[slice][store])
-      .toPromise()
+    const snap = this.store.selectOnce<T[]>(state => state[slice][store])
+    this.snapshot[store] = snap.toPromise();          // stash the current snap result
+    return snap;
   }
 
   off() {
