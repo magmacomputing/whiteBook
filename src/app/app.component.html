@@ -1,4 +1,5 @@
 
 <router-outlet>
-
+	<button (click)="fire.snap('provider')">Snap Provider</button>
+	<div *ngIf="snap | async as p">P</div>
 </router-outlet>

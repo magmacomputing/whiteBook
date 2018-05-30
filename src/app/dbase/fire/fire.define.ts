@@ -46,6 +46,7 @@ export const enum FIELD {					//  common Field names
 	effect = '_effect',
 	expire = '_expire',
 	modify = '_modify',
+	hidden = '_hidden',
 	disable = '_disable',
 	id = '_id',
 	uid = 'uid',

@@ -15,6 +15,7 @@ import { dbg } from '@lib/logger.library';
 export class FireService {
   private dbg: Function = dbg.bind(this);
   public ready!: Promise<boolean>;
+  public snap!: Promise<any>;
 
   constructor(private af: AngularFirestore, private sync: SyncService, private readonly auth: AuthService, private store: Store) {
     this.dbg('new');

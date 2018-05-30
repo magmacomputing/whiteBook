@@ -4,6 +4,7 @@ import { IClientState, IClientDoc } from '@state/client.define';
 import { SetClient, DelClient, TruncClient } from '@state/client.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
+import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IClientState>({
@@ -56,6 +57,10 @@ export class ClientState implements NgxsOnInit {
 	/** Selectors */
 	@Selector()
 	static providers(state: IClientState) {
-		return [...state['provider'].filter(itm => !itm[FIELD.expire])];
+		return [...state['provider']
+			.filter(itm => !itm[FIELD.expire])
+			.filter(itm => !itm[FIELD.hidden])
+			.sort(sortKeys(['type','order','name']))
+		];
 	}
 }
