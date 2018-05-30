@@ -23,21 +23,23 @@ export class FireService {
       .then(ready => this.snap(''))                   // try this to kick-start Observable
   }
 
-  /** Make Store data available as Promise and Observable */
+  /** Make Store data available in a Promise */
   snap<T>(store: string, slice: string = SLICE.client) {
-    const snap = this.store.selectOnce<T[]>(state => state[slice][store])
-    this.snapshot[store] = snap.toPromise();          // stash the current snap result
-    this.snapshot[store]
-      .then(list => this.dbg(`snap[${store}]: %j`, list))
-    return snap;
+    return this.snapshot[store] = this.store
+      .selectOnce<T[]>(state => state[slice][store])
+      .toPromise()          // stash the current snap result
+      .then(list => {
+        this.dbg(`snap[${store}]: %j`, list);
+        return list;
+      })
   }
 
   off() {
     this.sync.off(COLLECTION.Client);
   }
 
-  signIn(method: string) {
-    this.dbg('signIn: %s', method);
+  signIn(providerId: string) {
+    this.dbg('signIn: %s', providerId);
   }
 
 }
