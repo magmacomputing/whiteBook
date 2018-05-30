@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { DBaseModule } from '@dbase/dbase.module';
 
+import { tap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
 
@@ -9,6 +10,7 @@ import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
+import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -27,20 +29,16 @@ export class FireService {
   snap<T>(store: string, slice: string = SLICE.client) {
     return this.snapshot[store] = this.store
       .selectOnce<T[]>(state => state[slice][store])
-      .toPromise()          // stash the current snap result
-      .then(list => {
-        if (list)
-          this.dbg(`snap[${store}]: %j`, list);
-        return list;
-      })
+      .pipe(tap(list => this.dbg(`snap[${store}]: %j`, list || 'init')))
+      .toPromise()                                   // stash the current snap result
   }
 
   off() {
     this.sync.off(COLLECTION.Client);
   }
 
-  signIn(providerId: string) {
-    this.dbg('signIn: %s', providerId);
+  signIn(providerId: IProvider) {
+    this.dbg('signIn: %j', providerId);
   }
 
 }
