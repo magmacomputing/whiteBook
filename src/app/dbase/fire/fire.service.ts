@@ -29,7 +29,8 @@ export class FireService {
       .selectOnce<T[]>(state => state[slice][store])
       .toPromise()          // stash the current snap result
       .then(list => {
-        this.dbg(`snap[${store}]: %j`, list);
+        if (list)
+          this.dbg(`snap[${store}]: %j`, list);
         return list;
       })
   }
