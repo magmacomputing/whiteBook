@@ -34,6 +34,10 @@ export class LoginSuccess {
   static type = '[Auth] LoginSuccess';
   constructor(public user: UserInfo) { }
 }
+export class LoginToken {
+  static type = '[Auth] LoginToken';
+  constructor(public token: IdTokenResult) { }
+}
 export class LoginFailed {
   static type = '[Auth] LoginFailed';
   constructor(public error: any) { }

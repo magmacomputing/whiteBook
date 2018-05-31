@@ -22,16 +22,16 @@ export class AuthGuard implements CanActivate {
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     return this.auth$.pipe(
       map(auth => {
-        this.dbg('auth: %j', auth);
-        if (isNull(auth) || isUndefined(auth))
-          this.store.dispatch(new LoginRedirect()); // not logged-in
-        // return false;
+        switch (true) {
+          case isNull(auth):
+          case isNull(auth.userToken):
+          case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+            this.store.dispatch(new LoginRedirect());
+            return false;
 
-        if (auth && auth.userToken && auth.userToken.expirationTime < getStamp())
-          this.store.dispatch(new LoginRedirect()); // authentication expired
-        // return false;
-
-        return true;                                // ok to access Route
+          default:
+            return true;                           // ok to access Route
+        }
       })
     );
   }

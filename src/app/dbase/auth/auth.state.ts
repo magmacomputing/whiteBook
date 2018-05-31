@@ -1,12 +1,12 @@
 import { ApplicationRef } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { User, UserInfo, AuthProvider } from '@firebase/auth-types';
+import { User, UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, Store, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@state/state.define';
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout } from '@dbase/auth/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
 
 import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
@@ -73,16 +73,19 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginSuccess)
-	async setUserStateOnSuccess(ctx: StateContext<IAuthState>, event: LoginSuccess) {
-		this.dbg('setUserStateOnSuccess');
-		const currUser = this.afAuth.auth.currentUser;
-		if (!currUser)
-			return;
+	setUserStateOnSuccess(ctx: StateContext<IAuthState>, event: LoginSuccess) {
+		const currUser = this.afAuth.auth.currentUser as User;
 
-		const token = await currUser.getIdTokenResult();
-		const state = ctx.getState();
-		this.dbg('token: %j', token);
-		return ctx.setState({ ...state, userInfo: event.user, userToken: token })
+		currUser.getIdTokenResult()
+			.then(token => ctx.dispatch(new LoginToken(token)))
+		this.dbg('setUserStateOnSuccess');
+		return ctx.patchState({ userInfo: event.user });
+	}
+
+	@Action(LoginToken)
+	setToken(ctx: StateContext<IAuthState>, { token }: LoginToken) {
+		this.dbg('token: %j', token.claims);
+		return ctx.patchState({ userToken: token });
 	}
 
 	@Action(LoginRedirect)
