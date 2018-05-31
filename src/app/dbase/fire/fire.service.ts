@@ -16,7 +16,6 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
   private dbg: Function = dbg.bind(this);
-  public ready!: Promise<boolean>;
   public snapshot: { [store: string]: Promise<any[]>; } = {};
 
   constructor(private af: AngularFirestore, private sync: SyncService, private readonly auth: AuthService, private store: Store) {
@@ -36,9 +35,4 @@ export class FireService {
   off() {
     this.sync.off(COLLECTION.Client);
   }
-
-  signIn(providerId: IProvider) {
-    this.dbg('signIn: %j', providerId);
-  }
-
 }

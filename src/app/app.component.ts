@@ -8,6 +8,6 @@ import { FireService } from '@dbase/fire/fire.service';
 })
 export class AppComponent {
 
-  constructor(private fire: FireService) { }
+  constructor(private readonly fire: FireService) { }
 
 }

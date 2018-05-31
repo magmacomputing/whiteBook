@@ -7,7 +7,7 @@ import { Select, Store } from '@ngxs/store';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { JWT } from '@dbase/auth/auth.interface';
-import { LoginRedirect, IAuthState } from '@state/auth.define';
+import { LoginRedirect, IAuthState } from '@dbase/auth/auth.define';
 import { isNull, isUndefined } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
@@ -23,14 +23,14 @@ export class AuthGuard implements CanActivate {
     return this.auth$.pipe(
       map(auth => {
         this.dbg('auth: %j', auth);
-        if (isNull(auth) || isUndefined(auth)) {
+        if (isNull(auth) || isUndefined(auth))
           this.store.dispatch(new LoginRedirect()); // not logged-in
-          return false;
-        }
-        if (auth && auth.userToken && auth.userToken[JWT.expires] < getStamp()) {
+        // return false;
+
+        if (auth && auth.userToken && auth.userToken.expirationTime < getStamp())
           this.store.dispatch(new LoginRedirect()); // authentication expired
-          // return false;
-        }
+        // return false;
+
         return true;                                // ok to access Route
       })
     );

@@ -5,6 +5,7 @@ import { Select } from '@ngxs/store';
 import { ClientState } from '@state/client.state';
 
 import { FireService } from '@dbase/fire/fire.service';
+import { AuthService } from '@dbase/auth/auth.service';
 import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
 
@@ -17,5 +18,5 @@ export class LoginComponent {
   private dbg: Function = dbg.bind(this);
   @Select(ClientState.providers) provider$!: Observable<IProvider[]>;
 
-  constructor(public readonly fire: FireService) { }
+  constructor(public readonly auth: AuthService) { }
 }

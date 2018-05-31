@@ -4,7 +4,7 @@
 
 <mat-card>
   <mat-card-content *ngFor="let provider of provider$ | async">
-    <button mat-raised-button [disabled]="provider._disable" (click)="fire.signIn(provider)">
+    <button mat-raised-button [disabled]="provider._disable" (click)="auth.signIn(provider)">
       Login with {{provider.name}}
     </button>
   </mat-card-content>
