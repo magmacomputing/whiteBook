@@ -69,7 +69,7 @@ export class AuthService {
     if (config.params)
       (authProvider as TParams).setCustomParameters(config.params);
 
-    this.store.dispatch(new LoginSocial(config, authProvider));
+    this.store.dispatch(new LoginSocial(authProvider));
   }
 
   private signInOAuth(config: IProvider) { }

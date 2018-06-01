@@ -42,17 +42,16 @@ export class AuthState implements NgxsOnInit {
 		this.dbg('checkSession');
 		return this.afAuth.authState.pipe(
 			take(1),
-			tap((user: User | null) => {
+			tap(user => {
 				this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 				if (user)
 					ctx.dispatch(new LoginSuccess(user))
-				// else ctx.dispatch(new Navigate(['/login']));
 			})
 		);
 	}
 
 	@Action(LoginSocial)
-	loginSocial(ctx: StateContext<IAuthState>, { config, authProvider }: any) {
+	loginSocial(ctx: StateContext<IAuthState>, { authProvider }: LoginSocial) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
 			.then((response: { user: User }) => ctx.dispatch(new LoginSuccess(response.user)))
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
@@ -61,7 +60,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(Logout)
 	logout(ctx: StateContext<IAuthState>) {
 		return this.afAuth.auth.signOut()
-			.then(() => ctx.dispatch(new LogoutSuccess()))
+			.then(_ => ctx.dispatch(new LogoutSuccess()))
 	}
 
 	/** Events */
@@ -73,13 +72,12 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginSuccess)
-	setUserStateOnSuccess(ctx: StateContext<IAuthState>, event: LoginSuccess) {
-		const currUser = this.afAuth.auth.currentUser as User;
-
-		currUser.getIdTokenResult()
+	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+		(this.afAuth.auth.currentUser as User)
+			.getIdTokenResult()
 			.then(token => ctx.dispatch(new LoginToken(token)))
 		this.dbg('setUserStateOnSuccess');
-		return ctx.patchState({ userInfo: event.user });
+		return ctx.patchState({ userInfo: user });
 	}
 
 	@Action(LoginToken)

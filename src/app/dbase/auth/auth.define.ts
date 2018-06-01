@@ -13,7 +13,7 @@ export class CheckSession {
 }
 export class LoginSocial {
   static type = '[Auth] LoginSocial';
-  constructor(public config: IProvider, public authProvider: AuthProvider) { }
+  constructor(public authProvider: AuthProvider) { }
 }
 export class LoginEmail {
   static type = '[Auth] LoginEmail';
