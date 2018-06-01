@@ -73,10 +73,6 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginSuccess)
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		// (this.afAuth.auth.currentUser as User)
-		// 	.getIdTokenResult()
-		// 	.then(token => ctx.dispatch(new LoginToken(token)))
-		this.dbg('setUserStateOnSuccess');
 		return ctx.patchState({ userInfo: user });
 	}
 
