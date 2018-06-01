@@ -36,7 +36,7 @@ export class LoginSuccess {
 }
 export class LoginToken {
   static type = '[Auth] LoginToken';
-  constructor(public token: IdTokenResult) { }
+  constructor(public token: IdTokenResult | null) { }
 }
 export class LoginFailed {
   static type = '[Auth] LoginFailed';

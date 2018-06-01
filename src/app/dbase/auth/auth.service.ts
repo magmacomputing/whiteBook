@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import * as firebase from 'firebase/app';
+import { AngularFireAuth } from 'angularfire2/auth';
 import { AuthProvider, AuthCredential } from '@firebase/auth-types';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { Store } from '@ngxs/store';
 
 import { IProvider } from '@func/app/app.interface';
-import { LoginSocial, Logout } from '@dbase/auth/auth.define';
+import { LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { isArray } from '@lib/object.library';
@@ -16,8 +17,10 @@ import { dbg } from '@lib/logger.library';
 export class AuthService {
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly store: Store) {
+  constructor(private afAuth: AngularFireAuth, private readonly store: Store) {
     this.dbg('new');
+    this.afAuth.idTokenResult                   // watch for changes to the IdToken
+      .subscribe(token => this.store.dispatch(new LoginToken(token)));
   }
 
   public signOut() {
