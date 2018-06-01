@@ -8,7 +8,7 @@ import { SLICE } from '@state/state.define';
 
 import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';
-import { AuthService } from '@dbase/auth/auth.service';
+// import { AuthService } from '@dbase/auth/auth.service';
 
 import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
@@ -18,10 +18,10 @@ export class FireService {
   private dbg: Function = dbg.bind(this);
   public snapshot: { [store: string]: Promise<any[]>; } = {};
 
-  constructor(private af: AngularFirestore, private sync: SyncService, private readonly auth: AuthService, private store: Store) {
+  constructor(private af: AngularFirestore, private sync: SyncService, private store: Store) {
     this.dbg('new');
     this.sync.on(COLLECTION.Client, SLICE.client)     // initialize a listener to /client Collection
-      .then(ready => this.snap(''))                   // try this to kick-start Observable
+      .then(_ => this.snap(''))                       // try this to kick-start Observable
   }
 
   /** Make Store data available in a Promise */

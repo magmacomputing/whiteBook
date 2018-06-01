@@ -21,7 +21,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private store: Store, private afAuth: AngularFireAuth, private ref: ApplicationRef) {
+	constructor(private afAuth: AngularFireAuth, private ref: ApplicationRef) {
 		this.dbg('new');
 	}
 

@@ -19,11 +19,14 @@ export class AuthService {
 
   constructor(private afAuth: AngularFireAuth, private readonly store: Store) {
     this.dbg('new');
-    this.afAuth.auth.onIdTokenChanged(user => {// watch for changes to the IdToken
-      if (user)
-        user.getIdTokenResult()
-          .then(token => this.store.dispatch(new LoginToken(token)))
-      else this.store.dispatch(new LoginToken(null))
+    // this.afAuth.auth.onIdTokenChanged(user => {// watch for changes to the IdToken
+    //   if (user)
+    //     user.getIdTokenResult()
+    //       .then(token => this.store.dispatch(new LoginToken(token)))
+    //   else this.store.dispatch(new LoginToken(null))
+    // })
+    this.afAuth.auth.onAuthStateChanged(user => {
+
     })
   }
 
