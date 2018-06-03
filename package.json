@@ -19,9 +19,9 @@
     "@angular/platform-browser": "^6.0.3",
     "@angular/platform-browser-dynamic": "^6.0.3",
     "@angular/router": "^6.0.3",
-    "@ngxs/router-plugin": "^3.0.1",
-    "@ngxs/storage-plugin": "^3.0.1",
-    "@ngxs/store": "^3.0.1",
+    "@ngxs/router-plugin": "^3.1.0",
+    "@ngxs/storage-plugin": "^3.1.0",
+    "@ngxs/store": "^3.1.0",
     "angularfire2": "^5.0.0-rc.10",
     "core-js": "^2.5.7",
     "firebase": "^5.0.4",
@@ -37,7 +37,7 @@
     "@angular/language-service": "^6.0.3",
     "@types/node": "^10.3.0",
     "codelyzer": "^4.3.0",
-    "ts-node": "^6.0.5",
+    "ts-node": "^6.1.0",
     "tslint": "^5.10.0",
     "typescript": "^2.7.2"
   }
