@@ -44,8 +44,13 @@ export class AuthState implements NgxsOnInit {
 			take(1),
 			tap(user => {
 				this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-				if (user)
-					ctx.dispatch(new LoginSuccess(user))
+				if (user) {
+					ctx.dispatch([
+						new LoginSuccess(user),
+						new LoginToken(user),
+					])
+					this.ref.tick();
+				}
 			})
 		);
 	}
@@ -74,12 +79,14 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		return ctx.patchState({ userInfo: user });
+		// this.ref.tick();
 	}
 
 	@Action(LoginToken)
-	setToken(ctx: StateContext<IAuthState>, { token }: LoginToken) {
-		this.dbg('token: %j', token && token.claims);
-		return ctx.patchState({ userToken: token });
+	setToken(ctx: StateContext<IAuthState>, { user }: LoginToken) {
+		return user.getIdTokenResult()
+			.then(token => ctx.patchState({ userToken: token }))
+			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
 	}
 
 	@Action(LoginRedirect)

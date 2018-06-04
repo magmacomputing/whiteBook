@@ -1,4 +1,4 @@
-import { UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
+import { User, UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
 import { IProvider } from '@func/app/app.interface';
 
@@ -36,7 +36,7 @@ export class LoginSuccess {
 }
 export class LoginToken {
   static type = '[Auth] LoginToken';
-  constructor(public token: IdTokenResult | null) { }
+  constructor(public user: User) { }
 }
 export class LoginFailed {
   static type = '[Auth] LoginFailed';

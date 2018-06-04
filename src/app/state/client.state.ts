@@ -9,7 +9,7 @@ import { dbg } from '@lib/logger.library';
 
 @State<IClientState>({
 	name: SLICE.client,
-	defaults: { }
+	defaults: {}
 })
 export class ClientState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
@@ -60,7 +60,18 @@ export class ClientState implements NgxsOnInit {
 		return [...state['provider']
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys(['type','order','name']))
+			.sort(sortKeys(['type', 'order', 'name']))
+		];
+	}
+
+	@Selector()
+	static getClient(store: string, state: any) {
+// TODO: tidy
+		const client: IClientState = state[SLICE.client];
+		return [...client[store]
+			.filter(itm => !itm[FIELD.expire])
+			.filter(itm => !itm[FIELD.hidden])
+			.sort(sortKeys(['type', 'order', 'name']))
 		];
 	}
 }

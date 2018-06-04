@@ -8,7 +8,7 @@ import { SLICE } from '@state/state.define';
 
 import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';
-// import { AuthService } from '@dbase/auth/auth.service';
+import { AuthService } from '@dbase/auth/auth.service';
 
 import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
@@ -18,7 +18,7 @@ export class FireService {
   private dbg: Function = dbg.bind(this);
   public snapshot: { [store: string]: Promise<any[]>; } = {};
 
-  constructor(private af: AngularFirestore, private sync: SyncService, private store: Store) {
+  constructor(private af: AngularFirestore, private sync: SyncService, private auth: AuthService, private store: Store) {
     this.dbg('new');
     this.sync.on(COLLECTION.Client, SLICE.client)     // initialize a listener to /client Collection
       .then(_ => this.snap(''))                       // try this to kick-start Observable
@@ -28,7 +28,7 @@ export class FireService {
   snap<T>(store: string, slice: string = SLICE.client) {
     return this.snapshot[store] = this.store
       .selectOnce<T[]>(state => state[slice][store])
-      .pipe(tap(list => this.dbg(`snap[${store}]: %j`, list || 'init')))
+      .pipe(tap(list => { if (list) { this.dbg(`snap[${store}]: %j`, list || 'init'); } }))
       .toPromise()                                   // stash the current snap result
   }
 

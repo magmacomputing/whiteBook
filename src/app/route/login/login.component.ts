@@ -17,6 +17,8 @@ import { dbg } from '@lib/logger.library';
 export class LoginComponent {
   private dbg: Function = dbg.bind(this);
   @Select(ClientState.providers) provider$!: Observable<IProvider[]>;
+  // TODO: tidy
+  // @Select(ClientState.getClient.bind(null, 'provider')) provider$!: Observable<IProvider[]>;
 
   constructor(public readonly auth: AuthService) { }
 }
