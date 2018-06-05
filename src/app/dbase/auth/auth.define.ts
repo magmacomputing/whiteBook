@@ -32,7 +32,7 @@ export class LoginRedirect {
 }
 export class LoginSuccess {
   static type = '[Auth] LoginSuccess';
-  constructor(public user: UserInfo) { }
+  constructor(public user: User) { }
 }
 export class LoginToken {
   static type = '[Auth] LoginToken';

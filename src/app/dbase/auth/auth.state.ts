@@ -37,49 +37,45 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	/** Commands */
-	@Action(CheckSession)
+	@Action(CheckSession)														// on first connect, check if still logged-on
 	checkSession(ctx: StateContext<IAuthState>) {
 		this.dbg('checkSession');
 		return this.afAuth.authState.pipe(
 			take(1),
 			tap(user => {
 				this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-				if (user) {
-					ctx.dispatch([
-						new LoginSuccess(user),
-						new LoginToken(user),
-					])
-					this.ref.tick();
-				}
+				if (user)
+					ctx.dispatch(new LoginSuccess(user))
 			})
 		);
 	}
 
-	@Action(LoginSocial)
+	@Action(LoginSocial)														// process signInWithPopup()
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider }: LoginSocial) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
 			.then((response: { user: User }) => ctx.dispatch(new LoginSuccess(response.user)))
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
 
-	@Action(Logout)
+	@Action(Logout)																	// process signOut()
 	logout(ctx: StateContext<IAuthState>) {
 		return this.afAuth.auth.signOut()
 			.then(_ => ctx.dispatch(new LogoutSuccess()))
 	}
 
 	/** Events */
-	@Action(LoginSuccess)
+	@Action(LoginSuccess)														// on each LoginSuccess, navigate to AttendComponent
 	onLoginSuccess(ctx: StateContext<IAuthState>) {
-		this.dbg('onLoginSuccess, navigating to /attend');
+		this.dbg('navigate: /attend');
 		ctx.dispatch(new Navigate(['/attend']));
 		this.ref.tick();
 	}
 
-	@Action(LoginSuccess)
+	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		return ctx.patchState({ userInfo: user });
-		// this.ref.tick();
+		ctx.patchState({ userInfo: user });
+		ctx.dispatch(new LoginToken(user));
+		this.ref.tick();
 	}
 
 	@Action(LoginToken)
@@ -87,6 +83,7 @@ export class AuthState implements NgxsOnInit {
 		return user.getIdTokenResult()
 			.then(token => ctx.patchState({ userToken: token }))
 			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
+			.then(_ => this.ref.tick())
 	}
 
 	@Action(LoginRedirect)
