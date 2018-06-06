@@ -10,7 +10,6 @@ import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
-import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -35,4 +34,5 @@ export class FireService {
   off() {
     this.sync.off(COLLECTION.Client);
   }
+
 }

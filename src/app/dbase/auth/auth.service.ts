@@ -6,7 +6,7 @@ import { AuthModule } from '@dbase/auth/auth.module';
 import { Store } from '@ngxs/store';
 
 import { IProvider } from '@func/app/app.interface';
-import { LoginSocial, Logout } from '@dbase/auth/auth.define';
+import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { isArray } from '@lib/object.library';
@@ -22,6 +22,10 @@ export class AuthService {
 
   public signOut() {
     this.store.dispatch(new Logout());
+  }
+
+  public check() {
+    this.store.dispatch(new CheckSession());
   }
 
   public async signIn(config: IProvider) {

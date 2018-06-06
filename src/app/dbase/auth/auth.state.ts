@@ -1,14 +1,13 @@
 import { ApplicationRef } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { User, UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
+import { User, IdTokenResult } from '@firebase/auth-types';
 
 import { take, tap } from 'rxjs/operators';
-import { State, Selector, StateContext, Action, Store, NgxsOnInit } from '@ngxs/store';
+import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@state/state.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
 
-import { IProvider } from '@func/app/app.interface';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -27,7 +26,9 @@ export class AuthState implements NgxsOnInit {
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('onInit');
+
 		ctx.dispatch(new CheckSession());								/** Dispatch CheckSession on start */
+		this.ref.tick();
 	}
 
 	/** Selectors */
@@ -40,14 +41,15 @@ export class AuthState implements NgxsOnInit {
 	@Action(CheckSession)														// on first connect, check if still logged-on
 	checkSession(ctx: StateContext<IAuthState>) {
 		this.dbg('checkSession');
-		return this.afAuth.authState.pipe(
-			take(1),
-			tap(user => {
-				this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-				if (user)
-					ctx.dispatch(new LoginSuccess(user))
-			})
-		);
+		return this.afAuth.authState
+			.pipe(
+				take(1),
+				tap(user => {
+					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
+					if (user)
+						ctx.dispatch(new LoginSuccess(user));
+				})
+			);
 	}
 
 	@Action(LoginSocial)														// process signInWithPopup()
@@ -74,8 +76,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		ctx.patchState({ userInfo: user });
-		ctx.dispatch(new LoginToken(user));
-		this.ref.tick();
+		setTimeout(_ => ctx.dispatch(new LoginToken(user)), 10000);
 	}
 
 	@Action(LoginToken)
@@ -83,7 +84,6 @@ export class AuthState implements NgxsOnInit {
 		return user.getIdTokenResult()
 			.then(token => ctx.patchState({ userToken: token }))
 			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
-			.then(_ => this.ref.tick())
 	}
 
 	@Action(LoginRedirect)
