@@ -1,6 +1,11 @@
 import { isString, isArray, isNumber, isFunction } from '@lib/object.library';
 import { toHex } from '@lib/number.library';
 
+export const decodeBase64 = (str: string): any => {
+  const base64Url = str.replace('-', '+').replace('_', '/');
+  return JSON.parse(window.atob(base64Url));
+}
+
 export const cryptoHash = async (source: string | Object, len: number = 40) => {
 	const str = isString(source) ? source : JSON.stringify(source);
 	const buffer = toArrayBuffer(str);

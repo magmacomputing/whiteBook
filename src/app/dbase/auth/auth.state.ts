@@ -1,6 +1,6 @@
 import { ApplicationRef } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { User, IdTokenResult } from '@firebase/auth-types';
+import { User, IdTokenResult, UserInfo } from '@firebase/auth-types';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -8,6 +8,8 @@ import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@state/state.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
 
+import { decodeBase64 } from '@lib/crypto.library';
+import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -28,7 +30,6 @@ export class AuthState implements NgxsOnInit {
 		this.dbg('onInit');
 
 		ctx.dispatch(new CheckSession());								/** Dispatch CheckSession on start */
-		this.ref.tick();
 	}
 
 	/** Selectors */
@@ -75,13 +76,16 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		ctx.patchState({ userInfo: user });
-		setTimeout(_ => ctx.dispatch(new LoginToken(user)), 10000);
+		// const currUser: any = cloneObj(this.afAuth.auth.currentUser as User);
+		// const accessToken = currUser.stsTokenManager.accessToken;
+		// const token = decodeBase64(accessToken.split('.')[1]);
+		const token = null;
+		ctx.patchState({ userInfo: user, userToken: token });
 	}
 
 	@Action(LoginToken)
 	setToken(ctx: StateContext<IAuthState>, { user }: LoginToken) {
-		return user.getIdTokenResult()
+		return user.getIdToken()
 			.then(token => ctx.patchState({ userToken: token }))
 			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
 	}

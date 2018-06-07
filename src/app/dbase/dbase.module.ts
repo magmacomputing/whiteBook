@@ -16,7 +16,6 @@ const fb = environment.firebase || {};
     CommonModule,
     NgxsModule.forFeature([ClientState]),
     AngularFireModule.initializeApp(fb.app, fb.config),
-    // AngularFireAuthModule,
     AngularFirestoreModule.enablePersistence(),
   ],
   declarations: []
