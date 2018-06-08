@@ -76,10 +76,10 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		// const currUser: any = cloneObj(this.afAuth.auth.currentUser as User);
-		// const accessToken = currUser.stsTokenManager.accessToken;
-		// const token = decodeBase64(accessToken.split('.')[1]);
-		const token = null;
+		const currUser: any = cloneObj(this.afAuth.auth.currentUser);
+		const accessToken = currUser.stsTokenManager.accessToken;	// TODO: rationalize this internal reference
+		const token = decodeBase64(accessToken.split('.')[1]);
+
 		ctx.patchState({ userInfo: user, userToken: token });
 	}
 
