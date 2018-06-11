@@ -29,7 +29,6 @@ export interface ICustomClaims {	// a special sub-set of fields from the User To
 }
 export interface IFireClaims {
 	user_id: string;
-	sub: string;
 	name: string;
 	picture: string;
 	email: string;

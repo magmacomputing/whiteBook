@@ -11,6 +11,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
 import { dbg } from '@lib/logger.library';
+import { cryptoHash } from '@app/library/crypto.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
@@ -35,4 +36,8 @@ export class FireService {
     this.sync.off(COLLECTION.Client);
   }
 
+  hash(str: string) {
+    return cryptoHash(str)
+      .then(hash => { this.dbg('hash: %s', hash); return hash; })
+  }
 }

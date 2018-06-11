@@ -1,12 +1,13 @@
 import { ApplicationRef } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { User, IdTokenResult, UserInfo } from '@firebase/auth-types';
+import { User } from '@firebase/auth-types';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@state/state.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
+import { TTokenClaims } from '@dbase/auth/auth.interface';
 
 import { decodeBase64 } from '@lib/crypto.library';
 import { cloneObj } from '@lib/object.library';
@@ -78,8 +79,9 @@ export class AuthState implements NgxsOnInit {
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const currUser: any = cloneObj(this.afAuth.auth.currentUser);
 		const accessToken = currUser.stsTokenManager.accessToken;	// TODO: rationalize this internal reference
-		const token = decodeBase64(accessToken.split('.')[1]);
+		const token = decodeBase64<TTokenClaims>(accessToken.split('.')[1]);
 
+		this.dbg('claims: %j', token);
 		ctx.patchState({ userInfo: user, userToken: token });
 	}
 
@@ -87,7 +89,7 @@ export class AuthState implements NgxsOnInit {
 	setToken(ctx: StateContext<IAuthState>, { user }: LoginToken) {
 		return user.getIdToken()
 			.then(token => ctx.patchState({ userToken: token }))
-			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
+			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as TTokenClaims)))
 	}
 
 	@Action(LoginRedirect)

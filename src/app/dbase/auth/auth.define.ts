@@ -1,10 +1,9 @@
-import { User, UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
+import { User, UserInfo, AuthProvider } from '@firebase/auth-types';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProvider } from '@func/app/app.interface';
 
 export interface IAuthState {
   userInfo: UserInfo | null;
-  userToken: IdTokenResult | null;
+  userToken: TTokenClaims | null;
 }
 
 // Actions

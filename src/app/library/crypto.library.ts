@@ -1,15 +1,14 @@
 import { asString } from '@lib/object.library';
 import { toHex } from '@lib/number.library';
 
-export const decodeBase64 = (str: string): any => {
+export const decodeBase64 = <T>(str: string): T => {
   const base64Url = str.replace('-', '+').replace('_', '/');
   return JSON.parse(window.atob(base64Url));
 }
 
 export const cryptoHash = async (source: string | Object, len: number = 64) => {
 	const str = asString(source);
-	// const buffer = toArrayBuffer(str);
-	const buffer = new TextEncoder().encode(str);
+	const buffer = toArrayBuffer(str);
 	const hash = await crypto.subtle.digest('SHA-256', buffer);
 
 	return toHex([...(new Uint8Array(hash))], len);
@@ -17,6 +16,7 @@ export const cryptoHash = async (source: string | Object, len: number = 64) => {
 
 // TODO: new TextEncoder() when Typescript 2.8 supported in Webpack
 const toArrayBuffer = (str: string) => {
+		// return new TextEncoder().encode(str);
 	const buf = new ArrayBuffer(str.length * 2);		// 2 bytes for each char
 	const bufView = new Uint16Array(buf);
 

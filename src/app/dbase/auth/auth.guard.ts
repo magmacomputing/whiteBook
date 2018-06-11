@@ -8,7 +8,7 @@ import { Select, Store } from '@ngxs/store';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { JWT } from '@dbase/auth/auth.interface';
 import { LoginRedirect, IAuthState } from '@dbase/auth/auth.define';
-import { isNull, isUndefined } from '@lib/object.library';
+import { isNull } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
         switch (true) {
           case isNull(auth.userInfo):
             case isNull(auth.userToken):
-            case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+            case !isNull(auth.userToken) && auth.userToken[JWT.expires] < getStamp():
             this.store.dispatch(new LoginRedirect());
             return false;
 
