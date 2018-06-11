@@ -1,7 +1,7 @@
 import { ICustomClaims } from '@dbase/auth/auth.interface';
 import { FIELD } from '@dbase/fire/fire.define';
 
-// These is the meta-fields for a record from IDB
+// These are the meta-fields for a standard record
 export interface IMeta {
 	[FIELD.id]?: string;
 	[FIELD.effect]?: number;							// the time from which (greater-than-or-equal) this row is effective
@@ -9,7 +9,7 @@ export interface IMeta {
 	[FIELD.modify]?: number;							// the time when last updated locally
 };
 
-type TAppDefault = 'price' | 'topUp';
+type TAppDefault = 'price' | 'topUp' | 'hold';
 export interface IAppDefault {
 	type: TAppDefault;
 	[FIELD.expire]: number;
@@ -20,9 +20,9 @@ export interface IPriceDefault extends IAppDefault {
 	class: string;
 	amount: number;
 }
-export interface ITopUpDefault extends IAppDefault {
+export interface IFeeDefault extends IAppDefault {
 	plan: string;
-	amount: number;
+	amount: number;												// 'topUp' or 'hold' fee
 }
 
 export interface IClient extends IMeta {
