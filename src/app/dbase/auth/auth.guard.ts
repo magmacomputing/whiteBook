@@ -24,8 +24,8 @@ export class AuthGuard implements CanActivate {
       map(auth => {
         switch (true) {
           case isNull(auth.userInfo):
-            // case isNull(auth.userToken):
-            // case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+            case isNull(auth.userToken):
+            case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
             this.store.dispatch(new LoginRedirect());
             return false;
 

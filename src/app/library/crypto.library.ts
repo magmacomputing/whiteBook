@@ -1,4 +1,4 @@
-import { isString, isArray, isNumber, isFunction } from '@lib/object.library';
+import { asString } from '@lib/object.library';
 import { toHex } from '@lib/number.library';
 
 export const decodeBase64 = (str: string): any => {
@@ -6,12 +6,13 @@ export const decodeBase64 = (str: string): any => {
   return JSON.parse(window.atob(base64Url));
 }
 
-export const cryptoHash = async (source: string | Object, len: number = 40) => {
-	const str = isString(source) ? source : JSON.stringify(source);
-	const buffer = toArrayBuffer(str);
+export const cryptoHash = async (source: string | Object, len: number = 64) => {
+	const str = asString(source);
+	// const buffer = toArrayBuffer(str);
+	const buffer = new TextEncoder().encode(str);
 	const hash = await crypto.subtle.digest('SHA-256', buffer);
 
-	return toHex([...(new Uint8Array(hash))]);
+	return toHex([...(new Uint8Array(hash))], len);
 }
 
 // TODO: new TextEncoder() when Typescript 2.8 supported in Webpack

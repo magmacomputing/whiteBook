@@ -3,6 +3,8 @@
 	<p></p>
 	<button (click)="fire.auth.check()">check</button>
 	<p></p>
+	<button (click)="fire.hash('Hello, World!')">hash</button>
+	<p></p>
 	<button (click)="fire.snap('provider')">Snap Provider</button>
 	<div *ngIf="fire.snapshot.provider | async as p">
 		<ul>

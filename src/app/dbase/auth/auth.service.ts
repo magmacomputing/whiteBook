@@ -9,7 +9,7 @@ import { IProvider } from '@func/app/app.interface';
 import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
-import { isArray } from '@lib/object.library';
+import { asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
@@ -65,10 +65,8 @@ export class AuthService {
   private signInSocial(config: IProvider) {
     const authProvider = this.authProvider(config.name);
 
-    if (config.scope) {
-      const scopes = isArray(config.scope) ? config.scope : [config.scope];
-      scopes.forEach(scope => (authProvider as TScopes).addScope(scope));
-    }
+    asArray(config.scope)
+      .forEach(scope => (authProvider as TScopes).addScope(scope));
 
     if (config.params)
       (authProvider as TParams).setCustomParameters(config.params);

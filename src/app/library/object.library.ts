@@ -110,3 +110,6 @@ export const isUndefined = (obj?: any): obj is undefined => isType(obj, 'Undefin
 export const isEmpty = (obj: object | any[]): boolean =>
   (isObject(obj) && Object.keys(obj).length === 0) ||
   (isArray(obj) && obj.length === 0)
+
+export const asArray = (arr: any = []) => isArray(arr) ? arr : [arr];
+export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);
