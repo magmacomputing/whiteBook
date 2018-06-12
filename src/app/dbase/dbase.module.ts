@@ -5,7 +5,6 @@ import { NgxsModule } from '@ngxs/store';
 import { ClientState } from '@state/client.state';
 
 import { AngularFireModule } from 'angularfire2';
-import { AngularFireAuthModule } from 'angularfire2/auth';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { environment } from '@env/environment';
 
