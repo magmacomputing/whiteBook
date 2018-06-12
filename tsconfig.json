@@ -40,9 +40,6 @@
       "@state/*": [
         "src/app/state/*"
       ],
-      "@func/*": [
-        "src/app/function/*"
-      ],
     },
   }
 }

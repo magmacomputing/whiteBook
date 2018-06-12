@@ -1,3 +1,12 @@
+import { IMeta } from '@dbase/app/app.interface';
+import { IWhere } from '@dbase/fire/fire.interface';
+import { FIELD } from '@dbase/fire/fire.define';
+
+import { isNumber, isUndefined, isString, cloneObj, asArray } from '@lib/object.library';
+import { fmtDate } from '@lib/date.library';
+import { DATE_FMT } from '@lib/date.define';
+import { dbg } from '@lib/logger.library';
+
 // import { Injectable } from '@angular/core';
 // import { Observable } from 'rxjs';
 // import { take } from 'rxjs/operators';
@@ -40,18 +49,19 @@
 // 			.filter(row => row.store === store) as T[]
 // 	}
 
-// 	/**
-// 	 * Search an array, returning rows that match all the 'conditions', and were effective on the 'date'
-// 	 * @param table		The table-array to search
-// 	 * @param cond 		condition to use as filter
-// 	 * @param date 		The date to use when determining which table-row was effective at that time
-// 	 */
-// 	asAt = <T extends IMeta>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
-// 		const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
+/**
+ * Search an array, returning rows that match all the 'conditions' and were effective on the 'date'
+ * @param table		The table-array to search
+ * @param cond 		condition to use as filter
+ * @param date 		The date to use when determining which table-row was effective at that time
+ */
+export const asAt = <T extends IMeta>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
+	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
 
-// 		return filterArray(table, cond)													// return the rows where date is between _effect and IMeta
-// 			.filter(row => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp && stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
-// 	}
+	return filterArray(table, cond)													// return the rows where date is between _effect and IMeta
+		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
+}
 
 // 	getUid = async (uid?: string) => {
 // 		if (isUndefined(uid)) {
@@ -139,31 +149,31 @@
 // }
 
 // /** filter an Array to meet the supplied conditions, logically ANDed */
-// export const filterArray = <T>(table: T[] = [], cond: IWhere | IWhere[] = []) => {
-// 	let lookup = cloneObj(table);														// clone the table argument, so we dont mutate it
+export const filterArray = <T>(table: T[] = [], cond: IWhere | IWhere[] = []) => {
+	let lookup = cloneObj(table);														// clone the table argument, so we dont mutate it
 
-// 	(isArray(cond) ? cond : isObject(cond) ? [cond] : [])		// cast cond as an array
-// 		.forEach(clause => lookup = lookup.filter((row: any) => {
-// 			const key = row[clause.fieldPath as string];
-// 			const field = isString(key) ? key.toLowerCase() : key;
-// 			const value = isString(clause.value) ? clause.value.toLowerCase() : clause.value;
-// 			switch (clause.opStr) {															// standard firestore query-operators, and '!='
-// 				case '==':
-// 					return field == value;													// use '==' to allow for string/number match, instead of '==='
-// 				case '>':
-// 					return field > value;
-// 				case '>=':
-// 					return field >= value;
-// 				case '<':
-// 					return field < value;
-// 				case '<=':
-// 					return field <= value;
-// 				case '!=':																				// non-standard operator
-// 					return isUndefined(field) || field != value;
-// 				default:
-// 					return false;
-// 			}
-// 		}))
+	asArray(cond)																						// cast cond as an array
+		.forEach(clause => lookup = lookup.filter((row: any) => {
+			const key = row[clause.fieldPath as string];
+			const field = isString(key) ? key.toLowerCase() : key;
+			const value = isString(clause.value) ? clause.value.toLowerCase() : clause.value;
+			switch (clause.opStr) {															// standard firestore query-operators, and '!='
+				case '==':
+					return field == value;													// use '==' to allow for string/number match, instead of '==='
+				case '>':
+					return field > value;
+				case '>=':
+					return field >= value;
+				case '<':
+					return field < value;
+				case '<=':
+					return field <= value;
+				case '!=':																				// non-standard operator
+					return isUndefined(field) || field != value;
+				default:
+					return false;
+			}
+		}))
 
-// 	return lookup;
-// }
+	return lookup;
+}

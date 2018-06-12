@@ -12,7 +12,7 @@ export interface IMeta {
 type TAppDefault = 'price' | 'topUp' | 'hold';
 export interface IAppDefault {
 	type: TAppDefault;
-	[FIELD.expire]: number;
+	[FIELD.expire]?: number;
 	[name: string]: any;
 }
 export interface IPriceDefault extends IAppDefault {
