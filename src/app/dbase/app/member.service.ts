@@ -5,10 +5,12 @@ import { Observable } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { Store, Select } from '@ngxs/store';
 import { ClientState } from '@app/state/client.state';
-import { IClientState } from '@app/state/client.define';
+import { IClientState, IClientDoc } from '@app/state/client.define';
 
 import { IAppDefault, IClient } from '@dbase/app/app.interface';
 import { dbg } from '@lib/logger.library';
+import { SLICE } from '@app/state/state.define';
+import { asAt } from '@app/dbase/app/member.library';
 
 @Injectable({
   providedIn: DBaseModule
@@ -16,7 +18,6 @@ import { dbg } from '@lib/logger.library';
 export class MemberService {
   private dbg: Function = dbg.bind(this);
   private APP_DEFAULT: IAppDefault[];
-  // @Select() client$!: Observable<IClientState>;   // current Client tables
 
   constructor(private store: Store) {
     this.APP_DEFAULT = [											    // TODO: a mini-table to use for Default values, put into Store
@@ -27,16 +28,21 @@ export class MemberService {
     this.dbg('new');
   }
 
-  attend() {
-    this.getClient('price')
-      .then(tbl => this.dbg('price: %j', tbl));
+  async attend() {
+    const [prices, classes] = await Promise.all([
+      this.getClient('price'),
+      this.getClient('class'),
+    ])
+
+    this.dbg('class: %j', classes);
   }
 
   /** get current values of a store-type from state */
-  getClient(store: string) {
+  getClient(store: string, allDocs: boolean = false) {
     return this.store
       .selectOnce(ClientState)
-      .toPromise()
+      .toPromise<IClientState>()
       .then(client => client[store])
+      .then(docs => allDocs ? docs : asAt(docs))
   }
 }

@@ -5,7 +5,7 @@ import { AuthProvider } from '@firebase/auth-types';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { Store } from '@ngxs/store';
 
-import { IProvider } from '@func/app/app.interface';
+import { IProvider } from '@dbase/app/app.interface';
 import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 

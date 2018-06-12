@@ -21,7 +21,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(SetClient)
-	setClient({ patchState, getState, setState }: StateContext<IClientState>, { payload }: SetClient) {
+	setClient({ patchState, getState }: StateContext<IClientState>, { payload }: SetClient) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
@@ -66,7 +66,7 @@ export class ClientState implements NgxsOnInit {
 
 	@Selector()
 	static getClient(store: string, state: any) {
-// TODO: tidy
+		// TODO: tidy
 		const client: IClientState = state[SLICE.client];
 		return [...client[store]
 			.filter(itm => !itm[FIELD.expire])
