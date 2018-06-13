@@ -3,10 +3,11 @@ import { FIELD } from '@dbase/fire/fire.define';
 
 // These are the meta-fields for a standard record
 export interface IMeta {
-	[FIELD.id]?: string;
+	[FIELD.id]?: string;									// the _id field on the remote database
 	[FIELD.effect]?: number;							// the time from which (greater-than-or-equal) this row is effective
 	[FIELD.expire]?: number;							// the time before which (less-than) this row is expired, or '0' for un-expired
 	[FIELD.modify]?: number;							// the time when last updated locally
+	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client
 };
 
 type TAppDefault = 'price' | 'topUp' | 'hold';
@@ -26,18 +27,18 @@ export interface IFeeDefault extends IAppDefault {
 }
 
 export interface IClient extends IMeta {
-	store?: string;
+	store: string;
 }
 
 export type TPrice = 'full' | 'half' | 'topUp' | 'hold';
-export interface IPrice extends IMeta {
+export interface IPrice extends IClient {
 	plan: string;
 	amount: number;
 	type: TPrice;
 }
 
 export type TClass = 'full' | 'half' | 'event';
-export interface IClass extends IMeta {
+export interface IClass extends IClient {
 	name: string;
 	color: string;
 	type: TClass;
@@ -59,7 +60,7 @@ export interface IProfileClaim extends IProfile {
 }
 
 export type TSchedule = 'event' | 'class' | 'special'
-export interface ISchedule extends IMeta {
+export interface ISchedule extends IClient {
 	class: string;
 	day: number;
 	time: string;
@@ -67,7 +68,7 @@ export interface ISchedule extends IMeta {
 }
 
 type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
-export interface IProvider extends IMeta {
+export interface IProvider extends IClient {
 	name: string;
 	type: TProvider;
 	prefix?: string;
