@@ -93,8 +93,8 @@ export class AuthState implements NgxsOnInit {
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
 
-		// this.sync.on(COLLECTION.Member, SLICE.member, query)
-		// 	.then(ok => this.dbg('sync: %s on', COLLECTION.Member))
+		this.sync.on(COLLECTION.Member, SLICE.member, query)
+			.then(ok => this.dbg('sync: %s on', COLLECTION.Member))
 	}
 
 	@Action(LoginToken)

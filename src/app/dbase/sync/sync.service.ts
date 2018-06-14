@@ -48,6 +48,11 @@ export class SyncService {
     return ready.promise;                             // indicate when snap0 is complete
   }
 
+  getStatus(collection: string) {
+    const { slice, cnt } = this.listener[collection];
+    return { slice, cnt };
+  }
+
   /** detach an existing snapshot listener */
   public off(collection: string) {
     const listen = this.listener[collection];
@@ -75,12 +80,68 @@ export class SyncService {
     }
   }
 
+  private async syncSnap<T>(collection: string, snaps: DocumentChangeAction<T>[]) {
+    const listen = this.listener[collection];
+
+    let setState, delState, truncState;             // TODO: tidy
+
+    switch (listen.slice) {
+      case SLICE.client:
+        setState = SetClient;
+        delState = DelClient;
+        truncState = TruncClient;
+        break;
+
+      case SLICE.member:
+        setState = SetMember;
+        delState = DelMember;
+        truncState = TruncMember;
+
+      default:
+        return;                                     // Unknown Slice !!
+    }
+
+    if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
+      const localStore = this.localStore[listen.slice] || {};
+      const localList: IClientDoc[] = [];
+      const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
+
+      Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
+      let [localHash, storeHash] = await Promise.all([
+        cryptoHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
+        cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
+      ])
+
+      listen.ready.resolve(true);                   // indicate snap0 is ready
+
+      if (localHash === storeHash)                  // compare what is in snap0 with localStorage
+        return;                                     // ok, already sync'd  
+
+      this.store.dispatch(new truncState());        // otherwise, reset Store
+    }
+
+    snaps.forEach(snap => {
+      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+
+      switch (snap.type) {
+        case 'added':
+        case 'modified':
+          this.store.dispatch(new setState(data));
+          break;
+
+        case 'removed':
+          this.store.dispatch(new delState(data));
+          break;
+      }
+    })
+  }
+
   /** sync the public Client data */
   private async snapClient(snaps: DocumentChangeAction<IClientDoc>[]) {
     const listen = this.listener[COLLECTION.Client];
 
     if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
-      const localStore = this.localStore[SLICE.client] || {};
+      const localStore = this.localStore[listen.slice] || {};
       const localList: IClientDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 
@@ -119,7 +180,7 @@ export class SyncService {
     const listen = this.listener[COLLECTION.Member];
 
     if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
-      const localStore = this.localStore[SLICE.member] || {};
+      const localStore = this.localStore[listen.slice] || {};
       const localList: IMemberDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 

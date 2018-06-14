@@ -1,18 +1,21 @@
 import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { ClientState } from '@app/state/client.state';
+import { Store } from '@ngxs/store';
+import { ClientState } from '@state/client.state';
+import { MemberState } from '@state/member.state';
 import { AuthState } from '@dbase/auth/auth.state';
 import { IAuthState } from '@dbase/auth/auth.define';
 
 import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/app/app.interface';
+import { IWhere } from '@dbase/fire/fire.interface';
+import { FIELD } from '@dbase/fire/fire.define';
+
+import { isNumber, cloneObj, asArray, isString, isUndefined } from '@lib/object.library';
+import { fmtDate } from '@lib/date.library';
+import { DATE_FMT } from '@lib/date.define';
 import { dbg } from '@lib/logger.library';
-import { Store } from '@ngxs/store';
-import { isNumber, cloneObj, asArray, isString, isUndefined } from '@app/library/object.library';
-import { IWhere } from '@app/dbase/fire/fire.interface';
-import { fmtDate } from '@app/library/date.library';
-import { DATE_FMT } from '@app/library/date.define';
-import { FIELD } from '@app/dbase/fire/fire.define';
+import { selector } from '@app/state/state.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -27,16 +30,12 @@ export class MemberService {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   /** get current values of a store-type from state */
-  private getClient<T>(store: string, allDocs: boolean = false) {
+  private getStore<T>(store: string, selector: any, allDocs: boolean = false) {
     return this.store
-      .selectOnce(ClientState)
+      .selectOnce(selector)
       .toPromise()
-      .then(client => client[store] as T[])
+      .then(state => state[store] as T[])
       .then(docs => allDocs ? docs : this.asAt(docs))
-  }
-
-  private getMember<T>(store: string, allDocs: boolean = false) {
-    return Promise.resolve([]);
   }
 
   /** the current logged-on User ID */
@@ -61,12 +60,12 @@ export class MemberService {
    */
   private async getPrice(event: string, uid?: string, date?: string | number, debug?: boolean) {
     let where: IWhere | IWhere[];
-    const [user_id, profile, _default_, classes, prices] = await Promise.all([
+    const [user_id, _default_, profile, classes, prices] = await Promise.all([
       this.getUID(uid),
-      this.getMember<IProfile>('profile'),
-      this.getClient<IPriceDefault>('_default_'),
-      this.getClient<IClass>('class'),
-      this.getClient<IPrice>('price'),
+      this.getStore<IPriceDefault>('_default_', ClientState),
+      this.getStore<IProfile>('profile', MemberState),
+      this.getStore<IClass>('class', ClientState),
+      this.getStore<IPrice>('price', ClientState),
     ])
 
     // get the Application Pricing defaults as-at the Date

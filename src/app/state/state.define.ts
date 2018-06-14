@@ -5,3 +5,5 @@ export const SLICE = {
 	router: 'router',
 	member: 'member',
 }
+
+export type selector = (state: any, ...states: any[]) => { [store: string]: any; }

@@ -27,10 +27,10 @@ export class SetMember {											// Add a Member object into the Store
 }
 
 export class DelMember {											// Remove a Member object from the Store
-	static type = '[Sync Service] Delete Client';
+	static type = '[Sync Service] Delete Member';
 	constructor(public payload: IMemberDoc) { };
 }
 
 export class TruncMember {										// Truncate a Member object from the Store
-	static type = '[Sync Service] Truncate Client';
+	static type = '[Sync Service] Truncate Member';
 }

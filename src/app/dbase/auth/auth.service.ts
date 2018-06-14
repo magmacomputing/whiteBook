@@ -4,9 +4,10 @@ import { AuthProvider } from '@firebase/auth-types';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { Store } from '@ngxs/store';
+import { TruncMember } from '@state/member.define';
 
-import { IProvider } from '@dbase/app/app.interface';
 import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
+import { IProvider } from '@dbase/app/app.interface';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { asArray } from '@lib/object.library';
@@ -22,6 +23,7 @@ export class AuthService {
 
   public signOut() {
     this.store.dispatch(new Logout());
+    this.store.dispatch(new TruncMember());
   }
 
   public check() {

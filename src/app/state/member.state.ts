@@ -25,7 +25,7 @@ export class MemberState implements NgxsOnInit {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
-		store.push(payload);										// push the changed ClientDoc into the Store
+		store.push(payload);										// push the changed MemberDoc into the Store
 		state[payload.store] = store;
 		this.dbg('setMember: %j', payload);
 		patchState({ ...state });
