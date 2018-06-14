@@ -18,9 +18,7 @@ import { FIELD } from '@app/dbase/fire/fire.define';
 export class MemberService {
   private dbg: Function = dbg.bind(this);
 
-  constructor(private store: Store) {
-    this.dbg('new');
-  }
+  constructor(private store: Store) { this.dbg('new'); }
 
   async attend(event: string, date?: string | number) {
     const { plan, type, price, } = await this.getPrice('MultiStep', undefined, undefined, true);

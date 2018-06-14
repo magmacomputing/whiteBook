@@ -5,6 +5,7 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
 import { IClientDoc, SetClient, DelClient, TruncClient } from '@state/client.define';
+import { IMemberDoc, SetMember, DelMember, TruncMember } from '@state/member.define';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
@@ -12,7 +13,7 @@ import { FIELD, COLLECTION } from '@dbase/fire/fire.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isFunction, sortKeys } from '@lib/object.library';
+import { isFunction, sortKeys, cloneObj } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
@@ -24,8 +25,8 @@ export class SyncService {
   private localStore: { [key: string]: any; };
 
   constructor(private af: AngularFirestore, private store: Store) {
-    this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
     this.dbg('new');
+    this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
   }
 
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
@@ -63,8 +64,15 @@ export class SyncService {
     const slice = this.listener[collection].slice;
     this.listener[collection].cnt += 1;
 
-    if (slice === SLICE.client)
-      this.snapClient(snaps);
+    switch (slice) {
+      case SLICE.client:
+        this.snapClient(snaps);
+        break;
+
+      case SLICE.member:
+        this.snapMember(snaps);
+        break;
+    }
   }
 
   /** sync the public Client data */
@@ -101,6 +109,45 @@ export class SyncService {
 
         case 'removed':
           this.store.dispatch(new DelClient(data));
+          break;
+      }
+    })
+  }
+
+  /** sync the member data */
+  private async snapMember(snaps: DocumentChangeAction<IMemberDoc>[]) {
+    const listen = this.listener[COLLECTION.Member];
+
+    if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
+      const localStore = this.localStore[SLICE.member] || {};
+      const localList: IMemberDoc[] = [];
+      const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
+
+      Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
+      let [localHash, storeHash] = await Promise.all([
+        cryptoHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
+        cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
+      ])
+
+      listen.ready.resolve(true);                   // indicate snap0 is ready
+
+      if (localHash === storeHash)                  // compare what is in snap0 with localStorage
+        return;                                     // ok, already sync'd  
+
+      this.store.dispatch(new TruncMember());       // otherwise, reset Store
+    }
+
+    snaps.forEach(snap => {
+      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+
+      switch (snap.type) {
+        case 'added':
+        case 'modified':
+          this.store.dispatch(new SetMember(data));
+          break;
+
+        case 'removed':
+          this.store.dispatch(new DelMember(data));
           break;
       }
     })

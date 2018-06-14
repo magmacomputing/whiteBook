@@ -25,6 +25,7 @@ export const COLLECTION = {			// collection starts with upper-case, document wit
 	Log: '/log',
 	Register: '/register',
 	Member: '/member',
+	Attend: '/attend',
 	Client: '/client',
 }
 

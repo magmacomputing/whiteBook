@@ -20,7 +20,7 @@ export class FireService {
 
   constructor(private af: AngularFirestore, private sync: SyncService, private auth: AuthService, private store: Store) {
     this.dbg('new');
-    this.sync.on(COLLECTION.Client, SLICE.client)     // initialize a listener to /client Collection
+    this.syncOn(COLLECTION.Client, SLICE.client)      // initialize a listener to /client Collection
       .then(_ => this.snap(''))                       // try this to kick-start Observable
   }
 
@@ -32,8 +32,12 @@ export class FireService {
       .toPromise()                                   // stash the current snap result
   }
 
-  off() {
-    this.sync.off(COLLECTION.Client);
+  syncOn(collection: string, slice: string = SLICE.client) {
+    return this.sync.on(collection, slice);
+  }
+
+  syncOff() {
+    return this.sync.off(COLLECTION.Client);
   }
 
   hash(str: string) {

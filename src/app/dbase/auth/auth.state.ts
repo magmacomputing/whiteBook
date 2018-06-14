@@ -1,13 +1,17 @@
 import { ApplicationRef } from '@angular/core';
-import { AngularFireAuth } from 'angularfire2/auth';
 import { User } from '@firebase/auth-types';
+import { AngularFireAuth } from 'angularfire2/auth';
+import { SyncService } from '@dbase/sync/sync.service';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@state/state.define';
+
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
+import { COLLECTION, FIELD } from '@dbase/fire/fire.define';
+import { IQuery } from '@dbase/fire/fire.interface';
 
 import { decodeBase64 } from '@lib/crypto.library';
 import { cloneObj } from '@lib/object.library';
@@ -23,7 +27,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private afAuth: AngularFireAuth, private ref: ApplicationRef) {
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private ref: ApplicationRef) {
 		this.dbg('new');
 	}
 
@@ -85,6 +89,14 @@ export class AuthState implements NgxsOnInit {
 		ctx.patchState({ userInfo: user, userToken: token });
 	}
 
+	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
+	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
+
+		// this.sync.on(COLLECTION.Member, SLICE.member, query)
+		// 	.then(ok => this.dbg('sync: %s on', COLLECTION.Member))
+	}
+
 	@Action(LoginToken)
 	setToken(ctx: StateContext<IAuthState>, { user }: LoginToken) {
 		return user.getIdToken()
@@ -101,6 +113,8 @@ export class AuthState implements NgxsOnInit {
 
 	@Action([LoginFailed, LogoutSuccess])
 	setUserStateOnFailure(ctx: StateContext<IAuthState>) {
+		this.sync.off(COLLECTION.Member);
+
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());
 		this.ref.tick();
