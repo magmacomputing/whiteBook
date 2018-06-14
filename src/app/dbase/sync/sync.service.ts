@@ -83,7 +83,7 @@ export class SyncService {
   private async syncSnap<T>(collection: string, snaps: DocumentChangeAction<T>[]) {
     const listen = this.listener[collection];
 
-    let setState, delState, truncState;             // TODO: tidy
+    let setState: any, delState: any, truncState;             // TODO: tidy
 
     switch (listen.slice) {
       case SLICE.client:
