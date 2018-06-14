@@ -10,8 +10,8 @@ import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
+import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
-import { cryptoHash } from '@app/library/crypto.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class FireService {

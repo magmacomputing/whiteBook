@@ -1,7 +1,6 @@
 import { ApplicationRef } from '@angular/core';
 import { User } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
-import { SyncService } from '@dbase/sync/sync.service';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -9,6 +8,7 @@ import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@state/state.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
+import { SyncService } from '@dbase/sync/sync.service';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
 import { COLLECTION, FIELD } from '@dbase/fire/fire.define';
 import { IQuery } from '@dbase/fire/fire.interface';

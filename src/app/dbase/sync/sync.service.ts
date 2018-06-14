@@ -4,8 +4,8 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 
 import { Store } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
-import { IClientDoc, SetClient, DelClient, TruncClient } from '@state/client.define';
-import { IMemberDoc, SetMember, DelMember, TruncMember } from '@state/member.define';
+import { IStoreDoc, IStoreState, SetStore, DelStore, TruncStore } from '@state/store.define';
+import { IMemberDoc, SetMember, DelMember, TruncMember, IMemberState } from '@state/member.define';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
@@ -65,37 +65,39 @@ export class SyncService {
   }
 
   /** handler for snapshot listeners */
-  private snapDispatch(collection: string, snaps: DocumentChangeAction<IClientDoc>[]) {
+  private snapDispatch(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const slice = this.listener[collection].slice;
     this.listener[collection].cnt += 1;
 
     switch (slice) {
       case SLICE.client:
-        this.snapClient(snaps);
+        // this.snapClient(snaps);
+        this.snapSync(collection, snaps);
         break;
 
       case SLICE.member:
-        this.snapMember(snaps);
+        this.snapSync(collection, snaps);
         break;
     }
   }
 
-  private async syncSnap<T>(collection: string, snaps: DocumentChangeAction<T>[]) {
+  private async snapSync<T>(collection:string, snaps: DocumentChangeAction<T>[]) {
     const listen = this.listener[collection];
 
     let setState: any, delState: any, truncState;             // TODO: tidy
 
     switch (listen.slice) {
       case SLICE.client:
-        setState = SetClient;
-        delState = DelClient;
-        truncState = TruncClient;
+        setState = SetStore;
+        delState = DelStore;
+        truncState = TruncStore;
         break;
 
       case SLICE.member:
         setState = SetMember;
         delState = DelMember;
         truncState = TruncMember;
+        break;
 
       default:
         return;                                     // Unknown Slice !!
@@ -103,7 +105,7 @@ export class SyncService {
 
     if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
       const localStore = this.localStore[listen.slice] || {};
-      const localList: IClientDoc[] = [];
+      const localList: IStoreDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
@@ -137,12 +139,12 @@ export class SyncService {
   }
 
   /** sync the public Client data */
-  private async snapClient(snaps: DocumentChangeAction<IClientDoc>[]) {
+  private async snapClient(snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[COLLECTION.Client];
 
     if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
       const localStore = this.localStore[listen.slice] || {};
-      const localList: IClientDoc[] = [];
+      const localList: IStoreDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
@@ -156,7 +158,7 @@ export class SyncService {
       if (localHash === storeHash)                  // compare what is in snap0 with localStorage
         return;                                     // ok, already sync'd  
 
-      this.store.dispatch(new TruncClient());       // otherwise, reset Store
+      this.store.dispatch(new TruncStore());       // otherwise, reset Store
     }
 
     snaps.forEach(snap => {
@@ -165,11 +167,11 @@ export class SyncService {
       switch (snap.type) {
         case 'added':
         case 'modified':
-          this.store.dispatch(new SetClient(data));
+          this.store.dispatch(new SetStore(data));
           break;
 
         case 'removed':
-          this.store.dispatch(new DelClient(data));
+          this.store.dispatch(new DelStore(data));
           break;
       }
     })

@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import * as firebase from 'firebase/app';
+import * as firebase from 'firebase';
 import { AuthProvider } from '@firebase/auth-types';
 
-import { AuthModule } from '@dbase/auth/auth.module';
 import { Store } from '@ngxs/store';
 import { TruncMember } from '@state/member.define';
+import { AuthModule } from '@dbase/auth/auth.module';
 
 import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
 import { IProvider } from '@dbase/app/app.interface';
