@@ -21,29 +21,29 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(SetStore)
-	setClient({ patchState, getState }: StateContext<IStoreState>, { payload }: SetStore) {
+	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetStore) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
 		store.push(payload);										// push the changed ClientDoc into the Store
 		state[payload.store] = store;
-		this.dbg('setClient: %j', payload);
+		this.dbg('setStore: %j', payload);
 		patchState({ ...state });
 	}
 
 	@Action(DelStore)
-	delClient({ patchState, getState }: StateContext<IStoreState>, { payload }: DelStore) {
+	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelStore) {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
 
 		state[payload.store] = store;
-		this.dbg('delClient: %j', payload);
+		this.dbg('delStore: %j', payload);
 		patchState({ ...state });
 	}
 
 	@Action(TruncStore)
-	truncClient({ setState }: StateContext<IStoreState>) {
-		this.dbg('truncClient');
+	truncStore({ setState }: StateContext<IStoreState>) {
+		this.dbg('truncStore');
 		setState({});
 	}
 

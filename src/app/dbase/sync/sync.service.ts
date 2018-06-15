@@ -32,6 +32,7 @@ export class SyncService {
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
   public async on(collection: string, slice?: string, query?: IQuery) {
     const snapDispatch = this.snapDispatch.bind(this, collection);
+    const snapSync = this.snapSync.bind(this, collection);
     const ready = createPromise<boolean>();
     slice = slice || collection;                      // default to same-name as collection
 
@@ -42,7 +43,7 @@ export class SyncService {
       cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
       subscribe: this.af.collection(collection, fnQuery(query))
         .stateChanges()                               // only watch for changes since last snapshot
-        .subscribe(snapDispatch)
+        .subscribe(snapSync)
     }
 
     return ready.promise;                             // indicate when snap0 is complete
@@ -81,10 +82,11 @@ export class SyncService {
     }
   }
 
-  private async snapSync<T>(collection:string, snaps: DocumentChangeAction<T>[]) {
+  private async snapSync<T>(collection: string, snaps: DocumentChangeAction<T>[]) {
     const listen = this.listener[collection];
-
     let setState: any, delState: any, truncState;             // TODO: tidy
+    
+    this.listener[collection].cnt += 1;
 
     switch (listen.slice) {
       case SLICE.client:
