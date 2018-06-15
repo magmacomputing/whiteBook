@@ -17,6 +17,7 @@ import { isFunction, sortKeys, cloneObj } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
+import { CheckSession, LoginToken } from '@app/dbase/auth/auth.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -82,10 +83,10 @@ export class SyncService {
     }
   }
 
-  private async snapSync<T>(collection: string, snaps: DocumentChangeAction<T>[]) {
+  private async snapSync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[collection];
     let setState: any, delState: any, truncState;             // TODO: tidy
-    
+
     this.listener[collection].cnt += 1;
 
     switch (listen.slice) {
@@ -131,6 +132,8 @@ export class SyncService {
         case 'added':
         case 'modified':
           this.store.dispatch(new setState(data));
+          if (data.store === 'profile' && data.type === 'claims' && !data[FIELD.expire])
+            this.store.dispatch(new LoginToken());  // special: access-level has changed
           break;
 
         case 'removed':
@@ -170,6 +173,9 @@ export class SyncService {
         case 'added':
         case 'modified':
           this.store.dispatch(new SetStore(data));
+          console.log('data: ', data);
+          if (data.store === 'profile' && data.type === 'claims' && !data[FIELD.expire])
+            this.store.dispatch(new CheckSession());  // access-level has changed
           break;
 
         case 'removed':

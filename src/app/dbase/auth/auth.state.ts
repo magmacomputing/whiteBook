@@ -97,11 +97,12 @@ export class AuthState implements NgxsOnInit {
 			.then(ok => this.dbg('sync: %s on', COLLECTION.Member))
 	}
 
-	@Action(LoginToken)
-	setToken(ctx: StateContext<IAuthState>, { user }: LoginToken) {
-		return user.getIdToken()
+	@Action(LoginToken)															// fetch latest IdToken
+	setToken(ctx: StateContext<IAuthState>) {
+		return (this.afAuth.auth.currentUser as User).getIdToken()
+			.then(token => decodeBase64<TTokenClaims>(token.split('.')[1]))
 			.then(token => ctx.patchState({ userToken: token }))
-			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as TTokenClaims)))
+			.then(_ => this.dbg('token: %j', ctx.getState().userToken))
 	}
 
 	@Action(LoginRedirect)
