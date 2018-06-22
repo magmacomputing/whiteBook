@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { NgxsModule } from '@ngxs/store';
 import { ClientState } from '@state/client.state';
 import { MemberState } from '@state/member.state';
+import { AttendState } from '@state/attend.state';
 
 import { AngularFireModule } from 'angularfire2';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
@@ -14,7 +15,7 @@ const fb = environment.firebase || {};
 @NgModule({
   imports: [
     CommonModule,
-    NgxsModule.forFeature([ClientState, MemberState]),
+    NgxsModule.forFeature([ClientState, MemberState, AttendState]),
     AngularFireModule.initializeApp(fb.app, fb.config),
     AngularFirestoreModule.enablePersistence(),
   ],

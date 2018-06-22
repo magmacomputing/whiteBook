@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import * as firebase from 'firebase/app';
 import { AuthProvider } from '@firebase/auth-types';
 
+import { AuthModule } from '@dbase/auth/auth.module';
 import { Store } from '@ngxs/store';
 import { TruncMember } from '@state/member.define';
-import { AuthModule } from '@dbase/auth/auth.module';
+import { TruncAttend } from '@state/attend.define';
 
 import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
 import { IProvider } from '@dbase/app/app.interface';
@@ -24,6 +25,7 @@ export class AuthService {
   public signOut() {
     this.store.dispatch(new Logout());
     this.store.dispatch(new TruncMember());
+    this.store.dispatch(new TruncAttend());
   }
 
   public check() {

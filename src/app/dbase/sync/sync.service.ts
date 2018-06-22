@@ -1,23 +1,24 @@
 import { Injectable } from '@angular/core';
-import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
 import { SnapshotMetadata } from '@firebase/firestore-types';
+import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
 import { SLICE } from '@state/state.define';
-import { IStoreDoc, IStoreState, SetStore, DelStore, TruncStore } from '@state/store.define';
-import { IMemberDoc, SetMember, DelMember, TruncMember, IMemberState } from '@state/member.define';
+import { IStoreDoc, SetStore, DelStore, TruncStore } from '@state/store.define';
+import { SetMember, DelMember, TruncMember } from '@state/member.define';
+import { SetAttend, DelAttend, TruncAttend } from '@state/attend.define';
 
+import { LoginToken } from '@app/dbase/auth/auth.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { FIELD, COLLECTION } from '@dbase/fire/fire.define';
+import { FIELD } from '@dbase/fire/fire.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isFunction, sortKeys, cloneObj } from '@lib/object.library';
+import { isFunction, sortKeys, IObject } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
-import { CheckSession, LoginToken } from '@app/dbase/auth/auth.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -32,7 +33,6 @@ export class SyncService {
 
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
   public async on(collection: string, slice?: string, query?: IQuery) {
-    const snapDispatch = this.snapDispatch.bind(this, collection);
     const snapSync = this.snapSync.bind(this, collection);
     const ready = createPromise<boolean>();
     slice = slice || collection;                      // default to same-name as collection
@@ -46,11 +46,11 @@ export class SyncService {
         .stateChanges()                               // only watch for changes since last snapshot
         .subscribe(snapSync)
     }
-
+    this.dbg('on: %s', collection);
     return ready.promise;                             // indicate when snap0 is complete
   }
 
-  getStatus(collection: string) {
+  public getStatus(collection: string) {
     const { slice, cnt } = this.listener[collection];
     return { slice, cnt };
   }
@@ -67,27 +67,15 @@ export class SyncService {
   }
 
   /** handler for snapshot listeners */
-  private snapDispatch(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
-    const slice = this.listener[collection].slice;
-    this.listener[collection].cnt += 1;
-
-    switch (slice) {
-      case SLICE.client:
-        // this.snapClient(snaps);
-        this.snapSync(collection, snaps);
-        break;
-
-      case SLICE.member:
-        this.snapSync(collection, snaps);
-        break;
-    }
-  }
-
   private async snapSync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[collection];
     let setState: any, delState: any, truncState;             // TODO: tidy
 
     this.listener[collection].cnt += 1;
+
+    const snapType = snaps[0] || snaps[1] || snaps[2];      // look in 'added', 'modified', else 'removed'
+    const snapSource = this.getSource(snapType ? snapType.payload.doc.metadata : {} as SnapshotMetadata);
+    this.dbg('%s: snapshot #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
 
     switch (listen.slice) {
       case SLICE.client:
@@ -102,7 +90,14 @@ export class SyncService {
         truncState = TruncMember;
         break;
 
+      case SLICE.attend:
+        setState = SetAttend;
+        delState = DelAttend;
+        truncState = TruncAttend;
+        break;
+
       default:
+        this.dbg('snap: Unexpected "slice": %s', listen.slice);
         return;                                     // Unknown Slice !!
     }
 
@@ -118,7 +113,6 @@ export class SyncService {
       ])
 
       listen.ready.resolve(true);                   // indicate snap0 is ready
-
       if (localHash === storeHash)                  // compare what is in snap0 with localStorage
         return;                                     // ok, already sync'd  
 
@@ -138,87 +132,6 @@ export class SyncService {
 
         case 'removed':
           this.store.dispatch(new delState(data));
-          break;
-      }
-    })
-  }
-
-  /** sync the public Client data */
-  private async snapClient(snaps: DocumentChangeAction<IStoreDoc>[]) {
-    const listen = this.listener[COLLECTION.Client];
-
-    if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
-      const localStore = this.localStore[listen.slice] || {};
-      const localList: IStoreDoc[] = [];
-      const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
-
-      Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
-      let [localHash, storeHash] = await Promise.all([
-        cryptoHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
-        cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
-      ])
-
-      listen.ready.resolve(true);                   // indicate snap0 is ready
-
-      if (localHash === storeHash)                  // compare what is in snap0 with localStorage
-        return;                                     // ok, already sync'd  
-
-      this.store.dispatch(new TruncStore());       // otherwise, reset Store
-    }
-
-    snaps.forEach(snap => {
-      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
-
-      switch (snap.type) {
-        case 'added':
-        case 'modified':
-          this.store.dispatch(new SetStore(data));
-          console.log('data: ', data);
-          if (data.store === 'profile' && data.type === 'claims' && !data[FIELD.expire])
-            this.store.dispatch(new CheckSession());  // access-level has changed
-          break;
-
-        case 'removed':
-          this.store.dispatch(new DelStore(data));
-          break;
-      }
-    })
-  }
-
-  /** sync the member data */
-  private async snapMember(snaps: DocumentChangeAction<IMemberDoc>[]) {
-    const listen = this.listener[COLLECTION.Member];
-
-    if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
-      const localStore = this.localStore[listen.slice] || {};
-      const localList: IMemberDoc[] = [];
-      const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
-
-      Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
-      let [localHash, storeHash] = await Promise.all([
-        cryptoHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
-        cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
-      ])
-
-      listen.ready.resolve(true);                   // indicate snap0 is ready
-
-      if (localHash === storeHash)                  // compare what is in snap0 with localStorage
-        return;                                     // ok, already sync'd  
-
-      this.store.dispatch(new TruncMember());       // otherwise, reset Store
-    }
-
-    snaps.forEach(snap => {
-      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
-
-      switch (snap.type) {
-        case 'added':
-        case 'modified':
-          this.store.dispatch(new SetMember(data));
-          break;
-
-        case 'removed':
-          this.store.dispatch(new DelMember(data));
           break;
       }
     })

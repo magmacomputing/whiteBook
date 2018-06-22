@@ -61,7 +61,11 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSocial)														// process signInWithPopup()
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider }: LoginSocial) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
-			.then((response: { user: User }) => ctx.dispatch(new LoginSuccess(response.user)))
+			.then((response: { user: User | null }) => ctx.dispatch(
+				response.user
+					? new LoginSuccess(response.user)
+					: new LoginFailed(new Error('No User information available'))
+			))
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
 
@@ -93,8 +97,8 @@ export class AuthState implements NgxsOnInit {
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
 
-		this.sync.on(COLLECTION.Member, SLICE.member, query)
-			.then(ok => this.dbg('sync: %s on', COLLECTION.Member))
+		this.sync.on(COLLECTION.Member, SLICE.member, query);
+		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 	}
 
 	@Action(LoginToken)															// fetch latest IdToken
@@ -115,6 +119,7 @@ export class AuthState implements NgxsOnInit {
 	@Action([LoginFailed, LogoutSuccess])
 	setUserStateOnFailure(ctx: StateContext<IAuthState>) {
 		this.sync.off(COLLECTION.Member);
+		this.sync.off(COLLECTION.Attend);
 
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());
