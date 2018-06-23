@@ -4,7 +4,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { tap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { SLICE } from '@state/state.define';
+import { SLICE } from '@state/store.define';
 
 import { COLLECTION } from '@dbase/fire/fire.define';
 import { SyncService } from '@dbase/sync/sync.service';

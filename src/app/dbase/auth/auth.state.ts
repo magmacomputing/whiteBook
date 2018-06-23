@@ -5,7 +5,7 @@ import { AngularFireAuth } from 'angularfire2/auth';
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
-import { SLICE } from '@state/state.define';
+import { SLICE } from '@state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
 import { SyncService } from '@dbase/sync/sync.service';

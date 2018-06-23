@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/fire/fire.define';
+import { IStoreDoc } from '@state/store.define';
 
 /**
  * The 'member' state contains a copy of the remote /member Collection,
@@ -11,24 +11,15 @@ import { FIELD } from '@dbase/fire/fire.define';
  * 	}
  */
 
-export interface IMemberDoc {
-	[FIELD.id]: string;
-	store: string;
-	[key: string]: any;
-}
-export interface IMemberState {
-	[store: string]: IMemberDoc[];
-}
-
 /** Actions */
 export class SetMember {											// Add a Member object into the Store
 	static type = '[Sync Service] Set Member';
-	constructor(public payload: IMemberDoc) { };
+	constructor(public payload: IStoreDoc) { };
 }
 
 export class DelMember {											// Remove a Member object from the Store
 	static type = '[Sync Service] Delete Member';
-	constructor(public payload: IMemberDoc) { };
+	constructor(public payload: IStoreDoc) { };
 }
 
 export class TruncMember {										// Truncate a Member object from the Store

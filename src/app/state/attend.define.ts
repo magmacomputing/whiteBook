@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/fire/fire.define';
+import { IStoreDoc } from '@state/store.define';
 
 /**
  * The 'attend' state contains a copy of the remote /attend Collection,
@@ -11,24 +11,15 @@ import { FIELD } from '@dbase/fire/fire.define';
  * 	}
  */
 
-export interface IAttendDoc {
-	[FIELD.id]: string;
-	store: string;
-	[key: string]: any;
-}
-export interface IAttendState {
-	[store: string]: IAttendDoc[];
-}
-
 /** Actions */
 export class SetAttend {											// Add Attend object into the Store
 	static type = '[Sync Service] Set Attend';
-	constructor(public payload: IAttendDoc) { };
+	constructor(public payload: IStoreDoc) { }
 }
 
 export class DelAttend {											// Remove Attend object from the Store
 	static type = '[Sync Service] Delete Attend';
-	constructor(public payload: IAttendDoc) { };
+	constructor(public payload: IStoreDoc) { }
 }
 
 export class TruncAttend {										// Truncate Attend object from the Store

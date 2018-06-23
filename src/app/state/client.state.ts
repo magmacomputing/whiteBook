@@ -1,7 +1,6 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
-import { SLICE } from '@state/state.define';
-import { IStoreState, IStoreDoc } from '@state/store.define';
-import { SetStore, DelStore, TruncStore } from '@state/store.define';
+import { SLICE, IStoreState, IStoreDoc } from '@state/store.define';
+import { SetClient, DelClient, TruncClient } from '@state/client.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
 import { sortKeys } from '@lib/object.library';
@@ -20,30 +19,30 @@ export class ClientState implements NgxsOnInit {
 		this.dbg('onInit:');
 	}
 
-	@Action(SetStore)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetStore) {
+	@Action(SetClient)
+	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetClient) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
 		store.push(payload);										// push the changed ClientDoc into the Store
 		state[payload.store] = store;
-		this.dbg('setStore: %j', payload);
+		this.dbg('setClient: %j', payload);
 		patchState({ ...state });
 	}
 
-	@Action(DelStore)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelStore) {
+	@Action(DelClient)
+	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelClient) {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
 
 		state[payload.store] = store;
-		this.dbg('delStore: %j', payload);
+		this.dbg('delClient: %j', payload);
 		patchState({ ...state });
 	}
 
-	@Action(TruncStore)
+	@Action(TruncClient)
 	truncStore({ setState }: StateContext<IStoreState>) {
-		this.dbg('truncStore');
+		this.dbg('truncClient');
 		setState({});
 	}
 
@@ -61,6 +60,16 @@ export class ClientState implements NgxsOnInit {
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])
 			.sort(sortKeys(['type', 'order', 'name']))
+		];
+	}
+
+	@Selector()
+	static plans(state: IStoreState) {
+		return [...state['price']
+			.filter(itm => itm[FIELD.type] === 'topUp')
+			.filter(itm => !itm[FIELD.expire])
+			.filter(itm => !itm[FIELD.hidden])
+			.sort(sortKeys(['type', 'order', 'plan']))
 		];
 	}
 

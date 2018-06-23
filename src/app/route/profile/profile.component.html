@@ -1,0 +1,11 @@
+<p>
+  Please select a Payment-Plan from the list below...
+</p>
+
+<mat-card>
+  <mat-card-content *ngFor="let plan of plan$ | async">
+    <button mat-raised-button [disabled]="plan._disable" (click)="setPlan(plan)">
+      {{plan.plan}} ${{plan.amount}}
+    </button>
+  </mat-card-content>
+</mat-card>

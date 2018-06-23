@@ -15,7 +15,6 @@ import { isNumber, cloneObj, asArray, isString, isUndefined } from '@lib/object.
 import { fmtDate } from '@lib/date.library';
 import { DATE_FMT } from '@lib/date.define';
 import { dbg } from '@lib/logger.library';
-import { selector } from '@app/state/state.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {

@@ -1,13 +1,13 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
-import { SLICE } from '@state/state.define';
-import { IMemberState, IMemberDoc } from '@state/member.define';
+import { SLICE } from '@state/store.define';
+import { IStoreState, IStoreDoc } from '@state/store.define';
 import { SetMember, DelMember, TruncMember } from '@state/member.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IMemberState>({
+@State<IStoreState>({
 	name: SLICE.member,
 	defaults: {}
 })
@@ -16,12 +16,12 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { this.dbg('new'); }
 
-	ngxsOnInit(ctx: StateContext<IMemberState>) {
+	ngxsOnInit(ctx: StateContext<IStoreState>) {
 		this.dbg('onInit:');
 	}
 
 	@Action(SetMember)
-	setClient({ patchState, getState }: StateContext<IMemberState>, { payload }: SetMember) {
+	setClient({ patchState, getState }: StateContext<IStoreState>, { payload }: SetMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
@@ -32,7 +32,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(DelMember)
-	delClient({ patchState, getState }: StateContext<IMemberState>, { payload }: DelMember) {
+	delClient({ patchState, getState }: StateContext<IStoreState>, { payload }: DelMember) {
 		const state = getState() || {};
 		const store = this.filterMember(getState(), payload);
 
@@ -42,13 +42,13 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(TruncMember)
-	truncClient({ setState }: StateContext<IMemberState>) {
+	truncClient({ setState }: StateContext<IStoreState>) {
 		this.dbg('truncMember');
 		setState({});
 	}
 
 	/** remove an item from the Member Store */
-	private filterMember(state: IMemberState, payload: IMemberDoc) {
+	private filterMember(state: IStoreState, payload: IStoreDoc) {
 		const curr = state && state[payload.store] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -58,11 +58,22 @@ export class MemberState implements NgxsOnInit {
 	@Selector()
 	static getMember(store: string, state: any) {
 		// TODO: tidy
-		const member: IMemberState = state[SLICE.member];
+		const member: IStoreState = state[SLICE.member];
 		return [...member[store]
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])
 			.sort(sortKeys(['type', 'order', 'name']))
+		];
+	}
+
+	/** Member's current plan */
+	@Selector()
+	static plan(state: IStoreState) {
+		return [...state['profile']
+			.filter(itm => itm[FIELD.type] === 'plan')
+			.filter(itm => !itm[FIELD.expire])
+			.filter(itm => !itm[FIELD.hidden])
+			.sort(sortKeys(['plan']))
 		];
 	}
 }

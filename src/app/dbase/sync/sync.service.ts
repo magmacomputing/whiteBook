@@ -3,8 +3,8 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
-import { SLICE } from '@state/state.define';
-import { IStoreDoc, SetStore, DelStore, TruncStore } from '@state/store.define';
+import { SLICE, IStoreState, IStoreDoc } from '@state/store.define';
+import { SetClient, DelClient, TruncClient } from '@state/client.define';
 import { SetMember, DelMember, TruncMember } from '@state/member.define';
 import { SetAttend, DelAttend, TruncAttend } from '@state/attend.define';
 
@@ -15,7 +15,7 @@ import { FIELD } from '@dbase/fire/fire.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isFunction, sortKeys, IObject } from '@lib/object.library';
+import { isFunction, sortKeys } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
@@ -69,7 +69,7 @@ export class SyncService {
   /** handler for snapshot listeners */
   private async snapSync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[collection];
-    let setState: any, delState: any, truncState;             // TODO: tidy
+    let setState: any, delState: any, truncState;
 
     this.listener[collection].cnt += 1;
 
@@ -77,11 +77,11 @@ export class SyncService {
     const snapSource = this.getSource(snapType ? snapType.payload.doc.metadata : {} as SnapshotMetadata);
     this.dbg('%s: snapshot #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
 
-    switch (listen.slice) {
+    switch (listen.slice) {                                 // TODO: can we merge these?
       case SLICE.client:
-        setState = SetStore;
-        delState = DelStore;
-        truncState = TruncStore;
+        setState = SetClient;
+        delState = DelClient;
+        truncState = TruncClient;
         break;
 
       case SLICE.member:
