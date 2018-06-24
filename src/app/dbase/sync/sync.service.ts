@@ -3,10 +3,10 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
-import { SLICE, IStoreState, IStoreDoc } from '@state/store.define';
-import { SetClient, DelClient, TruncClient } from '@state/client.define';
-import { SetMember, DelMember, TruncMember } from '@state/member.define';
-import { SetAttend, DelAttend, TruncAttend } from '@state/attend.define';
+import { SLICE, IStoreDoc } from '@state/store.define';
+import { SetClient, DelClient, TruncClient } from '@state/store.define';
+import { SetMember, DelMember, TruncMember } from '@state/store.define';
+import { SetAttend, DelAttend, TruncAttend } from '@state/store.define';
 
 import { LoginToken } from '@app/dbase/auth/auth.define';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -69,39 +69,39 @@ export class SyncService {
   /** handler for snapshot listeners */
   private async snapSync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[collection];
-    let setState: any, delState: any, truncState;
+    let setStore: any, delStore: any, truncStore;
 
     this.listener[collection].cnt += 1;
 
-    const snapType = snaps[0] || snaps[1] || snaps[2];      // look in 'added', 'modified', else 'removed'
+    const snapType = snaps[0] || snaps[1] || snaps[2];// look in 'added', 'modified', else 'removed'
     const snapSource = this.getSource(snapType ? snapType.payload.doc.metadata : {} as SnapshotMetadata);
     this.dbg('%s: snapshot #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
 
-    switch (listen.slice) {                                 // TODO: can we merge these?
+    switch (listen.slice) {                           // TODO: can we merge these?
       case SLICE.client:
-        setState = SetClient;
-        delState = DelClient;
-        truncState = TruncClient;
+        setStore = SetClient;
+        delStore = DelClient;
+        truncStore = TruncClient;
         break;
 
       case SLICE.member:
-        setState = SetMember;
-        delState = DelMember;
-        truncState = TruncMember;
+        setStore = SetMember;
+        delStore = DelMember;
+        truncStore = TruncMember;
         break;
 
       case SLICE.attend:
-        setState = SetAttend;
-        delState = DelAttend;
-        truncState = TruncAttend;
+        setStore = SetAttend;
+        delStore = DelAttend;
+        truncStore = TruncAttend;
         break;
 
       default:
         this.dbg('snap: Unexpected "slice": %s', listen.slice);
-        return;                                     // Unknown Slice !!
+        return;                                       // Unknown Slice !!
     }
 
-    if (listen.cnt === 0) {                         // this is the initial snapshot, so check for tampering
+    if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
       const localStore = this.localStore[listen.slice] || {};
       const localList: IStoreDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
@@ -112,26 +112,26 @@ export class SyncService {
         cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
       ])
 
-      listen.ready.resolve(true);                   // indicate snap0 is ready
-      if (localHash === storeHash)                  // compare what is in snap0 with localStorage
-        return;                                     // ok, already sync'd  
+      listen.ready.resolve(true);                     // indicate snap0 is ready
+      if (localHash === storeHash)                    // compare what is in snap0 with localStorage
+        return;                                       // ok, already sync'd  
 
-      this.store.dispatch(new truncState());        // otherwise, reset Store
+      this.store.dispatch(new truncStore());          // otherwise, reset Store
     }
 
     snaps.forEach(snap => {
-      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id, [FIELD.expire]: 0 }, snap.payload.doc.data());
 
       switch (snap.type) {
         case 'added':
         case 'modified':
-          this.store.dispatch(new setState(data));
+          this.store.dispatch(new setStore(data));
           if (data.store === 'profile' && data.type === 'claims' && !data[FIELD.expire])
-            this.store.dispatch(new LoginToken());  // special: access-level has changed
+            this.store.dispatch(new LoginToken());    // special: access-level has changed
           break;
 
         case 'removed':
-          this.store.dispatch(new delState(data));
+          this.store.dispatch(new delStore(data));
           break;
       }
     })
