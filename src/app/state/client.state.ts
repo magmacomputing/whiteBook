@@ -1,6 +1,6 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc } from '@state/store.define';
-import { SetClient, DelClient, TruncClient } from '@state/client.define';
+import { SetClient, DelClient, TruncClient } from '@state/store.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
 import { sortKeys } from '@lib/object.library';
@@ -15,9 +15,7 @@ export class ClientState implements NgxsOnInit {
 
 	constructor() { this.dbg('new'); }
 
-	ngxsOnInit(ctx: StateContext<IStoreState>) {
-		this.dbg('onInit:');
-	}
+	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('onInit:'); }
 
 	@Action(SetClient)
 	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetClient) {

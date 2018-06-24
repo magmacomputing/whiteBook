@@ -1,7 +1,7 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { SLICE } from '@state/store.define';
 import { IStoreState, IStoreDoc } from '@state/store.define';
-import { SetMember, DelMember, TruncMember } from '@state/member.define';
+import { SetMember, DelMember, TruncMember } from '@state/store.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
 import { sortKeys } from '@lib/object.library';
@@ -16,12 +16,10 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { this.dbg('new'); }
 
-	ngxsOnInit(ctx: StateContext<IStoreState>) {
-		this.dbg('onInit:');
-	}
+	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('onInit:'); }
 
 	@Action(SetMember)
-	setClient({ patchState, getState }: StateContext<IStoreState>, { payload }: SetMember) {
+	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
@@ -32,7 +30,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(DelMember)
-	delClient({ patchState, getState }: StateContext<IStoreState>, { payload }: DelMember) {
+	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelMember) {
 		const state = getState() || {};
 		const store = this.filterMember(getState(), payload);
 
@@ -42,7 +40,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(TruncMember)
-	truncClient({ setState }: StateContext<IStoreState>) {
+	truncStore({ setState }: StateContext<IStoreState>) {
 		this.dbg('truncMember');
 		setState({});
 	}

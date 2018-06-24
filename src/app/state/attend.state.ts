@@ -1,6 +1,6 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc } from '@state/store.define';
-import { SetAttend, DelAttend, TruncAttend } from '@state/attend.define';
+import { SetAttend, DelAttend, TruncAttend } from '@state/store.define';
 
 import { FIELD } from '@dbase/fire/fire.define';
 import { sortKeys } from '@lib/object.library';
@@ -15,12 +15,10 @@ export class AttendState implements NgxsOnInit {
 
 	constructor() { this.dbg('new'); }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState>) {
-		this.dbg('onInit:');
-	}
+	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('onInit:'); }
 
 	@Action(SetAttend)
-	setClient({ patchState, getState }: StateContext<IStoreState>, { payload }: SetAttend) {
+	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetAttend) {
 		const state = getState() || {};
 		const store = this.filterAttend(state, payload);
 
@@ -31,7 +29,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(DelAttend)
-	delClient({ patchState, getState }: StateContext<IStoreState>, { payload }: DelAttend) {
+	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelAttend) {
 		const state = getState() || {};
 		const store = this.filterAttend(getState(), payload);
 
@@ -41,7 +39,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(TruncAttend)
-	truncClient({ setState }: StateContext<IStoreState>) {
+	truncStore({ setState }: StateContext<IStoreState>) {
 		this.dbg('truncAttend');
 		setState({});
 	}
