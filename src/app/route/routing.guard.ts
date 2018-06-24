@@ -55,7 +55,7 @@ export class ProfileGuard implements CanActivate {
         this.dbg('plan: %j', plan);
         if (isArray(plan) && plan.length) return true;// ok to access Route
 
-        this.store.dispatch(new Navigate(['/profile']));
+        this.store.dispatch(new Navigate(['/profile/plan']));
         return false;
       })
     )
