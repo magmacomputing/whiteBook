@@ -1,3 +1,4 @@
+import { IObject } from "@lib/object.library";
 
 //	/client											// public data
 //		/class										// describe classes
@@ -61,3 +62,10 @@ export const enum FIELD {					//  common Field names
 export const EXPIRES = ['public', 'register', 'member'];
 /** These stores will have a 'uid' field enforced by the db.setDoc method */
 export const UIDS = ['attend', 'account', 'profile'];
+
+/** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
+export const FILTER: IObject<string[]> = {
+	[COLLECTION.Client]: [FIELD.store],
+	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.uid],
+	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.uid],
+}

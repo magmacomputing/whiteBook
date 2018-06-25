@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import * as firebase from 'firebase/app';
 import { AuthProvider } from '@firebase/auth-types';
 
+import { Store, Select } from '@ngxs/store';
+import { TruncMember, TruncAttend } from '@state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
-import { Store } from '@ngxs/store';
-import { TruncMember } from '@state/member.define';
-import { TruncAttend } from '@state/attend.define';
+import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/auth/auth.define';
 
-import { LoginSocial, Logout, CheckSession } from '@dbase/auth/auth.define';
 import { IProvider } from '@dbase/app/app.interface';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
@@ -16,11 +16,11 @@ import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
+  @Select() user$!: Observable<IAuthState>;
+
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly store: Store) {
-    this.dbg('new');
-  }
+  constructor(private readonly store: Store) { this.dbg('new'); }
 
   public signOut() {
     this.store.dispatch(new Logout());
@@ -30,6 +30,10 @@ export class AuthService {
 
   public check() {
     this.store.dispatch(new CheckSession());
+  }
+
+  public user() {
+    return this.user$.toPromise();
   }
 
   public async signIn(config: IProvider) {

@@ -26,19 +26,19 @@ export interface IFeeDefault extends IAppDefault {
 	amount: number;												// 'topUp' or 'hold' fee
 }
 
-export interface IClient extends IMeta {
+export interface IStore extends IMeta {
 	store: string;
 }
 
 export type TPrice = 'full' | 'half' | 'topUp' | 'hold';
-export interface IPrice extends IClient {
+export interface IPrice extends IStore {
 	plan: string;
 	amount: number;
 	type: TPrice;
 }
 
 export type TClass = 'full' | 'half' | 'event';
-export interface IClass extends IClient {
+export interface IClass extends IStore {
 	name: string;
 	color: string;
 	type: TClass;
@@ -46,7 +46,7 @@ export interface IClass extends IClient {
 }
 
 export type TProfile = 'plan' | 'claim';
-export interface IProfile extends IMeta {
+export interface IProfile extends IStore {
 	type: TProfile;
 }
 
@@ -60,7 +60,7 @@ export interface IProfileClaim extends IProfile {
 }
 
 export type TSchedule = 'event' | 'class' | 'special'
-export interface ISchedule extends IClient {
+export interface ISchedule extends IStore {
 	class: string;
 	day: number;
 	time: string;
@@ -68,7 +68,7 @@ export interface ISchedule extends IClient {
 }
 
 type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
-export interface IProvider extends IClient {
+export interface IProvider extends IStore {
 	name: string;
 	type: TProvider;
 	prefix?: string;

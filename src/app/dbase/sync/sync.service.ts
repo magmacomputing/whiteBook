@@ -120,7 +120,7 @@ export class SyncService {
     }
 
     snaps.forEach(snap => {
-      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id, [FIELD.expire]: 0 }, snap.payload.doc.data());
+      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
 
       switch (snap.type) {
         case 'added':
