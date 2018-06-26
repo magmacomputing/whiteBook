@@ -5,7 +5,7 @@ import { Select } from '@ngxs/store';
 import { ClientState } from '@state/client.state';
 
 import { AuthService } from '@dbase/auth/auth.service';
-import { IProvider } from '@dbase/app/app.interface';
+import { IProvider } from '@dbase/data/data.interface';
 import { dbg } from '@lib/logger.library';
 
 @Component({

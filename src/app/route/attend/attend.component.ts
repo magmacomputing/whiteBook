@@ -1,11 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
 
-import { Store, Select } from '@ngxs/store';
-import { ClientState } from '@state/client.state';
-
-import { FireService } from '@dbase/fire/fire.service';
-import { IProfilePlan } from '@dbase/app/app.interface';
+import { DataService } from '@dbase/data/data.service';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -14,10 +9,9 @@ import { dbg } from '@lib/logger.library';
   styleUrls: ['./attend.component.css']
 })
 export class AttendComponent implements OnInit {
-  @Select(ClientState.plans) provider$!: Observable<IProfilePlan[]>;
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly fire: FireService, private readonly store: Store) { }
+  constructor(private readonly data: DataService) { }
 
   ngOnInit() { }
 }

@@ -2,15 +2,14 @@ import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { Store } from '@ngxs/store';
-import { IStoreDoc } from '@state/store.define';
 import { ClientState } from '@state/client.state';
 import { MemberState } from '@state/member.state';
 import { AuthState } from '@dbase/auth/auth.state';
 import { IAuthState } from '@dbase/auth/auth.define';
 
-import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/app/app.interface';
-import { IWhere } from '@dbase/fire/fire.interface';
-import { FIELD } from '@dbase/fire/fire.define';
+import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/data/data.interface';
+import { IWhere } from '@dbase/data/fire.interface';
+import { FIELD } from '@dbase/data/data.define';
 
 import { isNumber, cloneObj, asArray, isString, isUndefined } from '@lib/object.library';
 import { fmtDate } from '@lib/date.library';

@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { FireService } from '@dbase/fire/fire.service';
-import { MemberService } from '@dbase/app/member.service';
+import { DataService } from '@dbase/data/data.service';
 
 @Component({
   selector: 'wb-root',
@@ -9,6 +8,6 @@ import { MemberService } from '@dbase/app/member.service';
 })
 export class AppComponent {
 
-  constructor(private readonly fire: FireService, private readonly member: MemberService) { }
+  constructor(private readonly data: DataService) { }
 
 }

@@ -3,8 +3,8 @@ import { Observable } from 'rxjs';
 import { Select } from '@ngxs/store';
 import { ClientState } from '@state/client.state';
 
-import { IProfilePlan } from '@dbase/app/app.interface';
-import { FireService } from '@dbase/fire/fire.service';
+import { IProfilePlan } from '@dbase/data/data.interface';
+import { DataService } from '@dbase/data/data.service';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -16,7 +16,7 @@ export class ProfileComponent implements OnInit {
 
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly fire: FireService) { }
+  constructor(private readonly data: DataService) { }
 
   ngOnInit() { }
 

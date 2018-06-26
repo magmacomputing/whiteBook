@@ -38,17 +38,17 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
 
 /** sort Object by multiple keys */
 export const sortKeys = (keys: any[] = []): any => (a: any, b: any) => {
-	const key = keys[0];														// take out the first key
-	switch (true) {
-		case keys.length === 0:
-			return 0;
-		case a[key] < b[key]:
-			return -1;
-		case a[key] > b[key]:
-			return 1;
-		default:
-			return sortKeys(keys.slice(1))(a, b);
-	}
+  const key = keys[0];														// take out the first key
+  switch (true) {
+    case keys.length === 0:
+      return 0;
+    case a[key] < b[key]:
+      return -1;
+    case a[key] > b[key]:
+      return 1;
+    default:
+      return sortKeys(keys.slice(1))(a, b);
+  }
 }
 
 /** lowerCase Object keys */
@@ -111,5 +111,5 @@ export const isEmpty = (obj: object | any[]): boolean =>
   (isObject(obj) && Object.keys(obj).length === 0) ||
   (isArray(obj) && obj.length === 0)
 
-export const asArray = (arr: any = []) => isArray(arr) ? arr : [arr];
+export const asArray = <T>(arr: T | T[] = []) => isArray(arr) ? arr : [arr];
 export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);

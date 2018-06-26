@@ -4,7 +4,7 @@ import { SetClient, DelClient } from '@state/store.define';
 import { SetMember, DelMember } from '@state/store.define';
 import { SetAttend, DelAttend } from '@state/store.define';
 
-import { FIELD } from '@dbase/fire/fire.define';
+import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 // TODO: use a master Store with sub-states

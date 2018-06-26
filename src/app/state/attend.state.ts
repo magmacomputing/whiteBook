@@ -2,7 +2,7 @@ import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc } from '@state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@state/store.define';
 
-import { FIELD } from '@dbase/fire/fire.define';
+import { FIELD } from '@dbase/data/data.define';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -13,9 +13,9 @@ import { dbg } from '@lib/logger.library';
 export class AttendState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor() { this.dbg('new'); }
+	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('onInit:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
 
 	@Action(SetAttend)
 	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetAttend) {

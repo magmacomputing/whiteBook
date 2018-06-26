@@ -12,7 +12,7 @@ const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
 	{ path: 'attend', component: AttendComponent, canActivate: [AuthGuard, ProfileGuard] },
 	{ path: 'profile', loadChildren: '@route/profile/profile.module#ProfileModule' },
-	{ path: '**', redirectTo: '/login', pathMatch: 'full' },
+	{ path: '**', redirectTo: '/attend', pathMatch: 'full' },
 ];
 
 @NgModule({

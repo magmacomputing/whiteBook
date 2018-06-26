@@ -8,7 +8,7 @@ new SyncClient('/public/client', dbase==='public')					# /class, /event/, /price
 ~~~~~~~~
 auth.service
 	inject IdbService,
-	inject FireService
+	inject DataService
 
 new SyncClient('/member/data',  dbase==='data')							# /attend, /account, /profile
 new SyncClient('/member/{uid}', dbase==='member')						# /message, /history

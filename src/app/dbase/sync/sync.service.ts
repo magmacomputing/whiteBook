@@ -11,9 +11,9 @@ import { SetAttend, DelAttend, TruncAttend } from '@state/store.define';
 import { LoginToken } from '@app/dbase/auth/auth.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { FIELD } from '@dbase/fire/fire.define';
-import { IQuery } from '@dbase/fire/fire.interface';
-import { fnQuery } from '@dbase/fire/fire.library';
+import { FIELD } from '@dbase/data/data.define';
+import { IQuery } from '@dbase/data/fire.interface';
+import { fnQuery } from '@dbase/data/fire.library';
 
 import { isFunction, sortKeys } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';

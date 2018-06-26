@@ -1,5 +1,5 @@
 import { ICustomClaims } from '@dbase/auth/auth.interface';
-import { FIELD } from '@dbase/fire/fire.define';
+import { FIELD } from '@dbase/data/data.define';
 
 // These are the meta-fields for a standard record
 export interface IMeta {

@@ -5,9 +5,9 @@ import { IStoreDoc } from '@state/store.define';
 import { ClientState } from '@state/client.state';
 
 import { IAuthState } from '@dbase/auth/auth.define';
-import { IProfilePlan } from '@dbase/app/app.interface';
-import { COLLECTION } from '@dbase/fire/fire.define';
-import { FireService } from '@dbase/fire/fire.service';
+import { IProfilePlan } from '@dbase/data/data.interface';
+import { COLLECTION } from '@dbase/data/data.define';
+import { DataService } from '@dbase/data/data.service';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -20,7 +20,7 @@ export class PlanComponent implements OnInit {
 
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly fire: FireService) { }
+  constructor(private readonly data: DataService) { }
 
   ngOnInit() { }
 
@@ -33,6 +33,6 @@ export class PlanComponent implements OnInit {
     }
 
     this.dbg('plan: %j', planDoc);
-    this.fire.ins(COLLECTION.Member, planDoc);
+    this.data.ins(COLLECTION.Member, planDoc);
   }
 }

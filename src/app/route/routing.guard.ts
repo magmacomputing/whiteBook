@@ -7,7 +7,7 @@ import { Select, Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { MemberState } from '@state/member.state';
 
-import { IProfilePlan } from '@dbase/app/app.interface';
+import { IProfilePlan } from '@dbase/data/data.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { JWT } from '@dbase/auth/auth.interface';
 import { LoginRedirect, IAuthState } from '@dbase/auth/auth.define';

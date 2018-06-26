@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/fire/fire.define';
+import { FIELD } from '@dbase/data/data.define';
 import { IObject } from '@lib/object.library';
 
 export const SLICE = {

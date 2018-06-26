@@ -6,9 +6,10 @@ import { AuthProvider } from '@firebase/auth-types';
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
+import { AuthState } from '@dbase/auth/auth.state';
 import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/auth/auth.define';
 
-import { IProvider } from '@dbase/app/app.interface';
+import { IProvider } from '@dbase/data/data.interface';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { asArray } from '@lib/object.library';
@@ -16,7 +17,7 @@ import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
-  @Select() user$!: Observable<IAuthState>;
+  @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
 
   private dbg: Function = dbg.bind(this);
 
@@ -33,7 +34,9 @@ export class AuthService {
   }
 
   public user() {
-    return this.user$.toPromise();
+    return new Promise<IAuthState>(resolve =>
+      this.auth$.subscribe(user => resolve(user))
+    )
   }
 
   public async signIn(config: IProvider) {
