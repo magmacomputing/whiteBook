@@ -8,8 +8,8 @@ import { AuthState } from '@dbase/auth/auth.state';
 @NgModule({
   imports: [
     CommonModule,
-    AngularFireAuthModule,
     NgxsModule.forFeature([AuthState]),
+    AngularFireAuthModule,
   ],
   declarations: [],
 })

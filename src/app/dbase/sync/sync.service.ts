@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SnapshotMetadata } from '@firebase/firestore-types';
-import { DocumentChangeAction, AngularFirestore } from 'angularfire2/firestore';
+import { DocumentChangeAction } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
 import { SLICE, IStoreDoc } from '@state/store.define';
@@ -8,12 +8,12 @@ import { SetClient, DelClient, TruncClient } from '@state/store.define';
 import { SetMember, DelMember, TruncMember } from '@state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@state/store.define';
 
+import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@app/dbase/auth/auth.define';
 import { DBaseModule } from '@dbase/dbase.module';
-import { IListen, StoreStorage } from '@dbase/sync/sync.define';
+import { FireService } from '@dbase/data/fire.service';
 import { FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/data/fire.interface';
-import { fnQuery } from '@dbase/data/fire.library';
 
 import { isFunction, sortKeys } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
@@ -26,7 +26,7 @@ export class SyncService {
   private listener: { [collection: string]: IListen } = {};
   private localStore: { [key: string]: any; };
 
-  constructor(private af: AngularFirestore, private store: Store) {
+  constructor(private fire: FireService, private store: Store) {
     this.dbg('new');
     this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
   }
@@ -42,7 +42,7 @@ export class SyncService {
       slice: slice,
       ready: ready,
       cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-      subscribe: this.af.collection(collection, fnQuery(query))
+      subscribe: this.fire.colRef(collection, query)
         .stateChanges()                               // only watch for changes since last snapshot
         .subscribe(snapSync)
     }

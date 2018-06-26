@@ -33,6 +33,6 @@ export class PlanComponent implements OnInit {
     }
 
     this.dbg('plan: %j', planDoc);
-    this.data.ins(COLLECTION.Member, planDoc);
+    this.data.insDoc(COLLECTION.Member, planDoc as IStoreDoc);
   }
 }

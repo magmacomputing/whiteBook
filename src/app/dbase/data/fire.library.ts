@@ -1,9 +1,8 @@
 import { WhereFilterOp, Query } from '@firebase/firestore-types';
 import { IQuery, IWhere } from '@dbase/data/fire.interface';
 
-import { asArray, cloneObj, isString, isUndefined } from '@lib/object.library';
+import { asArray } from '@lib/object.library';
 import { isNumeric } from '@lib/string.library';
-import { dbg } from '@lib/logger.library';
 
 /** Collection reference, with any limit / order criteria */
 export const fnQuery = (query: IQuery = {}) => {

@@ -16,7 +16,7 @@ const fb = environment.firebase || {};
 @NgModule({
   imports: [
     CommonModule,
-    NgxsModule.forFeature([ ClientState, MemberState, AttendState]),
+    NgxsModule.forFeature([ClientState, MemberState, AttendState]),
     AngularFireModule.initializeApp(fb.app, fb.config),
     AngularFirestoreModule.enablePersistence(),
     // AuthModule,

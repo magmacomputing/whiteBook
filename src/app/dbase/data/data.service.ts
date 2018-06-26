@@ -7,6 +7,7 @@ import { SLICE, IStoreDoc } from '@state/store.define';
 
 import { filterArray } from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
+import { IStore } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/data/fire.interface';
 import { FireService } from '@dbase/data/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -25,12 +26,12 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
   private dbg: Function = dbg.bind(this);
-  public snapshot: { [store: string]: Promise<any[]>; } = {};
+  public snapshot: { [store: string]: Promise<IStore[]>; } = {};
 
   constructor(private fire: FireService, private sync: SyncService, private auth: AuthService, private store: Store) {
     this.dbg('new');
     this.syncOn(COLLECTION.Client, SLICE.client)      // initialize a listener to /client Collection
-      .then(_ => this.snap(''))                       // try this to kick-start Observable
+    // .then(_ => this.snap(''))                       // try this to kick-start Observable
   }
 
   /** Make Store data available in a Promise */
@@ -55,7 +56,7 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc (default 'member' slice) */
-  async ins(store: string, doc: any, slice: string = SLICE.member) {
+  async insDoc(store: string, doc: IStore, slice: string = SLICE.member) {
     const tstamp = getStamp();
     const where: IWhere[] = [{ fieldPath: FIELD.expire, opStr: '==', value: 0 }];
     const filter = FILTER[store] || [];							// get the standard list of fields on which to filter
@@ -75,11 +76,11 @@ export class DataService {
 
     const batch = this.fire.bat();
     curr.forEach(doc => {                           // set _expire on current doc(s)
-      const ref = this.fire.ref(store, doc[FIELD.id]);
+      const ref = this.fire.docRef(store, doc[FIELD.id]);
       batch.update(ref, { [FIELD.expire]: tstamp });
     })
 
-    batch.set(this.fire.ref(store), doc);           // add the new Document
+    batch.set(this.fire.docRef(store), doc);           // add the new Document
     batch.commit();
   }
 }

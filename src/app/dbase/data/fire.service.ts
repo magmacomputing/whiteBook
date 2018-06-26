@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { DBaseModule } from '@dbase/dbase.module';
 
+import { IQuery } from '@dbase/data/fire.interface';
+import { fnQuery } from '@dbase/data/fire.library';
+
 import { isUndefined } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -17,13 +20,22 @@ export class FireService {
 		this.dbg('new');
 	}
 
-	ref(store: string, docId?: string) {
+	/** Collection Reference, with option query */
+	colRef(store: string, query?: IQuery) {
+		return this.af.collection(store, fnQuery(query));
+	}
+
+	/** Document Reference, for existing or new */
+	docRef(store: string, docId?: string) {
 		return isUndefined(docId)
 			? this.af.firestore.collection(store).doc()
 			: this.af.firestore.collection(store).doc(docId)
 	}
 
+	/** Instantiate a new WriteBatch */
 	bat() {
 		return this.af.firestore.batch();
 	}
+
+
 }
