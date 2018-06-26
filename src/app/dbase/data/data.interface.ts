@@ -30,6 +30,13 @@ export interface IStore extends IMeta {
 	store: string;
 }
 
+export interface IMember extends IStore {	// general /member or /attend interface
+	[FIELD.id]: string;
+	uid?: string;
+	type: string;
+	[key: string]: any;
+}
+
 export type TPrice = 'full' | 'half' | 'topUp' | 'hold';
 export interface IPrice extends IStore {
 	plan: string;

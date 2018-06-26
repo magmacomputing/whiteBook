@@ -7,7 +7,7 @@ import { SLICE, IStoreDoc } from '@state/store.define';
 
 import { filterArray } from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
-import { IStore } from '@dbase/data/data.interface';
+import { IStore, IMember } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/data/fire.interface';
 import { FireService } from '@dbase/data/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -56,7 +56,7 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc (default 'member' slice) */
-  async insDoc(store: string, doc: IStore, slice: string = SLICE.member) {
+  async insDoc(store: string, doc: IMember, slice: string = SLICE.member) {
     const tstamp = getStamp();
     const where: IWhere[] = [{ fieldPath: FIELD.expire, opStr: '==', value: 0 }];
     const filter = FILTER[store] || [];							// get the standard list of fields on which to filter
