@@ -15,7 +15,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { isFunction, sortKeys } from '@lib/object.library';
+import { isFunction, sortKeys, IObject } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
@@ -23,11 +23,12 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
   private dbg: Function = dbg.bind(this);
-  private listener: { [collection: string]: IListen } = {};
-  private localStore: { [key: string]: any; };
+  private listener: IObject<IListen>;
+  private localStore: IObject<any>;
 
   constructor(private fire: FireService, private store: Store) {
     this.dbg('new');
+    this.listener = {};
     this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
   }
 
@@ -75,7 +76,7 @@ export class SyncService {
 
     const snapType = snaps[0] || snaps[1] || snaps[2];// look in 'added', 'modified', else 'removed'
     const snapSource = this.getSource(snapType ? snapType.payload.doc.metadata : {} as SnapshotMetadata);
-    this.dbg('%s: snapshot #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
+    this.dbg('snapSync: %s #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
 
     switch (listen.slice) {                           // TODO: can we merge these?
       case SLICE.client:

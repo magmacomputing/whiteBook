@@ -27,7 +27,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private afAuth: AngularFireAuth,/** private sync: SyncService, */private ref: ApplicationRef) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private ref: ApplicationRef) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -95,8 +95,8 @@ export class AuthState implements NgxsOnInit {
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
 
-		// this.sync.on(COLLECTION.Member, SLICE.member, query);
-		// this.sync.on(COLLECTION.Attend, SLICE.attend, query);
+		this.sync.on(COLLECTION.Member, SLICE.member, query);
+		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 	}
 
 	@Action(LoginToken)															// fetch latest IdToken
@@ -116,8 +116,8 @@ export class AuthState implements NgxsOnInit {
 
 	@Action([LoginFailed, LogoutSuccess])
 	setUserStateOnFailure(ctx: StateContext<IAuthState>) {
-		// this.sync.off(COLLECTION.Member);
-		// this.sync.off(COLLECTION.Attend);
+		this.sync.off(COLLECTION.Member);
+		this.sync.off(COLLECTION.Attend);
 
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());

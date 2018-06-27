@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { Select } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 
-import { IAuthState } from '@dbase/auth/auth.define';
 import { IProfilePlan, IPrice } from '@dbase/data/data.interface';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
@@ -15,7 +14,6 @@ import { dbg } from '@lib/logger.library';
 })
 export class PlanComponent implements OnInit {
   @Select(ClientState.plans) plan$!: Observable<IProfilePlan[]>;
-  @Select() auth$!: Observable<IAuthState>;
 
   private dbg: Function = dbg.bind(this);
 
