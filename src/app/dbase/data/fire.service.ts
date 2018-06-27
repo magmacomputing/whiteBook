@@ -32,6 +32,10 @@ export class FireService {
 			: this.af.firestore.collection(store).doc(docId)
 	}
 
+	newId() {
+		return this.af.createId();
+	}
+
 	/** Instantiate a new WriteBatch */
 	bat() {
 		return this.af.firestore.batch();

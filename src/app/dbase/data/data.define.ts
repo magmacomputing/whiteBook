@@ -58,11 +58,6 @@ export const enum FIELD {					//  common Field names
 	memberId = 'memberId'
 };
 
-/** These stores will have an '_expire' field enforced by the db.setDoc method */
-export const EXPIRES = ['public', 'register', 'member'];
-/** These stores will have a 'uid' field enforced by the db.setDoc method */
-export const UIDS = ['attend', 'account', 'profile'];
-
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
 export const FILTER: IObject<string[]> = {
 	[COLLECTION.Client]: [FIELD.store],

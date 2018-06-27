@@ -1,7 +1,7 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
-import { SLICE } from '@state/store.define';
-import { IStoreState, IStoreDoc } from '@state/store.define';
-import { SetMember, DelMember, TruncMember } from '@state/store.define';
+import { SLICE } from '@dbase/state/store.define';
+import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
+import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { sortKeys } from '@lib/object.library';

@@ -1,8 +1,8 @@
 import { StateContext, NgxsOnInit } from '@ngxs/store';
-import { IStoreState, IStoreDoc } from '@state/store.define';
-import { SetClient, DelClient } from '@state/store.define';
-import { SetMember, DelMember } from '@state/store.define';
-import { SetAttend, DelAttend } from '@state/store.define';
+import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
+import { SetClient, DelClient } from '@dbase/state/store.define';
+import { SetMember, DelMember } from '@dbase/state/store.define';
+import { SetAttend, DelAttend } from '@dbase/state/store.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';

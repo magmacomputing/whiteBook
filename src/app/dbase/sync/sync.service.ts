@@ -3,10 +3,10 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 import { DocumentChangeAction } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
-import { SLICE, IStoreDoc } from '@state/store.define';
-import { SetClient, DelClient, TruncClient } from '@state/store.define';
-import { SetMember, DelMember, TruncMember } from '@state/store.define';
-import { SetAttend, DelAttend, TruncAttend } from '@state/store.define';
+import { SLICE, IStoreDoc } from '@dbase/state/store.define';
+import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
+import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
+import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@app/dbase/auth/auth.define';

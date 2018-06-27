@@ -37,9 +37,6 @@
       "@route/*": [
         "src/app/route/*"
       ],
-      "@state/*": [
-        "src/app/state/*"
-      ],
     },
   }
 }
