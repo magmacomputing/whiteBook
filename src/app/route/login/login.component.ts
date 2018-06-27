@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Select } from '@ngxs/store';
-import { ClientState } from '@state/client.state';
+import { ClientState } from '@dbase/state/client.state';
 
 import { AuthService } from '@dbase/auth/auth.service';
 import { IProvider } from '@dbase/data/data.interface';

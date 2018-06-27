@@ -3,7 +3,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { tap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { SLICE } from '@state/store.define';
+import { SLICE } from '@dbase/state/store.define';
 
 import { filterArray } from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';

@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { Store } from '@ngxs/store';
-import { ClientState } from '@state/client.state';
-import { MemberState } from '@state/member.state';
+import { ClientState } from '@dbase/state/client.state';
+import { MemberState } from '@dbase/state/member.state';
 import { AuthState } from '@dbase/auth/auth.state';
 import { IAuthState } from '@dbase/auth/auth.define';
 

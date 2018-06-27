@@ -4,7 +4,7 @@ import * as firebase from 'firebase/app';
 import { AuthProvider } from '@firebase/auth-types';
 
 import { Store, Select } from '@ngxs/store';
-import { TruncMember, TruncAttend } from '@state/store.define';
+import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { AuthState } from '@dbase/auth/auth.state';
 import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/auth/auth.define';

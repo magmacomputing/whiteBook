@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Select } from '@ngxs/store';
-import { IStoreDoc } from '@state/store.define';
-import { ClientState } from '@state/client.state';
+import { ClientState } from '@dbase/state/client.state';
 
 import { IAuthState } from '@dbase/auth/auth.define';
 import { IProfilePlan, IPrice } from '@dbase/data/data.interface';
