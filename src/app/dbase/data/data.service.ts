@@ -8,8 +8,8 @@ import { SLICE } from '@dbase/state/store.define';
 import { filterArray } from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.interface';
-import { IWhere } from '@dbase/data/fire.interface';
-import { FireService } from '@dbase/data/fire.service';
+import { IWhere } from '@dbase/fire/fire.interface';
+import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 

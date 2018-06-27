@@ -11,7 +11,7 @@ import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, Log
 import { SyncService } from '@dbase/sync/sync.service';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { IQuery } from '@dbase/data/fire.interface';
+import { IQuery } from '@dbase/fire/fire.interface';
 
 import { decodeBase64 } from '@lib/crypto.library';
 import { cloneObj } from '@lib/object.library';

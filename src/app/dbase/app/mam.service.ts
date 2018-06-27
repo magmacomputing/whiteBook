@@ -8,8 +8,8 @@ import { AuthState } from '@dbase/auth/auth.state';
 import { IAuthState } from '@dbase/auth/auth.define';
 
 import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/data/data.interface';
-import { IWhere } from '@dbase/data/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
+import { IWhere } from '@dbase/fire/fire.interface';
 
 import { isNumber, cloneObj, asArray, isString, isUndefined } from '@lib/object.library';
 import { fmtDate } from '@lib/date.library';

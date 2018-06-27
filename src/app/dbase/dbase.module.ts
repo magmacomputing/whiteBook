@@ -6,7 +6,6 @@ import { ClientState } from '@dbase/state/client.state';
 import { MemberState } from '@dbase/state/member.state';
 import { AttendState } from '@dbase/state/attend.state';
 
-import { AuthModule } from '@dbase/auth/auth.module';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { environment } from '@env/environment';
@@ -19,7 +18,6 @@ const fb = environment.firebase || {};
     NgxsModule.forFeature([ClientState, MemberState, AttendState]),
     AngularFireModule.initializeApp(fb.app, fb.config),
     AngularFirestoreModule.enablePersistence(),
-    // AuthModule,
   ],
   declarations: []
 })

@@ -1,4 +1,4 @@
-import { IWhere } from "@dbase/data/fire.interface";
+import { IWhere } from "@dbase/fire/fire.interface";
 import { cloneObj, asArray, isString, isUndefined } from "@lib/object.library";
 
 /** filter an Array to meet the supplied conditions, logically ANDed */

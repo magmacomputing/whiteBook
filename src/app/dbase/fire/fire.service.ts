@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { IQuery } from '@dbase/data/fire.interface';
-import { fnQuery } from '@dbase/data/fire.library';
+import { IQuery } from '@dbase/fire/fire.interface';
+import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
