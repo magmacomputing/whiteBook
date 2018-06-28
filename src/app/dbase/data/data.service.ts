@@ -5,7 +5,7 @@ import { tap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { filterArray } from '@dbase/app/app.library';
+import { filterTable } from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
@@ -76,12 +76,10 @@ export class DataService {
         where.push({ fieldPath: field, opStr: '==', value: doc[field] })
       else return Promise.reject(`missing required field: ${field}`)
     })
-    // this.dbg('where: %s, %s, %j', store, slice, where);
-    // this.dbg('table: %j', await this.snap(doc.store, slice));
+
     const rows =
       await this.snap(doc.store, slice)             // read the store
-        .then(table => filterArray(table, where))   // filter the store to find current unexpired docs
-    // this.dbg('rows: %j', rows);
+        .then(table => filterTable(table, where))   // filter the store to find current unexpired docs
 
     const batch = this.fire.bat();
     rows.forEach(row => {                           // set _expire on current doc(s)
