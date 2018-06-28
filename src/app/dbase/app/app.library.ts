@@ -33,3 +33,11 @@ export const filterArray = <T>(table: T[] = [], cond: IWhere | IWhere[] = []) =>
 
 	return lookup;
 }
+
+export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = []) => {
+	let lookup = cloneObj(table);														// clone the table argument, so we dont mutate it
+
+	return lookup.map(row => {
+		row
+	})
+}
