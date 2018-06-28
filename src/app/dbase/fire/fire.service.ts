@@ -5,8 +5,9 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined } from '@lib/object.library';
+import { isUndefined, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { FIELD } from '@app/dbase/data/data.define';
 
 /**
  * This internal service will communicate with the FireStore database,
@@ -41,5 +42,14 @@ export class FireService {
 		return this.af.firestore.batch();
 	}
 
+	setDoc(store: string, doc: IObject<any>) {
+		const docId: string = doc[FIELD.id] || this.newId();
+
+		delete doc[FIELD.id];											// remove the meta-field from the document
+		return this.af.firestore
+			.collection(store)
+			.doc(docId)
+			.set(doc)
+	}
 
 }

@@ -76,21 +76,26 @@ export class DataService {
         where.push({ fieldPath: field, opStr: '==', value: doc[field] })
       else return Promise.reject(`missing required field: ${field}`)
     })
+    // this.dbg('where: %s, %s, %j', store, slice, where);
+    // this.dbg('table: %j', await this.snap(doc.store, slice));
+    const rows =
+      await this.snap(doc.store, slice)             // read the store
+        .then(table => filterArray(table, where))   // filter the store to find current unexpired docs
+    // this.dbg('rows: %j', rows);
 
-    const rows = await this.snap(store, slice)      // read the store
-      .then(table => filterArray(table, where))     // filter the store to find current unexpired docs
-
-    const batch = this.fire.bat();
+    // const batch = this.fire.bat();
     rows.forEach(row => {                           // set _expire on current doc(s)
       const ref = this.fire.docRef(store, row[FIELD.id]);
-      batch.update(ref, { [FIELD.expire]: tstamp });
+      this.dbg('updDoc: %s => %j', store, ref.id);
+      // batch.update(ref, { [FIELD.expire]: tstamp });
     })
 
     this.dbg('insDoc: %s => %j', store, doc);
     const docRef = this.fire.docRef(store, doc[FIELD.id]);
     delete doc[FIELD.id];                           // remove the _id meta field from the document
-    batch.set(docRef, doc);                         // add the new Document
-    batch.commit()
-      .catch(err => this.dbg('%j', err))            // TODO: better manage errors
+
+    // batch.set(docRef, doc);                         // add the new Document
+    // batch.commit()
+    //   .catch(err => this.dbg('warn: %j', err))      // TODO: better manage errors
   }
 }

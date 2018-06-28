@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { Store } from '@ngxs/store';
+import { Navigate } from '@ngxs/router-plugin';
+
 import { DataService } from '@dbase/data/data.service';
 
 @Component({
@@ -8,6 +11,9 @@ import { DataService } from '@dbase/data/data.service';
 })
 export class AppComponent {
 
-  constructor(private readonly data: DataService) { }
+  constructor(private readonly data: DataService, private readonly store: Store) { }
 
+  navigate(url: string) {
+    this.store.dispatch(new Navigate([url]));
+  }
 }

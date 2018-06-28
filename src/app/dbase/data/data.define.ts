@@ -1,37 +1,11 @@
 import { IObject } from "@lib/object.library";
 
-//	/client											// public data
-//		/class										// describe classes
-//		/schedule									// weekly class-times
-//		/plan											// payment plans
-//		/event										// special-event classes (which overrides schedule)
-//		/provider									// authentication parameters
-//		/client										// IndexedDB sync data
-//		/_schema_									// layout of IDB ObjectStores
-//		/_config_									// localhost configuration
-
-//	/register/{uid}							// authenticated users
-//			/user										// copy of User Account
-//			/claims									// added to authentication-token
-
-//	/member/{uid}								// non-variant (birthDay, gender, etc.) member properties
-//			/data/account						// payment tracking
-//			/data/history						// archive (?)
-//			/data/attend						// bridging collection of {uid} and {class}
-//			/data/profile						// dynamic member properties
-
-//	/log/{yyyymm}/{dd}/{pushId}	// rolling log of messages / events
-
 export const COLLECTION = {			// collection starts with upper-case, document with lower-case
-	Log: '/log',
-	Register: '/register',
-	Member: '/member',
-	Attend: '/attend',
-	Client: '/client',
-}
-
-export const DOCUMENT = {
-	data: `${COLLECTION.Member}/data`,
+	Log: 'log',
+	Register: 'register',
+	Member: 'member',
+	Attend: 'attend',
+	Client: 'client',
 }
 
 export const STORE = {
