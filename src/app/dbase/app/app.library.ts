@@ -14,7 +14,7 @@ export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = [])
 					switch (clause.opStr) {															// standard firestore query-operators, and '!='
 						case '==':
 							return isUndefined(field)
-								? !value																			// field not present, compare to 'falsy'
+								? !value																			// if field not present, compare to 'falsy'
 								: field == value;															// use '==' to allow for string/number match, instead of '==='
 						case '>':
 							return field > value;
