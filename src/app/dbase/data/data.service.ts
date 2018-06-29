@@ -5,7 +5,9 @@ import { tap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { filterTable } from '@dbase/app/app.library';
+import {
+  filterTable
+} from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
@@ -31,38 +33,32 @@ export class DataService {
 
   constructor(private fire: FireService, private sync: SyncService, private auth: AuthService, private store: Store) {
     this.dbg('new');
-    this.syncOn(COLLECTION.Client, SLICE.client)      // initialize a listener to /client Collection
-    // .then(_ => this.snap(''))                       // try this to kick-start Observable
+    this.syncOn(COLLECTION.Client, SLICE.client);   // initialize a listener to /client Collection
   }
 
   /** Make Store data available in a Promise */
   snap(store: string, slice: string = SLICE.client) {
     return this.snapshot[store] = this.store
       .selectOnce<IStoreMeta[]>(state => state[slice][store])
-      .pipe(tap(list => { if (list) { this.dbg(`snap[${store}]: %j`, list || 'init'); } }))
+      .pipe(tap(list => this.dbg('snap[%s]: %j', store, list)))
       .toPromise()                                   // stash the current snap result
   }
 
   syncOn(collection: string, slice: string = SLICE.client) {
-    return this.sync.on(collection, slice);
+    return this.sync.on(collection, slice);         // init a listener to a collection
   }
 
   syncOff() {
-    return this.sync.off(COLLECTION.Client);
+    return this.sync.off(COLLECTION.Client);        // unsubscribe a collection's listener
   }
 
   get newId() {
     return this.fire.newId();                       // get Firebase to generate a new Key
   }
 
-  hash(str: string) {
-    return cryptoHash(str)
-      .then(hash => { this.dbg('hash: %s', hash); return hash; })
-  }
-
   /** Expire any previous docs, and Insert new doc (default 'member' slice) */
   async insDoc(store: string, doc: IStoreMeta, slice: string = SLICE.member) {
-    const tstamp = getStamp();
+    const tstamp = doc[FIELD.effect] || getStamp();
     const where: IWhere[] = [{ fieldPath: FIELD.expire, opStr: '==', value: 0 }];
     const filter = FILTER[store] || [];							// get the standard list of fields on which to filter
 
@@ -84,13 +80,15 @@ export class DataService {
     const batch = this.fire.bat();
     rows.forEach(row => {                           // set _expire on current doc(s)
       const ref = this.fire.docRef(store, row[FIELD.id]);
-      this.dbg('updDoc: %s => %j', store, ref.id);
+      this.dbg('updDoc: %s => %j %s: %s', store, ref.id, FIELD.expire, tstamp);
       batch.update(ref, { [FIELD.expire]: tstamp });
     })
 
-    this.dbg('insDoc: %s => %j', store, doc);
     const docRef = this.fire.docRef(store, doc[FIELD.id]);
+    if (rows.length)
+      doc[FIELD.effect] = tstamp;                   // add an 'effective' date
     delete doc[FIELD.id];                           // remove the _id meta field from the document
+    this.dbg('insDoc: %s => %j', store, doc);
 
     batch.set(docRef, doc);                         // add the new Document
     batch.commit()

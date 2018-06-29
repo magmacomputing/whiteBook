@@ -1,5 +1,5 @@
 import { IWhere } from "@dbase/fire/fire.interface";
-import { cloneObj, asArray, isString, isUndefined, IObject } from "@lib/object.library";
+import { asArray, isString, isUndefined, IObject } from "@lib/object.library";
 
 /** filter a Table-array to meet the supplied conditions, logically ANDed */
 export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = []) => {

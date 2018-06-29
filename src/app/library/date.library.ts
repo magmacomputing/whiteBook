@@ -16,5 +16,5 @@ export const fmtDate = (dt?: any, fmt: string | string[] = MOMENT_FMT): IDate =>
   return obj;
 }
 
-export const getStamp = (dt?: any, fmt: string | string[] = MOMENT_FMT): string | number =>
-  toNumeric(getMoment(dt, fmt).format(DATE_FMT.stamp));
+export const getStamp = (dt?: any, fmt: string | string[] = MOMENT_FMT) =>
+  toNumeric(getMoment(dt, fmt).format(DATE_FMT.stamp)) as number;

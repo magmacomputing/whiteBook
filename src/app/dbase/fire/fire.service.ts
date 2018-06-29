@@ -10,7 +10,7 @@ import { dbg } from '@lib/logger.library';
 import { FIELD } from '@app/dbase/data/data.define';
 
 /**
- * This internal service will communicate with the FireStore database,
+ * This private service will communicate with the FireStore database,
  * (via the DataService)
  */
 @Injectable({ providedIn: DBaseModule })

@@ -3,8 +3,6 @@
 	<p></p>
 	<button (click)="data.auth.check()">check</button>
 	<p></p>
-	<button (click)="data.hash('Hello, World!')">hash</button>
-	<p></p>
 	<button (click)="data.snap('provider')">Snap Provider</button>
 	<div *ngIf="data.snapshot.provider | async as p">
 		<ul>
