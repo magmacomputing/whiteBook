@@ -14,6 +14,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class AttendComponent implements OnInit {
   @Select(ClientState.events) event$!: Observable<IClass[]>;
+  @Select(ClientState.prices) price$!: Observable<IPrice[]>;
 
   private dbg: Function = dbg.bind(this);
 
@@ -21,3 +22,11 @@ export class AttendComponent implements OnInit {
 
   ngOnInit() { }
 }
+
+/**
+ * get class, plan, uid, and profile
+ * use uid to get profile.plan
+ * use profile.plan to get price (for each type)
+ * use (dt?) to get class
+ * use class.type (full/half) to show cost
+ */
