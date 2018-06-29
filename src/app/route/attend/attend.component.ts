@@ -13,7 +13,7 @@ import { dbg } from '@lib/logger.library';
   styleUrls: ['./attend.component.css']
 })
 export class AttendComponent implements OnInit {
-  @Select(ClientState.events) plan$!: Observable<IClass[]>;
+  @Select(ClientState.events) event$!: Observable<IClass[]>;
 
   private dbg: Function = dbg.bind(this);
 
