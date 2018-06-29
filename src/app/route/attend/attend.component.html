@@ -1,3 +1,12 @@
 <p>
-  attend works!
+  Please select a Class from the list below...
 </p>
+
+<mat-card>
+  <mat-card-content *ngFor="let event of event$ | async">
+    <button mat-raised-button [disabled]="event._disable" (click)="checkIn(event)">
+      {{event.name}}
+      <!-- {{event.plan}} ${{plan.amount}} -->
+    </button>
+  </mat-card-content>
+</mat-card>

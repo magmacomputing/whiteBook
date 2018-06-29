@@ -72,6 +72,15 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Selector()
+	static events(state: IStoreState) {
+		return [...state['class']
+			.filter(itm => !itm[FIELD.expire])
+			.filter(itm => !itm[FIELD.hidden])
+			.sort(sortKeys(['name']))
+		]
+	}
+
+	@Selector()
 	static getClient(store: string, state: any) {
 		// TODO: tidy
 		const client: IStoreState = state[SLICE.client];
