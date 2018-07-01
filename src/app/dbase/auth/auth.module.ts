@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 
 import { NgxsModule } from '@ngxs/store';
-import { AuthState } from '@dbase/auth/auth.state';
+import { AuthState } from '@dbase/state/auth.state';
 
 @NgModule({
   imports: [

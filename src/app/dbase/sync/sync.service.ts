@@ -9,7 +9,7 @@ import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { LoginToken } from '@dbase/auth/auth.define';
+import { LoginToken } from '@dbase/state/auth.define';
 import { FIELD } from '@dbase/data/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -109,8 +109,8 @@ export class SyncService {
 
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
       let [localHash, storeHash] = await Promise.all([
-        cryptoHash(localList.sort(sortKeys([FIELD.store, FIELD.id]))),
-        cryptoHash(snapList.sort(sortKeys([FIELD.store, FIELD.id])))
+        cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
+        cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id)))
       ])
 
       listen.ready.resolve(true);                     // indicate snap0 is ready

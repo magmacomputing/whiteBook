@@ -1,5 +1,8 @@
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
 import { StateContext, NgxsOnInit } from '@ngxs/store';
-import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
+import { IStoreState, IStoreDoc, ISelector } from '@dbase/state/store.define';
 import { SetClient, DelClient } from '@dbase/state/store.define';
 import { SetMember, DelMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend } from '@dbase/state/store.define';
@@ -7,7 +10,10 @@ import { SetAttend, DelAttend } from '@dbase/state/store.define';
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
-// TODO: use a master Store with sub-states
+// TODO: use a master Store with sub-states?
+
+export const getStore = (obs$: Observable<ISelector>, store: string, type?: string, ...keys: string[]) =>
+	obs$.pipe(map(fn => fn(store, type, ...keys)));
 
 export class StoreState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);

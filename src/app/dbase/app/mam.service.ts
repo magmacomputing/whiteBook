@@ -4,14 +4,14 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { Store } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 import { MemberState } from '@dbase/state/member.state';
-import { AuthState } from '@dbase/auth/auth.state';
-import { IAuthState } from '@dbase/auth/auth.define';
+import { AuthState } from '@dbase/state/auth.state';
+import { IAuthState } from '@dbase/state/auth.define';
 
 import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/data/data.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
-import { isNumber, cloneObj, asArray, isString, isUndefined } from '@lib/object.library';
+import { isNumber, isUndefined } from '@lib/object.library';
 import { fmtDate } from '@lib/date.library';
 import { DATE_FMT } from '@lib/date.define';
 import { dbg } from '@lib/logger.library';

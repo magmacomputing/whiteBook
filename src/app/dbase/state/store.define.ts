@@ -32,6 +32,10 @@ export interface IStoreDoc {
 	[key: string]: any;
 }
 
+export interface ISelector {
+	(store: string, type?: string, ...keys: string[]): IStoreDoc[];
+}
+
 export type IStoreState = IObject<IStoreDoc[]>;
 
 /** Actions */

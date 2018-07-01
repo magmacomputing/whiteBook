@@ -7,10 +7,10 @@ import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/auth/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/state/auth.define';
 import { SyncService } from '@dbase/sync/sync.service';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { decodeBase64 } from '@lib/crypto.library';
@@ -76,9 +76,10 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, navigate to AttendComponent
 	onLoginSuccess(ctx: StateContext<IAuthState>) {
-		this.dbg('navigate: /attend');
-		ctx.dispatch(new Navigate(['/attend']));
-		this.ref.tick();
+		const segment = `/${STORE.attend}`;
+		this.dbg('navigate: %s', segment);
+		ctx.dispatch(new Navigate([segment]));
+		// this.ref.tick();
 	}
 
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
@@ -94,7 +95,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
-
+		// TODO:  add in customClaims/[allow]
 		this.sync.on(COLLECTION.Member, SLICE.member, query);
 		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 	}
@@ -111,7 +112,7 @@ export class AuthState implements NgxsOnInit {
 	onLoginRedirect(ctx: StateContext<IAuthState>) {
 		this.dbg('onLoginRedirect, navigating to /login');
 		ctx.dispatch(new Navigate(['/login']));
-		this.ref.tick();
+		// this.ref.tick();
 	}
 
 	@Action([LoginFailed, LogoutSuccess])
@@ -121,6 +122,6 @@ export class AuthState implements NgxsOnInit {
 
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());
-		this.ref.tick();
+		// this.ref.tick();
 	}
 }

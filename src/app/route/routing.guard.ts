@@ -7,10 +7,11 @@ import { Select, Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { MemberState } from '@dbase/state/member.state';
 
+import { STORE } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { JWT } from '@dbase/auth/auth.interface';
-import { LoginRedirect, IAuthState } from '@dbase/auth/auth.define';
+import { LoginRedirect, IAuthState } from '@dbase/state/auth.define';
 
 import { isNull, isArray } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
@@ -52,10 +53,11 @@ export class ProfileGuard implements CanActivate {
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     return this.plan$.pipe(
       map(plan => {
+        const segment = `/${STORE.profile}/plan`;
         this.dbg('plan: %j', plan);
         if (isArray(plan) && plan.length) return true;// ok to access Route
 
-        this.store.dispatch(new Navigate(['/profile/plan']));
+        this.store.dispatch(new Navigate([segment]));
         return false;
       })
     )

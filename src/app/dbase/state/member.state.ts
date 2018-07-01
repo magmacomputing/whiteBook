@@ -60,7 +60,7 @@ export class MemberState implements NgxsOnInit {
 		return [...member[store]
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys(['type', 'order', 'name']))
+			.sort(sortKeys('type', 'order', 'name'))
 		];
 	}
 
@@ -71,7 +71,7 @@ export class MemberState implements NgxsOnInit {
 			.filter(itm => itm[FIELD.type] === 'plan')
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys(['plan']))
+			.sort(sortKeys('plan'))
 		];
 	}
 }

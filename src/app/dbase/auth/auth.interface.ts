@@ -24,9 +24,10 @@ export interface IUserInfo {			// borrowed from firebase-admin/auth
 
 export interface ICustomClaims {	// a special sub-set of fields from the User Token
 	claims: {
-		memberName?: string;
-		memberUid?: string;
 		roles?: string[];
+		memberName?: string;
+		memberAllow?: string[];
+		memberDeny?: string[];
 	}
 }
 export interface IFireClaims {

@@ -37,7 +37,7 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
 };
 
 /** sort Object by multiple keys */
-export const sortKeys = (keys: any[] = []): any => (a: any, b: any) => {
+export const sortKeys = (...keys: any[]): any => (a: any, b: any) => {
   const key = keys[0];														// take out the first key
   switch (true) {
     case keys.length === 0:
@@ -47,7 +47,7 @@ export const sortKeys = (keys: any[] = []): any => (a: any, b: any) => {
     case a[key] > b[key]:
       return 1;
     default:
-      return sortKeys(keys.slice(1))(a, b);
+      return sortKeys(...keys.slice(1))(a, b);
   }
 }
 

@@ -6,8 +6,8 @@ import { AuthProvider } from '@firebase/auth-types';
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
-import { AuthState } from '@dbase/auth/auth.state';
-import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/auth/auth.define';
+import { AuthState } from '@dbase/state/auth.state';
+import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/state/auth.define';
 
 import { IProvider } from '@dbase/data/data.interface';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';

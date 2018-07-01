@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
+import { ISelector } from '@dbase/state/store.define';
 import { ClientState } from '@dbase/state/client.state';
+import { getStore } from '@dbase/state/store.state';
 
 import { MemberService } from '@dbase/app/member.service';
-import { IStoreDoc } from '@dbase/state/store.define';
 import { STORE } from '@dbase/data/data.define';
 
 @Component({
@@ -14,15 +14,13 @@ import { STORE } from '@dbase/data/data.define';
   templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-  @Select(ClientState.getClient) client$!:
-    Observable<(store: string, type?: string, ...keys: string[]) => IStoreDoc[]>;
+  @Select(ClientState.getClient) client$!: Observable<ISelector>;
 
   constructor(private readonly member: MemberService) { }
 
   ngOnInit() { }
 
   get price$() {
-    return (this.client$).pipe(
-      map(fn => fn(STORE.price, 'topUp', 'type', 'order', 'plan')))
+    return getStore(this.client$, STORE.price, 'topUp', 'order', 'plan');
   }
 }

@@ -54,12 +54,11 @@ export class AttendState implements NgxsOnInit {
 	/** Selectors */
 	@Selector()
 	static getAttend(store: string, state: any) {
-		// TODO: tidy
 		const attend: IStoreState = state[SLICE.attend];
 		return [...attend[store]
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys(['type', 'order', 'name']))
+			.sort(sortKeys('type', 'order', 'name'))
 		];
 	}
 }
