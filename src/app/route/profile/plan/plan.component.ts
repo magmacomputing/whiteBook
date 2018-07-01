@@ -4,7 +4,7 @@ import { Select } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 
 import { IProfilePlan, IPrice } from '@dbase/data/data.interface';
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { dbg } from '@lib/logger.library';
 
@@ -25,12 +25,13 @@ export class PlanComponent implements OnInit {
     this.dbg('price: %j', price);
     const planDoc: IProfilePlan = {
       [FIELD.id]: this.data.newId,                    // generate a new Id
-      store: 'profile',
+      store: STORE.profile,
       type: 'plan',
       plan: price.plan,
     }
 
     this.dbg('plan: %j', planDoc);
-    this.data.insDoc(COLLECTION.Member, planDoc);
+    this.data.insDoc(COLLECTION.Member, planDoc)
+      .catch(err => this.dbg('setPlan: %j', err))
   }
 }

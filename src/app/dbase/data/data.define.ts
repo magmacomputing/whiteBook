@@ -1,4 +1,5 @@
 import { IObject } from "@lib/object.library";
+import { TStore } from "@dbase/data/data.interface";
 
 export const COLLECTION = {			// collection starts with upper-case, document with lower-case
 	Log: 'log',
@@ -8,12 +9,12 @@ export const COLLECTION = {			// collection starts with upper-case, document wit
 	Client: 'client',
 }
 
-export const STORE = {
+export const STORE: IObject<TStore> = {
 	profile: 'profile',
-	account: 'account',
 	attend: 'attend',
 	provider: 'provider',
 	class: 'class',
+	event: 'event',
 	price: 'price',
 	schedule: 'schedule',
 }

@@ -67,15 +67,15 @@ export class DataService {
       if (user.userInfo)
         doc.uid = user.userInfo.uid;                // ensure uid is included on doc
     }
+
     filter.forEach(field => {
       if (doc[field])                               // if that field exists in the doc, add it to the filter
         where.push({ fieldPath: field, opStr: '==', value: doc[field] })
       else return Promise.reject(`missing required field: ${field}`)
     })
 
-    const rows =
-      await this.snap(doc.store, slice)             // read the store
-        .then(table => filterTable(table, where))   // filter the store to find current unexpired docs
+    const rows = await this.snap(doc.store, slice)  // read the store
+      .then(table => filterTable(table, where))     // filter the store to find current unexpired docs
 
     const batch = this.fire.bat();
     rows.forEach(row => {                           // set _expire on current doc(s)
@@ -91,7 +91,7 @@ export class DataService {
     this.dbg('insDoc: %s => %j', store, doc);
 
     batch.set(docRef, doc);                         // add the new Document
-    batch.commit()
+    return batch.commit()
       .catch(err => this.dbg('warn: %j', err))      // TODO: better manage errors
   }
 }

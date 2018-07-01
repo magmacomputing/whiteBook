@@ -14,7 +14,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class AttendComponent implements OnInit {
   @Select(ClientState.events) event$!: Observable<IClass[]>;
-  @Select(ClientState.prices) price$!: Observable<IPrice[]>;
+  // @Select(ClientState.prices) price$!: Observable<IPrice[]>;
 
   private dbg: Function = dbg.bind(this);
 

@@ -19,9 +19,6 @@
     "strict": true,
     "noImplicitThis": false,
     "paths": {
-      "@app/*": [
-        "src/app/*"
-      ],
       "@env/*": [
         "src/environments/*"
       ],
