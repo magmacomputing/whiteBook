@@ -7,7 +7,7 @@ import { ClientState } from '@dbase/state/client.state';
 import { IStoreDoc } from '@dbase/state/store.define';
 
 import { AuthService } from '@dbase/auth/auth.service';
-import { IProvider } from '@dbase/data/data.interface';
+import { STORE } from '@dbase/data/data.define';
 
 @Component({
   selector: 'wb-login',
@@ -16,11 +16,11 @@ import { IProvider } from '@dbase/data/data.interface';
 })
 export class LoginComponent {
   @Select(ClientState.getClient) client$!:
-    Observable<(store: string, type?: string) => IStoreDoc[]>;
+    Observable<(store: string, type?: string, ...keys: string[]) => IStoreDoc[]>;
 
   constructor(public readonly auth: AuthService) { }
 
   get provider$() {
-    return this.client$.pipe(map(fn => fn('provider')));
+    return this.client$.pipe(map(fn => fn(STORE.provider, undefined, 'type', 'order', 'name')));
   }
 }

@@ -7,7 +7,7 @@ import { ClientState } from '@dbase/state/client.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { IStoreDoc } from '@dbase/state/store.define';
-import { IPrice } from '@dbase/data/data.interface';
+import { STORE } from '@dbase/data/data.define';
 
 @Component({
   selector: 'wb-plan',
@@ -15,7 +15,7 @@ import { IPrice } from '@dbase/data/data.interface';
 })
 export class PlanComponent implements OnInit {
   @Select(ClientState.getClient) client$!:
-    Observable<(store: string, type?: string) => IStoreDoc[]>;
+    Observable<(store: string, type?: string, ...keys: string[]) => IStoreDoc[]>;
 
   constructor(private readonly member: MemberService) { }
 
@@ -23,6 +23,6 @@ export class PlanComponent implements OnInit {
 
   get price$() {
     return (this.client$).pipe(
-      map(fn => fn('price', 'topUp')))
+      map(fn => fn(STORE.price, 'topUp', 'type', 'order', 'plan')))
   }
 }
