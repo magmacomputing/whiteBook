@@ -9,7 +9,7 @@ import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { LoginToken } from '@app/dbase/auth/auth.define';
+import { LoginToken } from '@dbase/auth/auth.define';
 import { FIELD } from '@dbase/data/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';

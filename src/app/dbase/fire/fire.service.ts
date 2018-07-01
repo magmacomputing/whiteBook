@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { DBaseModule } from '@dbase/dbase.module';
 
+import { FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { FIELD } from '@app/dbase/data/data.define';
 
 /**
  * This private service will communicate with the FireStore database,

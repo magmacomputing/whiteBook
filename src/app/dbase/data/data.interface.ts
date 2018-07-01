@@ -3,7 +3,7 @@ import { FIELD } from '@dbase/data/data.define';
 
 export type TStore = 'class' | 'event' | 'price' | 'provider' | 'schedule' | 'profile' | 'attend'
 type TClientDefault = 'price' | 'topUp' | 'hold';
-type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core';
+export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core';
 type TClass = 'full' | 'half' | 'event';
 type TPrice = 'full' | 'half' | 'topUp' | 'hold';
 type TProfile = 'plan' | 'claim';

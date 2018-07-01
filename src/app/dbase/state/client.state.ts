@@ -62,7 +62,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Selector()
-	static plans(state: IStoreState) {
+	static prices(state: IStoreState) {
 		return [...state['price']
 			.filter(itm => itm[FIELD.type] === 'topUp')
 			.filter(itm => !itm[FIELD.expire])
@@ -81,13 +81,13 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Selector()
-	static getClient(store: string, state: any) {
-		// TODO: tidy
-		const client: IStoreState = state[SLICE.client];
-		return [...client[store]
-			.filter(itm => !itm[FIELD.expire])
-			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys(['type', 'order', 'name']))
-		];
+	static getClient(state: IStoreState) {
+		return (store: string) => {
+			return [...state[store]
+				.filter(itm => !itm[FIELD.expire])
+				.filter(itm => !itm[FIELD.hidden])
+				.sort(sortKeys(['type', 'order', 'name']))
+			]
+		}
 	}
 }

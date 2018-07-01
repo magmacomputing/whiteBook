@@ -3,9 +3,9 @@
 </p>
 
 <mat-card>
-  <mat-card-content *ngFor="let plan of plan$ | async">
-    <button mat-raised-button [disabled]="plan._disable" (click)="setPlan(plan)">
-      {{plan.plan}} ${{plan.amount}}
+  <mat-card-content *ngFor="let price of price$ | async">
+    <button mat-raised-button [disabled]="price._disable" (click)="member.setPlan(price.plan)">
+      {{price.plan}} ${{price.amount}}
     </button>
   </mat-card-content>
 </mat-card>

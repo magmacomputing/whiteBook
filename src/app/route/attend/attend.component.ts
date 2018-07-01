@@ -4,7 +4,7 @@ import { Select } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 
 import { IClass } from '@dbase/data/data.interface';
-import { DataService } from '@dbase/data/data.service';
+import { MemberService } from '@dbase/app/member.service';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -18,9 +18,13 @@ export class AttendComponent implements OnInit {
 
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly data: DataService) { }
+  constructor(private readonly member: MemberService) { }
 
   ngOnInit() { }
+
+  checkIn(event: IClass) {
+    this.dbg('event: %j', event);
+  }
 }
 
 /**

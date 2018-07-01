@@ -15,9 +15,10 @@ import { isNumber, cloneObj, asArray, isString, isUndefined } from '@lib/object.
 import { fmtDate } from '@lib/date.library';
 import { DATE_FMT } from '@lib/date.define';
 import { dbg } from '@lib/logger.library';
+import { filterTable } from '@dbase/app/app.library';
 
 @Injectable({ providedIn: DBaseModule })
-export class MemberService {
+export class mamService {
   private dbg: Function = dbg.bind(this);
 
   constructor(private store: Store) { this.dbg('new'); }
@@ -102,7 +103,7 @@ export class MemberService {
   private asAt<T>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) {
     const stamp = this.getDate(date);
 
-    return this.filterArray<T>(table, cond)													// return the rows where date is between _effect and IMeta
+    return filterTable<T>(table, cond)													// return the rows where date is between _effect and IMeta
       .filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
       .filter((row: IMeta) => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
   }
@@ -110,35 +111,5 @@ export class MemberService {
   /** allow for undefined dates (ie. 'today') or defined dates */
   private getDate(date?: string | number) {
     return isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
-  }
-
-  /** filter an Array to meet the supplied conditions, logically ANDed */
-  private filterArray = <T>(table: T[] = [], cond: IWhere | IWhere[] = []) => {
-    let lookup = cloneObj(table);														// clone the table argument, so we dont mutate it
-
-    asArray(cond)																						// cast cond as an array
-      .forEach(clause => lookup = lookup.filter((row: any) => {
-        const key = row[clause.fieldPath as string];
-        const field = isString(key) ? key.toLowerCase() : key;
-        const value = isString(clause.value) ? clause.value.toLowerCase() : clause.value;
-        switch (clause.opStr) {															// standard firestore query-operators, and '!='
-          case '==':
-            return field == value;													// use '==' to allow for string/number match, instead of '==='
-          case '>':
-            return field > value;
-          case '>=':
-            return field >= value;
-          case '<':
-            return field < value;
-          case '<=':
-            return field <= value;
-          case '!=':																				// non-standard operator
-            return isUndefined(field) || field != value;
-          default:
-            return false;
-        }
-      }))
-
-    return lookup;
   }
 }
