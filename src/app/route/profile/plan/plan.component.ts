@@ -7,6 +7,7 @@ import { ClientState } from '@dbase/state/client.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { IStoreDoc } from '@dbase/state/store.define';
+import { IPrice } from '@dbase/data/data.interface';
 
 @Component({
   selector: 'wb-plan',
@@ -21,7 +22,7 @@ export class PlanComponent implements OnInit {
   ngOnInit() { }
 
   get price$() {
-    return this.client$.pipe(
+    return (this.client$).pipe(
       map(fn => fn('price', 'topUp')))
   }
 }
