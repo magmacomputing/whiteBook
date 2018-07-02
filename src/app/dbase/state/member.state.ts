@@ -3,7 +3,7 @@ import { SLICE } from '@dbase/state/store.define';
 import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -67,7 +67,7 @@ export class MemberState implements NgxsOnInit {
 	/** Member's current plan */
 	@Selector()
 	static plan(state: IStoreState) {
-		return [...state['profile']
+		return [...state[STORE.profile]
 			.filter(itm => itm[FIELD.type] === 'plan')
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])

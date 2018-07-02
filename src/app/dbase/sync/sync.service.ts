@@ -52,8 +52,8 @@ export class SyncService {
   }
 
   public getStatus(collection: string) {
-    const { slice, cnt } = this.listener[collection];
-    return { slice, cnt };
+    const { slice, cnt, ready } = this.listener[collection];
+    return { slice, cnt, ready };
   }
 
   /** detach an existing snapshot listener */
