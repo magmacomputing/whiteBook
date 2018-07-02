@@ -74,14 +74,6 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	/** Events */
-	@Action(LoginSuccess)														// on each LoginSuccess, navigate to AttendComponent
-	onLoginSuccess(ctx: StateContext<IAuthState>) {
-		const segment = `/${STORE.attend}`;
-		this.dbg('navigate: %s', segment);
-		ctx.dispatch(new Navigate([segment]));
-		// this.ref.tick();
-	}
-
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const currUser: any = cloneObj(this.afAuth.auth.currentUser);
@@ -95,9 +87,13 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
+		const segment = `/${STORE.attend}`;
+
 		// TODO:  add in customClaims/[allow]
-		this.sync.on(COLLECTION.Member, SLICE.member, query);
 		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
+		this.sync.on(COLLECTION.Member, SLICE.member, query)
+			.then(_ => this.dbg('navigate: %s', segment))
+			.then(_ => ctx.dispatch(new Navigate([segment])))	// wait for /member snap0 
 	}
 
 	@Action(LoginToken)															// fetch latest IdToken

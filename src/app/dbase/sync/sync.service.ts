@@ -51,8 +51,8 @@ export class SyncService {
     return ready.promise;                             // indicate when snap0 is complete
   }
 
-  public getStatus(collection: string) {
-    const { slice, cnt, ready } = this.listener[collection];
+  public status(collection: string) {
+    const { slice, cnt, ready: { promise: ready } } = this.listener[collection];
     return { slice, cnt, ready };
   }
 
