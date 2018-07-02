@@ -1,13 +1,13 @@
 // import { Injectable } from '@angular/core';
 // import { Store } from '@ngxs/store';
 
-// import { IMeta } from '@dbase/app/app.interface';
-// import { IWhere } from '@dbase/fire/fire.interface';
-// import { FIELD } from '@dbase/fire/fire.define';
-
-// import { isNumber, isUndefined, isString, cloneObj, asArray } from '@lib/object.library';
-// import { fmtDate } from '@lib/date.library';
-// import { DATE_FMT } from '@lib/date.define';
+import { IMeta } from '@dbase/data/data.interface';
+import { IWhere } from '@dbase/fire/fire.interface';
+import { FIELD } from '@dbase/data/data.define';
+import { filterTable } from '@dbase/app/app.library';
+import { isNumber } from '@lib/object.library';
+import { fmtDate } from '@lib/date.library';
+import { DATE_FMT } from '@lib/date.define';
 // import { dbg } from '@lib/logger.library';
 
 // // import { AuthState, IAuthState } from '@svc/state/auth.state';
@@ -43,19 +43,19 @@
 // 	// 			.filter(row => row.store === store) as T[]
 // 	// 	}
 
-// 	/**
-// 	 * Search an array, returning rows that match all the 'conditions' and were effective on the 'date'
-// 	 * @param table		The table-array to search
-// 	 * @param cond 		condition to use as filter
-// 	 * @param date 		The date to use when determining which table-row was effective at that time
-// 	 */
-// 	asAt(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
-// 	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
+/**
+ * Search an array, returning rows that match all the 'conditions' and were effective on the 'date'
+ * @param table		The table-array to search
+ * @param cond 		condition to use as filter
+ * @param date 		The date to use when determining which table-row was effective at that time
+ */
+export const asAt = (table: IMeta[], cond: IWhere | IWhere[] = [], date?: string | number) => {
+	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
 
-// 	return this.filterArray(table, cond)													// return the rows where date is between _effect and IMeta
-// 		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
-// 		.filter(row => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
-// }
+	return filterTable(table, cond)													// return the rows where date is between _effect and IMeta
+		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
+}
 
 // async getUid(uid ?: string) => {
 // 	if (isUndefined(uid)) {

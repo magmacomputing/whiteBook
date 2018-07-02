@@ -1,12 +1,12 @@
 <p>
-  Please select a Class from the list below...
+  Please select an Event from the list below...
 </p>
 
 <mat-card>
-  <mat-card-content *ngFor="let event of event$ | async">
+  <mat-card-content *ngFor="let event of schedule$ | async">
     <button mat-raised-button [disabled]="event._disable" (click)="checkIn(event)">
-      {{event.name}}
-      <!-- {{event.plan}} ${{plan.amount}} -->
+      {{event.class}}
+      <!-- {{schedule.plan}} ${{schedule.amount}} -->
     </button>
   </mat-card-content>
 </mat-card>
