@@ -49,12 +49,12 @@ import { DATE_FMT } from '@lib/date.define';
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-row was effective at that time
  */
-export const asAt = (table: IMeta[], cond: IWhere | IWhere[] = [], date?: string | number) => {
+export const asAt = <T>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
 
 	return filterTable(table, cond)													// return the rows where date is between _effect and IMeta
-		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
-		.filter(row => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
+		.filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter((row: IMeta) => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
 }
 
 // async getUid(uid ?: string) => {

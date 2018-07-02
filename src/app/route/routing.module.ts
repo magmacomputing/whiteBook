@@ -10,8 +10,8 @@ import { AuthGuard, ProfileGuard } from '@route/routing.guard';
 const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
 	{ path: 'attend', component: AttendComponent, canActivate: [AuthGuard, ProfileGuard] },
-	{ path: 'profile', loadChildren: '@route/profile/profile.module#ProfileModule' },
-	{ path: 'admin', loadChildren: '@route/admin/admin.module#AdminModule' },
+	{ path: 'profile', loadChildren: '@route/profile/profile.module#ProfileModule', canActivate: [AuthGuard] },
+	{ path: 'admin', loadChildren: '@route/admin/admin.module#AdminModule', canActivate: [AuthGuard] },
 	{ path: '**', redirectTo: '/attend', pathMatch: 'full' },
 ];
 

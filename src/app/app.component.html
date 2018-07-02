@@ -1,21 +1,7 @@
 <router-outlet>
-	<button (click)="data.auth.signOut()">Logout</button>
+
+	<button [disabled]="!(auth.active | async)" (click)="data.auth.signOut()">Logout</button>
 	<p></p>
-	<button (click)="data.auth.check()">check</button>
-	<p></p>
-	<button (click)="data.snap('provider')">Snap Provider</button>
-	<div *ngIf="data.snapshot.provider | async as p">
-		<ul>
-			<li *ngFor="let provider of p">{{provider.name}},{{provider._expire}}</li>
-		</ul>
-	</div>
-	<p></p>
-	<button (click)="data.snap('class')">Snap Class</button>
-	<div *ngIf="data.snapshot.class | async as c">
-		<ul>
-			<li *ngFor="let class of c">{{class.name}}</li>
-		</ul>
-	</div>
-	<p></p>
-	<button (click)="navigate('/profile/plan')">Plan</button>
+	<button [disabled]="!(auth.active | async)" (click)="navigate('/profile/plan')">Plan</button>
+
 </router-outlet>

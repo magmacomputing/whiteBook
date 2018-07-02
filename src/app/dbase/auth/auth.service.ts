@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
 import * as firebase from 'firebase/app';
 import { AuthProvider } from '@firebase/auth-types';
 
@@ -10,9 +12,10 @@ import { AuthState } from '@dbase/state/auth.state';
 import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/state/auth.define';
 
 import { IProvider } from '@dbase/data/data.interface';
-import { TScopes, TParams } from '@dbase/auth/auth.interface';
+import { TScopes, TParams, JWT } from '@dbase/auth/auth.interface';
 
-import { asArray } from '@lib/object.library';
+import { asArray, isNull } from '@lib/object.library';
+import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
@@ -22,6 +25,22 @@ export class AuthService {
   private dbg: Function = dbg.bind(this);
 
   constructor(private readonly store: Store) { this.dbg('new'); }
+
+  get active() {
+    return this.auth$.pipe(
+      map(auth => {
+        switch (true) {
+          case isNull(auth.userInfo):
+          case isNull(auth.userToken):
+          case !isNull(auth.userToken) && auth.userToken[JWT.expires] < getStamp():
+            return false;           // not logged-in
+
+          default:
+            return true;            // is logged-in
+        }
+      })
+    )
+  }
 
   public signOut() {
     this.store.dispatch(new Logout());

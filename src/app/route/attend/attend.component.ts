@@ -10,7 +10,7 @@ import { getStore } from '@dbase/state/store.state';
 import { MemberService } from '@dbase/app/member.service';
 import { asAt } from '@dbase/app/member.library';
 import { STORE } from '@dbase/data/data.define';
-import { IClass } from '@dbase/data/data.interface';
+import { IClass, ISchedule, IMeta } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { fmtDate } from '@lib/date.library';

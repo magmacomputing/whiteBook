@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Select, Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
+import { AuthState } from '@dbase/state/auth.state';
 import { MemberState } from '@dbase/state/member.state';
 
 import { STORE } from '@dbase/data/data.define';
