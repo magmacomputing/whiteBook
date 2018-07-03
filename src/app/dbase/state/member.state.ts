@@ -55,23 +55,26 @@ export class MemberState implements NgxsOnInit {
 	/** Selectors */
 	@Selector()
 	static getMember(store: string, state: any) {
-		// TODO: tidy
 		const member: IStoreState = state[SLICE.member];
-		return [...member[store]
-			.filter(itm => !itm[FIELD.expire])
-			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys('type', 'order', 'name'))
-		];
+		return state
+			? [...member[store]
+				.filter(itm => !itm[FIELD.expire])
+				.filter(itm => !itm[FIELD.hidden])
+				.sort(sortKeys('type', 'order', 'name'))
+			]
+			: []
 	}
 
 	/** Member's current plan */
 	@Selector()
 	static plan(state: IStoreState) {
-		return [...state[STORE.profile]
-			.filter(itm => itm[FIELD.type] === 'plan')
-			.filter(itm => !itm[FIELD.expire])
-			.filter(itm => !itm[FIELD.hidden])
-			.sort(sortKeys('plan'))
-		];
+		return state
+			? [...state[STORE.profile]
+				.filter(itm => itm[FIELD.type] === 'plan')
+				.filter(itm => !itm[FIELD.expire])
+				.filter(itm => !itm[FIELD.hidden])
+				.sort(sortKeys('plan'))
+			]
+			: []
 	}
 }

@@ -59,6 +59,8 @@ export class AuthService {
   }
 
   public async signIn(config: IProvider) {
+    this.dbg('signIn: %j', config);
+
     switch (config.type) {
       case undefined:
       case 'social':

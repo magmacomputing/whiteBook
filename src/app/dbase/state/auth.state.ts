@@ -1,5 +1,5 @@
 import { ApplicationRef } from '@angular/core';
-import { User } from '@firebase/auth-types';
+import { User, IdTokenResult } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { take, tap } from 'rxjs/operators';
@@ -9,12 +9,9 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/state/auth.define';
 import { SyncService } from '@dbase/sync/sync.service';
-import { TTokenClaims } from '@dbase/auth/auth.interface';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { decodeBase64 } from '@lib/crypto.library';
-import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -74,16 +71,6 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	/** Events */
-	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
-	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		const currUser: any = cloneObj(this.afAuth.auth.currentUser);
-		const accessToken = currUser.stsTokenManager.accessToken;	// TODO: rationalize this internal reference
-		const token = decodeBase64<TTokenClaims>(accessToken.split('.')[1]);
-
-		this.dbg('claims: %j', token);
-		ctx.patchState({ userInfo: user, userToken: token });
-	}
-
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
@@ -96,12 +83,18 @@ export class AuthState implements NgxsOnInit {
 			.then(_ => ctx.dispatch(new Navigate([segment])))	// wait for /member snap0 
 	}
 
+	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
+	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+		(this.afAuth.auth.currentUser as User).getIdTokenResult()
+			.then(tokenResult => ctx.patchState({ userInfo: user, userToken: tokenResult }))
+			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
+	}
+
 	@Action(LoginToken)															// fetch latest IdToken
 	setToken(ctx: StateContext<IAuthState>) {
-		return (this.afAuth.auth.currentUser as User).getIdToken()
-			.then(token => decodeBase64<TTokenClaims>(token.split('.')[1]))
-			.then(token => ctx.patchState({ userToken: token }))
-			.then(_ => this.dbg('token: %j', ctx.getState().userToken))
+		(this.afAuth.auth.currentUser as User).getIdTokenResult(true)
+			.then(tokenResult => ctx.patchState({ userToken: tokenResult }))
+			.then(_ => this.dbg('token: %j', (ctx.getState().userToken as IdTokenResult).claims))
 	}
 
 	@Action(LoginRedirect)

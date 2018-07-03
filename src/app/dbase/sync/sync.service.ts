@@ -10,7 +10,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -127,7 +127,7 @@ export class SyncService {
         case 'added':
         case 'modified':
           this.store.dispatch(new setStore(data));
-          if (data.store === 'profile' && data.type === 'claims' && !data[FIELD.expire])
+          if (data.store === STORE.profile && data.type === 'claims' && !data[FIELD.expire])
             this.store.dispatch(new LoginToken());    // special: access-level has changed
           break;
 

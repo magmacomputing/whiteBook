@@ -55,12 +55,14 @@ export class ClientState implements NgxsOnInit {
 	@Selector()
 	static getClient(state: IStoreState) {
 		return (store: string, type?: string, ...keys: any[]) => {
-			return [...state[store]
-				.filter(itm => type ? itm[FIELD.type] === type : itm)
-				.filter(itm => !itm[FIELD.expire])
-				.filter(itm => !itm[FIELD.hidden])
-				.sort(sortKeys(...keys))
-			]
+			return state && state[store]
+				? [...state[store]
+					.filter(itm => type ? itm[FIELD.type] === type : itm)
+					.filter(itm => !itm[FIELD.expire])
+					.filter(itm => !itm[FIELD.hidden])
+					.sort(sortKeys(...keys))
+				]
+				: []
 		}
 	}
 }
