@@ -110,7 +110,7 @@ export class SyncService {
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
       let [localHash, storeHash] = await Promise.all([
         cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
-        cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id)))
+        cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
       ])
 
       listen.ready.resolve(true);                     // indicate snap0 is ready

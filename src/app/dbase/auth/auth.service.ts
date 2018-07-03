@@ -32,7 +32,7 @@ export class AuthService {
         switch (true) {
           case isNull(auth.userInfo):
           case isNull(auth.userToken):
-          case !isNull(auth.userToken) && auth.userToken[JWT.expires] < getStamp():
+          case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
             return false;           // not logged-in
 
           default:

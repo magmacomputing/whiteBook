@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { Store } from '@ngxs/store';
+import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan } from '@dbase/data/data.interface';
@@ -10,7 +12,7 @@ import { dbg } from '@lib/logger.library';
 export class MemberService {
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly data: DataService) { this.dbg('new') }
+  constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
 
   setPlan(plan: TPlan) {
     const planDoc: IProfilePlan = {
@@ -22,6 +24,7 @@ export class MemberService {
 
     this.dbg('plan: %j', planDoc);
     this.data.insDoc(COLLECTION.Member, planDoc)
+      .then(_ => this.store.dispatch(new Navigate(['/attend'])))
       .catch(err => this.dbg('setPlan: %j', err))
   }
 }
