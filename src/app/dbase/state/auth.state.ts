@@ -94,7 +94,7 @@ export class AuthState implements NgxsOnInit {
 	setToken(ctx: StateContext<IAuthState>) {
 		(this.afAuth.auth.currentUser as User).getIdTokenResult(true)
 			.then(tokenResult => ctx.patchState({ userToken: tokenResult }))
-			.then(_ => this.dbg('token: %j', (ctx.getState().userToken as IdTokenResult).claims))
+			.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
 	}
 
 	@Action(LoginRedirect)
