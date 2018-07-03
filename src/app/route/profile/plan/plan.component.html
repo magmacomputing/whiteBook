@@ -2,10 +2,18 @@
   Please select a Payment-Plan from the list below...
 </p>
 
-<mat-card>
-  <mat-card-content *ngFor="let price of price$ | async">
-    <button mat-raised-button [disabled]="price._disable" (click)="member.setPlan(price.plan)">
-      {{price.plan}} ${{price.amount}}
-    </button>
-  </mat-card-content>
+<mat-card *ngFor="let price of price$ | async">
+  <mat-card-header>
+    <img mat-card-avatar src="https://source.unsplash.com/random/200x200">
+    <mat-card-title>
+      {{price.plan}}
+    </mat-card-title>
+    <mat-card-subtitle>Plan cost: {{price.amount}}</mat-card-subtitle>
+   
+    <mat-card-content>
+      <button mat-raised-button [disabled]="price._disable" (click)="member.setPlan(price.plan)">
+        Select
+      </button>
+    </mat-card-content>
+  </mat-card-header>
 </mat-card>

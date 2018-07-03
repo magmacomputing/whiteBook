@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
-import { ISelector } from '@dbase/state/store.define';
+import { ISelector, IStoreDoc } from '@dbase/state/store.define';
 import { ClientState } from '@dbase/state/client.state';
 import { getStore } from '@dbase/state/store.state';
 
@@ -21,6 +22,18 @@ export class PlanComponent implements OnInit {
   ngOnInit() { }
 
   get price$() {
-    return getStore(this.client$, STORE.price, 'topUp', 'order', 'plan');
+    const allPrice: any[] = [];
+    return getStore(this.client$, STORE.price, 'topUp', 'order', 'plan')
+      .pipe(
+        map(prices => {
+          prices.forEach(price => {
+            let idx = allPrice.findIndex(itm => itm.plan === price.plan);
+            if (idx === -1) {
+              idx = allPrice.length;
+              allPrice.push({ type: price.type })
+            }
+          })
+        })
+      )
   }
 }

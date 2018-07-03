@@ -18,7 +18,7 @@ import { IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * DataService is responsible for managing the syncing between
+ * The DataService is responsible for managing the syncing between
  * the local State (ngxs 'Store') and the remote DataBase (Firebase Firestore).  
  * The intention is that all 'reads' are from State, and all 'writes' are to a persisted
  * local copy of the Database (which FireStore will sync back to the server).

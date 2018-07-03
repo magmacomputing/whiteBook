@@ -9,6 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 const modules = [
   MatToolbarModule,
@@ -19,6 +20,7 @@ const modules = [
   MatCardModule,
   MatDatepickerModule,
   MatNativeDateModule,
+  MatExpansionModule,
 ]
 
 @NgModule({
