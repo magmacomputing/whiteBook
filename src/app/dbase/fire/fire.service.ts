@@ -52,4 +52,12 @@ export class FireService {
 			.set(doc)
 	}
 
+	updDoc(store: string, docId: string, data: IObject<any>) {
+		delete data[FIELD.id];
+		return this.af.firestore
+			.collection(store)
+			.doc(docId)
+			.update(data)
+	}
+
 }

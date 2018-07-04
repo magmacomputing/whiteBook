@@ -53,6 +53,14 @@ export class DataService {
     return this.fire.newId();                       // get Firebase to generate a new Key
   }
 
+  setDoc(store: string, doc: IObject<any>) {
+    return this.fire.setDoc(store, doc);
+  }
+
+  updDoc(store: string, docId: string, data: IObject<any>) {
+    return this.fire.updDoc(store, docId, data);
+  }
+
   /** Expire any previous docs, and Insert new doc (default 'member' slice) */
   async insDoc(store: string, doc: IStoreMeta, slice: string = SLICE.member) {
     const tstamp = doc[FIELD.effect] || getStamp();
