@@ -25,8 +25,8 @@ export class PlanComponent implements OnInit {
 
   ngOnInit() { }
 
-  get price$() {
-    return getStore(this.client$, STORE.price, undefined, 'plan');
+  price$(plan: string) {
+    return getStore(this.client$, STORE.price, plan, 'type');
   }
 
   get plan$() {
