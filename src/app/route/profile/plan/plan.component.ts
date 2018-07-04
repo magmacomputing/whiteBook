@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Select } from '@ngxs/store';
-import { ISelector, IStoreDoc } from '@dbase/state/store.define';
-import { ClientState } from '@dbase/state/client.state';
+import { ISelector } from '@dbase/state/store.define';
 import { getStore } from '@dbase/state/store.state';
+import { AuthState } from '@dbase/state/auth.state';
+import { ClientState } from '@dbase/state/client.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { MemberState } from '@dbase/state/member.state';
@@ -18,7 +19,7 @@ import { STORE } from '@dbase/data/data.define';
 export class PlanComponent implements OnInit {
   @Select(ClientState.getClient) client$!: Observable<ISelector>;
   @Select(MemberState.getMember) member$!: Observable<ISelector>;
-  @Select() auth$!: Observable<IAuthState>;
+  @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
 
   constructor(private readonly member: MemberService) { }
 

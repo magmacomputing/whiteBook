@@ -1,13 +1,10 @@
-<p>
-  Please select a Payment-Plan from the list below...
-</p>
-
-<div *ngIf="(profile$ | async) || {plan:'unknown'}; let profile">
-  Your current Plan: {{profile.plan}}
+<div *ngIf="(profile$ | async) || []; let profile">
+  <div *ngIf="profile.length; else newPlan">
+    Your current Plan: {{profile[0].plan}}
+  </div>
 
   <mat-card *ngFor="let plan of plan$ | async">
     <mat-card-header>
-      <!-- <img mat-card-avatar src="https://source.unsplash.com/random/200x200"> -->
       <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'">
       <mat-card-title>
         {{plan.type}}
@@ -15,10 +12,17 @@
       <mat-card-subtitle>{{plan.desc}}</mat-card-subtitle>
 
       <mat-card-content>
-        <button mat-raised-button [disabled]="plan._disable || (profile && plan.type == profile.plan)" (click)="member.setPlan(plan.type)">
+        <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.type == profile[0].plan)" (click)="member.setPlan(plan.type)">
           Select
         </button>
       </mat-card-content>
     </mat-card-header>
   </mat-card>
 </div>
+
+<ng-template #newPlan>
+  <div *ngIf="(auth$ | async) || {}; let auth">
+    <p>Welcome {{auth.userInfo.displayName}} !!</p>
+    <p>Please select a Payment-Plan from the list below...</p>
+  </div>
+</ng-template>
