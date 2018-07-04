@@ -30,7 +30,7 @@ export class PlanComponent implements OnInit {
   }
 
   get plan$() {
-    return getStore(this.client$, STORE.plan);
+    return getStore(this.client$, STORE.plan, undefined, 'order', 'type');
   }
 
   get profile$() {
