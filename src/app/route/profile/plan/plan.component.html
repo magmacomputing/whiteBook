@@ -2,18 +2,23 @@
   Please select a Payment-Plan from the list below...
 </p>
 
-<mat-card *ngFor="let price of price$ | async">
-  <mat-card-header>
-    <img mat-card-avatar src="https://source.unsplash.com/random/200x200">
-    <mat-card-title>
-      {{price.plan}}
-    </mat-card-title>
-    <mat-card-subtitle>Plan cost: {{price.amount}}</mat-card-subtitle>
-   
-    <mat-card-content>
-      <button mat-raised-button [disabled]="price._disable" (click)="member.setPlan(price.plan)">
-        Select
-      </button>
-    </mat-card-content>
-  </mat-card-header>
-</mat-card>
+<div *ngIf="(profile$ | async) || {plan:'unknown'}; let profile">
+  Your current Plan: {{profile.plan}}
+
+  <mat-card *ngFor="let plan of plan$ | async">
+    <mat-card-header>
+      <!-- <img mat-card-avatar src="https://source.unsplash.com/random/200x200"> -->
+      <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'">
+      <mat-card-title>
+        {{plan.type}}
+      </mat-card-title>
+      <mat-card-subtitle>{{plan.desc}}</mat-card-subtitle>
+
+      <mat-card-content>
+        <button mat-raised-button [disabled]="plan._disable || (profile && plan.type == profile.plan)" (click)="member.setPlan(plan.type)">
+          Select
+        </button>
+      </mat-card-content>
+    </mat-card-header>
+  </mat-card>
+</div>

@@ -113,4 +113,10 @@ export class AuthState implements NgxsOnInit {
 		ctx.dispatch(new LoginRedirect());
 		// this.ref.tick();
 	}
+
+	// Selectors
+	// @Selector()
+	// static getAuth(state: IAuthState) {
+	// 	return state;
+	// }
 }

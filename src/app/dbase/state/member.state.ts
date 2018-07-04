@@ -53,20 +53,34 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	@Selector()
-	static getMember(store: string, state: any) {
-		const member: IStoreState = state[SLICE.member];
-		return state
-			? [...member[store]
-				.filter(itm => !itm[FIELD.expire])
-				.filter(itm => !itm[FIELD.hidden])
-				.sort(sortKeys('type', 'order', 'name'))
-			]
-			: []
+	// @Selector()
+	// static getMember(store: string, state: any) {
+	// 	const member: IStoreState = state[SLICE.member];
+	// 	return state
+	// 		? [...member[store]
+	// 			.filter(itm => !itm[FIELD.expire])
+	// 			.filter(itm => !itm[FIELD.hidden])
+	// 			.sort(sortKeys('type', 'order', 'name'))
+	// 		]
+	// 		: []
+	// }
+
+
+	@Selector()											/** Get current (un-expired) documents */
+	static getMember(state: IStoreState) {
+		return (store: string, type?: string, ...keys: any[]) => {
+			return state && state[store]
+				? [...state[store]
+					.filter(itm => type ? itm[FIELD.type] === type : itm)
+					.filter(itm => !itm[FIELD.expire])
+					.filter(itm => !itm[FIELD.hidden])
+					.sort(sortKeys(...keys))
+				]
+				: []
+		}
 	}
 
-	/** Member's current plan */
-	@Selector()
+	@Selector()											/** Member's current plan */
 	static plan(state: IStoreState) {
 		return state
 			? [...state[STORE.profile]

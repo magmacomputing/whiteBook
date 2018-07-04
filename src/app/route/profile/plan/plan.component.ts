@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector, IStoreDoc } from '@dbase/state/store.define';
@@ -8,6 +7,8 @@ import { ClientState } from '@dbase/state/client.state';
 import { getStore } from '@dbase/state/store.state';
 
 import { MemberService } from '@dbase/app/member.service';
+import { MemberState } from '@dbase/state/member.state';
+import { IAuthState } from '@dbase/state/auth.define';
 import { STORE } from '@dbase/data/data.define';
 
 @Component({
@@ -16,24 +17,22 @@ import { STORE } from '@dbase/data/data.define';
 })
 export class PlanComponent implements OnInit {
   @Select(ClientState.getClient) client$!: Observable<ISelector>;
+  @Select(MemberState.getMember) member$!: Observable<ISelector>;
+  @Select() auth$!: Observable<IAuthState>;
 
   constructor(private readonly member: MemberService) { }
 
   ngOnInit() { }
 
   get price$() {
-    const allPrice: any[] = [];
-    return getStore(this.client$, STORE.price, 'topUp', 'order', 'plan')
-      .pipe(
-        map(prices => {
-          prices.forEach(price => {
-            let idx = allPrice.findIndex(itm => itm.plan === price.plan);
-            if (idx === -1) {
-              idx = allPrice.length;
-              allPrice.push({ type: price.type })
-            }
-          })
-        })
-      )
+    return getStore(this.client$, STORE.price, undefined, 'plan');
+  }
+
+  get plan$() {
+    return getStore(this.client$, STORE.plan);
+  }
+
+  get profile$() {
+    return getStore(this.member$, STORE.profile, 'plan');
   }
 }

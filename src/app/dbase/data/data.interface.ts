@@ -1,7 +1,7 @@
 import { ICustomClaims } from '@dbase/auth/auth.interface';
 import { FIELD } from '@dbase/data/data.define';
 
-export type TStore = 'class' | 'event' | 'price' | 'provider' | 'schedule' | 'profile' | 'attend'
+export type TStore = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'profile' | 'attend'
 type TClientDefault = 'price' | 'topUp' | 'hold';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core';
 type TClass = 'full' | 'half' | 'event';

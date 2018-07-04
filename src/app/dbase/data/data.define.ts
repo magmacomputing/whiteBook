@@ -16,6 +16,7 @@ export const STORE: IObject<TStore> = {
 	class: 'class',
 	event: 'event',
 	price: 'price',
+	plan: 'plan',
 	schedule: 'schedule',
 }
 
