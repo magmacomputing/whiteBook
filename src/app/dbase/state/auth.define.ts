@@ -38,5 +38,5 @@ export class LoginToken {
 }
 export class LoginFailed {
   static type = '[Auth] LoginFailed';
-  constructor(public error: any, public method?: string, public data?: any) { }
+  constructor(public error: any) { }
 }

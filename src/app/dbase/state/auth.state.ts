@@ -55,7 +55,9 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginSocial)														// process signInWithPopup()
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider }: LoginSocial) {
-		return this.afAuth.auth.signInWithPopup(authProvider)
+		const login = this.afAuth.auth.signInWithPopup(authProvider);
+
+		return login
 			.then((response: { user: User | null }) => ctx.dispatch(
 				response.user
 					? new LoginSuccess(response.user)
@@ -66,18 +68,22 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
 	loginEmail(ctx: StateContext<IAuthState>, { email, password, method }: LoginEmail) {
-		console.log('method: ', method);
-		return method === 'create'
+		this.dbg('method: %s', method || 'login');
+		const login = method === 'create'
 			? this.afAuth.auth.createUserWithEmailAndPassword(email, password)
 			: this.afAuth.auth.signInWithEmailAndPassword(email, password)
-				.then((response: { user: User | null }) => {
-					console.log('login: ', response);
-					ctx.dispatch(
-					response.user
-						? new LoginSuccess(response.user)
-						: new LoginFailed(new Error('No User information available'))
-				)})
-				.catch(error => ctx.dispatch(new LoginFailed(error, method, { email, password })))
+
+		return login
+			.then((response: { user: User | null }) => ctx.dispatch(
+				response.user
+					? new LoginSuccess(response.user)
+					: new LoginFailed(new Error('No User information available'))
+			))
+			.catch(error => {
+				(error.code === 'auth/user-not-found')	// need to 'create' first
+					? ctx.dispatch(new LoginEmail(email, password, 'create'))
+					: ctx.dispatch(new LoginFailed(error))
+			})
 	}
 
 	@Action(Logout)																	// process signOut()
@@ -120,15 +126,14 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action([LoginFailed, LogoutSuccess])
-	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error, method, data }: LoginFailed) {
+	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.Member);
 		this.sync.off(COLLECTION.Attend);
 
-		if (error) this.dbg('logout: %j', error);
-		if (error && method !== 'create')
-			return ctx.dispatch(new LoginEmail(data.email, data.password, 'create'));
-
-		if (error) this.snack.open(error.message);
+		if (error) {
+			this.dbg('logout: %j', error);
+			this.snack.open(error.message);
+		}
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());
 	}
