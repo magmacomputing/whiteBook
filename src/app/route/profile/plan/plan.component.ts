@@ -31,7 +31,8 @@ export class PlanComponent implements OnInit {
   ngOnInit() { }
 
   get profile$() {                // get the Member's current Plan
-    return getStore(this.member$, STORE.profile, { fieldPath: 'type', opStr: '==', value: 'plan' });
+    const filter: IWhere = { fieldPath: 'type', opStr: '==', value: 'plan' };
+    return getStore(this.member$, STORE.profile, filter);
   }
 
   get plan$() {                   // get the available Plans
