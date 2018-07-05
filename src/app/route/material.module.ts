@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 
-import { MATERIAL_SANITY_CHECKS, MatDividerModule } from '@angular/material';
+import { MATERIAL_SANITY_CHECKS } from '@angular/material';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -10,6 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 const modules = [
   MatToolbarModule,
@@ -22,6 +24,7 @@ const modules = [
   MatNativeDateModule,
   MatExpansionModule,
   MatDividerModule,
+  MatSnackBarModule,
 ]
 
 @NgModule({

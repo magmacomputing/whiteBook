@@ -1,4 +1,4 @@
-import { ApplicationRef } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, IdTokenResult } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
@@ -7,7 +7,7 @@ import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail } from '@dbase/state/auth.define';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -24,7 +24,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private ref: ApplicationRef) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -64,6 +64,22 @@ export class AuthState implements NgxsOnInit {
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
 
+	@Action(LoginEmail)															// process signInWithEmailAndPassword
+	loginEmail(ctx: StateContext<IAuthState>, { email, password, method }: LoginEmail) {
+		console.log('method: ', method);
+		return method === 'create'
+			? this.afAuth.auth.createUserWithEmailAndPassword(email, password)
+			: this.afAuth.auth.signInWithEmailAndPassword(email, password)
+				.then((response: { user: User | null }) => {
+					console.log('login: ', response);
+					ctx.dispatch(
+					response.user
+						? new LoginSuccess(response.user)
+						: new LoginFailed(new Error('No User information available'))
+				)})
+				.catch(error => ctx.dispatch(new LoginFailed(error, method, { email, password })))
+	}
+
 	@Action(Logout)																	// process signOut()
 	logout(ctx: StateContext<IAuthState>) {
 		return this.afAuth.auth.signOut()
@@ -101,16 +117,19 @@ export class AuthState implements NgxsOnInit {
 	onLoginRedirect(ctx: StateContext<IAuthState>) {
 		this.dbg('onLoginRedirect, navigating to /login');
 		ctx.dispatch(new Navigate(['/login']));
-		// this.ref.tick();
 	}
 
 	@Action([LoginFailed, LogoutSuccess])
-	setUserStateOnFailure(ctx: StateContext<IAuthState>) {
+	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error, method, data }: LoginFailed) {
 		this.sync.off(COLLECTION.Member);
 		this.sync.off(COLLECTION.Attend);
 
+		if (error) this.dbg('logout: %j', error);
+		if (error && method !== 'create')
+			return ctx.dispatch(new LoginEmail(data.email, data.password, 'create'));
+
+		if (error) this.snack.open(error.message);
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());
-		// this.ref.tick();
 	}
 }

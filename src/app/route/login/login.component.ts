@@ -10,16 +10,16 @@ import { AuthService } from '@dbase/auth/auth.service';
 import { STORE } from '@dbase/data/data.define';
 
 @Component({
-  selector: 'wb-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+	selector: 'wb-login',
+	templateUrl: './login.component.html',
+	styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  @Select(ClientState.getClient) client$!: Observable<ISelector>;
+	@Select(ClientState.getClient) client$!: Observable<ISelector>;
 
-  constructor(public readonly auth: AuthService) { }
+	constructor(public readonly auth: AuthService) { }
 
-  get provider$() {
-  	return getStore(this.client$, STORE.provider, undefined, ['type', 'order', 'name']);
-  }
+	get provider$() {
+		return getStore(this.client$, STORE.provider, undefined, ['order', 'name']);
+	}
 }

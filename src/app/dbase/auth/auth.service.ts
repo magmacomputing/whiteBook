@@ -9,7 +9,7 @@ import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { AuthState } from '@dbase/state/auth.state';
-import { LoginSocial, Logout, CheckSession, IAuthState } from '@dbase/state/auth.define';
+import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
 import { IProvider } from '@dbase/data/data.interface';
 import { TScopes, TParams, JWT } from '@dbase/auth/auth.interface';
@@ -106,8 +106,13 @@ export class AuthService {
     this.store.dispatch(new LoginSocial(authProvider));
   }
 
+  private signInEmail(_config: IProvider) {
+    const email = 'michael@freestyle7u.com.au';
+    const pword = 'HelloWorld';
+    this.store.dispatch(new LoginEmail(email, pword));
+  }
+
   private signInOAuth(config: IProvider) { }
-  private signInEmail(config: IProvider) { }
   private signInPlay(config: IProvider) { }
   private signInPhone(config: IProvider) { }
   private signInAnon(config: IProvider) { }
