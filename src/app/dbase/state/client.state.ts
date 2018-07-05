@@ -1,9 +1,8 @@
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
-import { SLICE, IStoreState, IStoreDoc } from '@dbase/state/store.define';
-import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
+import { currStore } from '@dbase/state/store.state';
+import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
 import { FIELD } from '@dbase/data/data.define';
-import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState>({
@@ -54,15 +53,6 @@ export class ClientState implements NgxsOnInit {
 	/** Selectors */
 	@Selector()
 	static getClient(state: IStoreState) {
-		return (store: string, type?: string, ...keys: any[]) => {
-			return state && state[store]
-				? [...state[store]
-					.filter(itm => type ? itm[FIELD.type] === type : itm)
-					.filter(itm => !itm[FIELD.expire])
-					.filter(itm => !itm[FIELD.hidden])
-					.sort(sortKeys(...keys))
-				]
-				: []
-		}
+		return currStore.bind(this, state);
 	}
 }

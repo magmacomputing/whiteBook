@@ -9,11 +9,25 @@ import { SetAttend, DelAttend } from '@dbase/state/store.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
+import { IWhere } from '@dbase/fire/fire.interface';
+import { asArray, sortKeys } from '@lib/object.library';
+import { filterTable } from '@dbase/app/app.library';
 
-// TODO: use a master Store with sub-states?
+/** a generic function that will invoke 'currStore' function on a particular Store */
+export const getStore = (obs$: Observable<ISelector>, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) =>
+	obs$.pipe(map(fn => fn(store, filter, keys)));
 
-export const getStore = (obs$: Observable<ISelector>, store: string, type?: string, ...keys: string[]) =>
-	obs$.pipe(map(fn => fn(store, type, ...keys)));
+/** a memoized function that searches a Store for current documents */
+export function currStore(state: IStoreState, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) {
+	const filters = asArray(filter);
+	filters.push({ fieldPath: FIELD.expire, opStr: '==', value: 0 });
+	filters.push({ fieldPath: FIELD.hidden, opStr: '==', value: 0 });
+
+	return state
+		? filterTable<IStoreDoc>(state[store], filters)
+			.sort(sortKeys(...asArray(keys)))							// apply any requested sort-criteria
+		: []
+}
 
 export class StoreState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);

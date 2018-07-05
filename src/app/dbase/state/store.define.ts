@@ -1,4 +1,5 @@
 import { FIELD } from '@dbase/data/data.define';
+import { IWhere } from '@dbase/fire/fire.interface';
 import { IObject } from '@lib/object.library';
 
 export const SLICE = {
@@ -33,7 +34,7 @@ export interface IStoreDoc {
 }
 
 export interface ISelector {
-	(store: string, type?: string, ...keys: string[]): IStoreDoc[];
+	(store: string, filter: IWhere | IWhere[], keys: string | string[]): IStoreDoc[];
 }
 
 export type IStoreState = IObject<IStoreDoc[]>;

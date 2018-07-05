@@ -12,15 +12,16 @@
       <mat-card-subtitle>{{plan.desc}}</mat-card-subtitle>
 
       <mat-card-content>
-        <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.type == profile[0].plan)" (click)="member.setPlan(plan.type)">
-          Select
+        <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.type == profile[0].plan)" (click)="showPrice(plan.type)">
+        <!-- (click)="member.setPlan(plan.type)" -->
+        Select
         </button>
       </mat-card-content>
     </mat-card-header>
 
     <mat-card-footer>
-      <div *ngFor="let price of price$(plan.type) | async">
-        {{price|json}}
+      <div *ngFor="let price of getPrice(plan.type) | async">
+        Current price: {{price|json}}
       </div>
     </mat-card-footer>
   </mat-card>

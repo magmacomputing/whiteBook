@@ -5,11 +5,10 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Select, Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
-import { AuthState } from '@dbase/state/auth.state';
+import { ISelector } from '@dbase/state/store.define';
 import { MemberState } from '@dbase/state/member.state';
 
 import { STORE } from '@dbase/data/data.define';
-import { IProfilePlan } from '@dbase/data/data.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { JWT } from '@dbase/auth/auth.interface';
 import { LoginRedirect, IAuthState } from '@dbase/state/auth.define';
@@ -17,6 +16,7 @@ import { LoginRedirect, IAuthState } from '@dbase/state/auth.define';
 import { isNull, isArray } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
+import { getStore } from '@dbase/state/store.state';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {
@@ -46,13 +46,13 @@ export class AuthGuard implements CanActivate {
 /** ensure Member Profile has a current 'plan' */
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
-  @Select(MemberState.plan) plan$!: Observable<IProfilePlan[]>;
+  @Select(MemberState.getMember) member$!: Observable<ISelector>;
   private dbg: Function = dbg.bind(this);
 
   constructor(private store: Store) { this.dbg('new') }
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    return this.plan$.pipe(
+    return getStore(this.member$, STORE.profile, { fieldPath: 'type', opStr: '==', value: 'plan' }).pipe(
       map(plan => {
         const segment = `/${STORE.profile}/plan`;
         this.dbg('plan: %j', plan);
