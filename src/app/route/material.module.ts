@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 
-import { MATERIAL_SANITY_CHECKS } from '@angular/material';
+import { MATERIAL_SANITY_CHECKS, MatDividerModule } from '@angular/material';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -21,6 +21,7 @@ const modules = [
   MatDatepickerModule,
   MatNativeDateModule,
   MatExpansionModule,
+  MatDividerModule,
 ]
 
 @NgModule({

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
@@ -12,6 +11,7 @@ import { MemberService } from '@dbase/app/member.service';
 import { MemberState } from '@dbase/state/member.state';
 import { IAuthState } from '@dbase/state/auth.define';
 import { STORE } from '@dbase/data/data.define';
+import { IWhere } from '@dbase/fire/fire.interface';
 
 import { dbg } from '@lib/logger.library';
 
@@ -34,15 +34,15 @@ export class PlanComponent implements OnInit {
     return getStore(this.member$, STORE.profile, { fieldPath: 'type', opStr: '==', value: 'plan' });
   }
 
-  price$(plan: string) {          // get the Prices for a nominated Plan
-    return getStore(this.client$, STORE.price, { fieldPath: 'plan', opStr: '==', value: plan }, ['type']);
-  }
-
   get plan$() {                   // get the available Plans
     return getStore(this.client$, STORE.plan, undefined, ['order', 'type']);
   }
 
   getPrice(plan: string) {
-   
+    const filter: IWhere[] = [
+      { fieldPath: 'plan', opStr: '==', value: plan },
+      { fieldPath: 'type', opStr: '==', value: 'topUp' },
+    ]
+    return getStore(this.client$, STORE.price, filter);
   }
 }
