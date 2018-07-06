@@ -67,7 +67,6 @@ export class AuthState implements NgxsOnInit {
 			const provider = new firebase.auth.FacebookAuthProvider(); // TODO:
 			ctx.dispatch(new LoginSocial(provider, link.credential));
 		}
-
 	}
 
 	@Action(LoginSocial)														// process signInWithPopup()
