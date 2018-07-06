@@ -156,7 +156,7 @@ export class AuthState implements NgxsOnInit {
 			this.dbg('logout: %j', error);
 			this.snack.open(error.message);
 
-			if (error.message === 'auth/account-exists-with-different-credential')
+			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
 		ctx.setState({ userInfo: null, userToken: null });
