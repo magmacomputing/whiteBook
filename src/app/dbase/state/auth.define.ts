@@ -10,13 +10,17 @@ export interface IAuthState {
 export class CheckSession {
   static type = '[Auth] CheckSession';
 }
+export class LoginLink {
+  static type = '[Auth] LoginLink';
+  constructor(public link?: any) { }
+}
 export class LoginSocial {
   static type = '[Auth] LoginSocial';
-  constructor(public authProvider: AuthProvider) { }
+  constructor(public authProvider: AuthProvider, public credential?: any) { }
 }
 export class LoginEmail {
   static type = '[Auth] LoginEmail';
-  constructor(public email: string, public password: string, public method?: 'login' | 'create') { }
+  constructor(public email: string, public password: string, public method?: 'login' | 'create', public credential?: any) { }
 }
 export class Logout {
   static type = '[Auth] Logout';

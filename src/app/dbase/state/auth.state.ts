@@ -1,13 +1,14 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, IdTokenResult } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
+import * as firebase from 'firebase/app';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -53,32 +54,54 @@ export class AuthState implements NgxsOnInit {
 			);
 	}
 
+	@Action(LoginLink)
+	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
+		this.dbg('link: %j', link);
+		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
+
+		if (methods[0] === 'password') {
+			let password = 'TODO';
+			ctx.dispatch(new LoginEmail(link.email, password, 'login', link.credential))
+		} else {
+			// const provider = getProviderId(methods[0]);
+			const provider = new firebase.auth.FacebookAuthProvider(); // TODO:
+			ctx.dispatch(new LoginSocial(provider, link.credential));
+		}
+
+	}
+
 	@Action(LoginSocial)														// process signInWithPopup()
-	loginSocial(ctx: StateContext<IAuthState>, { authProvider }: LoginSocial) {
+	loginSocial(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginSocial) {
 		const login = this.afAuth.auth.signInWithPopup(authProvider);
 
 		return login
-			.then((response: { user: User | null }) => ctx.dispatch(
-				response.user
-					? new LoginSuccess(response.user)
-					: new LoginFailed(new Error('No User information available'))
-			))
+			.then((response: { user: User | null }) => {
+				if (response.user) {
+					if (credential)													// have we been redirected here, via credential?
+						response.user.linkAndRetrieveDataWithCredential(credential);
+					ctx.dispatch(new LoginSuccess(response.user));
+				}
+				else ctx.dispatch(new LoginFailed(new Error('No User information available')))
+			})
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
 
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
-	loginEmail(ctx: StateContext<IAuthState>, { email, password, method }: LoginEmail) {
+	loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
 		this.dbg('method: %s', method || 'login');
 		const login = method === 'create'
 			? this.afAuth.auth.createUserWithEmailAndPassword(email, password)
 			: this.afAuth.auth.signInWithEmailAndPassword(email, password)
 
 		return login
-			.then((response: { user: User | null }) => ctx.dispatch(
-				response.user
-					? new LoginSuccess(response.user)
-					: new LoginFailed(new Error('No User information available'))
-			))
+			.then((response: { user: User | null }) => {
+				if (response.user) {
+					if (credential)													// have we been redirected here, via credential?
+						response.user.linkWithCredential(credential);
+					ctx.dispatch(new LoginSuccess(response.user));
+				}
+				else ctx.dispatch(new LoginFailed(new Error('No User information available')))
+			})
 			.catch(error => {
 				(error.code === 'auth/user-not-found')	// need to 'create' first
 					? ctx.dispatch(new LoginEmail(email, password, 'create'))
@@ -133,6 +156,9 @@ export class AuthState implements NgxsOnInit {
 		if (error) {
 			this.dbg('logout: %j', error);
 			this.snack.open(error.message);
+
+			if (error.message === 'auth/account-exists-with-different-credential')
+				return ctx.dispatch(new LoginLink(error));
 		}
 		ctx.setState({ userInfo: null, userToken: null });
 		ctx.dispatch(new LoginRedirect());
