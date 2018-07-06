@@ -1,5 +1,5 @@
 import { User, UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
-import { IProvider } from '@dbase/data/data.interface';
+import { ILink } from '@dbase/auth/auth.interface';
 
 export interface IAuthState {
   userInfo: UserInfo | null;
@@ -12,7 +12,7 @@ export class CheckSession {
 }
 export class LoginLink {
   static type = '[Auth] LoginLink';
-  constructor(public link?: any) { }
+  constructor(public link: ILink) { }
 }
 export class LoginSocial {
   static type = '[Auth] LoginSocial';

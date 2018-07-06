@@ -1,7 +1,6 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, IdTokenResult } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
-import * as firebase from 'firebase/app';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -9,6 +8,8 @@ import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
+import { getAuthProvider } from '@dbase/auth/auth.library';
+import { ILink } from '@dbase/auth/auth.interface';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -57,14 +58,14 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginLink)
 	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
 		this.dbg('link: %j', link);
+		this.dbg('email: %j', link.email);
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
 
 		if (methods[0] === 'password') {
 			let password = 'TODO';
 			ctx.dispatch(new LoginEmail(link.email, password, 'login', link.credential))
 		} else {
-			// const provider = getProviderId(methods[0]);
-			const provider = new firebase.auth.FacebookAuthProvider(); // TODO:
+			const provider = getAuthProvider(methods[0]);
 			ctx.dispatch(new LoginSocial(provider, link.credential));
 		}
 	}

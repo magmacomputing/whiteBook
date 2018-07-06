@@ -2,13 +2,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import * as firebase from 'firebase/app';
-import { AuthProvider } from '@firebase/auth-types';
-
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { AuthState } from '@dbase/state/auth.state';
+import { getAuthProvider } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
 import { IProvider } from '@dbase/data/data.interface';
@@ -95,7 +93,7 @@ export class AuthService {
 
   /** prepare the AuthProvider object before dispatching the SignIn flow */
   private signInSocial(config: IProvider) {
-    const authProvider = this.authProvider(config.name);
+    const authProvider = getAuthProvider(config.name);
 
     asArray(config.scope)
       .forEach(scope => (authProvider as TScopes).addScope(scope));
@@ -116,33 +114,4 @@ export class AuthService {
   private signInPlay(config: IProvider) { }
   private signInPhone(config: IProvider) { }
   private signInAnon(config: IProvider) { }
-
-  private authProvider(providerId: string) {
-    let authProvider: AuthProvider;
-
-    switch (providerId) {
-      case 'google':
-      case 'google.com':
-        authProvider = new firebase.auth.GoogleAuthProvider();
-        break;
-
-      case 'twitter':
-      case 'twitter.com':
-        authProvider = new firebase.auth.TwitterAuthProvider();
-        break;
-
-      case 'github':
-      case 'github.com':
-        authProvider = new firebase.auth.GithubAuthProvider();
-        break;
-
-      case 'facebook':
-      case 'facebook.com':
-      default:
-        authProvider = new firebase.auth.FacebookAuthProvider();
-        break;
-    }
-
-    return authProvider;
-  }
 }
