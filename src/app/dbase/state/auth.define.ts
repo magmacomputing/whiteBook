@@ -20,7 +20,9 @@ export class LoginSocial {
 }
 export class LoginEmail {
   static type = '[Auth] LoginEmail';
-  constructor(public email: string, public password: string, public method?: 'login' | 'create', public credential?: any) { }
+  constructor(public email: string, public password: string,
+    public method: 'signIn' | 'createUser' = 'signIn',
+    public credential?: any) { }
 }
 export class Logout {
   static type = '[Auth] Logout';

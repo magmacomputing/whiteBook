@@ -1,10 +1,9 @@
 import { auth } from 'firebase/app';
-import { AuthProvider, } from '@firebase/auth-types';
+import { AuthProvider, AuthCredential } from '@firebase/auth-types';
+import { IObject } from '@lib/object.library';
 
 export const getAuthProvider = (providerId: string) => {
 	let authProvider: AuthProvider;
-	// if (!firebase.auth)             // is the 'auth' namespace present
-	// 	throw new Error('Firebase Authentication not initialized');
 
 	switch (providerId) {
 		case 'google':
@@ -30,4 +29,17 @@ export const getAuthProvider = (providerId: string) => {
 	}
 
 	return authProvider;
+}
+
+export const getAuthCredential = (providerId: string, opts: IObject<any>) => {
+	let authCredential: AuthCredential;
+
+	switch (providerId) {
+		case 'email':
+		default:
+			authCredential = auth.GoogleAuthProvider.credential(opts.email, opts.password);
+			break;
+	}
+
+	return authCredential;
 }

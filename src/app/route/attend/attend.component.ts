@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
@@ -10,10 +10,11 @@ import { getStore } from '@dbase/state/store.state';
 import { MemberService } from '@dbase/app/member.service';
 import { asAt } from '@dbase/app/member.library';
 import { STORE } from '@dbase/data/data.define';
-import { IClass, ISchedule, IMeta } from '@dbase/data/data.interface';
+import { IClass } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { fmtDate } from '@lib/date.library';
+import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -43,6 +44,7 @@ export class AttendComponent implements OnInit {
 
     return getStore(this.client$, STORE.schedule).pipe(
       map(table => asAt(table, where, this.date)),
+      map(table => table.sort(sortKeys('time'))),
     )
   }
 

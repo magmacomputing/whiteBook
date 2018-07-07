@@ -1,5 +1,5 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { User, IdTokenResult } from '@firebase/auth-types';
+import { User, IdTokenResult, AuthCredential, UserCredential } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { take, tap } from 'rxjs/operators';
@@ -8,8 +8,7 @@ import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
-import { getAuthProvider } from '@dbase/auth/auth.library';
-import { ILink } from '@dbase/auth/auth.interface';
+import { getAuthProvider, getAuthCredential } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -30,8 +29,16 @@ export class AuthState implements NgxsOnInit {
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
-
 		ctx.dispatch(new CheckSession());								/** Dispatch CheckSession on start */
+	}
+
+	private authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
+		if (user) {
+			if (credential)													// have we been redirected here, via credential?
+				user.linkAndRetrieveDataWithCredential(credential);
+			ctx.dispatch(new LoginSuccess(user));
+		}
+		else ctx.dispatch(new LoginFailed(new Error('No User information available')))
 	}
 
 	/** Selectors */
@@ -57,13 +64,12 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginLink)
 	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
-		this.dbg('link: %j', link);
-		this.dbg('email: %j', link.email);
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
 
+		this.dbg('methods: %j', methods);
 		if (methods[0] === 'password') {
-			let password = 'TODO';
-			ctx.dispatch(new LoginEmail(link.email, password, 'login', link.credential))
+			let password = window.prompt('Please enter the password') || '';
+			ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
 		} else {
 			const provider = getAuthProvider(methods[0]);
 			ctx.dispatch(new LoginSocial(provider, link.credential));
@@ -72,40 +78,27 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginSocial)														// process signInWithPopup()
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginSocial) {
-		const login = this.afAuth.auth.signInWithPopup(authProvider);
-
-		return login
-			.then((response: { user: User | null }) => {
-				if (response.user) {
-					if (credential)													// have we been redirected here, via credential?
-						response.user.linkAndRetrieveDataWithCredential(credential);
-					ctx.dispatch(new LoginSuccess(response.user));
-				}
-				else ctx.dispatch(new LoginFailed(new Error('No User information available')))
-			})
+		return this.afAuth.auth.signInWithPopup(authProvider)
+			.then(response => this.authSuccess(ctx, response.user, credential))
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
 
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
 	loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
-		this.dbg('method: %s', method || 'login');
-		const login = method === 'create'
-			? this.afAuth.auth.createUserWithEmailAndPassword(email, password)
-			: this.afAuth.auth.signInWithEmailAndPassword(email, password)
+		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
+		const m = `${method}WithEmailAndPassword` as TEmailMethod;
+		this.dbg('loginEmail: %s', method);
 
-		return login
-			.then((response: { user: User | null }) => {
-				if (response.user) {
-					if (credential)													// have we been redirected here, via credential?
-						response.user.linkWithCredential(credential);
-					ctx.dispatch(new LoginSuccess(response.user));
+		return this.afAuth.auth[m](email, password)
+			.then(response => this.authSuccess(ctx, response.user, credential))
+			.catch(async error => {
+				switch (error.code) {
+					case 'auth/user-not-found':				// need to 'create' first
+						return ctx.dispatch(new LoginEmail(email, password, 'createUser'));
+
+					default:
+						return ctx.dispatch(new LoginFailed(error));
 				}
-				else ctx.dispatch(new LoginFailed(new Error('No User information available')))
-			})
-			.catch(error => {
-				(error.code === 'auth/user-not-found')	// need to 'create' first
-					? ctx.dispatch(new LoginEmail(email, password, 'create'))
-					: ctx.dispatch(new LoginFailed(error))
 			})
 	}
 
@@ -130,6 +123,7 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+		this.snack.dismiss();
 		(this.afAuth.auth.currentUser as User).getIdTokenResult()
 			.then(tokenResult => ctx.patchState({ userInfo: user, userToken: tokenResult }))
 			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
@@ -152,6 +146,7 @@ export class AuthState implements NgxsOnInit {
 	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.Member);
 		this.sync.off(COLLECTION.Attend);
+		this.snack.dismiss();
 
 		if (error) {
 			this.dbg('logout: %j', error);

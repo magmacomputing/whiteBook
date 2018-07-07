@@ -104,10 +104,8 @@ export class AuthService {
     this.store.dispatch(new LoginSocial(authProvider));
   }
 
-  private signInEmail(_config: IProvider) {
-    const email = 'michael@freestyle7u.com.au';
-    const pword = 'HelloWorld';
-    this.store.dispatch(new LoginEmail(email, pword));
+  private signInEmail(config: IProvider, email: string, password: string) {
+    this.store.dispatch(new LoginEmail(email, password));
   }
 
   private signInOAuth(config: IProvider) { }
