@@ -12,7 +12,7 @@ import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbas
 import { IProvider } from '@dbase/data/data.interface';
 import { TScopes, TParams, JWT } from '@dbase/auth/auth.interface';
 
-import { asArray, isNull } from '@lib/object.library';
+import { asArray, isNull, IObject } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
@@ -56,7 +56,7 @@ export class AuthService {
     )
   }
 
-  public async signIn(config: IProvider) {
+  public async signIn(config: IProvider, opts: IObject<any> = {}) {
     this.dbg('signIn: %j', config);
 
     switch (config.type) {
@@ -70,7 +70,7 @@ export class AuthService {
         break;
 
       case 'email':
-        this.signInEmail(config);
+        this.signInEmail(config, opts.email, opts.password);
         break;
 
       case 'play':
