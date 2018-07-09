@@ -1,0 +1,13 @@
+
+import {authService}
+
+/Home
+/Plans
+/TermsOfService & Privacy
+/Classes
+/Events
+/Login
+
+
+CanActivate  if Authenticated
+/member

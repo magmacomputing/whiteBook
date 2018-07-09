@@ -1,0 +1,12 @@
+<p>
+  Please select a Login-Provider from the list below...
+</p>
+
+<mat-card>
+  <mat-card-content *ngFor="let provider of provider$ | async; let last = last">
+    <button mat-raised-button [disabled]="provider._disable" (click)="auth.signIn(provider)">
+      Login with {{provider.name}}
+    </button>
+    <mat-divider *ngIf="!last"></mat-divider>
+  </mat-card-content>
+</mat-card>

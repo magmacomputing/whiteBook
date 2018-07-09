@@ -1,0 +1,13 @@
+Route: / or /home
+
+import {authService}
+
+constructor(authService) {
+    if isSignIn {
+        // if via scan-qr redirect to /check-in
+        redirect to /member/${uid}
+    }
+    if expired, auto-refresh else signOut
+    if isSignOut, redirect to /auth/login
+    redirect to /home
+}

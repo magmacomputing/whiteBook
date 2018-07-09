@@ -1,0 +1,19 @@
+<p>
+  Please select an Event from the list below...
+</p>
+
+<mat-card *ngFor="let event of schedule$ | async">
+  <mat-card-header>
+    <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">
+    <mat-card-title>
+      {{event.class}}
+    </mat-card-title>
+    <mat-card-subtitle>{{event.desc}}</mat-card-subtitle>
+
+    <mat-card-content>
+      <button mat-raised-button [disabled]="event._disable" (click)="member.checkIn(event)">
+        Select
+      </button>
+    </mat-card-content>
+  </mat-card-header>
+</mat-card>

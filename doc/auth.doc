@@ -1,0 +1,90 @@
+
+AuthService (inject IDBService, FireService, AngularFirestore)
+private sync: Promise<boolean>;
+private providers!: Promise<IProvider[]>
+
+constructor() {
+	register listen afs.AuthState.subscribe(
+		if auth.on {
+				SyncClient('data')
+				SyncClient('member')
+		} else {
+				SyncClient('data').off()
+				SyncClient('member').off()
+		}
+	)
+
+	this.sync = new Promise(resolve) {
+	 		this.fire.sync					# wait for Idb and Fire Services to sync
+				.then(_ => this.providers = this.idb.getAll('provider'))
+				.then(_ => resolve)		# then notify AuthService is 'ready'
+		}
+}
+
+logout() {
+	afs.signOut()						# which triggers AuthState change
+}
+
+login(provider) {
+	this.sync
+		.then(_ => this.providers)
+		.then(list => list._id === provider)
+		.then(provider => {
+			switch (provider.type) {
+				case federated:
+					loginProvider(provider);
+					break;
+				case oauth:
+					loginOAuth(provider);
+					break;
+				case phone:
+					loginPhone(provider)
+					break;
+				case email:
+					loginEmail(provider)
+					break;
+				default:
+					# Error
+			}
+		})
+	.catch(err => # Error)
+}
+
+loginProvider(provider) {
+	afs.signInWithPopup()		# which triggers AuthState change
+}
+
+mergeProvider(old,new) {
+													# used to link multiple providers to the same email address
+}
+
+loginOAuth(provider) {
+
+}
+
+loginCallback() {					# does this belong here?   or in LoginComponent?
+
+}
+
+
+_____________
+Client action
+
+*> click on provider button
+
+	> if fb-supported provider button
+
+	Service will create a providerOjb
+	call signOn()
+		lookup Provider in IDB (else report error to user)
+		build Provider object (with appropriate scope)
+		pass to Firebase (else report error to user)
+
+	Firebase will create an account if it can.
+	If the error comes back 'email already in use', then
+		prompt the user to logon using that other provider (else abort)
+		if successful then
+			link the providers
+		else abort
+	end
+

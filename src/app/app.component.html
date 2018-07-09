@@ -1,2 +1,7 @@
+<router-outlet>
 
-<router-outlet>Loading...</router-outlet>
+	<button [disabled]="!(auth.active | async)" (click)="data.auth.signOut()">Logout</button>
+	<p></p>
+	<button [disabled]="!(auth.active | async)" (click)="navigate('/profile/plan')">Plan</button>
+
+</router-outlet>

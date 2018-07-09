@@ -1,10 +1,7 @@
 import { isNumeric } from '@lib/string.library';
-
-/**
- * General <object> functions
- */
-
 export interface IObject<T> { [key: string]: T; }
+
+/** General <object> functions */
 
 /** Sort Object by its keys */
 export const sortObj = (obj: any, deep: boolean = true): any => {
@@ -24,9 +21,9 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
             break;
 
           case 'Array':
-            if (obj[key].every(isNumeric))
-              col[key] = obj[key].sort((a: number, b: number) => a - b)
-            else col[key] = obj[key].sort();      // sort Array
+            col[key] = obj[key].every(isNumeric)
+              ? obj[key].sort((a: number, b: number) => a - b)
+              : obj[key].sort()                   // sort Array    
             break;
 
           default:
@@ -39,37 +36,35 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
     }, col);
 };
 
-/** split Object into sub-Objects, by initial character */
-export const splitObj = (obj: any, chars: string[] = ['_', '$']): { [idx: number]: any } => {
-  const init: IObject<any> = { 0: {} };
-  chars.forEach((itm, idx) => init[idx + 1] = {});
-
-  return Object
-    .keys(obj)
-    .sort()
-    .reduce((sub, key) => {
-      let idx = -~chars.indexOf(key.substring(0, 1));
-      sub[idx][key] = obj[key];
-      return sub;
-    }, init);
+/** sort Object by multiple keys */
+export const sortKeys = (...keys: any[]): any => (a: any, b: any) => {
+  const key = keys[0];														// take out the first key
+  switch (true) {
+    case keys.length === 0:
+      return 0;
+    case a[key] < b[key]:
+      return -1;
+    case a[key] > b[key]:
+      return 1;
+    default:
+      return sortKeys(...keys.slice(1))(a, b);
+  }
 }
 
 /** lowerCase Object keys */
 export const lowerObj = (obj: any) => {
-  if (!isType(obj, 'Object'))
+  if (!isObject(obj))
     return obj;
 
   let newObj: IObject<any>;
   switch (getType(obj)) {
     case 'Object':
       newObj = {};
-      Object.keys(obj)
-        .forEach(key => newObj[key.toLowerCase()] = lowerObj(obj[key]));
+      Object.keys(obj).forEach(key => newObj[key.toLowerCase()] = lowerObj(obj[key]));
       break;
 
     case 'Array':
-      newObj = obj
-        .map((key: any, idx: number) => lowerObj(obj[idx]));
+      newObj = obj.map((key: any, idx: number) => lowerObj(obj[idx]));
       break;
 
     default:
@@ -112,4 +107,9 @@ export const isFunction = (obj?: any): obj is Function => isType(obj, 'Function'
 export const isPromise = <T>(obj?: any): obj is Promise<T> => isType(obj, 'Promise');
 export const isUndefined = (obj?: any): obj is undefined => isType(obj, 'Undefined');
 
-export const isEmpty = (obj: object = {}): boolean => isObject(obj) && Object.keys(obj).length === 0;
+export const isEmpty = (obj: object | any[]): boolean =>
+  (isObject(obj) && Object.keys(obj).length === 0) ||
+  (isArray(obj) && obj.length === 0)
+
+export const asArray = <T>(arr: T | T[] = []) => isArray(arr) ? arr : [arr];
+export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);

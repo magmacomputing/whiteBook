@@ -19,23 +19,20 @@
     "strict": true,
     "noImplicitThis": false,
     "paths": {
-      "@app/*": [
-        "src/app/*"
-      ],
       "@env/*": [
         "src/environments/*"
       ],
       "@lib/*": [
         "src/app/library/*"
       ],
+      "@dbase/*": [
+        "src/app/dbase/*"
+      ],
       "@svc/*": [
         "src/app/service/*"
       ],
       "@route/*": [
         "src/app/route/*"
-      ],
-      "@state/*": [
-        "src/app/state/*"
       ],
     },
   }
