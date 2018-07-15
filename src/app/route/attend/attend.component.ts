@@ -41,7 +41,7 @@ export class AttendComponent implements OnInit {
   get schedule$() {
     const day = fmtDate(this.date).weekDay;
     const where: IWhere = { fieldPath: 'day', opStr: '==', value: day };
-
+    this.dbg('weekDay: %j', day);
     return getStore(this.client$, STORE.schedule).pipe(
       map(table => asAt(table, where, this.date)),
       map(table => table.sort(sortKeys('time'))),

@@ -41,7 +41,7 @@ export const DATE_FMT: Record<keyof IDate, string> = {
 	dayMonth: 'DD-MMM',                     // useful for showing short Date, dash separator
 	dayMonthFmt: 'DD MMM',                	// space separator
 	week: 'ww',                             // week number, leading zero
-	weekDay: 'd',                           // day of week, Mon=1
+	weekDay: 'E',                           // day of week, Mon=1
 	day: 'D',                               // return the Day number
 	dayZZ: 'DD',														// Day number, leading zero
 	time: 'HH:mm:ss',                       // useful for showing Time
