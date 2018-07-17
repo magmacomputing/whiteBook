@@ -5,7 +5,7 @@
 <mat-card>
   <mat-card-content *ngFor="let provider of provider$ | async; let last = last">
     <button mat-raised-button [disabled]="provider._disable" (click)="auth.signIn(provider)">
-      Login with {{provider.name}}
+      Login with {{provider.key}}
     </button>
     <mat-divider *ngIf="!last"></mat-divider>
   </mat-card-content>

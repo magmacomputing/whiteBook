@@ -20,6 +20,6 @@ export class LoginComponent {
 	constructor(public readonly auth: AuthService) { }
 
 	get provider$() {
-		return getStore(this.client$, STORE.provider, undefined, ['order', 'name']);
+		return getStore(this.client$, STORE.provider, undefined, ['order', 'key']);
 	}
 }

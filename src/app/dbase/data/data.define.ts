@@ -28,9 +28,9 @@ export const enum FIELD {					//  common Field names
 	disable = '_disable',
 	id = '_id',
 	uid = 'uid',
-	key = '_key',
 	store = 'store',
 	type = 'type',
+	key = 'key',
 	memberId = 'memberId'
 };
 
