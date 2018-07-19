@@ -18,6 +18,8 @@ export const STORE: IObject<TStore> = {
 	price: 'price',
 	plan: 'plan',
 	schedule: 'schedule',
+	location: 'location',
+	instructor: 'instructor',
 }
 
 export const enum FIELD {					//  common Field names

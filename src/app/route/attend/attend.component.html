@@ -2,6 +2,10 @@
   Please select an Event from the list below...
 </p>
 
+<mat-card *ngFor="let loc of location$ | async">
+  {{loc | json}}
+</mat-card>
+
 <mat-card *ngFor="let event of schedule$ | async">
   <mat-card-header>
     <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">

@@ -143,7 +143,7 @@ export class SyncService {
   }
 
   private getSource(snaps: DocumentChangeAction<IStoreDoc>[]) {
-    const meta = snaps[0].payload.doc.metadata;
+    const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as SnapshotMetadata;
     return meta.fromCache
       ? 'cache'
       : meta.hasPendingWrites
