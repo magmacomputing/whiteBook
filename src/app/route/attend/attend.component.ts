@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap, distinct } from 'rxjs/operators';
+import { map, tap, distinct, switchMap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
@@ -9,7 +9,7 @@ import { getStore } from '@dbase/state/store.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { asAt } from '@dbase/app/member.library';
-import { STORE } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
 import { IClass, ISchedule } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
 
@@ -48,12 +48,15 @@ export class AttendComponent implements OnInit {
     )
   }
 
-  get location$() {
+  get location$() {                             // get the Locations that are on the Schedule for this.date
+    const where: IWhere = { fieldPath: FIELD.key, opStr: '==', value: '' };
+    let locs: string[] = [];
     return this.schedule$.pipe(
       map((table: ISchedule[]) => table.map(row => row.location)),
       distinct(),
-      // map(loc => getStore(this.client$, STORE.location)),
-      // map(table => table.filter(row => row.key === loc)),
+      tap(res => locs = res),
+      switchMap(_ => getStore(this.client$, STORE.location)),
+      map(table => table.filter(row => locs.includes(row[FIELD.key]))),
     )
   }
 

@@ -2,22 +2,25 @@
   Please select an Event from the list below...
 </p>
 
-<mat-card *ngFor="let loc of location$ | async">
-  {{loc | json}}
-</mat-card>
+<div *ngFor="let loc of location$ | async">
+  <h3>
+    {{ loc.name }}
+  </h3>
+  <div *ngFor="let event of schedule$ | async">
+    <mat-card *ngIf="event.location === loc.key">
+      <mat-card-header>
+        <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">
+        <mat-card-title>
+          {{event.key}}
+        </mat-card-title>
+        <mat-card-subtitle>{{event.desc}}</mat-card-subtitle>
 
-<mat-card *ngFor="let event of schedule$ | async">
-  <mat-card-header>
-    <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">
-    <mat-card-title>
-      {{event.key}}
-    </mat-card-title>
-    <mat-card-subtitle>{{event.desc}}</mat-card-subtitle>
-
-    <mat-card-content>
-      <button mat-raised-button [disabled]="event._disable" (click)="member.checkIn(event)">
-        Select
-      </button>
-    </mat-card-content>
-  </mat-card-header>
-</mat-card>
+        <mat-card-content>
+          <button mat-raised-button [disabled]="event._disable" (click)="member.checkIn(event)">
+            Select
+          </button>
+        </mat-card-content>
+      </mat-card-header>
+    </mat-card>
+  </div>
+</div>
