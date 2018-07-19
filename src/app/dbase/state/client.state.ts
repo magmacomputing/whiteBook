@@ -1,3 +1,4 @@
+import { MatSnackBar } from '@angular/material';
 import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { currStore } from '@dbase/state/store.state';
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
@@ -12,7 +13,7 @@ import { dbg } from '@lib/logger.library';
 export class ClientState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor() { }
+	constructor(private snack: MatSnackBar) { }
 
 	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
 
@@ -40,6 +41,7 @@ export class ClientState implements NgxsOnInit {
 	@Action(TruncClient)
 	truncStore({ setState }: StateContext<IStoreState>) {
 		this.dbg('truncClient');
+		this.snack.open('Downloading data...', undefined, {horizontalPosition: 'center', duration: 2000});
 		setState({});
 	}
 

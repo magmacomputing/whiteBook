@@ -2,8 +2,8 @@ import { ICustomClaims } from '@dbase/auth/auth.interface';
 import { FIELD } from '@dbase/data/data.define';
 
 export type TStore = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'profile' | 'attend'
-type TClientDefault = 'price' | 'topUp' | 'hold';
-export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core';
+type TFeeDefault = 'topUp' | 'hold';
+export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 type TClass = 'full' | 'half' | 'event';
 type TPrice = 'full' | 'half' | 'topUp' | 'hold';
 type TProfile = 'plan' | 'claim';
@@ -17,66 +17,64 @@ export interface IMeta {
 	[FIELD.expire]?: number;							// the time before which (less-than) this row is expired, or '0' for un-expired
 	[FIELD.modify]?: number;							// the time when last updated locally
 	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client
+	[FIELD.disable]?: boolean;						// valid value, greyed-out to the client
 };
 export interface IStoreMeta extends IMeta {
-	[FIELD.id]: string;										// override 'optional'
-	store: TStore;												// each document needs a 'store'
-	type?: string;												// some documents are qualified by 'type'
+	[FIELD.id]: string;										// override the 'optional' on IMeta
+	[FIELD.key]: string;									// the identifier
+	[FIELD.store]: TStore;								// each document needs a 'store'
+	[FIELD.type]?: string;								// some documents are qualified by 'type'
 	[key: string]: any;										// additional fields specific to a 'store'
 }
 
 //	/client/_default_
-export interface IClientDefault extends IStoreMeta {
-	source: TClientDefault;								// define default values
-}
-export interface IPriceDefault extends IClientDefault {
-	plan: TPlan;
-	type: TClass;
+export interface IPriceDefault extends IStoreMeta {
+	[FIELD.key]: TPlan;
+	[FIELD.type]?: TClass;
 	amount: number;
 }
-export interface IFeeDefault extends IClientDefault {
+export interface IFeeDefault extends IStoreMeta {
+	[FIELD.key]: TFeeDefault;
 	amount: number;												// 'topUp' or 'hold' fee
 }
 
 //	/client/price
 export interface IPrice extends IStoreMeta {
-	plan: TPlan;
+	[FIELD.key]: TPlan;
+	[FIELD.type]: TPrice;
 	amount: number;
-	type: TPrice;
 }
 
 //	/client/class
 export interface IClass extends IStoreMeta {
-	name: string;
+	[FIELD.key]: string;
+	[FIELD.type]: TClass;
 	color: string;
 	desc?: string;
-	type: TClass;
 }
 
 //	/client/event
 export interface IEvent extends IStoreMeta {
 	name: string;
-	date: number;
+	desc: string;
+	class: string | string[];
 }
 
 //	/client/schedule
 export interface ISchedule extends IStoreMeta {
-	class: string;
+	[FIELD.type]: TSchedule;
 	day: number;
-	date: number;
-	name: string;
-	start: number | Date;
-	type: TSchedule;
+	location: string;
+	start: string | Date;
 }
 
 //	/client/schedule
 export interface IProvider extends IStoreMeta {
-	name: string;
+	[FIELD.type]: TProvider;
 	prefix?: string;
 	scope?: string | string[];					// if array, joinScope determines how to encode as a string
 	joinScope?: string;									// what character separates the scope parameters, default ','
 	params?: object;										// custom parameters
-	type: TProvider;
 
 	oauth?: {
 		profile: {
@@ -112,7 +110,6 @@ export interface IProvider extends IStoreMeta {
 
 //	/member
 export interface IMember extends IStoreMeta {	// general /member or /attend interface
-	[FIELD.id]: string;
 	uid?: string;
 }
 
