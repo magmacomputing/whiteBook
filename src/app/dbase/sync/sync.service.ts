@@ -74,9 +74,13 @@ export class SyncService {
 
     this.listener[collection].cnt += 1;
 
-    const snapType = snaps[0] || snaps[1] || snaps[2];// look in 'added', 'modified', else 'removed'
-    const snapSource = this.getSource(snapType ? snapType.payload.doc.metadata : {} as SnapshotMetadata);
-    this.dbg('snapSync: %s #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
+    const [snapAdd, snapMod, snapDel] = snaps.reduce((cnts, snap) => {
+      const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
+      cnts[idx] += 1;
+      return cnts;
+    }, [0, 0, 0]);
+    const snapSource = this.getSource(snaps);
+    this.dbg('snapSync: %s #%s detected from %s (add:%s, mod:%s, del:%s)', collection, listen.cnt, snapSource, snapAdd, snapMod, snapDel);
 
     switch (listen.slice) {                           // TODO: can we merge these?
       case SLICE.client:
@@ -98,7 +102,7 @@ export class SyncService {
         break;
 
       default:
-        this.dbg('snap: Unexpected "slice": %s', listen.slice);
+        this.dbg('snap: Unexpected slice: %s', listen.slice);
         return;                                       // Unknown Slice !!
     }
 
@@ -138,7 +142,8 @@ export class SyncService {
     })
   }
 
-  private getSource(meta: SnapshotMetadata) {
+  private getSource(snaps: DocumentChangeAction<IStoreDoc>[]) {
+    const meta = snaps[0].payload.doc.metadata;
     return meta.fromCache
       ? 'cache'
       : meta.hasPendingWrites
