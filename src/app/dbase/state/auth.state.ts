@@ -1,5 +1,5 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { User, IdTokenResult, AuthCredential, UserCredential } from '@firebase/auth-types';
+import { User, IdTokenResult, AuthCredential } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { take, tap } from 'rxjs/operators';
@@ -8,11 +8,14 @@ import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
-import { getAuthProvider, getAuthCredential } from '@dbase/auth/auth.library';
+import { getAuthProvider } from '@dbase/auth/auth.library';
+import { JWT } from '@dbase/auth/auth.interface';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
+import { isNull } from '@lib/object.library';
+import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -50,8 +53,23 @@ export class AuthState implements NgxsOnInit {
 	/** Commands */
 	@Action(CheckSession)														// on first connect, check if still logged-on
 	checkSession(ctx: StateContext<IAuthState>) {
-		this.dbg('checkSession');
-		return this.afAuth.authState
+		const auth = ctx.getState();									// first check the latest State
+
+		switch (true) {
+			case isNull(auth.userInfo):
+			case isNull(auth.userToken):
+			case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+				ctx.dispatch(new LoginRedirect());
+				// return false;
+				break;
+
+			default:                           					// ok to access Route
+				// ctx.dispatch(new LoginSuccess(auth.userInfo as User));
+				// return true;
+				break;
+		}
+
+		return this.afAuth.authState								// then check to see if still authenticated
 			.pipe(
 				take(1),
 				tap(user => {
@@ -124,9 +142,11 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		this.snack.dismiss();
-		(this.afAuth.auth.currentUser as User).getIdTokenResult()
-			.then(tokenResult => ctx.patchState({ userInfo: user, userToken: tokenResult }))
-			.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
+		if (this.afAuth.auth.currentUser) {
+			(this.afAuth.auth.currentUser as User).getIdTokenResult()
+				.then(tokenResult => ctx.patchState({ userInfo: user, userToken: tokenResult }))
+				.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims))
+		}
 	}
 
 	@Action(LoginToken)															// fetch latest IdToken

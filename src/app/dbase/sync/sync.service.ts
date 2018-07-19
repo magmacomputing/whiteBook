@@ -44,7 +44,7 @@ export class SyncService {
       ready: ready,
       cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
       subscribe: this.fire.colRef(collection, query)
-        .stateChanges()                               // only watch for changes since last snapshot
+        .stateChanges()                               // watch for changes since last snapshot
         .subscribe(snapSync)
     }
     this.dbg('on: %s', collection);
