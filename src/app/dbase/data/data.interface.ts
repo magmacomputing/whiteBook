@@ -119,7 +119,7 @@ export interface IProfile extends IStoreMeta {
 }
 
 export interface IProfilePlan extends IProfile {
-	plan: TPlan;
+	[FIELD.key]: TPlan;
 	type: 'plan'
 }
 
