@@ -8,7 +8,7 @@ import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
-import { getAuthProvider } from '@dbase/auth/auth.library';
+import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { JWT } from '@dbase/auth/auth.interface';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
@@ -51,22 +51,10 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	/** Commands */
-	@Action(CheckSession)														// on first connect, check if still logged-on
+	@Action(CheckSession)													// on first connect, check if still logged-on
 	checkSession(ctx: StateContext<IAuthState>) {
-		const auth = ctx.getState();									// first check the latest State
-
-		switch (true) {
-			case isNull(auth.userInfo):
-			case isNull(auth.userToken):
-			case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
-				ctx.dispatch(new LoginRedirect());
-				// return false;
-				break;
-
-			default:                           					// ok to access Route
-				// ctx.dispatch(new LoginSuccess(auth.userInfo as User));
-				// return true;
-				break;
+		if (!isActive(ctx.getState())) {						// check their prior auth-status
+			ctx.dispatch(new LoginRedirect())
 		}
 
 		return this.afAuth.authState								// then check to see if still authenticated

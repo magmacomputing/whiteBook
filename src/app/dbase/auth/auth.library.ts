@@ -1,6 +1,10 @@
 import { auth } from 'firebase/app';
 import { AuthProvider, AuthCredential } from '@firebase/auth-types';
-import { IObject } from '@lib/object.library';
+
+import { JWT } from '@dbase/auth/auth.interface';
+import { IAuthState } from '@dbase/state/auth.define';
+import { IObject, isNull } from '@lib/object.library';
+import { getStamp } from '@lib/date.library';
 
 export const getAuthProvider = (providerId: string) => {
 	let authProvider: AuthProvider;
@@ -42,4 +46,16 @@ export const getAuthCredential = (providerId: string, opts: IObject<any>) => {
 	}
 
 	return authCredential;
+}
+
+export const isActive = (auth: IAuthState) => {
+	switch (true) {
+		case isNull(auth.userInfo):
+		case isNull(auth.userToken):
+		case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+			return false;													// not authenticated
+
+		default:
+			return true;													// authenticated User
+	}
 }

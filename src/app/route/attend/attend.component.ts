@@ -49,14 +49,15 @@ export class AttendComponent implements OnInit {
   }
 
   get location$() {                             // get the Locations that are on the Schedule for this.date
-    const where: IWhere = { fieldPath: FIELD.key, opStr: '==', value: '' };
     let locs: string[] = [];
+    const where: IWhere[] = [];
+
     return this.schedule$.pipe(
       map((table: ISchedule[]) => table.map(row => row.location)),
       distinct(),
       tap(res => locs = res),
-      switchMap(_ => getStore(this.client$, STORE.location)),
-      map(table => table.filter(row => locs.includes(row[FIELD.key]))),
+      tap(locs => locs.forEach(loc => where.push({ fieldPath: FIELD.key, opStr: '==', value: loc }))),
+      switchMap(_ => getStore(this.client$, STORE.location, where)),
     )
   }
 

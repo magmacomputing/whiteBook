@@ -5,10 +5,12 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Select, Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
+import { getStore } from '@dbase/state/store.state';
 import { ISelector } from '@dbase/state/store.define';
 import { MemberState } from '@dbase/state/member.state';
 
 import { STORE } from '@dbase/data/data.define';
+import { isActive } from '@dbase/auth/auth.library';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { JWT } from '@dbase/auth/auth.interface';
 import { LoginRedirect, IAuthState } from '@dbase/state/auth.define';
@@ -16,7 +18,6 @@ import { LoginRedirect, IAuthState } from '@dbase/state/auth.define';
 import { isNull, isArray } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
-import { getStore } from '@dbase/state/store.state';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {
@@ -27,18 +28,7 @@ export class AuthGuard implements CanActivate {
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     return this.auth$.pipe(
-      map(auth => {
-        switch (true) {
-          case isNull(auth.userInfo):
-          case isNull(auth.userToken):
-          case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
-            this.store.dispatch(new LoginRedirect());
-            return false;
-
-          default:
-            return true;                           // ok to access Route
-        }
-      })
+      map(auth => isActive(auth))
     )
   }
 }

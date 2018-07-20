@@ -6,9 +6,10 @@ import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { AuthState } from '@dbase/state/auth.state';
-import { getAuthProvider } from '@dbase/auth/auth.library';
+import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
+import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.interface';
 import { TScopes, TParams, JWT } from '@dbase/auth/auth.interface';
 
@@ -26,17 +27,7 @@ export class AuthService {
 
   get active() {
     return this.auth$.pipe(
-      map(auth => {
-        switch (true) {
-          case isNull(auth.userInfo):
-          case isNull(auth.userToken):
-          case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
-            return false;           // not logged-in
-
-          default:
-            return true;            // is logged-in
-        }
-      })
+      map(auth => isActive(auth))
     )
   }
 
@@ -93,7 +84,7 @@ export class AuthService {
 
   /** prepare the AuthProvider object before dispatching the SignIn flow */
   private signInSocial(config: IProvider) {
-    const authProvider = getAuthProvider(config.name);
+    const authProvider = getAuthProvider(config[FIELD.key]);
 
     asArray(config.scope)
       .forEach(scope => (authProvider as TScopes).addScope(scope));
