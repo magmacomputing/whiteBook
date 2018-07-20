@@ -7,14 +7,14 @@ import { SetClient, DelClient } from '@dbase/state/store.define';
 import { SetMember, DelMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend } from '@dbase/state/store.define';
 
+import { filterTable } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
-import { dbg } from '@lib/logger.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { asArray, sortKeys } from '@lib/object.library';
-import { filterTable } from '@dbase/app/app.library';
+import { dbg } from '@lib/logger.library';
 
 /** a generic function that will invoke 'currStore' function on a particular Store */
-export const getStore = (obs$: Observable<ISelector>, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) =>
+export const getStore = <T>(obs$: Observable<ISelector>, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) =>
 	obs$.pipe(map(fn => fn(store, filter, keys)));
 
 /** a memoized function that searches a Store for current documents */

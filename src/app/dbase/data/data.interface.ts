@@ -68,6 +68,28 @@ export interface ISchedule extends IStoreMeta {
 	start: string | Date;
 }
 
+export interface ILocation extends IStoreMeta {
+	name: string;
+	address?: {
+		line1: string;
+		line2?: string;
+		line3?: string;
+		suburb?: string;
+		state?: string;
+		postcode?: number;
+	},
+	contact?: {
+		[key: string]: any;
+	},
+	map?: {
+		geo?: {
+			latitude: number;
+			longitude: number;
+		},
+		link?: string;
+	}
+}
+
 //	/client/schedule
 export interface IProvider extends IStoreMeta {
 	[FIELD.type]: TProvider;

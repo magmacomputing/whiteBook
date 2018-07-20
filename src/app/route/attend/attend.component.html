@@ -2,25 +2,29 @@
   Please select an Event from the list below...
 </p>
 
-<div *ngFor="let loc of location$ | async">
-  <h3>
-    {{ loc.name }}
-  </h3>
-  <div *ngFor="let event of schedule$ | async">
-    <mat-card *ngIf="event.location === loc.key">
-      <mat-card-header>
-        <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">
-        <mat-card-title>
-          {{event.key}}
-        </mat-card-title>
-        <mat-card-subtitle>{{event.desc}}</mat-card-subtitle>
+<div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+  <mat-tab-group [(selectedIndex)]="selectedIndex">
+    <mat-tab *ngFor="let loc of location$ | async; let idx = index">
+      <h3> {{ loc.name }} </h3>
+      <div *ngIf="locations.length > 1">{{ pos(idx) }} of {{ locations.length }} locations</div>
+      <div *ngFor="let event of schedule$ | async">
+        <mat-card *ngIf="event.location === loc.key">
+          <mat-card-header>
+            <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">
+            <mat-card-title>
+              {{ event.key }}
+              <p>{{ event.start }}</p>
+            </mat-card-title>
+            <mat-card-subtitle>{{ event.desc }}</mat-card-subtitle>
 
-        <mat-card-content>
-          <button mat-raised-button [disabled]="event._disable" (click)="member.checkIn(event)">
-            Select
-          </button>
-        </mat-card-content>
-      </mat-card-header>
-    </mat-card>
-  </div>
+            <mat-card-content>
+              <button mat-raised-button [disabled]="event._disable" (click)="member.checkIn(event)">
+                Select
+              </button>
+            </mat-card-content>
+          </mat-card-header>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>

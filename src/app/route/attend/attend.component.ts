@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap, distinct, switchMap } from 'rxjs/operators';
+import { map, tap, distinct, switchMap, take } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
@@ -10,11 +10,11 @@ import { getStore } from '@dbase/state/store.state';
 import { MemberService } from '@dbase/app/member.service';
 import { asAt } from '@dbase/app/member.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IClass, ISchedule } from '@dbase/data/data.interface';
+import { IClass, ISchedule, ILocation } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { fmtDate } from '@lib/date.library';
-import { sortKeys } from '@lib/object.library';
+import { sortKeys, asString } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -27,6 +27,11 @@ export class AttendComponent implements OnInit {
 
   private dbg: Function = dbg.bind(this);
   private date!: string;
+  private selectedIndex: number = 0;
+  private SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
+  private BASE_VELOCITY = 0.3;
+  private locations: ILocation[] = [];
+
 
   constructor(private readonly member: MemberService) { }
 
@@ -49,20 +54,61 @@ export class AttendComponent implements OnInit {
   }
 
   get location$() {                             // get the Locations that are on the Schedule for this.date
-    let locs: string[] = [];
-    const where: IWhere[] = [];
-
     return this.schedule$.pipe(
       map((table: ISchedule[]) => table.map(row => row.location)),
       distinct(),
-      tap(res => locs = res),
-      tap(locs => locs.forEach(loc => where.push({ fieldPath: FIELD.key, opStr: '==', value: loc }))),
-      switchMap(_ => getStore(this.client$, STORE.location, where)),
+      switchMap(locs => getStore(this.client$, STORE.location, { fieldPath: FIELD.key, opStr: '==', value: locs })),
+      tap((locs: ILocation[]) => this.locations = locs)
     )
   }
 
   checkIn(event: IClass) {
     this.dbg('event: %j', event);
+  }
+
+  swipe(idx: number, event: any) {
+    const steps = this.calcSteps(event.velocityX);
+
+    if (event.type === this.SWIPE_ACTION.LEFT) {
+      const isLast = this.selectedIndex + steps >= this.locations.length - 1;
+      this.selectedIndex = isLast ? this.locations.length - 1 : this.selectedIndex + steps;
+    }
+    if (event.type === this.SWIPE_ACTION.RIGHT) {
+      const isFirst = this.selectedIndex - steps <= 0;
+      this.selectedIndex = isFirst ? 0 : this.selectedIndex - steps;
+    }
+  }
+
+  pos(idx: number) {
+    const str = asString(idx+1);
+    let sfx = 'th';
+
+    switch (true) {
+      case str.slice(-1) === '1' && str.slice(-2) !== '11':
+        sfx = 'st';
+        break;
+      case str.slice(-1) === '2' && str.slice(-2) !== '12':
+        sfx = 'nd';
+        break;
+      case str.slice(-1) === '3' && str.slice(-2) !== '13':
+        sfx = 'rd';
+        break;
+    }
+    return str + sfx;
+  }
+
+  private calcSteps(velocity: number) {
+    const v = Math.abs(velocity);
+
+    if (v < 2 * this.BASE_VELOCITY) {
+      return 1;
+    } else if (v < 3 * this.BASE_VELOCITY) {
+      return 2;
+    } else if (v < 4 * this.BASE_VELOCITY) {
+      return 3;
+    } else {
+      return 4;
+    }
   }
 }
 

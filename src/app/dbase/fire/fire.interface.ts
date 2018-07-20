@@ -4,7 +4,7 @@ import { WhereFilterOp, FieldPath } from '@firebase/firestore-types';
 export interface IWhere {
 	fieldPath: string | FieldPath;
 	opStr: WhereFilterOp | '!=';				// this is a *special* to allow additional operator (do not pass to Firestore!)
-	value: any;
+	value: any | any[];
 }
 /** Query.orderBy */
 export interface IOrderBy {
