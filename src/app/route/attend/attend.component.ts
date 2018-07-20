@@ -49,7 +49,7 @@ export class AttendComponent implements OnInit {
 
     return getStore(this.client$, STORE.schedule).pipe(
       map(table => asAt(table, where, this.date)),
-      map(table => table.sort(sortKeys('time'))),
+      map(table => table.sort(sortKeys('start'))),
     )
   }
 
@@ -80,7 +80,7 @@ export class AttendComponent implements OnInit {
   }
 
   pos(idx: number) {
-    const str = asString(idx+1);
+    const str = asString(idx + 1);
     let sfx = 'th';
 
     switch (true) {

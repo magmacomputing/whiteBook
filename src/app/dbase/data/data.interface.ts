@@ -90,6 +90,14 @@ export interface ILocation extends IStoreMeta {
 	}
 }
 
+export interface IInstructor extends IStoreMeta {
+	name: string;
+	link?: {
+		type: string;
+		[property: string]: any;
+	}[];
+}
+
 //	/client/schedule
 export interface IProvider extends IStoreMeta {
 	[FIELD.type]: TProvider;
