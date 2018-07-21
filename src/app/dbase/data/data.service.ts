@@ -67,10 +67,10 @@ export class DataService {
     const where: IWhere[] = [{ fieldPath: FIELD.expire, opStr: '==', value: 0 }];
     const filter = FILTER[store] || [];							// get the standard list of fields on which to filter
 
-    if (!doc.uid && filter.includes('uid')) {
+    if (!doc[FIELD.key] && filter.includes(FIELD.key)) {
       const user = await this.auth.user();          // get the current User's uid
       if (user.userInfo)
-        doc.uid = user.userInfo.uid;                // ensure uid is included on doc
+        doc[FIELD.key] = user.userInfo.uid;         // ensure uid is included on doc
     }
 
     filter.forEach(field => {

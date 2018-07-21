@@ -10,7 +10,7 @@ import { ClientState } from '@dbase/state/client.state';
 import { MemberService } from '@dbase/app/member.service';
 import { MemberState } from '@dbase/state/member.state';
 import { IAuthState } from '@dbase/state/auth.define';
-import { STORE } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { dbg } from '@lib/logger.library';
@@ -36,14 +36,18 @@ export class PlanComponent implements OnInit {
   }
 
   get plan$() {                   // get the available Plans
-    return getStore(this.client$, STORE.plan, undefined, ['order', 'type']);
+    return getStore(this.client$, STORE.plan, undefined, ['order', FIELD.key]);
   }
 
   getPrice(plan: string) {
     const filter: IWhere[] = [
-      { fieldPath: 'plan', opStr: '==', value: plan },
-      { fieldPath: 'type', opStr: '==', value: 'topUp' },
+      { fieldPath: FIELD.key, opStr: '==', value: plan },
+      { fieldPath: FIELD.type, opStr: '==', value: 'topUp' },
     ]
     return getStore(this.client$, STORE.price, filter);
+  }
+
+  showPlan(plan: string) {
+    this.dbg('show: %s', plan)
   }
 }

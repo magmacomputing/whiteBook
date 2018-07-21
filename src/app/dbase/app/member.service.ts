@@ -17,9 +17,10 @@ export class MemberService {
   setPlan(plan: TPlan) {
     const planDoc: IProfilePlan = {
       [FIELD.id]: this.data.newId,                    // generate a new Id
-      [FIELD.key]: plan,
       [FIELD.store]: STORE.profile,
       [FIELD.type]: 'plan',
+      [FIELD.key]: '',                         // placeholder
+      plan: plan,
     }
 
     this.dbg('plan: %j', planDoc);

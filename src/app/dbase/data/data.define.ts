@@ -39,6 +39,6 @@ export const enum FIELD {					//  common Field names
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
 export const FILTER: IObject<string[]> = {
 	[COLLECTION.Client]: [FIELD.store],
-	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.uid],
-	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.uid],
+	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.key],
+	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.key],
 }

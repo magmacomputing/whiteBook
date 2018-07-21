@@ -117,7 +117,7 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		const query: IQuery = { where: { fieldPath: FIELD.uid, opStr: '==', value: user.uid } };
+		const query: IQuery = { where: { fieldPath: FIELD.key, opStr: '==', value: user.uid } };
 		const segment = `/${STORE.attend}`;
 
 		// TODO:  add in customClaims/[allow]
@@ -145,7 +145,8 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginRedirect)
-	onLoginRedirect(ctx: StateContext<IAuthState>) {
+	onLoginRedirect(ctx: StateContext<IAuthState>) {//	/member
+
 		this.dbg('onLoginRedirect, navigating to /login');
 		ctx.dispatch(new Navigate(['/login']));
 	}

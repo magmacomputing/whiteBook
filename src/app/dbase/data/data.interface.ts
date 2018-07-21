@@ -6,7 +6,7 @@ type TFeeDefault = 'topUp' | 'hold';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 type TClass = 'full' | 'half' | 'event';
 type TPrice = 'full' | 'half' | 'topUp' | 'hold';
-type TProfile = 'plan' | 'claim';
+type TProfile = 'plan' | 'claims';
 type TSchedule = 'event' | 'class' | 'special'
 type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
 
@@ -19,11 +19,12 @@ export interface IMeta {
 	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client
 	[FIELD.disable]?: boolean;						// valid value, greyed-out to the client
 };
+
 export interface IStoreMeta extends IMeta {
 	[FIELD.id]: string;										// override the 'optional' on IMeta
-	[FIELD.key]: string;									// the identifier
 	[FIELD.store]: TStore;								// each document needs a 'store'
 	[FIELD.type]?: string;								// some documents are qualified by 'type'
+	[FIELD.key]: string;									// the primary identifier
 	[key: string]: any;										// additional fields specific to a 'store'
 }
 
@@ -138,22 +139,17 @@ export interface IProvider extends IStoreMeta {
 	}
 }
 
-//	/member
-export interface IMember extends IStoreMeta {	// general /member or /attend interface
-	uid?: string;
-}
-
 //	/member/profile
 export interface IProfile extends IStoreMeta {
 	type: TProfile;
 }
 
 export interface IProfilePlan extends IProfile {
-	[FIELD.key]: TPlan;
 	type: 'plan'
+	plan: TPlan;
 }
 
 export interface IProfileClaim extends IProfile {
+	type: 'claims'
 	claims: ICustomClaims;
-	type: 'claim'
 }

@@ -5,18 +5,20 @@
 
   <mat-card *ngFor="let plan of plan$ | async; last as last">
     <mat-card-header>
-      <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'">
+      <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan.key)">
       <mat-card-title>
         {{plan.key}}
       </mat-card-title>
       <mat-card-subtitle>{{plan.desc}}</mat-card-subtitle>
 
       <mat-card-content align="center">
-        <div *ngFor="let price of getPrice(plan.type) | async">
-          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.type == profile[0].plan)" (click)="member.setPlan(plan.type)">
+        <div *ngFor="let price of getPrice(plan.key) | async">
+          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key)">
             {{price.amount | currency}}
           </button>
-          <button mat-icon-button><mat-icon>info</mat-icon></button>
+          <!-- <button mat-icon-button>
+            <mat-icon>info</mat-icon>
+          </button> -->
         </div>
       </mat-card-content>
     </mat-card-header>
