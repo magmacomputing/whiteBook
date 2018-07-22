@@ -1,7 +1,8 @@
 const SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
 const BASE_VELOCITY = 0.3;
 
-export const swipe = (selectedIndex: number, lastIndex: number, event: any) => {
+// allow for UI to swipe left/right
+export const swipe = (thisIndex: number, lastIndex: number, event: any) => {
   const v = Math.abs(event.velocityX);
   let steps: 1 | 2 | 3 | 4;
 
@@ -20,13 +21,13 @@ export const swipe = (selectedIndex: number, lastIndex: number, event: any) => {
   }
 
   if (event.type === SWIPE_ACTION.LEFT) {
-    const isLast = selectedIndex + steps >= lastIndex - 1;
-    selectedIndex = isLast ? lastIndex - 1 : selectedIndex + steps;
+    const isLast = thisIndex + steps >= lastIndex - 1;
+    thisIndex = isLast ? lastIndex - 1 : thisIndex + steps;
   }
   if (event.type === SWIPE_ACTION.RIGHT) {
-    const isFirst = selectedIndex - steps <= 0;
-    selectedIndex = isFirst ? 0 : selectedIndex - steps;
+    const isFirst = thisIndex - steps <= 0;
+    thisIndex = isFirst ? 0 : thisIndex - steps;
   }
 
-  return selectedIndex;
+  return thisIndex;
 }

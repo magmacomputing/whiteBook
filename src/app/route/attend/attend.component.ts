@@ -29,7 +29,7 @@ export class AttendComponent implements OnInit {
 
   private dbg: Function = dbg.bind(this);
   private date!: string;
-  private selectedIndex: number = 0;
+  private selectedIndex: number = 0;            // used by UI to swipe between <tabs>
   private locations: ILocation[] = [];
 
   constructor(private readonly member: MemberService) { }
