@@ -7,11 +7,12 @@ export const COLLECTION = {			// collection starts with upper-case, document wit
 	Member: 'member',
 	Attend: 'attend',
 	Client: 'client',
+	Admin: 'admin',
 }
 
 export const STORE: IObject<TStore> = {
 	profile: 'profile',
-	attend: 'attend',
+	account: 'account',
 	provider: 'provider',
 	class: 'class',
 	event: 'event',
@@ -29,10 +30,10 @@ export const enum FIELD {					//  common Field names
 	hidden = '_hidden',
 	disable = '_disable',
 	id = '_id',
-	uid = 'uid',
 	store = 'store',
 	type = 'type',
 	key = 'key',
+	uid = 'uid',
 	memberId = 'memberId'
 };
 

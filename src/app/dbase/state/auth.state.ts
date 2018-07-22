@@ -9,13 +9,11 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { JWT } from '@dbase/auth/auth.interface';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { isNull } from '@lib/object.library';
-import { getStamp } from '@lib/date.library';
+import { ROUTE } from '@route/route.define';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -64,6 +62,7 @@ export class AuthState implements NgxsOnInit {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 					if (user)
 						ctx.dispatch(new LoginSuccess(user));
+					else ctx.dispatch(new Logout());
 				})
 			);
 	}
@@ -77,8 +76,12 @@ export class AuthState implements NgxsOnInit {
 			let password = window.prompt('Please enter the password') || '';
 			ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
 		} else {
-			const provider = getAuthProvider(methods[0]);
-			ctx.dispatch(new LoginSocial(provider, link.credential));
+			const [provider, type] = getAuthProvider(methods[0]);
+			switch (type) {
+				case 'social':
+					ctx.dispatch(new LoginSocial(provider, link.credential));
+					break;
+			}
 		}
 	}
 
@@ -118,13 +121,12 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.key, opStr: '==', value: user.uid } };
-		const segment = `/${STORE.attend}`;
 
 		// TODO:  add in customClaims/[allow]
 		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 		this.sync.on(COLLECTION.Member, SLICE.member, query)
-			.then(_ => this.dbg('navigate: %s', segment))
-			.then(_ => ctx.dispatch(new Navigate([segment])))	// wait for /member snap0 
+			.then(_ => this.dbg('navigate: %s', ROUTE.attend))
+			.then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))	// wait for /member snap0 
 	}
 
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
@@ -148,7 +150,7 @@ export class AuthState implements NgxsOnInit {
 	onLoginRedirect(ctx: StateContext<IAuthState>) {//	/member
 
 		this.dbg('onLoginRedirect, navigating to /login');
-		ctx.dispatch(new Navigate(['/login']));
+		ctx.dispatch(new Navigate([ROUTE.login]));
 	}
 
 	@Action([LoginFailed, LogoutSuccess])

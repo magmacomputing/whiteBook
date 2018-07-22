@@ -73,6 +73,9 @@ export class DataService {
         doc[FIELD.key] = user.userInfo.uid;         // ensure uid is included on doc
     }
 
+    if (!doc[FIELD.id])                             // every doc needs an _id field
+      doc[FIELD.id] = this.fire.newId();
+
     filter.forEach(field => {
       if (doc[field])                               // if that field exists in the doc, add it to the filter
         where.push({ fieldPath: field, opStr: '==', value: doc[field] })

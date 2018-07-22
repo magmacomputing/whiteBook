@@ -52,20 +52,10 @@ import { DATE_FMT } from '@lib/date.define';
 export const asAt = <T>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
 
-	return filterTable(table, cond)													// return the rows where date is between _effect and IMeta
+	return filterTable(table, cond)		// return the rows where date is between _effect and _expire
 		.filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter((row: IMeta) => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
 }
-
-// async getUid(uid ?: string) => {
-// 	if (isUndefined(uid)) {
-// 		return this.store
-// 			.selectOnce(AuthState)
-// 			.toPromise<IAuthState>()
-// 			.then(auth => auth.userInfo && auth.userInfo.uid || '')
-// 	}
-// 	return uid;
-// }
 
 // /**
 //  * Determine what price was in effect, given the Member's Plan-type, Event-name and Date.

@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard, ProfileGuard } from '@route/routing.guard';
 
 import { MaterialModule } from '@route/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
-import { AuthGuard, ProfileGuard } from '@route/routing.guard';
 
 const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
@@ -18,6 +18,6 @@ const routes: Routes = [
 @NgModule({
 	imports: [CommonModule, MaterialModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule,],
-	declarations: [LoginComponent, AttendComponent],
+	declarations: [LoginComponent, AttendComponent,],
 })
 export class RoutingModule { }

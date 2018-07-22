@@ -80,7 +80,7 @@ export class SyncService {
       return cnts;
     }, [0, 0, 0]);
     const snapSource = this.getSource(snaps);
-    this.dbg('snapSync: %s #%s detected from %s (add:%s, mod:%s, del:%s)', collection, listen.cnt, snapSource, snapAdd, snapMod, snapDel);
+    this.dbg('snapSync: %s #%s detected from %s (add:%s, upd:%s, del:%s)', collection, listen.cnt, snapSource, snapAdd, snapMod, snapDel);
 
     switch (listen.slice) {                           // TODO: can we merge these?
       case SLICE.client:

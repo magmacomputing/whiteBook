@@ -84,7 +84,7 @@ export class AuthService {
 
   /** prepare the AuthProvider object before dispatching the SignIn flow */
   private signInSocial(config: IProvider) {
-    const authProvider = getAuthProvider(config[FIELD.key]);
+    const [authProvider, type] = getAuthProvider(config[FIELD.key]);
 
     asArray(config.scope)
       .forEach(scope => (authProvider as TScopes).addScope(scope));

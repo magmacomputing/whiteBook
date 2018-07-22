@@ -6,38 +6,39 @@ import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass } from '@dbase/data/data.interface';
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 
+import { ROUTE } from '@route/route.define';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
 export class MemberService {
-  private dbg: Function = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
+	constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
 
-  setPlan(plan: TPlan) {
-    const planDoc: IProfilePlan = {
-      [FIELD.id]: this.data.newId,                    // generate a new Id
-      [FIELD.store]: STORE.profile,
-      [FIELD.type]: 'plan',
-      [FIELD.key]: '',                         // placeholder
-      plan: plan,
-    }
+	setPlan(plan: TPlan) {
+		const planDoc: IProfilePlan = {
+			[FIELD.id]: '',													// placeholde
+			[FIELD.store]: STORE.profile,
+			[FIELD.type]: 'plan',
+			[FIELD.key]: '',                        // placeholder
+			plan: plan,
+		}
 
-    this.dbg('plan: %j', planDoc);
-    this.data.insDoc(COLLECTION.Member, planDoc)
-      .then(_ => this.store.dispatch(new Navigate(['/attend'])))
-      .catch(err => this.dbg('setPlan: %j', err))
-  }
+		this.dbg('plan: %j', planDoc);
+		this.data.insDoc(COLLECTION.Member, planDoc)
+			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
+			.catch(err => this.dbg('setPlan: %j', err))
+	}
 
-  checkIn(event: IClass, date?: number) {
-    const attendDoc = {
-      [FIELD.id]: this.data.newId,
-      store: 'abc',
-    }
+	checkIn(event: IClass, date?: number) {
+		const attendDoc = {
+			[FIELD.id]: this.data.newId,
+			store: 'abc',
+		}
 
-    this.dbg('attend: %j', attendDoc);
-    this.data.setDoc(COLLECTION.Attend, attendDoc)
-      .then(_ => this.store.dispatch(new Navigate(['/status'])))
-      .catch(err => this.dbg('checkIn: %j', err))
-  }
+		this.dbg('attend: %j', attendDoc);
+		this.data.setDoc(COLLECTION.Attend, attendDoc)
+			.then(_ => this.store.dispatch(new Navigate([ROUTE.status])))
+			.catch(err => this.dbg('checkIn: %j', err))
+	}
 }
