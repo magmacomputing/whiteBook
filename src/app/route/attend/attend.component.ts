@@ -13,7 +13,9 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { IClass, ISchedule, ILocation } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
 
+import { suffix } from '@lib/number.library';
 import { fmtDate } from '@lib/date.library';
+import { swipe } from '@lib/interface.library';
 import { sortKeys, asString } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -28,10 +30,7 @@ export class AttendComponent implements OnInit {
   private dbg: Function = dbg.bind(this);
   private date!: string;
   private selectedIndex: number = 0;
-  private SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
-  private BASE_VELOCITY = 0.3;
   private locations: ILocation[] = [];
-
 
   constructor(private readonly member: MemberService) { }
 
@@ -71,48 +70,11 @@ export class AttendComponent implements OnInit {
   }
 
   swipe(idx: number, event: any) {
-    const steps = this.calcSteps(event.velocityX);
-
-    if (event.type === this.SWIPE_ACTION.LEFT) {
-      const isLast = this.selectedIndex + steps >= this.locations.length - 1;
-      this.selectedIndex = isLast ? this.locations.length - 1 : this.selectedIndex + steps;
-    }
-    if (event.type === this.SWIPE_ACTION.RIGHT) {
-      const isFirst = this.selectedIndex - steps <= 0;
-      this.selectedIndex = isFirst ? 0 : this.selectedIndex - steps;
-    }
+    this.selectedIndex = swipe(idx, this.locations.length, event);
   }
 
-  pos(idx: number) {
-    const str = asString(idx + 1);
-    let sfx = 'th';
-
-    switch (true) {
-      case str.slice(-1) === '1' && str.slice(-2) !== '11':
-        sfx = 'st';
-        break;
-      case str.slice(-1) === '2' && str.slice(-2) !== '12':
-        sfx = 'nd';
-        break;
-      case str.slice(-1) === '3' && str.slice(-2) !== '13':
-        sfx = 'rd';
-        break;
-    }
-    return str + sfx;
-  }
-
-  private calcSteps(velocity: number) {
-    const v = Math.abs(velocity);
-
-    if (v < 2 * this.BASE_VELOCITY) {
-      return 1;
-    } else if (v < 3 * this.BASE_VELOCITY) {
-      return 2;
-    } else if (v < 4 * this.BASE_VELOCITY) {
-      return 3;
-    } else {
-      return 4;
-    }
+  suffix(idx: number) {
+    return suffix(idx);
   }
 }
 

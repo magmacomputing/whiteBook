@@ -6,7 +6,7 @@
   <mat-tab-group [(selectedIndex)]="selectedIndex">
     <mat-tab *ngFor="let loc of location$ | async; let idx = index">
       <h3> {{ loc.name }} </h3>
-      <div *ngIf="locations.length > 1">{{ pos(idx) }} of {{ locations.length }} locations</div>
+      <div *ngIf="locations.length > 1">{{ suffix(idx) }} of {{ locations.length }} locations</div>
       <div *ngFor="let event of schedule$ | async">
         <mat-card *ngIf="event.location === loc.key">
           <mat-card-header>
