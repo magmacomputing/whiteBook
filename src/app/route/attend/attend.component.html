@@ -10,7 +10,7 @@
       <div *ngFor="let event of schedule$ | async">
         <mat-card *ngIf="event.location === loc.key">
           <mat-card-header>
-            <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'">
+            <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(event.key)">
             <mat-card-title>
               {{ event.key }}
               <p>{{ event.start }}</p>

@@ -66,6 +66,10 @@ export class AttendComponent implements OnInit {
     this.dbg('event: %j', event);
   }
 
+  showEvent(event: string) {
+    this.dbg('event: %j', event);
+  }
+
   swipe(idx: number, event: any) {
     const steps = this.calcSteps(event.velocityX);
 
