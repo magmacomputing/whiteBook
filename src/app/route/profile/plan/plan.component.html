@@ -13,12 +13,9 @@
 
       <mat-card-content align="center">
         <div *ngFor="let price of getPrice(plan.key) | async">
-          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key)">
+          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key, price.amount, !!profile.length)">
             {{price.amount | currency}}
           </button>
-          <!-- <button mat-icon-button>
-            <mat-icon>info</mat-icon>
-          </button> -->
         </div>
       </mat-card-content>
     </mat-card-header>

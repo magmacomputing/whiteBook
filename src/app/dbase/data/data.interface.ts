@@ -8,7 +8,7 @@ export type TStore = TStoreClient | TStoreMember;
 
 type TFeeDefault = 'topUp' | 'hold';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
-type TClass = 'full' | 'half' | 'event';
+type TClass = 'full' | 'half';
 type TPrice = 'full' | 'half' | 'topUp' | 'hold';
 type TProfile = 'plan' | 'claims';
 type TSchedule = 'event' | 'class' | 'special'
@@ -156,4 +156,16 @@ export interface IProfilePlan extends IProfile {
 export interface IProfileClaim extends IProfile {
 	type: 'claims'
 	claims: ICustomClaims;
+}
+
+export interface IAccount extends IStoreMeta {
+	amount: number;
+	date: number;
+	active: boolean;
+	bank?: number;
+	expiry?: number;
+	approve?: {
+		key: string;
+		date: number;
+	}
 }

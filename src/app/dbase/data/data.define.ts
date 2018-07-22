@@ -10,6 +10,12 @@ export const COLLECTION = {			// collection starts with upper-case, document wit
 	Admin: 'admin',
 }
 
+export const STORES: { [col: string]: string[] } = {
+	client: ['class', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', '_default_'],
+	member: ['profile', 'account'],
+	attend: [],
+}
+
 export const STORE: IObject<TStore> = {
 	profile: 'profile',
 	account: 'account',
