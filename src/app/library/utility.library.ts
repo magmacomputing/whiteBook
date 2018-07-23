@@ -1,5 +1,4 @@
-import { IPromise } from "./utility.interface";
-import { isNumber, isString, isFunction } from "@lib/object.library";
+import { IPromise } from './utility.interface';
 
 /** General utility functions */
 
