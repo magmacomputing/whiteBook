@@ -34,7 +34,7 @@ export class SyncService {
 
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
   public async on(collection: string, slice?: string, query?: IQuery) {
-    const snapSync = this.snapSync.bind(this, collection);
+    const sync = this.sync.bind(this, collection);
     const ready = createPromise<boolean>();
     slice = slice || collection;                      // default to same-name as collection
 
@@ -45,7 +45,7 @@ export class SyncService {
       cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
       subscribe: this.fire.colRef(collection, query)
         .stateChanges()                               // watch for changes since last snapshot
-        .subscribe(snapSync)
+        .subscribe(sync)
     }
     this.dbg('on: %s', collection);
     return ready.promise;                             // indicate when snap0 is complete
@@ -68,7 +68,7 @@ export class SyncService {
   }
 
   /** handler for snapshot listeners */
-  private async snapSync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
+  private async sync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[collection];
     let setStore: any, delStore: any, truncStore;
 
@@ -79,8 +79,8 @@ export class SyncService {
       cnts[idx] += 1;
       return cnts;
     }, [0, 0, 0]);
-    const snapSource = this.getSource(snaps);
-    this.dbg('snapSync: %s #%s detected from %s (add:%s, upd:%s, del:%s)', collection, listen.cnt, snapSource, snapAdd, snapMod, snapDel);
+    const snapSource = this.source(snaps);
+    this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)', collection, listen.cnt, snapSource, snapAdd, snapMod, snapDel);
 
     switch (listen.slice) {                           // TODO: can we merge these?
       case SLICE.client:
@@ -142,7 +142,7 @@ export class SyncService {
     })
   }
 
-  private getSource(snaps: DocumentChangeAction<IStoreDoc>[]) {
+  private source(snaps: DocumentChangeAction<IStoreDoc>[]) {
     const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as SnapshotMetadata;
     return meta.fromCache
       ? 'cache'

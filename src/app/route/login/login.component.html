@@ -1,12 +1,23 @@
-<p>
-  Please select a Login-Provider from the list below...
-</p>
+<div *ngIf="(provider$ | async) || []; let provider">
+  <div *ngIf="provider.length; else newUser">
+    <p>Please select a Login-Provider from the list below...</p>
+  </div>
 
-<mat-card>
-  <mat-card-content *ngFor="let provider of provider$ | async; let last = last">
-    <button mat-raised-button [disabled]="provider._disable" (click)="auth.signIn(provider)">
-      Login with {{provider.key}}
-    </button>
-    <mat-divider *ngIf="!last"></mat-divider>
-  </mat-card-content>
-</mat-card>
+  <mat-card>
+    <mat-card-content *ngFor="let provider of provider$ | async; let last = last">
+      <button mat-raised-button [disabled]="provider._disable" (click)="auth.signIn(provider)">
+        Login with {{provider.key}}
+      </button>
+      <mat-divider *ngIf="!last"></mat-divider>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #newUser>
+  <div>
+    <h3>
+      <p>Welcome to FreeStyle4U !!</p>
+    </h3>
+    <p>Please wait while we setup...</p>
+  </div>
+</ng-template>
