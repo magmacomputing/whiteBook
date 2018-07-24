@@ -45,17 +45,18 @@ import { isNumber } from '@lib/object.library';
 // 	// 	}
 
 /**
- * Search an array, returning rows that match all the 'conditions' and were effective on the 'date'
+ * Search an array, returning rows that match all the 'conditions' and were active on the 'date'
+ * where the rows are greater-than-or-equal to the date, or less-than the date
  * @param table		The table-array to search
  * @param cond 		condition to use as filter
- * @param date 		The date to use when determining which table-row was effective at that time
+ * @param date 		The date to use when determining which table-rows were effective at that time
  */
 export const asAt = <T>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
 
 	return filterTable(table, cond)		// return the rows where date is between _effect and _expire
-		.filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
-		.filter((row: IMeta) => (row[FIELD.effect] || Number.MIN_SAFE_INTEGER) <= stamp)
+		.filter((row: IMeta) => stamp  < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter((row: IMeta) => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 }
 
 // /**

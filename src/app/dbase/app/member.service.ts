@@ -7,9 +7,8 @@ import { IProfilePlan, TPlan, IClass, IAccount } from '@dbase/data/data.interfac
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';
-import { dbg } from '@lib/logger.library';
 import { getStamp } from '@lib/date.library';
-import { isEmpty } from '@lib/object.library';
+import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
 export class MemberService {
@@ -27,6 +26,7 @@ export class MemberService {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'plan',
 			plan: plan,
+			[FIELD.effect]: getStamp('01-Jan-2000')
 		}
 
 		this.dbg('plan: %j', planDoc);
@@ -37,8 +37,8 @@ export class MemberService {
 
 	setPayment(amount: number) {
 		const accountDoc: IAccount = {
-			[FIELD.id]: '',												// placeholder
-			[FIELD.key]: '',											// placeholder
+			[FIELD.id]: '',													// placeholder
+			[FIELD.key]: '',												// placeholder
 			[FIELD.store]: STORE.account,
 			[FIELD.type]: 'topUp',
 			amount: amount,

@@ -13,34 +13,25 @@ export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = [])
 
 					return values.map(value => {												// logically OR each value to see if at-least one match
 						const compare = isString(value) ? value.toLowerCase() : value;
-						let match: boolean = false;
 
 						switch (clause.opStr) {														// standard firestore query-operators, and '!='
 							case '==':
-								match = isUndefined(field)
+								return isUndefined(field)
 									? !compare																	// if field not present, compare to 'falsy'
 									: field == compare;													// use '==' to allow for string/number match, instead of '==='
-								break;
 							case '>':
-								match = field > compare;
-								break;
+								return field > compare;
 							case '>=':
-								match = field >= compare;
-								break;
+								return field >= compare;
 							case '<':
-								match = field < compare;
-								break;
+								return field < compare;
 							case '<=':
-								match = field <= compare;
-								break;
+								return field <= compare;
 							case '!=':																			// non-standard operator
-								match = isUndefined(field) || field != compare;
-								break;
+								return isUndefined(field) || field != compare;
 							default:
-								match = false;
-								break;
+								return false;
 						}
-						return match;
 					}).includes(true);																	// true if at least-one value matches a particular clause
 				})
 		})

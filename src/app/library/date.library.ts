@@ -4,7 +4,7 @@ import { DATE_FMT, MOMENT_FMT, IDate } from '@lib/date.define';
 
 /** Helper functions to standardize Date/Time formats */
 
-const getMoment = (dt?: any, fmt: string | string[] = MOMENT_FMT): moment.Moment =>
+export const getMoment = (dt?: any, fmt: string | string[] = MOMENT_FMT): moment.Moment =>
   dt ? moment(dt, fmt) : moment(moment.now());
 
 export const fmtDate = (dt?: any, fmt: string | string[] = MOMENT_FMT): IDate => {

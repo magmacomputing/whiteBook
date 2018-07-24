@@ -16,7 +16,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { suffix } from '@lib/number.library';
 import { fmtDate } from '@lib/date.library';
 import { swipe } from '@lib/interface.library';
-import { sortKeys, asString } from '@lib/object.library';
+import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
