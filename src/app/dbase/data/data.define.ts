@@ -32,7 +32,9 @@ export const STORE: IObject<TStore> = {
 export const enum FIELD {					//  common Field names
 	effect = '_effect',
 	expire = '_expire',
-	modify = '_modify',
+	update = '_update',							// date-time modified
+	create = '_create',							// date-time created
+	access = '_access',							// date-time accessed
 	hidden = '_hidden',
 	disable = '_disable',
 	id = '_id',
@@ -45,7 +47,7 @@ export const enum FIELD {					//  common Field names
 
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
 export const FILTER: IObject<string[]> = {
-	[COLLECTION.Client]: [FIELD.store],
+	[COLLECTION.Client]: [FIELD.store, FIELD.key],
 	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.key],
 	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.key],
 }

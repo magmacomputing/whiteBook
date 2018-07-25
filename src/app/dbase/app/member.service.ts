@@ -26,7 +26,6 @@ export class MemberService {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'plan',
 			plan: plan,
-			[FIELD.effect]: getStamp('01-Jan-2000')
 		}
 
 		this.dbg('plan: %j', planDoc);
@@ -56,8 +55,8 @@ export class MemberService {
 		}
 
 		this.dbg('attend: %j', attendDoc);
-		this.data.setDoc(COLLECTION.Attend, attendDoc)
-			.then(_ => this.store.dispatch(new Navigate([ROUTE.status])))
-			.catch(err => this.dbg('checkIn: %j', err))
+		// this.data.setDoc(COLLECTION.Attend, attendDoc)
+		// 	.then(_ => this.store.dispatch(new Navigate([ROUTE.status])))
+		// 	.catch(err => this.dbg('checkIn: %j', err))
 	}
 }

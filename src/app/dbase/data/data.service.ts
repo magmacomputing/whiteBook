@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar, getMatIconNameNotFoundError } from '@angular/material';
+import { MatSnackBar } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { tap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { filterTable } from '@dbase/app/app.library';
 import { COLLECTION, FIELD, FILTER, STORES } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.interface';
 import { IWhere } from '@dbase/fire/fire.interface';
@@ -14,11 +12,11 @@ import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
-import { getStamp, getMoment } from '@lib/date.library';
+import { getStamp } from '@lib/date.library';
 import { IObject } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
 import { asAt } from '@dbase/app/member.library';
-import { toNumeric } from '@lib/string.library';
+import { dbg } from '@lib/logger.library';
+
 
 /**
  * The DataService is responsible for managing the syncing between
@@ -55,6 +53,11 @@ export class DataService {
   private getSlice(store: string) {                 // determine the slice based on the 'store' field
     return Object.keys(STORES)
       .filter(col => STORES[col].includes(store))[0];
+  }
+
+  getMeta(store: string, docId: string) {
+    const collection = this.getSlice(store);
+    return this.fire.getMeta(collection, docId);
   }
 
   get newId() {

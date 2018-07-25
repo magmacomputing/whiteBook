@@ -61,10 +61,6 @@ export class AttendComponent implements OnInit {
     )
   }
 
-  checkIn(event: IClass) {
-    this.dbg('event: %j', event);
-  }
-
   showEvent(event: string) {
     this.dbg('event: %j', event);
   }

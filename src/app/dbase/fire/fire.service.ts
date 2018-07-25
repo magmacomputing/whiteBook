@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from 'angularfire2/firestore';
+import { AngularFireFunctions } from 'angularfire2/functions';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
@@ -17,7 +18,7 @@ import { dbg } from '@lib/logger.library';
 export class FireService {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private readonly af: AngularFirestore) {
+	constructor(private readonly af: AngularFirestore, private readonly fn: AngularFireFunctions) {
 		this.dbg('new');
 	}
 
@@ -60,4 +61,16 @@ export class FireService {
 			.update(data)
 	}
 
+	getDoc(store: string, docId: string) {
+		return this.af.firestore
+			.collection(store)
+			.doc(docId)
+			.get()
+	}
+
+	getMeta(store: string, docId: string) {
+		const readMeta = this.fn.httpsCallable('readMeta');
+		return readMeta({ collection: store, [FIELD.id]: docId })
+			.toPromise()
+	}
 }
