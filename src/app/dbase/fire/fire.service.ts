@@ -12,7 +12,7 @@ import { dbg } from '@lib/logger.library';
 
 /**
  * This private service will communicate with the FireStore database,
- * (via the DataService)
+ * and is intended to be invoked via the DataService only
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
@@ -68,8 +68,17 @@ export class FireService {
 			.get()
 	}
 
-	getMeta(store: string, docId: string) {
+	getMeta(store: string, docId: string): Promise<{
+		exists: boolean;
+		[FIELD.id]: string;
+		[FIELD.create]: number | undefined;
+		[FIELD.update]: number | undefined;
+		[FIELD.access]: number | undefined;
+		subcollections: string[];
+		path: string;
+	}> {
 		const readMeta = this.fn.httpsCallable('readMeta');
+
 		return readMeta({ collection: store, [FIELD.id]: docId })
 			.toPromise()
 	}

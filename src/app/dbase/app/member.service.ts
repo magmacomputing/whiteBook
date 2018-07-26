@@ -4,7 +4,7 @@ import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass, IAccount } from '@dbase/data/data.interface';
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
@@ -29,7 +29,7 @@ export class MemberService {
 		}
 
 		this.dbg('plan: %j', planDoc);
-		this.data.insDoc(COLLECTION.Member, planDoc)
+		this.data.insDoc(planDoc)
 			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
 			.catch(err => this.dbg('setPlan: %j', err))
 	}
@@ -45,7 +45,7 @@ export class MemberService {
 			active: true,
 		}
 		this.dbg('account: %j', accountDoc);
-		this.data.insDoc(COLLECTION.Member, accountDoc);
+		this.data.insDoc(accountDoc);
 	}
 
 	checkIn(event: IClass, date?: number) {
@@ -55,6 +55,8 @@ export class MemberService {
 		}
 
 		this.dbg('attend: %j', attendDoc);
+		this.data.getMeta('class', '3M7tI5vN4voSHcdfsEXg')
+			.then(meta => this.dbg('meta: %j', meta))
 		// this.data.setDoc(COLLECTION.Attend, attendDoc)
 		// 	.then(_ => this.store.dispatch(new Navigate([ROUTE.status])))
 		// 	.catch(err => this.dbg('checkIn: %j', err))

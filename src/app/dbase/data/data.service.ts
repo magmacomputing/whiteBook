@@ -16,6 +16,7 @@ import { getStamp } from '@lib/date.library';
 import { IObject } from '@lib/object.library';
 import { asAt } from '@dbase/app/member.library';
 import { dbg } from '@lib/logger.library';
+import { insPrep } from '@dbase/data/data.library';
 
 
 /**
@@ -57,7 +58,9 @@ export class DataService {
 
   getMeta(store: string, docId: string) {
     const collection = this.getSlice(store);
-    return this.fire.getMeta(collection, docId);
+    return collection
+      ? this.fire.getMeta(collection, docId)
+      : Promise.reject(`Cannot determine slice: ${store}`)
   }
 
   get newId() {
@@ -73,58 +76,40 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc (default 'member' slice) */
-  async insDoc(collection: string, doc: IStoreMeta) {
-    const tstamp = doc[FIELD.effect] || getStamp(); // the position in the date-range to Insert
-    const where: IWhere[] = [];
-    const filter = FILTER[collection] || [];				// get the standard list of fields on which to filter
-
-    if (!doc[FIELD.key] && filter.includes(FIELD.key)) {
-      const user = await this.auth.user();          // get the current User's uid
-      if (user.userInfo)
-        doc[FIELD.key] = user.userInfo.uid;         // ensure uid is included on doc
-    }
-
-    try {
-      filter.forEach(field => {
-        if (doc[field])                             // if that field exists in the doc, add it to the filter
-          where.push({ fieldPath: field, opStr: '==', value: doc[field] })
-        else throw new Error(`missing required field: ${field}`)
-      })
-    } catch (err) {
-      this.snack.open(err);
-      return Promise.resolve(false);                // short-circuit the InsDoc
-    }
+  async insDoc(doc: IStoreMeta) {
+    let tstamp = doc[FIELD.effect] || getStamp(); // the position in the date-range to Insert
+    const collection = this.getSlice(doc.store);
+    const where: IWhere[] = await insPrep(collection, doc);
 
     const rows = await this.snap(doc.store)         // read the store
       .then(table => asAt(table, where, tstamp))    // find where to insert new row (generally max one-row expected)
-    // .then(table => filterTable(table, where))    // filter the store to find current unexpired docs
 
     const batch = this.fire.bat();
-    rows.forEach(row => {                           // set _expire on current doc(s)
+    rows.forEach(async row => {                     // set _expire on current doc(s)
       const ref = this.fire.docRef(collection, row[FIELD.id]);
-      const offset = tstamp + 1;                    // add one-second
-      const dates: any = {};
-      // const offset = parseInt( getMoment(tstamp*1000).add(1, 'days').startOf('day').format('X'), 10 );
+      const dates: { [FIELD.effect]?: number, [FIELD.expire]?: number } = {};
 
-      if (row[FIELD.effect]) {
-
-      } else {
-        dates[FIELD.effect] = offset;
-
-        doc[FIELD.expire] = offset;
-
+      if (!row[FIELD.effect]) {                     // the _create field is currently only available from the server
+        row[FIELD.effect] = await this.getMeta(doc.store, row[FIELD.id])
+          .then(meta => meta[FIELD.create]);
       }
-      // doc[FIELD.effect] = tstamp;                   // add an 'effective' date to the new Doc
+
+      // if (tstamp < (row[FIELD.effect] | Number.MAX_SAFE_INTEGER) {
+
+      // }
+
+      dates[FIELD.expire] = tstamp;                 // add an 'expiry' date, if inserting into a date-range
       // if (row[FIELD.expire])
       //   doc[FIELD.expire] = row[FIELD.expire];      // add an 'expiry' date, if inserting into a date-range
-      //   doc[FIELD.expire] = tstamp;
+      // doc[FIELD.effect] = tstamp;
       this.dbg('updDoc: %s => %s %j', collection, ref.id, dates);
       batch.update(ref, dates);
     })
 
     const ref = this.fire.docRef(collection, doc[FIELD.id] || this.newId);
     delete doc[FIELD.id];                           // remove the _id meta field from the document
-    this.dbg('insDoc: %s => %j', collection, doc);
+    if (rows.length)
+      doc[FIELD.effect] = tstamp; this.dbg('insDoc: %s => %j', collection, doc);
 
     batch.set(ref, doc);                            // add the new Document
     return batch.commit()
