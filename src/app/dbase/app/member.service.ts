@@ -55,8 +55,7 @@ export class MemberService {
 		}
 
 		this.dbg('attend: %j', attendDoc);
-		this.data.getMeta('class', '3M7tI5vN4voSHcdfsEXg')
-			.then(meta => this.dbg('meta: %j', meta))
+
 		// this.data.setDoc(COLLECTION.Attend, attendDoc)
 		// 	.then(_ => this.store.dispatch(new Navigate([ROUTE.status])))
 		// 	.catch(err => this.dbg('checkIn: %j', err))

@@ -17,6 +17,7 @@ import { IObject } from '@lib/object.library';
 import { asAt } from '@dbase/app/member.library';
 import { dbg } from '@lib/logger.library';
 import { insPrep } from '@dbase/data/data.library';
+import { isUndefined } from 'util';
 
 
 /**
@@ -75,43 +76,44 @@ export class DataService {
     return this.fire.updDoc(store, docId, data);
   }
 
-  /** Expire any previous docs, and Insert new doc (default 'member' slice) */
-  async insDoc(doc: IStoreMeta) {
-    let tstamp = doc[FIELD.effect] || getStamp(); // the position in the date-range to Insert
-    const collection = this.getSlice(doc.store);
-    const where: IWhere[] = await insPrep(collection, doc);
+  /** Expire any previous docs, and Insert new doc */
+  async insDoc(nextDoc: IStoreMeta) {
+    let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
+    const collection = this.getSlice(nextDoc[FIELD.store]);
+    const where: IWhere[] = await insPrep(collection, nextDoc);
 
-    const rows = await this.snap(doc.store)         // read the store
-      .then(table => asAt(table, where, tstamp))    // find where to insert new row (generally max one-row expected)
+    const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
+      .then(table => asAt(table, where, tstamp))    // find where to insert new prevDoc (generally max one-prevDoc expected)
 
     const batch = this.fire.bat();
-    rows.forEach(async row => {                     // set _expire on current doc(s)
-      const ref = this.fire.docRef(collection, row[FIELD.id]);
+    prevDocs.forEach(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
+      const ref = this.fire.docRef(collection, prevDoc[FIELD.id]);
       const dates: { [FIELD.effect]?: number, [FIELD.expire]?: number } = {};
 
-      if (!row[FIELD.effect]) {                     // the _create field is currently only available from the server
-        row[FIELD.effect] = await this.getMeta(doc.store, row[FIELD.id])
-          .then(meta => meta[FIELD.create]);
-      }
-
-      // if (tstamp < (row[FIELD.effect] | Number.MAX_SAFE_INTEGER) {
-
+      // if (!prevDoc[FIELD.effect]) {                 // the _create field is currently only available from the server
+      //   prevDoc[FIELD.effect] = await this.getMeta(prevDoc[FIELD.store], prevDoc[FIELD.id])
+      //     .then(meta => meta[FIELD.create]);
       // }
 
+      if (tstamp < (prevDoc[FIELD.effect]) {
+
+      }
+
       dates[FIELD.expire] = tstamp;                 // add an 'expiry' date, if inserting into a date-range
-      // if (row[FIELD.expire])
-      //   doc[FIELD.expire] = row[FIELD.expire];      // add an 'expiry' date, if inserting into a date-range
+      // if (prevDoc[FIELD.expire])
+      //   doc[FIELD.expire] = prevDoc[FIELD.expire];      // add an 'expiry' date, if inserting into a date-range
       // doc[FIELD.effect] = tstamp;
       this.dbg('updDoc: %s => %s %j', collection, ref.id, dates);
       batch.update(ref, dates);
     })
 
-    const ref = this.fire.docRef(collection, doc[FIELD.id] || this.newId);
-    delete doc[FIELD.id];                           // remove the _id meta field from the document
-    if (rows.length)
-      doc[FIELD.effect] = tstamp; this.dbg('insDoc: %s => %j', collection, doc);
+    const ref = this.fire.docRef(collection, nextDoc[FIELD.id] || this.newId);
+    delete nextDoc[FIELD.id];                           // remove the _id meta field from the document
+    // if (prevDocs.length)
+    //   nextDoc[FIELD.effect] = tstamp;
+    this.dbg('insDoc: %s => %j', collection, nextDoc);
 
-    batch.set(ref, doc);                            // add the new Document
+    batch.set(ref, nextDoc);                            // add the new Document
     return batch.commit()
       .catch(err => this.dbg('warn: %j', err))      // TODO: better manage errors
   }
