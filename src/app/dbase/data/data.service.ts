@@ -95,7 +95,7 @@ export class DataService {
       //     .then(meta => meta[FIELD.create]);
       // }
 
-      if (tstamp < (prevDoc[FIELD.effect]) {
+      if (tstamp < (prevDoc[FIELD.effect] || 0)) {
 
       }
 
