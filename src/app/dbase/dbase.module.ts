@@ -8,7 +8,7 @@ import { AttendState } from '@dbase/state/attend.state';
 
 import { AngularFireModule } from 'angularfire2';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
-import {AngularFireFunctionsModule} from 'angularfire2/functions';
+import { AngularFireFunctionsModule } from 'angularfire2/functions';
 import { environment } from '@env/environment';
 
 const fb = environment.firebase || {};
