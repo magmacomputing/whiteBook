@@ -2,8 +2,8 @@ import { asString } from '@lib/object.library';
 import { toHex } from '@lib/number.library';
 
 export const decodeBase64 = <T>(str: string): T => {
-  const base64Url = str.replace('-', '+').replace('_', '/');
-  return JSON.parse(window.atob(base64Url));
+	const base64Url = str.replace('-', '+').replace('_', '/');
+	return JSON.parse(window.atob(base64Url));
 }
 
 export const encodeBase64 = (buf: ArrayBuffer) => {
@@ -19,21 +19,21 @@ export const cryptoHash = async (source: string | Object, len: number = 64) => {
 
 // TODO: new TextEncoder() when Typescript 2.8 supported in Webpack
 const asBuffer = (str: string) => {
-		// return new TextEncoder('utf-8').encode(str);
-	const buf = new ArrayBuffer(str.length * 2);		// 2 bytes for each char
-	const bufView = new Uint16Array(buf);
+	return new TextEncoder().encode(str);
+	// const buf = new ArrayBuffer(str.length * 2);		// 2 bytes for each char
+	// const bufView = new Uint16Array(buf);
 
-	[...str]																				// convert string to char[]
-		.forEach((chr, idx) => bufView[idx] = chr.charCodeAt(0))
-	return buf;
+	// [...str]																				// convert string to char[]
+	// 	.forEach((chr, idx) => bufView[idx] = chr.charCodeAt(0))
+	// return buf;
 }
 
 // TODO: new TextDecoder() when Typescript 2.8 supported in Webpack
 const fromBuffer = (buf: Uint16Array) => {
-	// return new TextDecoder('utf-8').decode(buf);
-	return [...buf]
-		.map(chr => String.fromCharCode(chr))
-		.join('');
+	return new TextDecoder('utf-8').decode(buf);
+	// return [...buf]
+	// 	.map(chr => String.fromCharCode(chr))
+	// 	.join('');
 }
 
 const cryptoKey = crypto.subtle.generateKey({ name: 'AES-CBC', length: 128 }, false, ['encrypt', 'decrypt']);
