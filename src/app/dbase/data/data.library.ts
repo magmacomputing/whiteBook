@@ -1,6 +1,6 @@
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FILTER, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta, IMeta } from '@dbase/data/data.schema';
 
 /** prepare a document for Inserting */
 export const insPrep = async (collection: string, doc: IStoreMeta) => {
@@ -24,4 +24,37 @@ export const insPrep = async (collection: string, doc: IStoreMeta) => {
   }
 
   return where;
+}
+
+interface IUpdate {
+  [FIELD.id]: string;
+  [FIELD.effect]?: number;
+  [FIELD.expire]?: number;
+  [FIELD.create]?: number;
+}
+
+/** Expire any previous docs */
+export const updPrep = (prevDocs: IStoreMeta[], tstamp: number) => {
+  return Promise.all(
+    prevDocs.map(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
+      const prevId = prevDoc[FIELD.id];
+      const updates: IUpdate = { [FIELD.id]: prevId };
+      let effect = prevDoc[FIELD.effect] || 0;
+
+      if (!effect) {                                // the _create field is currently only available from the server
+        const meta = await this.getMeta(prevDoc[FIELD.store], prevId);
+        effect = meta[FIELD.create];
+      }
+
+      if (tstamp < effect) {
+        updates[FIELD.effect] = effect;               // set the effective-date for the existing row
+        tstamp = effect;                            // set the date-boundary
+      } else {
+        updates[FIELD.expire] = effect;               // set the expiry-date the existing row
+      }
+
+      this.dbg('updDoc: %j', updates);
+      return { updates, tstamp }
+    })
+  )
 }

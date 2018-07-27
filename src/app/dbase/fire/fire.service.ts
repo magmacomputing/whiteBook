@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from 'angularfire2/firestore';
+import { AngularFirestore, AngularFirestoreDocument } from 'angularfire2/firestore';
 import { AngularFireFunctions } from 'angularfire2/functions';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
+import { IMeta, IStoreMeta } from '@dbase/data/data.schema';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -34,13 +35,26 @@ export class FireService {
 			: this.af.firestore.collection(store).doc(docId)
 	}
 
+	/** allocate a new meta-field _id */
 	newId() {
 		return this.af.createId();
 	}
 
-	/** Instantiate a new WriteBatch */
-	bat() {
-		return this.af.firestore.batch();
+	/** Remove the meta-field _id */
+	private remId(doc: IMeta) {
+		delete doc[FIELD.id];
+		return doc;
+	}
+
+	/** Batch a set of changes */
+	batch(inserts: any[], updates: any[], deletes: any[]) {
+		const bat = this.af.firestore.batch();
+
+		inserts.forEach(ins => bat.set(this.docRef(ins.store, ins[FIELD.id]), this.remId(ins)));
+		updates.forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
+		deletes.forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
+
+		return bat.commit();
 	}
 
 	setDoc(store: string, doc: IObject<any>) {
