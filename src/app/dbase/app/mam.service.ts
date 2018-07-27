@@ -7,7 +7,7 @@ import { MemberState } from '@dbase/state/member.state';
 import { AuthState } from '@dbase/state/auth.state';
 import { IAuthState } from '@dbase/state/auth.define';
 
-import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/data/data.interface';
+import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IPriceDefault } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 

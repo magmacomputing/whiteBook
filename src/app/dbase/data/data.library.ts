@@ -1,6 +1,6 @@
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FILTER, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.interface';
+import { IStoreMeta } from '@dbase/data/data.schema';
 
 /** prepare a document for Inserting */
 export const insPrep = async (collection: string, doc: IStoreMeta) => {

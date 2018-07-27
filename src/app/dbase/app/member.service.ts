@@ -3,7 +3,7 @@ import { Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount } from '@dbase/data/data.interface';
+import { IProfilePlan, TPlan, IClass, IAccount } from '@dbase/data/data.schema';
 import { FIELD, STORE } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';

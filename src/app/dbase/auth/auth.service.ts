@@ -10,7 +10,7 @@ import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
-import { IProvider } from '@dbase/data/data.interface';
+import { IProvider } from '@dbase/data/data.schema';
 import { TScopes, TParams, JWT } from '@dbase/auth/auth.interface';
 
 import { asArray, isNull, IObject } from '@lib/object.library';

@@ -6,7 +6,7 @@ import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD, FILTER, STORES } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.interface';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';

@@ -3,7 +3,7 @@ import { AuthProvider, AuthCredential } from '@firebase/auth-types';
 
 import { JWT } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
-import { TProvider } from '@dbase/data/data.interface';
+import { TProvider } from '@dbase/data/data.schema';
 import { IObject, isNull } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 

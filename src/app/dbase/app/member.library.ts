@@ -3,7 +3,7 @@
 
 import { filterTable } from '@dbase/app/app.library';
 import { IWhere } from '@dbase/fire/fire.interface';
-import { IMeta } from '@dbase/data/data.interface';
+import { IMeta } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
 
 import { DATE_FMT } from '@lib/date.define';

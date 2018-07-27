@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap, distinct, switchMap, take } from 'rxjs/operators';
+import { map, tap, distinct, switchMap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
@@ -10,7 +10,7 @@ import { getStore } from '@dbase/state/store.state';
 import { MemberService } from '@dbase/app/member.service';
 import { asAt } from '@dbase/app/member.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IClass, ISchedule, ILocation } from '@dbase/data/data.interface';
+import { ISchedule, ILocation } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { suffix } from '@lib/number.library';
