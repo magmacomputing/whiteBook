@@ -1,17 +1,17 @@
 import { ICustomClaims } from '@dbase/auth/auth.interface';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORES } from '@dbase/data/data.define';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
-export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'location' | 'instructor'
+export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'location' | 'instructor';
 export type TStoreMember = 'profile' | 'account';
 export type TStore = TStoreClient | TStoreMember;
 
 type TFeeDefault = 'topUp' | 'hold';
-export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 type TClass = 'full' | 'half';
 type TPrice = 'full' | 'half' | 'topUp' | 'hold';
 type TProfile = 'plan' | 'claims';
 type TSchedule = 'event' | 'class' | 'special'
+export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
 
 // These are the meta-fields for a standard record

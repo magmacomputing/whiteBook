@@ -89,20 +89,20 @@ export class DataService {
     prevDocs.forEach(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
       const ref = this.fire.docRef(collection, prevDoc[FIELD.id]);
       const dates: { [FIELD.effect]?: number, [FIELD.expire]?: number } = {};
+      let effect = prevDoc[FIELD.effect] || 0;
 
-      // if (!prevDoc[FIELD.effect]) {                 // the _create field is currently only available from the server
-      //   prevDoc[FIELD.effect] = await this.getMeta(prevDoc[FIELD.store], prevDoc[FIELD.id])
-      //     .then(meta => meta[FIELD.create]);
-      // }
-
-      if (tstamp < (prevDoc[FIELD.effect] || 0)) {
-
+      if (!effect) {                                // the _create field is currently only available from the server
+        const meta = await this.getMeta(prevDoc[FIELD.store], prevDoc[FIELD.id]);
+        effect = meta[FIELD.create];
       }
 
-      dates[FIELD.expire] = tstamp;                 // add an 'expiry' date, if inserting into a date-range
-      // if (prevDoc[FIELD.expire])
-      //   doc[FIELD.expire] = prevDoc[FIELD.expire];      // add an 'expiry' date, if inserting into a date-range
-      // doc[FIELD.effect] = tstamp;
+      if (tstamp < effect) {
+        dates[FIELD.effect] = effect;               // set the effective-date for the existing row
+        tstamp = effect;                            // set the date-boundary
+      } else {
+        dates[FIELD.expire] = effect;               // set the expiry-date the existing row
+      }
+
       this.dbg('updDoc: %s => %s %j', collection, ref.id, dates);
       batch.update(ref, dates);
     })

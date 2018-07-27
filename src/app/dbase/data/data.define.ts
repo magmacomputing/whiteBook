@@ -1,5 +1,5 @@
-import { IObject } from "@lib/object.library";
-import { TStore } from "@dbase/data/data.interface";
+import { TStore } from '@dbase/data/data.interface';
+import { IObject } from '@lib/object.library';
 
 export const COLLECTION = {			// collection starts with upper-case, document with lower-case
 	Log: 'log',

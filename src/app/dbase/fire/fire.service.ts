@@ -71,7 +71,7 @@ export class FireService {
 	getMeta(store: string, docId: string): Promise<{
 		exists: boolean;
 		[FIELD.id]: string;
-		[FIELD.create]: number | undefined;
+		[FIELD.create]: number;
 		[FIELD.update]: number | undefined;
 		[FIELD.access]: number | undefined;
 		subcollections: string[];
