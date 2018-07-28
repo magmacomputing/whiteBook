@@ -53,10 +53,10 @@ export const updPrep = (prevDocs: IStoreMeta[], tstamp: number) => {
       }
 
       if (tstamp < effect) {
-        updates[FIELD.effect] = effect;               // set the effective-date for the existing row
+        updates[FIELD.effect] = effect;             // set the effective-date for the existing row
         tstamp = effect;                            // set the date-boundary
       } else {
-        updates[FIELD.expire] = effect;               // set the expiry-date the existing row
+        updates[FIELD.expire] = effect;             // set the expiry-date the existing row
       }
 
       this.dbg('updDoc: %j', updates);

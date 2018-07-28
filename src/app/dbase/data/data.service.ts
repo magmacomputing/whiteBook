@@ -85,7 +85,6 @@ export class DataService {
     this.fire.batch(
       [nextDoc],                                    // inserts
       prevDocs.map(prevDoc => prevDoc.updates),     // updates
-      []                                            // deletes
     )
   }
 }
