@@ -15,7 +15,7 @@ import { AuthService } from '@dbase/auth/auth.service';
 import { asAt } from '@dbase/app/member.library';
 
 import { getStamp } from '@lib/date.library';
-import { IObject } from '@lib/object.library';
+import { IObject, asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -70,21 +70,26 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc */
-  async insDoc(nextDoc: IStoreMeta) {
-    let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
+  insDoc(nextDocs: IStoreMeta | IStoreMeta[]) {
+    const inserts: any[] = [];
+    const updates: any[] = [];
+    const deletes: any[] = [];
     const user = this.auth.user();                  // get the current User's uid
-    const collection = getSlice(nextDoc[FIELD.store]);
-    const where: IWhere[] = await insPrep(collection, nextDoc, user);
 
-    const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
-      .then(table => asAt(table, where, tstamp))    // find where to insert new prevDoc (generally max one-prevDoc expected)
-      .then(table => updPrep(table, tstamp))
+    asArray(nextDocs).forEach(async nextDoc => {
+      const collection = getSlice(nextDoc[FIELD.store]);
+      const where: IWhere[] = await insPrep(collection, nextDoc, user);
+      let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
 
-    this.dbg('insDoc: %j', nextDoc);
+      const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
+        .then(table => asAt(table, where, tstamp))    // find where to insert new prevDoc (generally max one-prevDoc expected)
+        .then(table => updPrep(table, tstamp))
 
-    this.fire.batch(
-      [nextDoc],                                    // inserts
-      prevDocs.map(prevDoc => prevDoc.updates),     // updates
-    )
+      this.dbg('insDoc: %j', nextDoc);
+      inserts.push(nextDoc);
+      updates.push(prevDocs.map(prevDoc => prevDoc.updates));
+    })
+
+    this.fire.batch(inserts, updates, deletes);
   }
 }

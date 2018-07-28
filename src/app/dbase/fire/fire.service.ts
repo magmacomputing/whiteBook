@@ -8,7 +8,7 @@ import { IMeta } from '@dbase/data/data.schema';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined, IObject } from '@lib/object.library';
+import { isUndefined, IObject, asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 import { getSlice } from '@dbase/data/data.library';
 
@@ -49,12 +49,12 @@ export class FireService {
 	}
 
 	/** Batch a set of changes */
-	batch(inserts: any[] = [], updates: any[] = [], deletes: any[] = []) {
+	batch(inserts: any = [], updates: any = [], deletes: any = []) {
 		const bat = this.af.firestore.batch();
 
-		inserts.forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
-		updates.forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
-		deletes.forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
+		asArray(inserts).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
+		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
+		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
 
 		return bat.commit();
 	}
