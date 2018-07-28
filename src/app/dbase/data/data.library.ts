@@ -1,16 +1,17 @@
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FILTER, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, IMeta } from '@dbase/data/data.schema';
+import { IAuthState } from '@dbase/state/auth.define';
 
 /** prepare a document for Inserting */
-export const insPrep = async (collection: string, doc: IStoreMeta) => {
+export const insPrep = async (collection: string, doc: IStoreMeta, user: Promise<IAuthState>) => {
   const where: IWhere[] = [];
   const filter = FILTER[collection] || [];				// get the standard list of fields on which to filter
 
   if (!doc[FIELD.key] && filter.includes(FIELD.key)) {
-    const user = await this.auth.user();          // get the current User's uid
-    if (user.userInfo)
-      doc[FIELD.key] = user.userInfo.uid;         // ensure uid is included on doc
+    const auth = await user;                      // get the current User's uid
+    if (auth.userInfo)
+      doc[FIELD.key] = auth.userInfo.uid;         // ensure uid is included on doc
   }
 
   try {

@@ -77,8 +77,9 @@ export class DataService {
   /** Expire any previous docs, and Insert new doc */
   async insDoc(nextDoc: IStoreMeta) {
     let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
+    const user = this.auth.user();                  // get the current User's uid
     const collection = this.getSlice(nextDoc[FIELD.store]);
-    const where: IWhere[] = await insPrep(collection, nextDoc);
+    const where: IWhere[] = await insPrep(collection, nextDoc, user);
 
     const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
       .then(table => asAt(table, where, tstamp))    // find where to insert new prevDoc (generally max one-prevDoc expected)
