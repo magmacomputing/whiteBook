@@ -1,7 +1,12 @@
 import { IWhere } from '@dbase/fire/fire.interface';
-import { FILTER, FIELD } from '@dbase/data/data.define';
+import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
 import { IStoreMeta, IMeta } from '@dbase/data/data.schema';
 import { IAuthState } from '@dbase/state/auth.define';
+
+export const getSlice = (store: string) => {       // determine the slice based on the 'store' field
+  return Object.keys(STORES)
+    .filter(col => STORES[col].includes(store))[0];
+}
 
 /** prepare a document for Inserting */
 export const insPrep = async (collection: string, doc: IStoreMeta, user: Promise<IAuthState>) => {

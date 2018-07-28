@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreDocument } from 'angularfire2/firestore';
+import { AngularFirestore } from 'angularfire2/firestore';
 import { AngularFireFunctions } from 'angularfire2/functions';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
-import { IMeta, IStoreMeta } from '@dbase/data/data.schema';
+import { IMeta } from '@dbase/data/data.schema';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { getSlice } from '@dbase/data/data.library';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -30,9 +31,10 @@ export class FireService {
 
 	/** Document Reference, for existing or new */
 	docRef(store: string, docId?: string) {
+		const slice = getSlice(store);
 		return isUndefined(docId)
-			? this.af.firestore.collection(store).doc()
-			: this.af.firestore.collection(store).doc(docId)
+			? this.af.firestore.collection(slice).doc()
+			: this.af.firestore.collection(slice).doc(docId)
 	}
 
 	/** allocate a new meta-field _id */
@@ -50,7 +52,7 @@ export class FireService {
 	batch(inserts: any[], updates: any[], deletes: any[]) {
 		const bat = this.af.firestore.batch();
 
-		inserts.forEach(ins => bat.set(this.docRef(ins.store, ins[FIELD.id]), this.remId(ins)));
+		inserts.forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		updates.forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
 		deletes.forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
 

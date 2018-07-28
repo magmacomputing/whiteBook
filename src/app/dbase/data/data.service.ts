@@ -7,7 +7,7 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD, STORES } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
-import { insPrep, updPrep } from '@dbase/data/data.library';
+import { insPrep, updPrep, getSlice } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -36,7 +36,7 @@ export class DataService {
 
   /** Make Store data available in a Promise */
   snap(store: string) {
-    const slice = this.getSlice(store);
+    const slice = getSlice(store);
     return this.snapshot[store] = this.store
       .selectOnce<IStoreMeta[]>(state => state[slice][store])
       .toPromise()                                   // stash the current snap result
@@ -50,13 +50,8 @@ export class DataService {
     return this.sync.off(COLLECTION.Client);        // unsubscribe a collection's listener
   }
 
-  private getSlice(store: string) {                 // determine the slice based on the 'store' field
-    return Object.keys(STORES)
-      .filter(col => STORES[col].includes(store))[0];
-  }
-
   getMeta(store: string, docId: string) {
-    const collection = this.getSlice(store);
+    const collection = getSlice(store);
     return collection
       ? this.fire.getMeta(collection, docId)
       : Promise.reject(`Cannot determine slice: ${store}`)
@@ -78,7 +73,7 @@ export class DataService {
   async insDoc(nextDoc: IStoreMeta) {
     let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
     const user = this.auth.user();                  // get the current User's uid
-    const collection = this.getSlice(nextDoc[FIELD.store]);
+    const collection = getSlice(nextDoc[FIELD.store]);
     const where: IWhere[] = await insPrep(collection, nextDoc, user);
 
     const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store

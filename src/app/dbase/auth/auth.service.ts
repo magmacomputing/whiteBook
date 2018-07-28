@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
@@ -43,7 +43,7 @@ export class AuthService {
 
   public user() {
     return new Promise<IAuthState>(resolve =>
-      this.auth$.subscribe(user => resolve(user))
+      this.auth$.pipe(take(1)).subscribe(user => resolve(user))
     )
   }
 
