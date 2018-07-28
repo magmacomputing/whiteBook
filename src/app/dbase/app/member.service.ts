@@ -17,9 +17,6 @@ export class MemberService {
 	constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
 
 	setPlan(plan: TPlan, amount: number, exist: boolean) {
-		if (!exist)
-			this.setPayment(amount);								// first Payment due
-
 		const planDoc: IProfilePlan = {
 			[FIELD.id]: '',													// placeholder
 			[FIELD.key]: '',                        // placeholder
@@ -30,6 +27,7 @@ export class MemberService {
 
 		this.dbg('plan: %j', planDoc);
 		this.data.insDoc(planDoc)
+			.then(_ => { if (!exist) this.setPayment(amount) })			// first Payment due
 			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
 			.catch(err => this.dbg('setPlan: %j', err))
 	}
@@ -45,7 +43,7 @@ export class MemberService {
 			active: true,
 		}
 		this.dbg('account: %j', accountDoc);
-		this.data.insDoc(accountDoc);
+		return this.data.insDoc(accountDoc);
 	}
 
 	checkIn(event: IClass, date?: number) {
