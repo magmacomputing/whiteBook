@@ -38,7 +38,7 @@ export class PlanComponent implements OnInit {
   }
 
   get plan$() {                   // get the available Plans
-    return getStore(this.client$, STORE.plan, undefined, ['order', FIELD.key]);
+    return getStore(this.client$, STORE.plan, undefined, ['sort', FIELD.key]);
   }
 
   getPrice(plan: string) {
