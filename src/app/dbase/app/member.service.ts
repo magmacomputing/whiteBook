@@ -3,7 +3,7 @@ import { Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IClass, IAccount, IStoreMeta, IMeta, INewMeta } from '@dbase/data/data.schema';
 import { FIELD, STORE } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';
@@ -17,17 +17,14 @@ export class MemberService {
 	constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
 
 	setPlan(plan: TPlan, amount: number, exist: boolean) {
-		const planDoc: IProfilePlan = {
-			[FIELD.id]: '',													// placeholder
-			[FIELD.key]: '',                        // placeholder
-			[FIELD.store]: STORE.profile,
-			[FIELD.type]: 'plan',
-			plan: plan,
-		}
+		const doc: INewMeta[] =
+			[{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan: plan, }];
 
-		this.dbg('plan: %j', planDoc);
-		this.data.insDoc(planDoc)
-			.then(_ => { if (!exist) this.setPayment(amount) })			// first Payment due
+		if (!exist)
+			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, date: getStamp() })
+
+		this.dbg('plan: %j', doc);
+		this.data.insDoc(doc)
 			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
 			.catch(err => this.dbg('setPlan: %j', err))
 	}

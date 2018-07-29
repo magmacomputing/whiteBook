@@ -23,7 +23,15 @@ export interface IMeta {
 	[FIELD.create]?: number;							// the time when originally created
 	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client
 	[FIELD.disable]?: boolean;						// valid value, greyed-out to the client
-};
+}
+
+// to use when building a new Store Document for insert
+export interface INewMeta extends IMeta {
+	[FIELD.store]: string,
+	[FIELD.type]?: string,
+	[FIELD.key]?: string,
+	[key: string]: any;
+}
 
 export interface IStoreMeta extends IMeta {
 	[FIELD.id]: string;										// override the 'optional' on IMeta
