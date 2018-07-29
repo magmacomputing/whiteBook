@@ -25,10 +25,10 @@ export class AuthService {
 
   constructor(private readonly store: Store) { this.dbg('new'); }
 
-  get active() {
-    return this.auth$.pipe(
-      map(auth => isActive(auth))
-    )
+  public user() {
+    return this.auth$
+      .pipe(take(1))
+      .toPromise()
   }
 
   public signOut() {
@@ -39,12 +39,6 @@ export class AuthService {
 
   public check() {
     this.store.dispatch(new CheckSession());
-  }
-
-  public user() {
-    return new Promise<IAuthState>(resolve =>
-      this.auth$.pipe(take(1)).subscribe(user => resolve(user))
-    )
   }
 
   public async signIn(config: IProvider, opts: IObject<any> = {}) {
