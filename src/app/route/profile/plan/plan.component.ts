@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
@@ -15,7 +14,6 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { dbg } from '@lib/logger.library';
-import { UserInfo } from '@firebase/auth-types';
 
 @Component({
   selector: 'wb-plan',

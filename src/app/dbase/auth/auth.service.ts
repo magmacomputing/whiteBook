@@ -1,29 +1,33 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { take, map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
-import { AuthState } from '@dbase/state/auth.state';
-import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
+import { getAuthProvider } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
-import { TScopes, TParams, JWT } from '@dbase/auth/auth.interface';
+import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
-import { asArray, isNull, IObject } from '@lib/object.library';
-import { getStamp } from '@lib/date.library';
+import { asArray, IObject, isNull } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
-  @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
+  @Select() auth$!: Observable<IAuthState>;
 
   private dbg: Function = dbg.bind(this);
 
   constructor(private readonly store: Store) { this.dbg('new'); }
+
+  get isAuth() {
+    return this.auth$.pipe(
+      map(auth => !isNull(auth.userInfo))
+    )
+  }
 
   public user() {
     return this.auth$
