@@ -3,7 +3,7 @@ import { Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount, IStoreMeta, IMeta, INewMeta } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend } from '@dbase/data/data.schema';
 import { FIELD, STORE } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';
@@ -17,11 +17,10 @@ export class MemberService {
 	constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
 
 	setPlan(plan: TPlan, amount: number, exist: boolean) {
-		const doc: INewMeta[] =
-			[{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan: plan, }];
+		const doc: IStoreBase[] = [{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan];
 
 		if (!exist)
-			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, date: getStamp() })
+			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, stamp: getStamp() } as IAccount)
 
 		this.dbg('plan: %j', doc);
 		this.data.insDoc(doc)
@@ -31,22 +30,19 @@ export class MemberService {
 
 	setPayment(amount: number) {
 		const accountDoc: IAccount = {
-			[FIELD.id]: '',													// placeholder
-			[FIELD.key]: '',												// placeholder
 			[FIELD.store]: STORE.account,
 			[FIELD.type]: 'topUp',
 			amount: amount,
-			date: getStamp(),
-			active: true,
+			active: false,
+			stamp: getStamp(),
 		}
 		this.dbg('account: %j', accountDoc);
 		return this.data.insDoc(accountDoc);
 	}
 
 	checkIn(event: IClass, date?: number) {
-		const attendDoc = {
-			[FIELD.id]: this.data.newId,
-			store: 'abc',
+		const attendDoc: IAttend = {
+			[FIELD.store]: 'attend',
 		}
 
 		this.dbg('attend: %j', attendDoc);

@@ -1,13 +1,13 @@
-import { TStore } from '@dbase/data/data.schema';
+import { TStore, TStoreAttend, TStoreAdmin } from '@dbase/data/data.schema';
 import { IObject } from '@lib/object.library';
 
-export const COLLECTION = {			// collection starts with upper-case, document with lower-case
-	Log: 'log',
-	Register: 'register',
-	Member: 'member',
-	Attend: 'attend',
-	Client: 'client',
-	Admin: 'admin',
+export const enum COLLECTION {			// collection starts with upper-case, document with lower-case
+	Log = 'log',
+	Register = 'register',
+	Member = 'member',
+	Attend = 'attend',
+	Client = 'client',
+	Admin = 'admin',
 }
 
 export const STORES: { [col: string]: string[] } = {
@@ -16,17 +16,18 @@ export const STORES: { [col: string]: string[] } = {
 	attend: [],
 }
 
-export const STORE: IObject<TStore> = {
-	profile: 'profile',
-	account: 'account',
-	provider: 'provider',
-	class: 'class',
-	event: 'event',
-	price: 'price',
-	plan: 'plan',
-	schedule: 'schedule',
-	location: 'location',
-	instructor: 'instructor',
+export const enum STORE {
+	profile = 'profile',
+	account = 'account',
+	attend = 'attend',
+	provider = 'provider',
+	class = 'class',
+	event = 'event',
+	price = 'price',
+	plan = 'plan',
+	schedule = 'schedule',
+	location = 'location',
+	instructor = 'instructor',
 }
 
 export const enum FIELD {					//  common Field names

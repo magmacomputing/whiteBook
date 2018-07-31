@@ -23,7 +23,7 @@ export class ClientState implements NgxsOnInit {
 
 		store.push(payload);										// push the changed ClientDoc into the Store
 		state[payload.store] = store;
-		this.dbg('setClient: %j', payload);
+		this.dbg('setClient: %s, %j', payload.store, payload);
 		patchState({ ...state });
 	}
 
@@ -33,7 +33,7 @@ export class ClientState implements NgxsOnInit {
 		const store = this.filterClient(getState(), payload);
 
 		state[payload.store] = store;
-		this.dbg('delClient: %j', payload);
+		this.dbg('delClient: %s, %j', payload.store, payload);
 		patchState({ ...state });
 	}
 

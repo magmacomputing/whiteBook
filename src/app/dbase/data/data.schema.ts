@@ -1,16 +1,17 @@
 import { ICustomClaims } from '@dbase/auth/auth.interface';
-import { FIELD, STORES } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data/data.define';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'location' | 'instructor';
 export type TStoreMember = 'profile' | 'account';
+export type TStoreAttend = 'attend';
 export type TStore = TStoreClient | TStoreMember;
 
-type TFeeDefault = 'topUp' | 'hold';
-type TClass = 'full' | 'half';
+type TSpan = 'full' | 'half';
 type TPrice = 'full' | 'half' | 'topUp' | 'hold';
-type TProfile = 'plan' | 'claims';
-type TSchedule = 'event' | 'class' | 'special'
+type TProfile = 'plan' | 'claims' | 'account';
+type TSchedule = 'event' | 'class' | 'special';
+type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
 
@@ -26,63 +27,68 @@ export interface IMeta {
 }
 
 // to use when building a new Store Document for insert
-export interface INewMeta extends IMeta {
-	[FIELD.store]: string,
+export interface IStoreBase extends IMeta {
+	[FIELD.store]: TStore | TStoreAdmin | TStoreAttend,
 	[FIELD.type]?: string,
 	[FIELD.key]?: string,
-	[key: string]: any;
 }
 
-export interface IStoreMeta extends IMeta {
+export interface IStoreMeta extends IStoreBase {
 	[FIELD.id]: string;										// override the 'optional' on IMeta
-	[FIELD.store]: TStore;								// each document needs a 'store'
-	[FIELD.type]?: string;								// some documents are qualified by 'type'
-	[FIELD.key]: string;									// the primary identifier
 	[key: string]: any;										// additional fields specific to a 'store'
 }
 
 //	/client/_default_
-export interface IPriceDefault extends IStoreMeta {
-	[FIELD.key]: TPlan;
-	[FIELD.type]?: TClass;
-	amount: number;
+interface IDefault extends IStoreBase {
+	[FIELD.store]: '_default_';
+	[FIELD.type]: TStoreClient;
+	[FIELD.key]: string;
 }
-export interface IFeeDefault extends IStoreMeta {
-	[FIELD.key]: TFeeDefault;
-	amount: number;												// 'topUp' or 'hold' fee
+export interface IDefaultPrice extends IDefault {
+	[FIELD.type]: 'price';
+}
+export interface IDefaultPlan extends IDefault {
+	[FIELD.type]: 'plan';
 }
 
 //	/client/price
-export interface IPrice extends IStoreMeta {
+export interface IPrice extends IStoreBase {
+	[FIELD.store]: 'price';
 	[FIELD.key]: TPlan;
 	[FIELD.type]: TPrice;
 	amount: number;
 }
 
 //	/client/class
-export interface IClass extends IStoreMeta {
-	[FIELD.key]: string;
-	[FIELD.type]: TClass;
+export interface IClass extends IStoreBase {
+	[FIELD.store]: 'class';
+	[FIELD.type]: TSpan;
+	[FIELD.key]: TClass;
 	color: string;
 	desc?: string;
 }
 
 //	/client/event
-export interface IEvent extends IStoreMeta {
+export interface IEvent extends IStoreBase {
+	[FIELD.store]: 'event';
+	[FIELD.key]: string;
 	name: string;
 	desc: string;
-	class: string | string[];
+	class: TClass | TClass[];
 }
 
 //	/client/schedule
-export interface ISchedule extends IStoreMeta {
+export interface ISchedule extends IStoreBase {
+	[FIELD.store]: 'schedule';
 	[FIELD.type]: TSchedule;
+	[FIELD.key]: TClass | string;
 	day: number;
 	location: string;
-	start: string | Date;
+	start: string;
 }
 
-export interface ILocation extends IStoreMeta {
+export interface ILocation extends IStoreBase {
+	[FIELD.store]: 'location';
 	name: string;
 	address?: {
 		line1: string;
@@ -104,7 +110,8 @@ export interface ILocation extends IStoreMeta {
 	}
 }
 
-export interface IInstructor extends IStoreMeta {
+export interface IInstructor extends IStoreBase {
+	[FIELD.store]: 'instructor';
 	name: string;
 	link?: {
 		type: string;
@@ -113,8 +120,11 @@ export interface IInstructor extends IStoreMeta {
 }
 
 //	/client/schedule
-export interface IProvider extends IStoreMeta {
+export interface IProvider extends IStoreBase {
+	[FIELD.store]: 'provider';
 	[FIELD.type]: TProvider;
+	[FIELD.key]: string;
+	sort: number;												// order to display to User
 	prefix?: string;
 	scope?: string | string[];					// if array, joinScope determines how to encode as a string
 	joinScope?: string;									// what character separates the scope parameters, default ','
@@ -153,28 +163,35 @@ export interface IProvider extends IStoreMeta {
 }
 
 //	/member/profile
-export interface IProfile extends IStoreMeta {
-	type: TProfile;
+export interface IProfile extends IStoreBase {
+	[FIELD.store]: 'profile';
+	[FIELD.type]: TProfile;
+	[FIELD.key]: string;													// UserID
 }
-
 export interface IProfilePlan extends IProfile {
-	type: 'plan'
+	[FIELD.type]: 'plan'
 	plan: TPlan;
 }
-
 export interface IProfileClaim extends IProfile {
-	type: 'claims'
+	[FIELD.type]: 'claims'
 	claims: ICustomClaims;
 }
 
-export interface IAccount extends IStoreMeta {
+export interface IAccount extends IStoreBase {
+	[FIELD.store]: 'account';
+	[FIELD.type]: TPrice;
 	amount: number;
-	date: number;
+	stamp: number;
 	active: boolean;
 	bank?: number;
 	expiry?: number;
 	approve?: {
 		key: string;
-		date: number;
+		stamp: number;
 	}
+}
+
+// /attend
+export interface IAttend extends IStoreBase {
+	[FIELD.store]: 'attend';
 }

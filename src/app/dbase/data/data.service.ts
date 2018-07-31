@@ -5,8 +5,8 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { COLLECTION, FIELD, STORES } from '@dbase/data/data.define';
-import { IStoreMeta, INewMeta } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { insPrep, updPrep, getSlice } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -70,14 +70,14 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc */
-  insDoc(nextDocs: INewMeta | INewMeta[]) {
+  insDoc(nextDocs: IStoreBase | IStoreBase[]) {
     const inserts: any[] = [];
     const updates: any[] = [];
     const deletes: any[] = [];
     const user = this.auth.user();                  // get the current User's uid
 
     asArray(nextDocs).forEach(async nextDoc => {
-      const where: IWhere[] = await insPrep(nextDoc, user);
+      const where: IWhere[] = await insPrep(nextDoc as IStoreMeta, user);
       let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
 
       const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
