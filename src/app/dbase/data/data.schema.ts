@@ -8,7 +8,7 @@ export type TStoreAttend = 'attend';
 export type TStore = TStoreClient | TStoreMember;
 
 type TSpan = 'full' | 'half';
-type TPrice = 'full' | 'half' | 'topUp' | 'hold';
+type TPrice = TSpan | 'topUp' | 'hold';
 type TProfile = 'plan' | 'claims' | 'account';
 type TSchedule = 'event' | 'class' | 'special';
 type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
