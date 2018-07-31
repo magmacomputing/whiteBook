@@ -76,7 +76,7 @@ export class DataService {
     const deletes: any[] = [];
     const user = this.auth.user();                  // get the current User's uid
 
-    asArray(nextDocs).forEach(async nextDoc => {
+    const promises = asArray(nextDocs).map(async nextDoc => {
       const where: IWhere[] = await insPrep(nextDoc as IStoreMeta, user);
       let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
 
@@ -84,11 +84,13 @@ export class DataService {
         .then(table => asAt(table, where, tstamp))  // find where to insert new doc (generally max one-prevDoc expected)
         .then(table => updPrep(table, tstamp))      // prepare the updates to effect/expire
 
+      // nextDoc[FIELD.id] = this.newId;
       this.dbg('insDoc: %j', nextDoc);
       inserts.push(nextDoc);
       updates.push(prevDocs.map(prevDoc => prevDoc.updates));
     })
 
-    return this.fire.batch(inserts, updates, deletes);
+    return Promise.all(promises)
+      .then(_ => this.fire.batch(inserts, updates, deletes))
   }
 }

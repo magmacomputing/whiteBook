@@ -32,6 +32,7 @@ export class FireService {
 	/** Document Reference, for existing or new */
 	docRef(store: string, docId?: string) {
 		const slice = getSlice(store);
+
 		return isUndefined(docId)
 			? this.af.firestore.collection(slice).doc()
 			: this.af.firestore.collection(slice).doc(docId)
