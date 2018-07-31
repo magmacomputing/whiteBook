@@ -1,7 +1,7 @@
 import { IWhere } from '@dbase/fire/fire.interface';
-import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
-import { IStoreMeta, IMeta } from '@dbase/data/data.schema';
 import { IAuthState } from '@dbase/state/auth.define';
+import { IStoreMeta, IMeta } from '@dbase/data/data.schema';
+import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
 
 export const getSlice = (store: string) => {       // determine the slice based on the 'store' field
   return Object.keys(STORES)
@@ -9,13 +9,12 @@ export const getSlice = (store: string) => {       // determine the slice based 
 }
 
 /** prepare a where-clause to use when identifying existing documents that will clash with newDoc */
-export const insPrep = async (newDoc: IStoreMeta, user: Promise<IAuthState>) => {
+export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
   const where: IWhere[] = [];
   const collection = getSlice(newDoc[FIELD.store]);
   const filter = FILTER[collection] || [];				// get the standard list of fields on which to filter
 
   if (!newDoc[FIELD.key] && filter.includes(FIELD.key)) {
-    const auth = await user;                      // get the current User's uid
     if (auth.userInfo)
       newDoc[FIELD.key] = auth.userInfo.uid;      // ensure uid is included on doc
   }

@@ -74,17 +74,16 @@ export class DataService {
     const inserts: any[] = [];
     const updates: any[] = [];
     const deletes: any[] = [];
-    const user = this.auth.user();                  // get the current User's uid
+    const auth = this.auth.state();                 // get the current User's uid
 
     const promises = asArray(nextDocs).map(async nextDoc => {
-      const where: IWhere[] = await insPrep(nextDoc as IStoreMeta, user);
+      const where: IWhere[] = await insPrep(nextDoc as IStoreMeta, auth);
       let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
 
       const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
         .then(table => asAt(table, where, tstamp))  // find where to insert new doc (generally max one-prevDoc expected)
         .then(table => updPrep(table, tstamp))      // prepare the updates to effect/expire
 
-      // nextDoc[FIELD.id] = this.newId;
       this.dbg('insDoc: %j', nextDoc);
       inserts.push(nextDoc);
       updates.push(prevDocs.map(prevDoc => prevDoc.updates));

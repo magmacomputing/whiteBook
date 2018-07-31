@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
+import { UserInfo } from '@firebase/auth-types';
 import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
@@ -29,10 +30,9 @@ export class AuthService {
     )
   }
 
-  public user() {
-    return this.auth$
-      .pipe(take(1))
-      .toPromise()
+  public state() {
+    return this.store
+      .selectSnapshot<IAuthState>((state: IAuthState) => state);
   }
 
   public signOut() {
