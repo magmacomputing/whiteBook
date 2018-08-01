@@ -6,7 +6,7 @@ import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
+import { IStoreMeta, IStoreBase, IMeta } from '@dbase/data/data.schema';
 import { insPrep, updPrep, getSlice } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -71,22 +71,26 @@ export class DataService {
 
   /** Expire any previous docs, and Insert new doc */
   insDoc(nextDocs: IStoreBase | IStoreBase[]) {
-    const inserts: any[] = [];
-    const updates: any[] = [];
-    const deletes: any[] = [];
+    const inserts: IStoreBase[] = [];               // need a base Store document
+    const updates: IStoreMeta[] = [];                    // 
+    const deletes: IMeta[] = [];                    // only need the _id
     const auth = this.auth.state();                 // get the current User's uid
 
     const promises = asArray(nextDocs).map(async nextDoc => {
-      const where: IWhere[] = await insPrep(nextDoc as IStoreMeta, auth);
       let tstamp = nextDoc[FIELD.effect] || getStamp();// the position in the date-range to Insert
+      const where: IWhere[] | void = await insPrep(nextDoc as IStoreMeta, auth)
+        .catch(err => { this.snack.open(err.message) });
 
+      this.dbg('where: %j', where);
+      if (!where) return;
+      
       const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
         .then(table => asAt(table, where, tstamp))  // find where to insert new doc (generally max one-prevDoc expected)
         .then(table => updPrep(table, tstamp))      // prepare the updates to effect/expire
-
+      this.dbg('updates: %j', updates)
       this.dbg('insDoc: %j', nextDoc);
       inserts.push(nextDoc);
-      updates.push(prevDocs.map(prevDoc => prevDoc.updates));
+      updates.push(...prevDocs.map(prevDoc => prevDoc.updates));
     })
 
     return Promise.all(promises)

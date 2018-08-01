@@ -25,7 +25,7 @@ export class MemberService {
 		this.dbg('plan: %j', doc);
 		this.data.insDoc(doc)
 			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
-			.catch(err => this.dbg('setPlan: %j', err))
+			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
 	setPayment(amount: number) {

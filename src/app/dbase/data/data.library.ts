@@ -1,6 +1,6 @@
 import { IWhere } from '@dbase/fire/fire.interface';
 import { IAuthState } from '@dbase/state/auth.define';
-import { IStoreMeta, IMeta } from '@dbase/data/data.schema';
+import { IStoreMeta, IMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
 
 export const getSlice = (store: string) => {       // determine the slice based on the 'store' field
@@ -19,15 +19,11 @@ export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
       newDoc[FIELD.key] = auth.userInfo.uid;      // ensure uid is included on doc
   }
 
-  try {
-    filter.forEach(field => {
-      if (newDoc[field])                          // if that field exists in the doc, add it to the filter
-        where.push({ fieldPath: field, opStr: '==', value: newDoc[field] })
-      else throw new Error(`missing required field: ${field}`)
-    })
-  } catch (err) {
-    this.snack.open(err);
-  }
+  filter.forEach(field => {
+    if (newDoc[field])                          // if that field exists in the doc, add it to the filter
+      where.push({ fieldPath: field, opStr: '==', value: newDoc[field] })
+    else throw new Error(`missing required field: ${field}`)
+  })
 
   return where;
 }
@@ -37,7 +33,7 @@ export const updPrep = (prevDocs: IStoreMeta[], tstamp: number) => {
   return Promise.all(
     prevDocs.map(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
       const prevId = prevDoc[FIELD.id];
-      const updates: IMeta = { [FIELD.id]: prevId };
+      const updates: IStoreMeta = prevDoc;
       let effect = prevDoc[FIELD.effect] || 0;
 
       if (!effect) {                                // the _create field is currently only available from the server
