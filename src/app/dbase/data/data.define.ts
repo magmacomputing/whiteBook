@@ -30,20 +30,18 @@ export const enum STORE {
 	instructor = 'instructor',
 }
 
-export const enum FIELD {					//  common Field names
-	effect = '_effect',
-	expire = '_expire',
+export const enum FIELD {					// common Field names
+	effect = '_effect',							// valid when greater-than-or-equal-to
+	expire = '_expire',							// valid when less-than
 	update = '_update',							// date-time modified
 	create = '_create',							// date-time created
 	access = '_access',							// date-time accessed
-	hidden = '_hidden',
-	disable = '_disable',
+	hidden = '_hidden',							// valid, but not displayed to Member
+	disable = '_disable',						// displayed, but greyed to Member
 	id = '_id',
 	store = 'store',
 	type = 'type',
 	key = 'key',
-	uid = 'uid',
-	memberId = 'memberId'
 };
 
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
