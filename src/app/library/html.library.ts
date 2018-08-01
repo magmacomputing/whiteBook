@@ -14,10 +14,11 @@ export const swipe = (thisIndex: number, lastIndex: number, event: any) => {
       steps = 2;
       break;
     case v < 4 * BASE_VELOCITY:
-      steps = 3
+      steps = 3;
       break;
     default:
-      steps = 4
+      steps = 4;
+      break;
   }
 
   if (event.type === SWIPE_ACTION.LEFT) {

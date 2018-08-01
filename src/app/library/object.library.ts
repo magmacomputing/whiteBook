@@ -80,10 +80,10 @@ export const objArray = (obj: any) => {
   if (isArray(obj) && isObject(obj[0])) {
     const newObj: IObject<any> = {};
 
-    obj.forEach(itm => {
+    obj.forEach(itm =>
       Object.keys(itm)
         .forEach(key => newObj[key] = itm[key])
-    })
+    )
     return newObj;
   }
   else return obj;
