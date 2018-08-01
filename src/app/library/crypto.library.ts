@@ -1,10 +1,8 @@
 import { asString } from '@lib/object.library';
 import { toHex } from '@lib/number.library';
 
-export const decodeBase64 = <T>(str: string): T => {
-	const base64Url = str.replace('-', '+').replace('_', '/');
-	return JSON.parse(window.atob(base64Url));
-}
+export const decodeBase64 = <T>(str: string): T =>
+	JSON.parse(window.atob(str.replace('-', '+').replace('_', '/')));
 
 export const encodeBase64 = (buf: ArrayBuffer) =>
 	window.btoa(new Uint8Array(buf).reduce((s, b) => s + String.fromCharCode(b), ''));
