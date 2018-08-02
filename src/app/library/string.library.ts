@@ -1,6 +1,4 @@
-/**
- * General <string> functions
- */
+// General <string> functions
 
 export const toProperCase = (...str: string[]): string =>
   str
