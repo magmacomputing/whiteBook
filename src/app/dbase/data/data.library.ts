@@ -2,6 +2,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreMeta, IMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
+import { FireService } from '@dbase/fire/fire.service';
 
 export const getSlice = (store: string) => {       // determine the slice based on the 'store' field
   return Object.keys(STORES)
@@ -29,15 +30,16 @@ export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
 }
 
 /** Expire any previous docs */
-export const updPrep = (prevDocs: IStoreMeta[], tstamp: number) => {
+export const updPrep = (prevDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
   return Promise.all(
     prevDocs.map(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
+      const collection = getSlice(prevDoc[FIELD.store]);
       const prevId = prevDoc[FIELD.id];
       const updates: IStoreMeta = prevDoc;
       let effect = prevDoc[FIELD.effect] || 0;
 
       if (!effect) {                                // the _create field is currently only available from the server
-        const meta = await this.getMeta(prevDoc[FIELD.store], prevId);
+        const meta = await fire.getMeta(collection, prevId);
         effect = meta[FIELD.create];
       }
 
@@ -48,7 +50,7 @@ export const updPrep = (prevDocs: IStoreMeta[], tstamp: number) => {
         updates[FIELD.expire] = effect;             // set the expiry-date the existing row
       }
 
-      this.dbg('updDoc: %j', updates);
+      console.log('updDoc: ', updates);
       return { updates, tstamp }
     })
   )

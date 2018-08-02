@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { UserInfo } from '@firebase/auth-types';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
+import { AuthState } from '@dbase/state/auth.state';
+
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
@@ -13,7 +14,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
-import { asArray, IObject, isNull } from '@lib/object.library';
+import { asArray, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
@@ -32,7 +33,7 @@ export class AuthService {
 
   public state() {
     return this.store
-      .selectSnapshot<IAuthState>((state: IAuthState) => state);
+      .selectSnapshot<IAuthState>(AuthState.getUser);
   }
 
   public signOut() {
