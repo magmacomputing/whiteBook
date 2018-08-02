@@ -33,7 +33,7 @@ export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
 export const updPrep = async (prevDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
   let stamp = tstamp;                           // stash the tstamp
   const updates = await Promise.all(
-    prevDocs.map(async prevDoc => { // loop through existing-docs first, to determine effect/expire range
+    prevDocs.map(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
       const collection = getSlice(prevDoc[FIELD.store]);
       const prevId = prevDoc[FIELD.id];
       const updates: IStoreMeta = prevDoc;
@@ -44,12 +44,13 @@ export const updPrep = async (prevDocs: IStoreMeta[], tstamp: number, fire: Fire
         updates[FIELD.effect] = effect;         // set the effective-date for the existing row
         stamp = effect;                         // set the date-boundary
       } else {
-        updates[FIELD.expire] = effect;         // set the expiry-date the existing row
+        updates[FIELD.expire] = tstamp;         // set the expiry-date the existing row
+        // stamp = effect;
       }
 
       return updates;
     })
   )
 
-  return { updates, stamp };                     // include the tstamp, in case it was changed
+  return { updates, stamp };                    // include the tstamp, in case it was changed
 }
