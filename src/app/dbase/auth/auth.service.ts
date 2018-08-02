@@ -6,7 +6,7 @@ import { map } from 'rxjs/operators';
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { AuthModule } from '@dbase/auth/auth.module';
-import { getAuthProvider } from '@dbase/auth/auth.library';
+import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
@@ -26,7 +26,7 @@ export class AuthService {
 
   get isAuth() {
     return this.auth$.pipe(
-      map(auth => !isNull(auth.userInfo))
+      map(auth => isActive(auth))
     )
   }
 

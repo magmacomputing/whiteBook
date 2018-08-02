@@ -4,6 +4,7 @@ import { AuthProvider, AuthCredential } from '@firebase/auth-types';
 import { JWT } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { TProvider } from '@dbase/data/data.schema';
+
 import { IObject, isNull } from '@lib/object.library';
 import { getStamp } from '@lib/date.library';
 
@@ -58,10 +59,10 @@ export const isActive = (auth: IAuthState) => {
 	switch (true) {
 		case isNull(auth.userInfo):
 		case isNull(auth.userToken):
-		case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+		// case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
 			return false;													// not authenticated
 
 		default:
-			return true;													// authenticated User
+			return true;													// Auth State still valid
 	}
 }
