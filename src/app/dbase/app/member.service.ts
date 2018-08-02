@@ -8,6 +8,7 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
+import { isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
@@ -16,10 +17,11 @@ export class MemberService {
 
 	constructor(private readonly data: DataService, private readonly store: Store) { this.dbg('new') }
 
-	setPlan(plan: TPlan, amount: number, exist: boolean) {
+	async setPlan(plan: TPlan, amount: number) {
 		const doc: IStoreBase[] = [{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan];
+		const account = await this.data.snap(STORE.account)
 
-		if (!exist)
+		if (isEmpty(account))											// need to create initial Account document
 			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, stamp: getStamp() } as IAccount)
 
 		this.dbg('plan: %j', doc);

@@ -9,9 +9,8 @@ export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = [])
 				.every(clause => {																		//	and return only rows that match every clause
 					const key = row[clause.fieldPath as string];
 					const field = isString(key) ? key.toLowerCase() : key;
-					const values = asArray(clause.value);
 
-					return values.map(value => {												// each value logically OR-ed to see if at-least one match
+					return asArray(clause.value).map(value => {					// each value logically OR-ed to see if at-least one match
 						const compare = isString(value) ? value.toLowerCase() : value;
 
 						switch (clause.opStr) {														// standard firestore query-operators, and '!='

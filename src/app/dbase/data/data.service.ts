@@ -71,8 +71,8 @@ export class DataService {
 
   /** Expire any previous docs, and Insert new doc */
   insDoc(nextDocs: IStoreBase | IStoreBase[]) {
-    const inserts: IStoreBase[] = [];               // need a base Store document
-    const updates: IStoreMeta[] = [];               // 
+    const creates: IStoreBase[] = [];               // need a base Store document
+    const updates: IStoreMeta[] = [];               // need only basic meta-data
     const deletes: IMeta[] = [];                    // only need the _id
     const auth = this.auth.state();                 // get the current User's uid
 
@@ -82,16 +82,19 @@ export class DataService {
         .catch(err => { this.snack.open(err.message) });
       if (!where) return;
 
-      const prevDocs = await this.snap(nextDoc[FIELD.store]) // read the store
-        .then(table => asAt(table, where, tstamp))           // find where to insert new doc (generally max one-prevDoc expected)
-        .then(table => updPrep(table, tstamp, this.fire))    // prepare the updates to effect/expire
-      this.dbg('updates: %j', updates)
+      const prevDocs = await this.snap(nextDoc[FIELD.store])// read the store
+        .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally max one-prevDoc expected)
+        .then(table => updPrep(table, tstamp, this.fire))   // prepare the updates to effect/expire
+
+      if (prevDocs.updates.length && prevDocs.stamp !== tstamp)
+        nextDoc[FIELD.effect] = tstamp;                     // if the updPrep changed the effective-date
+      this.dbg('updates: %j', updates);
       this.dbg('insDoc: %j', nextDoc);
-      inserts.push(nextDoc);
-      updates.push(...prevDocs.map(prevDoc => prevDoc.updates));
+      creates.push(nextDoc);
+      updates.push(...prevDocs.updates);
     })
 
-    return Promise.all(promises)
-      .then(_ => this.fire.batch(inserts, updates, deletes))
+    return Promise.all(promises)                           // collect all the Creates/Updates/Deletes
+      .then(_ => this.fire.batch(creates, updates, deletes))  // then batch write
   }
 }

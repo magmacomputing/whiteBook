@@ -30,28 +30,26 @@ export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
 }
 
 /** Expire any previous docs */
-export const updPrep = (prevDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
-  return Promise.all(
-    prevDocs.map(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
+export const updPrep = async (prevDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
+  let stamp = tstamp;                           // stash the tstamp
+  const updates = await Promise.all(
+    prevDocs.map(async prevDoc => { // loop through existing-docs first, to determine effect/expire range
       const collection = getSlice(prevDoc[FIELD.store]);
       const prevId = prevDoc[FIELD.id];
       const updates: IStoreMeta = prevDoc;
-      let effect = prevDoc[FIELD.effect] || 0;
-
-      if (!effect) {                                // the _create field is currently only available from the server
-        const meta = await fire.getMeta(collection, prevId);
-        effect = meta[FIELD.create];
-      }
+      let effect = prevDoc[FIELD.effect]        // the _create field is currently only available from the server
+        || (await fire.getMeta(collection, prevId))[FIELD.create];
 
       if (tstamp < effect) {
-        updates[FIELD.effect] = effect;             // set the effective-date for the existing row
-        tstamp = effect;                            // set the date-boundary
+        updates[FIELD.effect] = effect;         // set the effective-date for the existing row
+        stamp = effect;                         // set the date-boundary
       } else {
-        updates[FIELD.expire] = effect;             // set the expiry-date the existing row
+        updates[FIELD.expire] = effect;         // set the expiry-date the existing row
       }
 
-      console.log('updDoc: ', updates);
-      return { updates, tstamp }
+      return updates;
     })
   )
+
+  return { updates, stamp };                     // include the tstamp, in case it was changed
 }

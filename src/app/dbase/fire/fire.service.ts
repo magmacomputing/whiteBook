@@ -49,11 +49,11 @@ export class FireService {
 		return doc;
 	}
 
-	/** Batch a set of changes */
-	batch(inserts: any = [], updates: any = [], deletes: any = []) {
+	/** Batch a set of database-writes */
+	batch(creates: any = [], updates: any = [], deletes: any = []) {
 		const bat = this.af.firestore.batch();
 
-		asArray(inserts).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
+		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
 
