@@ -42,7 +42,7 @@ export const updPrep = async (prevDocs: IStoreMeta[], tstamp: number, fire: Fire
 
       if (tstamp < effect) {
         updates[FIELD.effect] = effect;         // set the effective-date for the existing row
-        stamp = effect;                         // set the date-boundary
+        stamp = -effect;                        // set the date-boundary
       } else {
         updates[FIELD.expire] = tstamp;         // set the expiry-date the existing row
         // stamp = effect;

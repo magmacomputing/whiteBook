@@ -86,8 +86,14 @@ export class DataService {
         .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally max one-prevDoc expected)
         .then(table => updPrep(table, tstamp, this.fire))   // prepare the updates to effect/expire
 
-      if (prevDocs.updates.length)
-        nextDoc[FIELD.effect] = prevDocs.stamp;             // if the updPrep changed the effective-date
+      if (prevDocs.updates.length) {
+        if (prevDocs.stamp > 0)
+          nextDoc[FIELD.effect] = prevDocs.stamp;           // if the updPrep changed the effective-date
+        else {
+          delete nextDoc[FIELD.effect];                     // make this open
+          nextDoc[FIELD.expire] = -prevDocs.stamp;          // 
+        }
+      }
       this.dbg('updates: %j', updates);
       this.dbg('insDoc: %j', nextDoc);
       creates.push(nextDoc);
