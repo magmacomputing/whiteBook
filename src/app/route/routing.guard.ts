@@ -43,7 +43,7 @@ export class ProfileGuard implements CanActivate {
   constructor(private store: Store) { this.dbg('new') }
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const where: IWhere = { fieldPath: FIELD.type, opStr: '==', value: 'plan' };
+    const where: IWhere = { fieldPath: FIELD.type, value: 'plan' };
     return getStore(this.member$, STORE.profile, where).pipe(
       map(plan => {
         if (isArray(plan) && plan.length) return true;// ok to access Route

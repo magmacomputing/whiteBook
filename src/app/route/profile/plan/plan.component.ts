@@ -31,7 +31,7 @@ export class PlanComponent implements OnInit {
   ngOnInit() { }
 
   get profile$() {                // get the Member's current Plan
-    const filter: IWhere = { fieldPath: FIELD.type, opStr: '==', value: 'plan' }
+    const filter: IWhere = { fieldPath: FIELD.type, value: 'plan' }
     return getStore(this.member$, STORE.profile, filter);
   }
 
@@ -41,8 +41,8 @@ export class PlanComponent implements OnInit {
 
   getPrice(plan: string) {
     const filter: IWhere[] = [
-      { fieldPath: FIELD.key, opStr: '==', value: plan },
-      { fieldPath: FIELD.type, opStr: '==', value: 'topUp' },
+      { fieldPath: FIELD.key, value: plan },
+      { fieldPath: FIELD.type, value: 'topUp' },
     ]
     return getStore(this.client$, STORE.price, filter);
   }

@@ -13,7 +13,7 @@ export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = [])
 					return asArray(clause.value).map(value => {					// each value logically OR-ed to see if at-least one match
 						const compare = isString(value) ? value.toLowerCase() : value;
 
-						switch (clause.opStr) {														// standard firestore query-operators, and '!='
+						switch (clause.opStr || '==') {										// standard firestore query-operators, and '!='
 							case '==':
 								return isUndefined(field)
 									? !compare																	// if field not present, compare to 'falsy'

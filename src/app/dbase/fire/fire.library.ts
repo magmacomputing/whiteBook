@@ -9,7 +9,7 @@ export const fnQuery = (query: IQuery = {}) => {
 	return (colRef: Query) => {															// return a Query-function
 		if (query.where)
 			asArray<IWhere>(query.where)
-				.forEach(qry => colRef = colRef.where(qry.fieldPath, qry.opStr as WhereFilterOp, qry.value));
+				.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as WhereFilterOp, qry.value));
 
 		if (query.orderBy)
 			asArray(query.orderBy)

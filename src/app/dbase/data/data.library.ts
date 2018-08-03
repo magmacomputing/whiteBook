@@ -22,7 +22,7 @@ export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
 
   filter.forEach(field => {
     if (newDoc[field])                          // if that field exists in the doc, add it to the filter
-      where.push({ fieldPath: field, opStr: '==', value: newDoc[field] })
+      where.push({ fieldPath: field, value: newDoc[field] })
     else throw new Error(`missing required field: ${field}`)
   })
 

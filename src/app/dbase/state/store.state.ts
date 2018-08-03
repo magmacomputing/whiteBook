@@ -20,8 +20,8 @@ export const getStore = <T>(obs$: Observable<ISelector>, store: string, filter: 
 /** a memoized function that searches a Store for current documents */
 export function currStore(state: IStoreState, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) {
 	const filters = asArray(filter);
-	filters.push({ fieldPath: FIELD.expire, opStr: '==', value: 0 });
-	filters.push({ fieldPath: FIELD.hidden, opStr: '==', value: 0 });
+	filters.push({ fieldPath: FIELD.expire, value: 0 });
+	filters.push({ fieldPath: FIELD.hidden, value: 0 });
 
 	return state
 		? filterTable<IStoreDoc>(state[store], filters)

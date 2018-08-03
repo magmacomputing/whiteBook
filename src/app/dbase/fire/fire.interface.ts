@@ -3,7 +3,7 @@ import { WhereFilterOp, FieldPath } from '@firebase/firestore-types';
 /** Query.where */
 export interface IWhere {
 	fieldPath: string | FieldPath;
-	opStr: WhereFilterOp | '!=';				// this is a *special* to allow additional operator (do not pass to Firestore!)
+	opStr?: WhereFilterOp | '!=';				// this is a *special* to allow additional operator (do not use on Firestore database!)
 	value: any | any[];
 }
 /** Query.orderBy */

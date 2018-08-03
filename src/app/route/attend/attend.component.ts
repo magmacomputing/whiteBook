@@ -44,7 +44,7 @@ export class AttendComponent implements OnInit {
 
   get schedule$() {
     const day = fmtDate(this.date).weekDay;
-    const where: IWhere = { fieldPath: 'day', opStr: '==', value: day };
+    const where: IWhere = { fieldPath: 'day', value: day };
 
     return getStore(this.client$, STORE.schedule).pipe(
       map(table => asAt(table, where, this.date)),
@@ -56,7 +56,7 @@ export class AttendComponent implements OnInit {
     return this.schedule$.pipe(
       map((table: ISchedule[]) => table.map(row => row.location)),
       distinct(),
-      switchMap(locs => getStore(this.client$, STORE.location, { fieldPath: FIELD.key, opStr: '==', value: locs })),
+      switchMap(locs => getStore(this.client$, STORE.location, { fieldPath: FIELD.key, value: locs })),
       tap((locs: ILocation[]) => this.locations = locs)
     )
   }

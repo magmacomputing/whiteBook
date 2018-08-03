@@ -120,7 +120,7 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		const query: IQuery = { where: { fieldPath: FIELD.key, opStr: '==', value: user.uid } };
+		const query: IQuery = { where: { fieldPath: FIELD.key, value: user.uid } };
 
 		// TODO:  add in customClaims/[allow]
 		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
