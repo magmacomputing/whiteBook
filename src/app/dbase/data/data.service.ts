@@ -7,7 +7,7 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, IStoreBase, IMeta } from '@dbase/data/data.schema';
-import { insPrep, updPrep, getSlice } from '@dbase/data/data.library';
+import { getWhere, updPrep, getSlice } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -78,7 +78,7 @@ export class DataService {
 
     const promises = asArray(nextDocs).map(async nextDoc => {
       let tstamp = nextDoc[FIELD.effect] || getStamp();      // the position in the date-range to Insert
-      const where: IWhere[] | void = await insPrep(nextDoc as IStoreMeta, auth)
+      const where: IWhere[] | void = await getWhere(nextDoc as IStoreMeta, auth)
         .catch(err => { this.snack.open(err.message) });
       if (!where) return;
 

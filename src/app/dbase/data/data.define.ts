@@ -36,8 +36,8 @@ export const enum FIELD {					// common Field names
 	update = '_update',							// date-time modified
 	create = '_create',							// date-time created
 	access = '_access',							// date-time accessed
-	hidden = '_hidden',							// valid, but not displayed to Member
-	disable = '_disable',						// displayed, but greyed to Member
+	hidden = '_hidden',							// valid, but not displayed to User
+	disable = '_disable',						// displayed, but greyed to User
 	id = '_id',
 	store = 'store',
 	type = 'type',

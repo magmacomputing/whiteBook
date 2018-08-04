@@ -10,15 +10,13 @@ export const getSlice = (store: string) => {       // determine the slice based 
 }
 
 /** prepare a where-clause to use when identifying existing documents that will clash with newDoc */
-export const insPrep = async (newDoc: IStoreMeta, auth: IAuthState) => {
+export const getWhere = async (newDoc: IStoreMeta, auth: IAuthState) => {
   const where: IWhere[] = [];
   const collection = getSlice(newDoc[FIELD.store]);
   const filter = FILTER[collection] || [];				// get the standard list of fields on which to filter
 
-  if (!newDoc[FIELD.key] && filter.includes(FIELD.key)) {
-    if (auth.userInfo)
-      newDoc[FIELD.key] = auth.userInfo.uid;      // ensure uid is included on doc
-  }
+  if (!newDoc[FIELD.key] && auth && auth.userInfo)
+    newDoc[FIELD.key] = auth.userInfo.uid;        // ensure uid is included on doc
 
   filter.forEach(field => {
     if (newDoc[field])                          // if that field exists in the doc, add it to the filter
