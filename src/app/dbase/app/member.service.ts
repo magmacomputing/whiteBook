@@ -21,7 +21,6 @@ export class MemberService {
 		const doc: IStoreBase[] = [{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan];
 		const account = await this.data.snap(STORE.account)
 
-		this.dbg('account: %j', account);
 		if (isUndefined(account))											// need to create initial Account document
 			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, stamp: getStamp() } as IAccount)
 
