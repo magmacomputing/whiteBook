@@ -27,26 +27,34 @@ export const getWhere = async (newDoc: IStoreMeta, auth: IAuthState) => {
   return where;
 }
 
-/** Expire any previous docs */
-export const updPrep = async (prevDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
+/** Expire current docs */
+export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
   let stamp = tstamp;                           // stash the tstamp
   const updates = await Promise.all(
-    prevDocs.map(async prevDoc => {             // loop through existing-docs first, to determine effect/expire range
-      const collection = getSlice(prevDoc[FIELD.store]);
-      const prevId = prevDoc[FIELD.id];
-      const updates: IStoreMeta = prevDoc;
-      let effect = prevDoc[FIELD.effect]        // the _create field is currently only available from the server
-        || (await fire.getMeta(collection, prevId))[FIELD.create];
+    currDocs.map(async currDoc => {             // loop through existing-docs first, to determine currEffect/currExpire range
+      const currExpire = currDoc[FIELD.expire];
+      const currEffect = currDoc[FIELD.effect] || (await fire.getMeta(
+        getSlice(currDoc[FIELD.store]),         // _create is available from server
+        currDoc[FIELD.id]
+      ))[FIELD.create] || Number.MIN_SAFE_INTEGER
 
-      if (tstamp < effect) {
-        updates[FIELD.effect] = effect;         // set the effective-date for the existing row
-        stamp = -effect;                        // set the date-boundary
-      } else {
-        updates[FIELD.expire] = tstamp;         // set the expiry-date the existing row
-        // stamp = effect;
+      switch (true) {
+        case tstamp === currEffect:             // anomoly, do nothing
+          break;
+
+        case tstamp > currEffect:               // expire current Doc
+          if (currExpire)                       // very rare
+            stamp = -currExpire;                // adjust new Doc's expiry
+          currDoc[FIELD.expire] = tstamp;
+          break;
+
+        case tstamp < currEffect:               // back-date a Document
+          currDoc[FIELD.effect] = currEffect;   // ensure current Doc is effective
+          stamp = -currEffect;                  // adjust new Doc's expiry
+          break;
       }
 
-      return updates;
+      return currDoc;
     })
   )
 

@@ -20,13 +20,13 @@ import { getSlice } from '@dbase/data/data.library';
 export class FireService {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private readonly af: AngularFirestore, private readonly fn: AngularFireFunctions) {
+	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions) {
 		this.dbg('new');
 	}
 
 	/** Collection Reference, with option query */
 	colRef(store: string, query?: IQuery) {
-		return this.af.collection(store, fnQuery(query));
+		return this.afs.collection(store, fnQuery(query));
 	}
 
 	/** Document Reference, for existing or new */
@@ -34,13 +34,13 @@ export class FireService {
 		const slice = getSlice(store);
 
 		return isUndefined(docId)
-			? this.af.firestore.collection(slice).doc()
-			: this.af.firestore.collection(slice).doc(docId)
+			? this.afs.firestore.collection(slice).doc()
+			: this.afs.firestore.collection(slice).doc(docId)
 	}
 
 	/** allocate a new meta-field _id */
 	newId() {
-		return this.af.createId();
+		return this.afs.createId();
 	}
 
 	/** Remove the meta-field _id */
@@ -51,7 +51,7 @@ export class FireService {
 
 	/** Batch a set of database-writes */
 	batch(creates: any = [], updates: any = [], deletes: any = []) {
-		const bat = this.af.firestore.batch();
+		const bat = this.afs.firestore.batch();
 
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
@@ -64,7 +64,7 @@ export class FireService {
 		const docId: string = doc[FIELD.id] || this.newId();
 
 		delete doc[FIELD.id];											// remove the meta-field from the document
-		return this.af.firestore
+		return this.afs.firestore
 			.collection(store)
 			.doc(docId)
 			.set(doc)
@@ -72,14 +72,14 @@ export class FireService {
 
 	updDoc(store: string, docId: string, data: IObject<any>) {
 		delete data[FIELD.id];
-		return this.af.firestore
+		return this.afs.firestore
 			.collection(store)
 			.doc(docId)
 			.update(data)
 	}
 
 	getDoc(store: string, docId: string) {
-		return this.af.firestore
+		return this.afs.firestore
 			.collection(store)
 			.doc(docId)
 			.get()
@@ -88,13 +88,13 @@ export class FireService {
 	getMeta(store: string, docId: string): Promise<{
 		exists: boolean;
 		[FIELD.id]: string;
-		[FIELD.create]: number;
+		[FIELD.create]: number | undefined;
 		[FIELD.update]: number | undefined;
 		[FIELD.access]: number | undefined;
 		subcollections: string[];
 		path: string;
 	}> {
-		const readMeta = this.fn.httpsCallable('readMeta');
+		const readMeta = this.aff.httpsCallable('readMeta');
 
 		return readMeta({ collection: store, [FIELD.id]: docId })
 			.toPromise()

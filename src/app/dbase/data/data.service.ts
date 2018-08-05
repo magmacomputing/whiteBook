@@ -82,22 +82,19 @@ export class DataService {
         .catch(err => { this.snack.open(err.message) });
       if (!where) return;
 
-      const prevDocs = await this.snap(nextDoc[FIELD.store])// read the store
+      const currDocs = await this.snap(nextDoc[FIELD.store])// read the store
         .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally max one-prevDoc expected)
         .then(table => updPrep(table, tstamp, this.fire))   // prepare the updates to effect/expire
 
-      if (prevDocs.updates.length) {
-        if (prevDocs.stamp > 0)
-          nextDoc[FIELD.effect] = prevDocs.stamp;           // if the updPrep changed the effective-date
-        else {
-          delete nextDoc[FIELD.effect];                     // make this open
-          nextDoc[FIELD.expire] = -prevDocs.stamp;          // 
-        }
+      if (currDocs.updates.length) {
+        if (currDocs.stamp > 0)
+          nextDoc[FIELD.effect] = currDocs.stamp;           // if the updPrep changed the effective-date
+        else nextDoc[FIELD.expire] = -currDocs.stamp;       // 
       }
       this.dbg('updates: %j', updates);
       this.dbg('insDoc: %j', nextDoc);
       creates.push(nextDoc);
-      updates.push(...prevDocs.updates);
+      updates.push(...currDocs.updates);
     })
 
     return Promise.all(promises)                           // collect all the Creates/Updates/Deletes
