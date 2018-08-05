@@ -39,7 +39,7 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
       ))[FIELD.create] || Number.MIN_SAFE_INTEGER
 
       switch (true) {
-        case tstamp === currEffect:             // anomoly, do nothing
+        case tstamp === currEffect:             // anomaly; do nothing
           break;
 
         case tstamp > currEffect:               // expire current Doc
