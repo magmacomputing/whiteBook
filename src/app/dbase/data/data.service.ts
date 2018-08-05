@@ -92,7 +92,7 @@ export class DataService {
         else nextDoc[FIELD.expire] = -currDocs.stamp;       // 
       }
       this.dbg('updates: %j', updates);
-      this.dbg('insDoc: %j', nextDoc);
+      this.dbg('creates: %j', nextDoc);
       creates.push(nextDoc);
       updates.push(...currDocs.updates);
     })
