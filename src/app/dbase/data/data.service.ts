@@ -91,12 +91,12 @@ export class DataService {
           nextDoc[FIELD.effect] = currDocs.stamp;           // if the updPrep changed the effective-date
         else nextDoc[FIELD.expire] = -currDocs.stamp;       // 
       }
-      this.dbg('updates: %j', updates);
-      this.dbg('creates: %j', nextDoc);
       creates.push(nextDoc);
       updates.push(...currDocs.updates);
     })
 
+    this.dbg('updates: %j', updates);
+    this.dbg('creates: %j', creates);
     return Promise.all(promises)                           // collect all the Creates/Updates/Deletes
       .then(_ => this.fire.batch(creates, updates, deletes))  // then batch write
   }
