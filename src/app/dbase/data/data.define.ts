@@ -26,6 +26,7 @@ export const enum STORE {
 	price = 'price',
 	plan = 'plan',
 	schedule = 'schedule',
+	calendar = 'calendar',
 	location = 'location',
 	instructor = 'instructor',
 }
