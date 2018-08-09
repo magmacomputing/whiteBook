@@ -26,12 +26,10 @@ import { ROUTE } from '@route/route.define';
 export class SyncService {
   private dbg: Function = dbg.bind(this);
   private listener: IObject<IListen>;
-  private localStore: IObject<any>;
 
   constructor(private fire: FireService, private store: Store) {
     this.dbg('new');
     this.listener = {};
-    this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
   }
 
   /** establish a listener to a remote Collection, and sync to an NGXS Slice */
@@ -109,7 +107,8 @@ export class SyncService {
     }
 
     if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
-      const localStore = this.localStore[listen.slice] || {};
+      const localStorage = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
+      const localStore = localStorage[listen.slice] || {};
       const localList: IStoreDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 
@@ -118,11 +117,6 @@ export class SyncService {
         cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
         cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
       ])
-
-      if (listen.slice === SLICE.member) {
-        this.dbg('local: %s, %j', localHash, localList.sort(sortKeys(FIELD.store, FIELD.id)));
-        this.dbg('snap: %s, %j', storeHash, snapList.sort(sortKeys(FIELD.store, FIELD.id)));
-      }
 
       listen.ready.resolve(true);                     // indicate snap0 is ready
       if (localHash === storeHash)                    // compare what is in snap0 with localStorage
