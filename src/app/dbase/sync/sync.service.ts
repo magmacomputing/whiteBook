@@ -9,7 +9,7 @@ import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { LoginToken } from '@dbase/state/auth.define';
+import { LoginToken, Logout } from '@dbase/state/auth.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -19,6 +19,8 @@ import { isFunction, sortKeys, IObject } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
+import { Navigate } from '@ngxs/router-plugin';
+import { ROUTE } from '@route/route.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -116,7 +118,7 @@ export class SyncService {
         cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
         cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
       ])
-      
+
       if (listen.slice === SLICE.member) {
         this.dbg('local: %s, %j', localHash, localList.sort(sortKeys(FIELD.store, FIELD.id)));
         this.dbg('snap: %s, %j', storeHash, snapList.sort(sortKeys(FIELD.store, FIELD.id)));
@@ -142,6 +144,8 @@ export class SyncService {
 
         case 'removed':
           this.store.dispatch(new delStore(data));
+          if (data.store === STORE.profile && data.type === 'plan' && !data[FIELD.expire])
+            this.store.dispatch(new Navigate([ROUTE.plan])); // special: current-plan has been deleted
           break;
       }
     })

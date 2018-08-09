@@ -14,6 +14,7 @@ import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, IObject, asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { Observable } from 'rxjs';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -107,14 +108,12 @@ export class FireService {
 		setTimeout(() => {                                    // if no response in one-second, show the snackbar
 			if (snack) {
 				this.zone.run(_ =>																// wrap snackbar in Angular Zone
-					this.snack.open(`checking ${store}`, undefined, { verticalPosition: 'bottom' }))
+					this.snack.open(`checking ${store}`))						// let the User know there is a delay
 			}
 		}, 1000);
 
 		return readMeta({ collection: store, [FIELD.id]: docId })
-			.pipe(
-				tap(_ => { snack = false; this.snack.dismiss(); })
-			)
+			.pipe(tap(_ => { snack = false; this.snack.dismiss(); }))
 			.toPromise()
 	}
 }
