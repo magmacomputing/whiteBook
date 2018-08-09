@@ -1,16 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
+import { MatSnackBar } from '@angular/material';
+import { tap } from 'rxjs/operators';
+
 import { AngularFirestore } from 'angularfire2/firestore';
 import { AngularFireFunctions } from 'angularfire2/functions';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
-import { IMeta } from '@dbase/data/data.schema';
+import { getSlice } from '@dbase/data/data.library';
+import { IMeta, IStoreBase } from '@dbase/data/data.schema';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, IObject, asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { getSlice } from '@dbase/data/data.library';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -20,7 +23,8 @@ import { getSlice } from '@dbase/data/data.library';
 export class FireService {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions) {
+	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
+		private zone: NgZone, private snack: MatSnackBar) {
 		this.dbg('new');
 	}
 
@@ -50,9 +54,12 @@ export class FireService {
 	}
 
 	/** Batch a set of database-writes */
-	batch(creates: any = [], updates: any = [], deletes: any = []) {
+	batch(creates: IStoreBase[] = [], updates: IStoreBase[] = [], deletes: IStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
+		if (creates.length) this.dbg('creates: %j', creates);
+		if (updates.length) this.dbg('updates: %j', updates);
+		if (deletes.length) this.dbg('deletes: %j', deletes);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
@@ -95,8 +102,19 @@ export class FireService {
 		path: string;
 	}> {
 		const readMeta = this.aff.httpsCallable('readMeta');
+		let snack = true;
+
+		setTimeout(() => {                                    // if no response in one-second, show the snackbar
+			if (snack) {
+				this.zone.run(_ =>																// wrap snackbar in Angular Zone
+					this.snack.open(`checking ${store}`, undefined, { verticalPosition: 'bottom' }))
+			}
+		}, 1000);
 
 		return readMeta({ collection: store, [FIELD.id]: docId })
+			.pipe(
+				tap(_ => { snack = false; this.snack.dismiss(); })
+			)
 			.toPromise()
 	}
 }

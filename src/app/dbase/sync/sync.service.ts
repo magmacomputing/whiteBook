@@ -116,6 +116,11 @@ export class SyncService {
         cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
         cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
       ])
+      
+      if (listen.slice === SLICE.member) {
+        this.dbg('local: %s, %j', localHash, localList.sort(sortKeys(FIELD.store, FIELD.id)));
+        this.dbg('snap: %s, %j', storeHash, snapList.sort(sortKeys(FIELD.store, FIELD.id)));
+      }
 
       listen.ready.resolve(true);                     // indicate snap0 is ready
       if (localHash === storeHash)                    // compare what is in snap0 with localStorage

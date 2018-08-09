@@ -8,7 +8,7 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
-import { isUndefined } from '@lib/object.library';
+import { isUndefined, isArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
@@ -21,7 +21,7 @@ export class MemberService {
 		const doc: IStoreBase[] = [{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan];
 		const account = await this.data.snap(STORE.account)
 
-		if (isUndefined(account))											// need to create initial Account document
+		if (isUndefined(account) || (isArray(account) && account.length === 0)) // need to create initial Account document
 			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, stamp: getStamp() } as IAccount)
 
 		this.dbg('plan: %j', doc);

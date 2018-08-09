@@ -71,10 +71,10 @@ export class DataService {
 
   /** Expire any previous docs, and Insert new doc */
   insDoc(nextDocs: IStoreBase | IStoreBase[]) {
-    const creates: IStoreBase[] = [];               // need a base Store document
-    const updates: IStoreMeta[] = [];               // need only basic meta-data
-    const deletes: IMeta[] = [];                    // only need the _id
-    const auth = this.auth.state();                 // get the current User's uid
+    const creates: IStoreBase[] = [];
+    const updates: IStoreBase[] = [];
+    const deletes: IStoreBase[] = [];
+    const auth = this.auth.state();                         // get the current User's uid
 
     const promises = asArray(nextDocs).map(async nextDoc => {
       let tstamp = nextDoc[FIELD.effect] || getStamp();      // the position in the date-range to Insert
@@ -95,8 +95,6 @@ export class DataService {
       updates.push(...currDocs.updates);
     })
 
-    this.dbg('updates: %j', updates);
-    this.dbg('creates: %j', creates);
     return Promise.all(promises)                           // collect all the Creates/Updates/Deletes
       .then(_ => this.fire.batch(creates, updates, deletes))  // then batch write
   }
