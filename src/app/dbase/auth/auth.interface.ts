@@ -22,9 +22,10 @@ export interface IUserInfo {			// borrowed from firebase-admin/auth
 	providerId: string;
 }
 
+type TRole = 'admin' | 'member' | 'guest';
 export interface ICustomClaims {	// a special sub-set of fields from the User Token
 	claims: {
-		roles?: string[];
+		roles?: TRole[];
 		memberName?: string;
 		memberAllow?: string[];
 		memberDeny?: string[];

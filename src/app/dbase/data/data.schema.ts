@@ -9,7 +9,7 @@ export type TStore = TStoreClient | TStoreMember;
 
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold';
-type TProfile = 'plan' | 'claims' | 'account';
+type TProfile = 'plan' | 'claims' | 'account' | 'user';
 type TSchedule = 'event' | 'class' | 'special';
 type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
