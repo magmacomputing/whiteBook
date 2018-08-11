@@ -12,7 +12,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
-import { asAt } from '@dbase/app/member.library';
+import { asAt } from '@dbase/app/app.library';
 
 import { getStamp } from '@lib/date.library';
 import { IObject, asArray } from '@lib/object.library';
