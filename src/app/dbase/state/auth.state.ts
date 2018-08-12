@@ -134,7 +134,7 @@ export class AuthState implements NgxsOnInit {
 		this.snack.dismiss();
 		if (this.afAuth.auth.currentUser) {
 			(this.afAuth.auth.currentUser as User).getIdTokenResult()
-				.then(tokenResult => ctx.patchState({ userInfo: user, userToken: tokenResult }))
+				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
 				.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
 		}
 	}
@@ -142,7 +142,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginToken)															// fetch latest IdToken
 	setToken(ctx: StateContext<IAuthState>) {
 		(this.afAuth.auth.currentUser as User).getIdTokenResult(true)
-			.then(tokenResult => ctx.patchState({ userToken: tokenResult }))
+			.then(userToken => ctx.patchState({ userToken }))
 			.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
 	}
 
