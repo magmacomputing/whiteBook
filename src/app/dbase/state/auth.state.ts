@@ -135,7 +135,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			(this.afAuth.auth.currentUser as User).getIdTokenResult()
 				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
-				.then(_ => this.dbg('claims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
+				.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
 		}
 	}
 
