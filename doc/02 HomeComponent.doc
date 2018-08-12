@@ -1,8 +1,0 @@
-Route: /home
-
-
-<html>
-welcome Page
-show links, videos, etc.
-prompt for sign-in (link to /login)
-</html>
