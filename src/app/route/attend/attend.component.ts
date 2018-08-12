@@ -8,7 +8,7 @@ import { ClientState } from '@dbase/state/client.state';
 import { getStore } from '@dbase/state/store.state';
 
 import { MemberService } from '@dbase/app/member.service';
-import { asAt } from '@dbase/app/member.library';
+import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { ISchedule, ILocation } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
