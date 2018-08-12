@@ -192,6 +192,15 @@ export interface IAccount extends IStoreBase {
 }
 
 // /attend
-export interface IAttend extends IStoreBase {
-	[FIELD.store]: 'attend';
+export interface IAttend extends IMeta {
+	[FIELD.store]: string;
+	stamp: number;
+	class: string;
+	cost: number;
+	account: string;
+	track?: {
+		day: number;
+		week: number;
+		month: number;
+	}
 }

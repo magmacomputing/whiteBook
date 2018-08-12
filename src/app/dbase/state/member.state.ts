@@ -4,8 +4,7 @@ import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 import { currStore } from '@dbase/state/store.state';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
-import { sortKeys } from '@lib/object.library';
+import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState>({
