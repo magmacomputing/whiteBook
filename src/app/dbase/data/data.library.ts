@@ -7,19 +7,20 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
 
-export const getSlice = (store: string) => {       // determine the slice based on the 'store' field
+export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
   return Object.keys(STORES)
-    .filter(col => STORES[col].includes(store))[0];
-}
+    .filter(col => STORES[col].includes(store))[0]
+    || 'attend'                                 // TODO: is it safe to assume <attend> if unknown 'store'?
+ }
 
 /** prepare a where-clause to use when identifying existing documents that will clash with newDoc */
 export const getWhere = async (newDoc: IStoreMeta, auth: IAuthState) => {
   const where: IWhere[] = [];
   const collection = getSlice(newDoc[FIELD.store]);
-  const filter = FILTER[collection] || [];				// get the standard list of fields on which to filter
+  const filter = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
   if (!newDoc[FIELD.key] && auth && auth.userInfo)
-    newDoc[FIELD.key] = auth.userInfo.uid;        // ensure uid is included on doc
+    newDoc[FIELD.key] = auth.userInfo.uid;      // ensure uid is included on doc
 
   filter.forEach(field => {
     if (newDoc[field])                          // if that field exists in the doc, add it to the filter

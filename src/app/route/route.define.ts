@@ -3,5 +3,6 @@ export enum ROUTE {
 	status = '/status',
 	profile = '/profile',
 	plan = '/profile/plan',
+	account = '/profile/account',
 	attend = '/attend',
 }

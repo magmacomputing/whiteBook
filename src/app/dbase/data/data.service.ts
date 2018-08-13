@@ -27,7 +27,7 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
   private dbg: Function = dbg.bind(this);
-  public snapshot: IObject<Promise<IStoreMeta[]>> = {};
+  // public snapshot: IObject<Promise<IStoreMeta[]>> = {};
 
   constructor(private fire: FireService, private sync: SyncService, private auth: AuthService, private store: Store, private snack: MatSnackBar) {
     this.dbg('new');
@@ -35,10 +35,10 @@ export class DataService {
   }
 
   /** Make Store data available in a Promise */
-  snap(store: string) {
+  snap<T>(store: string) {
     const slice = getSlice(store);
-    return this.snapshot[store] = this.store
-      .selectOnce<IStoreMeta[]>(state => state[slice][store])
+    return this.store
+      .selectOnce<T[]>(state => state[slice][store])
       .toPromise()                                   // stash the current snap result
   }
 
@@ -82,7 +82,7 @@ export class DataService {
         .catch(err => { this.snack.open(err.message) });
       if (!where) return;
 
-      const currDocs = await this.snap(nextDoc[FIELD.store])// read the store
+      const currDocs = await this.snap<IStoreMeta>(nextDoc[FIELD.store])// read the store
         .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally max one-prevDoc expected)
         .then(table => updPrep(table, tstamp, this.fire))   // prepare the updates to effect/expire
 

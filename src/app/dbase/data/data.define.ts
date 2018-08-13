@@ -11,9 +11,10 @@ export const enum COLLECTION {			// collection starts with upper-case, document 
 }
 
 export const STORES: { [col: string]: string[] } = {
+	auth: ['userInfo', 'userToken'],
 	client: ['class', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', '_default_', '_config_', '_schema_'],
-	member: ['profile', 'account', 'user'],
-	attend: [],
+	member: ['account', 'profile'],
+	attend: ['attend'],
 }
 
 export const enum STORE {
