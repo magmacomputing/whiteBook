@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material';
+import { MatSnackBar, SELECT_PANEL_VIEWPORT_PADDING } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
 import { IStoreMeta, IStoreBase, IMeta } from '@dbase/data/data.schema';
-import { getWhere, updPrep, getSlice } from '@dbase/data/data.library';
+import { getWhere, updPrep, getSlice, docPrep } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -61,7 +61,8 @@ export class DataService {
     return this.fire.newId();                       // get Firebase to generate a new Key
   }
 
-  setDoc(store: string, doc: IObject<any>) {
+  async setDoc(store: string, doc: IStoreMeta) {
+    doc = await docPrep(doc, this.auth.state());    // make sure we have a <key> field
     return this.fire.setDoc(store, doc);
   }
 

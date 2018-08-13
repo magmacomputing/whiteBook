@@ -6,13 +6,13 @@ import { IUserInfo } from '@dbase/auth/auth.interface';
 
 import { IWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice } from '@dbase/data/data.schema';
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta } from '@dbase/data/data.schema';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { asAt } from '@dbase/app/app.library';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
-import { isUndefined, isArray, asArray } from '@lib/object.library';
+import { isUndefined, asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
@@ -27,11 +27,7 @@ export class MemberService {
 	}
 
 	async setPlan(plan: TPlan, amount: number) {
-		const doc: IStoreBase[] = [{ [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan];
-		const account = await this.data.snap(STORE.account)
-
-		if (isUndefined(account) || (isArray(account) && account.length === 0)) // need to create initial Account document
-			doc.push({ [FIELD.store]: STORE.account, [FIELD.type]: 'topUp', amount, active: true, stamp: getStamp() } as IAccount)
+		const doc: IStoreBase = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
 		this.data.insDoc(doc)
@@ -49,14 +45,13 @@ export class MemberService {
 		const accountDoc: IAccount = {
 			[FIELD.store]: STORE.account,
 			[FIELD.type]: 'topUp',
-			[FIELD.key]: uid,
 			amount: !isUndefined(amount) ? amount : price.amount,
 			active: false,
 			stamp: getStamp(),
 		}
 
 		this.dbg('account: %j', accountDoc);
-		return this.data.setDoc(STORE.account, accountDoc);
+		return this.data.setDoc(STORE.account, accountDoc as IStoreMeta);
 	}
 
 	setAttend(event: IClass, price?: number, date?: number) {
