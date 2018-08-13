@@ -54,14 +54,19 @@ export class MemberService {
 		return this.data.setDoc(STORE.account, accountDoc as IStoreMeta);
 	}
 
-	setAttend(event: IClass, price?: number, date?: number) {
+	async setAttend(event: IClass, price?: number, memberId?: string, date?: number) {
+		const credit = await this.getCredit(memberId);
+		const activeId = credit.active[0][FIELD.id];
+
+		// if (!activeId)
+		// 	 ;											// TODO: mark a row as <active>
+
 		this.dbg('event: %j', event);
 		const attendDoc: IAttend = {
-			[FIELD.store]: 'attend',
+			[FIELD.store]: activeId || '<garbage>',
 			stamp: getStamp(),
 			class: event[FIELD.key],
 			cost: 0,
-			account: '',
 		}
 
 		this.dbg('attend: %j', attendDoc);
@@ -76,7 +81,7 @@ export class MemberService {
 
 	async getCredit(memberId?: string) {
 		const where: IWhere[] = [
-			// { fieldPath: FIELD.type, value: 'topUp' },						// TODO: do we need to qualify just 'topUp' account payments?
+			{ fieldPath: FIELD.type, value: 'topUp' },						// TODO: do we need to qualify just 'topUp' account payments?
 			{ fieldPath: FIELD.key, value: await this.getUserID(memberId) },
 		]
 
@@ -87,19 +92,21 @@ export class MemberService {
 			if (account.approve) sum.pay += account.amount;
 			if (account.active) sum.bank += account.bank || 0;
 			if (!account.approve) sum.pend += account.amount;
+			if (account.active) sum.active.push(account);
 			return sum
-		}, { pay: 0, bank: 0, pend: 0 })											// calculate the Account summary
+		}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] })											// calculate the Account summary
 
 		const activeAccount = accountDocs.filter(account => account.active)[0] || {};
 		const activeId = activeAccount[FIELD.id] || '';
 
 		const attendDocs = await this.data.snap<IAttend>(activeId) || [];
-		const attend = attendDocs.reduce((sum, attend) =>			// get the Attend docs related to the active Account doc
-			sum += attend.cost																	// add up each Attend's cost
-			, 0)
+		attendDocs.reduce((summary, attend) => {			// get the Attend docs related to the active Account doc
+			summary.cost += attend.cost																	// add up each Attend's cost
+			return summary;
+		}, summary)
 
 		this.dbg('summary: %j', summary);
-		this.dbg('attends: %j', attend);
+		return summary;
 	}
 
 	async getPrice(type: string, memberId?: string) {				// type: 'full' | 'half' | 'topUp'

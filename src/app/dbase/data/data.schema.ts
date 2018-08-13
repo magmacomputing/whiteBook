@@ -197,7 +197,6 @@ export interface IAttend extends IMeta {
 	stamp: number;
 	class: string;
 	cost: number;
-	account: string;
 	track?: {
 		day: number;
 		week: number;
