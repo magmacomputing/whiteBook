@@ -14,7 +14,6 @@ import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, IObject, asArray } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { Observable } from 'rxjs';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -55,12 +54,12 @@ export class FireService {
 	}
 
 	/** Batch a set of database-writes */
-	batch(creates: IStoreBase[] = [], updates: IStoreBase[] = [], deletes: IStoreBase[] = []) {
+	batch(creates: IStoreBase | IStoreBase[] = [], updates: IStoreBase | IStoreBase[] = [], deletes: IStoreBase | IStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
-		if (creates.length) this.dbg('creates: %j', creates);
-		if (updates.length) this.dbg('updates: %j', updates);
-		if (deletes.length) this.dbg('deletes: %j', deletes);
+		if (asArray(creates).length) this.dbg('creates: %j', creates);
+		if (asArray(updates).length) this.dbg('updates: %j', updates);
+		if (asArray(deletes).length) this.dbg('deletes: %j', deletes);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
@@ -71,26 +70,17 @@ export class FireService {
 	setDoc(store: string, doc: IObject<any>) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
-		delete doc[FIELD.id];											// remove the meta-field from the document
-		return this.afs.firestore
-			.collection(store)
-			.doc(docId)
-			.set(doc)
+		doc = this.remId(doc);											// remove the meta-field from the document
+		return this.docRef(store, docId).set(doc)
 	}
 
 	updDoc(store: string, docId: string, data: IObject<any>) {
-		delete data[FIELD.id];
-		return this.afs.firestore
-			.collection(store)
-			.doc(docId)
-			.update(data)
+		data = this.remId(data);
+		return this.docRef(store, docId).update(data)
 	}
 
 	getDoc(store: string, docId: string) {
-		return this.afs.firestore
-			.collection(store)
-			.doc(docId)
-			.get()
+		return this.docRef(store, docId).get()
 	}
 
 	getMeta(store: string, docId: string): Promise<{
@@ -102,6 +92,7 @@ export class FireService {
 		subcollections: string[];
 		path: string;
 	}> {
+		const slice = getSlice(store);
 		const readMeta = this.aff.httpsCallable('readMeta');
 		let snack = true;
 
@@ -112,7 +103,7 @@ export class FireService {
 			}
 		}, 1000);
 
-		return readMeta({ collection: store, [FIELD.id]: docId })
+		return readMeta({ collection: slice, [FIELD.id]: docId })
 			.pipe(tap(_ => { snack = false; this.snack.dismiss(); }))
 			.toPromise()
 	}

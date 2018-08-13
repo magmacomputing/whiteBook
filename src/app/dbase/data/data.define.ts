@@ -30,6 +30,8 @@ export const enum STORE {
 	calendar = 'calendar',
 	location = 'location',
 	instructor = 'instructor',
+	default = '_default_',
+	config = '_config_',
 }
 
 export const enum FIELD {					// common Field names

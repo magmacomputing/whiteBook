@@ -89,13 +89,18 @@ export class DataService {
       if (currDocs.updates.length) {
         if (currDocs.stamp > 0)
           nextDoc[FIELD.effect] = currDocs.stamp;           // if the updPrep changed the effective-date
-        else nextDoc[FIELD.expire] = -currDocs.stamp;       // 
+        else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's _expire
       }
       creates.push(nextDoc);
       updates.push(...currDocs.updates);
     })
 
     return Promise.all(promises)                           // collect all the Creates/Updates/Deletes
-      .then(_ => this.fire.batch(creates, updates, deletes))  // then batch write
+      .then(_ => this.batch(creates, updates, deletes))    // then apply writes in a Batch
+  }
+
+  /** Batch a series of writes */
+  batch(creates?: IStoreBase | IStoreBase[], updates?: IStoreBase | IStoreBase[], deletes?: IStoreBase | IStoreBase[]) {
+    return this.fire.batch(creates, updates, deletes);
   }
 }
