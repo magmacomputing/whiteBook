@@ -9,7 +9,7 @@ export type TStore = TStoreClient | TStoreMember;
 
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold';
-type TProfile = 'plan' | 'claims' | 'account' | 'user';
+type TProfile = 'plan' | 'claims' | 'user';
 type TSchedule = 'event' | 'class' | 'special';
 type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
@@ -169,12 +169,16 @@ export interface IProfile extends IStoreBase {
 	[FIELD.key]: string;													// UserID
 }
 export interface IProfilePlan extends IProfile {
-	[FIELD.type]: 'plan'
+	[FIELD.type]: 'plan';
 	plan: TPlan;
 }
 export interface IProfileClaim extends IProfile {
-	[FIELD.type]: 'claims'
+	[FIELD.type]: 'claims';
 	claims: ICustomClaims;
+}
+export interface IProfileUser extends IProfile {
+	[FIELD.type]: 'user';
+	user: any;
 }
 
 export interface IAccount extends IStoreBase {

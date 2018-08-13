@@ -21,6 +21,7 @@ import { dbg } from '@lib/logger.library';
 	defaults: {
 		userInfo: null,
 		userToken: null,
+		userProfile: null,
 	}
 })
 export class AuthState implements NgxsOnInit {
@@ -88,6 +89,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSocial)														// process signInWithPopup()
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginSocial) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
+			.then(response => { ctx.patchState({ userProfile: response.additionalUserInfo }); return response })
 			.then(response => this.authSuccess(ctx, response.user, credential))
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
@@ -166,7 +168,7 @@ export class AuthState implements NgxsOnInit {
 			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
-		ctx.setState({ userInfo: null, userToken: null });
+		ctx.setState({ userInfo: null, userToken: null, userProfile: null });
 		ctx.dispatch(new LoginRedirect());
 	}
 }

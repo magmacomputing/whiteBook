@@ -4,6 +4,7 @@ import { ILink } from '@dbase/auth/auth.interface';
 export interface IAuthState {
   userInfo: UserInfo | null;
   userToken: IdTokenResult | null;
+  userProfile: any | null;            // additionalUserInfo
 }
 
 // Actions
