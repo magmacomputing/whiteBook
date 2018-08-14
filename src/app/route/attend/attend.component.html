@@ -1,9 +1,10 @@
-<div *ngIf="(auth$ | async) ; else noAccess">
-  <p>
-    Please select an Event from the list below...
-  </p>
+<div *ngIf="(schedule$ | async) || []; let schedule">
+  <div *ngIf="schedule.length; else noSchedule">
+    <p>Please select an Event from the list below...</p>
+  </div>
+</div>
 
-  <div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+<!-- <div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
     <mat-tab-group [(selectedIndex)]="selectedIndex">
       <mat-tab *ngFor="let loc of location$ | async; let idx = index">
         <h3> {{ loc.name }} </h3>
@@ -29,6 +30,8 @@
       </mat-tab>
     </mat-tab-group>
   </div>
-</div>
+</div> -->
 
-<ng-template #noAccess></ng-template>
+<ng-template #noSchedule>
+  Nothing available today
+</ng-template>

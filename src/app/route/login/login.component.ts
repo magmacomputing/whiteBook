@@ -7,7 +7,7 @@ import { ISelector } from '@dbase/state/store.define';
 import { getStore } from '@dbase/state/store.state';
 
 import { AuthService } from '@dbase/auth/auth.service';
-import { STORE } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
 
 @Component({
 	selector: 'wb-login',
@@ -17,9 +17,9 @@ import { STORE } from '@dbase/data/data.define';
 export class LoginComponent {
 	@Select(ClientState.getClient) client$!: Observable<ISelector>;
 
-	constructor(public readonly auth: AuthService) { }
+	constructor(private readonly auth: AuthService) { }
 
 	get provider$() {
-		return getStore(this.client$, STORE.provider, undefined, ['sort', 'key']);
+		return getStore(this.client$, STORE.provider, undefined, ['sort', FIELD.key]);
 	}
 }

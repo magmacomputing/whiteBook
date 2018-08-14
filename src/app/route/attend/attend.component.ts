@@ -32,78 +32,70 @@ export class AttendComponent implements OnInit {
   @Select(ClientState.getClient) client$!: Observable<ISelector>;
   @Select(MemberState.getMember) member$!: Observable<ISelector>;
 
-  private dbg: Function = dbg.bind(this);
-  private date!: string;
-  private selectedIndex: number = 0;            // used by UI to swipe between <tabs>
+  // private dbg: Function = dbg.bind(this);
+  // private date!: string;
+  // private selectedIndex: number = 0;            // used by UI to swipe between <tabs>
 
-  private locations: ILocation[] = [];
+  // private locations: ILocation[] = [];
 
   constructor(private readonly member: MemberService) { }
 
   ngOnInit() { }
 
-  get class$() {
-    return getStore(this.client$, STORE.class).pipe(
-      map(table => asAt(table, undefined, this.date))
-    )
-  }
+  // get class$() {
+  //   return getStore(this.client$, STORE.class).pipe(
+  //     map(table => asAt(table, undefined, this.date))
+  //   )
+  // }
 
-  get profile$() {                // get the Member's current Plan
-    const filter: IWhere = { fieldPath: FIELD.type, value: 'plan' }
-    return getStore(this.member$, STORE.profile, filter);
-  }
+  // get profile$() {                // get the Member's current Plan
+  //   const filter: IWhere = { fieldPath: FIELD.type, value: 'plan' }
+  //   return getStore(this.member$, STORE.profile, filter);
+  // }
 
-  get price$() {                  // get the Member's applicable Prices
-    return this.profile$.pipe(
-      // map(profiles => profiles[0]),
-      // map(profile => profile.plan),
-      // switchMap(plan => getStore(this.client$, STORE.price, { fieldPath: FIELD.key, value: plan })),
-      map(table => asAt(table, undefined, this.date)),
-    )
-  }
+  // get price$() {                  // get the Member's applicable Prices
+  //   return this.profile$.pipe(
+  //     // map(profiles => profiles[0]),
+  //     // map(profile => profile.plan),
+  //     // switchMap(plan => getStore(this.client$, STORE.price, { fieldPath: FIELD.key, value: plan })),
+  //     map(table => asAt(table, undefined, this.date)),
+  //   )
+  // }
 
-  get schedule$() {
-    const day = fmtDate(this.date).weekDay;
-    const where: IWhere = { fieldPath: 'day', value: day };
+  // get schedule$() {
+  //   const day = fmtDate(this.date).weekDay;
+  //   const where: IWhere = { fieldPath: 'day', value: day };
 
-    return getStore(this.client$, STORE.schedule).pipe(
-      map(table => asAt(table, where, this.date)),          // get the Schedule for this.date
-      // mergeMap(table => this.class$, (schedule, events) => { // get the Classes
-      //   return schedule.map(itm => { itm.class = events.filter(event => event[FIELD.key] === itm[FIELD.key])[0]; return itm; })
-      // }),
-      // mergeMap(table => this.price$, (schedule, prices) => {
-      //   return schedule.map(itm => { itm.price = prices.filter(price => price[FIELD.type] === itm.class.type)[0]; return itm; })
-      // }),
-      map(table => table.sort(sortKeys('start'))),
-    )
-  }
+  //   return getStore(this.client$, STORE.schedule).pipe(
+  //     map(table => asAt(table, where, this.date)),          // get the Schedule for this.date
+  //     // mergeMap(table => this.class$, (schedule, events) => { // get the Classes
+  //     //   return schedule.map(itm => { itm.class = events.filter(event => event[FIELD.key] === itm[FIELD.key])[0]; return itm; })
+  //     // }),
+  //     // mergeMap(table => this.price$, (schedule, prices) => {
+  //     //   return schedule.map(itm => { itm.price = prices.filter(price => price[FIELD.type] === itm.class.type)[0]; return itm; })
+  //     // }),
+  //     map(table => table.sort(sortKeys('start'))),
+  //   )
+  // }
 
-  get location$() {                             // get the Locations that are on the Schedule for this.date
-    return this.schedule$.pipe(
-      map((table: ISchedule[]) => table.map(row => row.location)),
-      distinct(),
-      switchMap(locs => getStore(this.client$, STORE.location, { fieldPath: FIELD.key, value: locs })),
-      tap((locs: ILocation[]) => this.locations = locs)
-    )
-  }
+  // get location$() {                             // get the Locations that are on the Schedule for this.date
+  //   return this.schedule$.pipe(
+  //     map((table: ISchedule[]) => table.map(row => row.location)),
+  //     distinct(),
+  //     switchMap(locs => getStore(this.client$, STORE.location, { fieldPath: FIELD.key, value: locs })),
+  //     tap((locs: ILocation[]) => this.locations = locs)
+  //   )
+  // }
 
-  showEvent(event: string) {
-    this.dbg('event: %j', event);
-  }
+  // showEvent(event: string) {
+  //   this.dbg('event: %j', event);
+  // }
 
-  swipe(idx: number, event: any) {
-    this.selectedIndex = swipe(idx, this.locations.length, event);
-  }
+  // swipe(idx: number, event: any) {
+  //   this.selectedIndex = swipe(idx, this.locations.length, event);
+  // }
 
-  suffix(idx: number) {
-    return suffix(idx);
-  }
+  // suffix(idx: number) {
+  //   return suffix(idx);
+  // }
 }
-
-/**
- * get class, plan, uid, and profile
- * use uid to get profile.plan
- * use profile.plan to get price (for each type)
- * use (dt?) to get class
- * use class.type (full/half) to show cost
- */
