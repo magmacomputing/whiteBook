@@ -122,17 +122,6 @@ export class SyncService {
       if (localHash === storeHash)                    // compare what is in snap0 with localStorage
         return;                                       // ok, already sync'd  
 
-      Object.keys(localStore).forEach(async key => {
-        let rec1 = localStore[key];
-        let rec2 = snapList.map(itm => itm.store === key);
-        let [localHash, storeHash] = await Promise.all([
-          cryptoHash(rec1),
-          cryptoHash(rec2),
-        ])
-        this.dbg('rec1: %s, %j', key, localHash);
-        this.dbg('rec2: %j', storeHash);
-      })
-      return;
       this.store.dispatch(new truncStore());          // otherwise, reset Store
     }
 

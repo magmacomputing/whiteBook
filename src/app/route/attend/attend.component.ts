@@ -19,7 +19,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { suffix } from '@lib/number.library';
 import { fmtDate } from '@lib/date.library';
 import { swipe } from '@lib/html.library';
-import { sortKeys } from '@lib/object.library';
+import { sortKeys, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -55,9 +55,9 @@ export class AttendComponent implements OnInit {
 
   get price$() {                  // get the Member's applicable Prices
     return this.profile$.pipe(
-      map(profiles => profiles[0]),
-      map(profile => profile.plan),
-      switchMap(plan => getStore(this.client$, STORE.price, { fieldPath: FIELD.key, value: plan })),
+      // map(profiles => profiles[0]),
+      // map(profile => profile.plan),
+      // switchMap(plan => getStore(this.client$, STORE.price, { fieldPath: FIELD.key, value: plan })),
       map(table => asAt(table, undefined, this.date)),
     )
   }
@@ -68,20 +68,14 @@ export class AttendComponent implements OnInit {
 
     return getStore(this.client$, STORE.schedule).pipe(
       map(table => asAt(table, where, this.date)),          // get the Schedule for this.date
-      mergeMap(table => this.class$, (schedule, events) => { // get the Classes
-        return schedule.map(itm => { itm.class = events.filter(event => event[FIELD.key] === itm[FIELD.key])[0]; return itm; })
-      }),
-      mergeMap(table => this.price$, (schedule, prices) => {
-        return schedule.map(itm => { itm.price = prices.filter(price => price[FIELD.type] === itm.class.type)[0]; return itm; })
-      }),
+      // mergeMap(table => this.class$, (schedule, events) => { // get the Classes
+      //   return schedule.map(itm => { itm.class = events.filter(event => event[FIELD.key] === itm[FIELD.key])[0]; return itm; })
+      // }),
+      // mergeMap(table => this.price$, (schedule, prices) => {
+      //   return schedule.map(itm => { itm.price = prices.filter(price => price[FIELD.type] === itm.class.type)[0]; return itm; })
+      // }),
       map(table => table.sort(sortKeys('start'))),
     )
-
-    // return getStore(this.client$, STORE.schedule).pipe(
-    //   map(table => asAt(table, where, this.date)),
-    //   mergeMap(table => getStore()),
-    //   map(table => table.sort(sortKeys('start'))),
-    // )
   }
 
   get location$() {                             // get the Locations that are on the Schedule for this.date

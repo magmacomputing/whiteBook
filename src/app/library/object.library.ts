@@ -90,7 +90,13 @@ export const objArray = (obj: any) => {
 }
 
 /** deep-clone Object */
-export const cloneObj = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+export const cloneObj = <T>(obj: T): T => {
+  try {
+    return JSON.parse(JSON.stringify(obj))
+  } catch (e) {
+    return obj;
+  }
+};
 
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => Object.prototype.toString.call(obj).slice(8, -1);

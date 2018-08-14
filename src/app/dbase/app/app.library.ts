@@ -1,10 +1,10 @@
-import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
+import { FIELD } from '@dbase/data/data.define';
+import { IMeta } from '@dbase/data/data.schema';
 
 import { DATE_FMT } from '@lib/date.define';
 import { fmtDate } from '@lib/date.library';
-import { IMeta } from '@dbase/data/data.schema';
-import { asArray, isString, isUndefined, IObject, isArray, isNumber } from '@lib/object.library';
+import { asArray, isString, isUndefined, IObject, isArray, isNumber, cloneObj } from '@lib/object.library';
 
 /**
  * apply Firestore-like filters to an Array.  
@@ -17,7 +17,9 @@ import { asArray, isString, isUndefined, IObject, isArray, isNumber } from '@lib
  * returns only rows with store='price', and with type = 'full' or 'half'
  */
 export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = []) => {
-	return table
+	const clone = cloneObj(table);											// clone to avoid mutating original Store
+
+	return clone
 		.filter((row: IObject<any>) => {									// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
@@ -66,8 +68,9 @@ export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = [])
  */
 export const asAt = <T>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
+	const clone = cloneObj(table);											// clone to avoid mutating original Store
 
-	return filterTable(table, cond)		// return the rows where date is between _effect and _expire
+	return filterTable(clone, cond)		// return the rows where date is between _effect and _expire
 		.filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter((row: IMeta) => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 }
