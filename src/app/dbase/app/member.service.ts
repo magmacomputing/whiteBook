@@ -54,12 +54,15 @@ export class MemberService {
 		return this.data.setDoc(STORE.account, accountDoc as IStoreMeta);
 	}
 
+	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(event: IClass, price?: number, memberId?: string, date?: number) {
 		const credit = await this.getCredit(memberId);
 		const activeId = credit.active[0][FIELD.id];
 
 		// if (!activeId)
 		// 	 ;											// TODO: mark a row as <active>
+
+		// TODO: get cost of event (normal, bonus, gift)
 
 		this.dbg('event: %j', event);
 		const attendDoc: IAttend = {
@@ -70,7 +73,7 @@ export class MemberService {
 		}
 
 		this.dbg('attend: %j', attendDoc);
-
+		return this.data.setDoc(STORE.attend, attendDoc as IStoreMeta);
 	}
 
 	private getUserID(memberId?: string) {										// get the current User's uid

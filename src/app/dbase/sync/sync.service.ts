@@ -122,6 +122,9 @@ export class SyncService {
       if (localHash === storeHash)                    // compare what is in snap0 with localStorage
         return;                                       // ok, already sync'd  
 
+      this.dbg('localHash: %j', localHash);
+      this.dbg('storeHash: %j', storeHash);
+      return;
       this.store.dispatch(new truncStore());          // otherwise, reset Store
     }
 

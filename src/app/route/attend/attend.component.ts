@@ -1,16 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap, distinct, switchMap } from 'rxjs/operators';
+import { map, tap, distinct, switchMap, mergeMap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { ISelector } from '@dbase/state/store.define';
-import { ClientState } from '@dbase/state/client.state';
 import { getStore } from '@dbase/state/store.state';
+import { ClientState } from '@dbase/state/client.state';
+import { MemberState } from '@dbase/state/member.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { ISchedule, ILocation } from '@dbase/data/data.schema';
+import { ISchedule, ILocation, IPrice } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { suffix } from '@lib/number.library';
@@ -26,19 +27,35 @@ import { dbg } from '@lib/logger.library';
 })
 export class AttendComponent implements OnInit {
   @Select(ClientState.getClient) client$!: Observable<ISelector>;
+  @Select(MemberState.getMember) member$!: Observable<ISelector>;
 
   private dbg: Function = dbg.bind(this);
   private date!: string;
   private selectedIndex: number = 0;            // used by UI to swipe between <tabs>
+
   private locations: ILocation[] = [];
 
   constructor(private readonly member: MemberService) { }
 
   ngOnInit() { }
 
-  get event$() {
+  get class$() {
     return getStore(this.client$, STORE.class).pipe(
       map(table => asAt(table, undefined, this.date))
+    )
+  }
+
+  get profile$() {                // get the Member's current Plan
+    const filter: IWhere = { fieldPath: FIELD.type, value: 'plan' }
+    return getStore(this.member$, STORE.profile, filter);
+  }
+
+  get price$() {                  // get the Member's applicable Prices
+    return this.profile$.pipe(
+      map(profiles => profiles[0]),
+      map(profile => profile.plan),
+      switchMap(plan => getStore(this.client$, STORE.price, { fieldPath: FIELD.key, value: plan })),
+      map(table => asAt(table, undefined, this.date)),
     )
   }
 
@@ -47,9 +64,21 @@ export class AttendComponent implements OnInit {
     const where: IWhere = { fieldPath: 'day', value: day };
 
     return getStore(this.client$, STORE.schedule).pipe(
-      map(table => asAt(table, where, this.date)),
+      map(table => asAt(table, where, this.date)),          // get the Schedule for this.date
+      mergeMap(table => this.class$, (schedule, events) => { // get the Classes
+        return schedule.map(itm => { itm.class = events.filter(event => event[FIELD.key] === itm[FIELD.key])[0]; return itm; })
+      }),
+      mergeMap(table => this.price$, (schedule, prices) => {
+        return schedule.map(itm => { itm.price = prices.filter(price => price[FIELD.type] === itm.class.type)[0]; return itm; })
+      }),
       map(table => table.sort(sortKeys('start'))),
     )
+
+    // return getStore(this.client$, STORE.schedule).pipe(
+    //   map(table => asAt(table, where, this.date)),
+    //   mergeMap(table => getStore()),
+    //   map(table => table.sort(sortKeys('start'))),
+    // )
   }
 
   get location$() {                             // get the Locations that are on the Schedule for this.date

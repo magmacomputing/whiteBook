@@ -7,19 +7,19 @@
     <mat-tab *ngFor="let loc of location$ | async; let idx = index">
       <h3> {{ loc.name }} </h3>
       <div *ngIf="locations.length > 1">{{ suffix(idx) }} of {{ locations.length }} locations</div>
-      <div *ngFor="let event of schedule$ | async">
-        <mat-card *ngIf="event.location === loc.key">
+      <div *ngFor="let item of schedule$ | async">
+        <mat-card *ngIf="item.location === loc.key">
           <mat-card-header>
-            <img mat-card-avatar [src]="event.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(event.key)">
+            <img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(item.key)">
             <mat-card-title>
-              {{ event.key }}
-              <p>{{ event.start }}</p>
+              {{ item.key }}
+              <p>{{ item.start }}</p>
             </mat-card-title>
-            <mat-card-subtitle>{{ event.desc }}</mat-card-subtitle>
+            <mat-card-subtitle>{{ item.desc }}</mat-card-subtitle>
 
             <mat-card-content>
-              <button mat-raised-button [disabled]="event._disable" (click)="member.setAttend(event)">
-                Select
+              <button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
+                Check-in: {{ item.price?.amount | currency }}
               </button>
             </mat-card-content>
           </mat-card-header>
