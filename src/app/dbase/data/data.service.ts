@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar, SELECT_PANEL_VIEWPORT_PADDING } from '@angular/material';
+import { MatSnackBar } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { COLLECTION, FIELD, FILTER } from '@dbase/data/data.define';
-import { IStoreMeta, IStoreBase, IMeta } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -37,9 +37,10 @@ export class DataService {
   /** Make Store data available in a Promise */
   snap<T>(store: string) {
     const slice = getSlice(store);
+
     return this.store
       .selectOnce<T[]>(state => state[slice][store])
-      .toPromise()                                   // stash the current snap result
+      .toPromise()
   }
 
   syncOn(collection: string, slice: string = SLICE.client) {
@@ -61,7 +62,7 @@ export class DataService {
     return this.fire.newId();                       // get Firebase to generate a new Key
   }
 
-  async setDoc(store: string, doc: IStoreMeta) {
+  async setDoc(store: string, doc: IStoreBase) {
     doc = await docPrep(doc, this.auth.state());    // make sure we have a <key> field
     return this.fire.setDoc(store, doc);
   }
@@ -75,29 +76,35 @@ export class DataService {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
     const deletes: IStoreBase[] = [];
-    const auth = this.auth.state();                         // get the current User's uid
+    const stamp = getStamp();                               // the <effect> of the document-create
 
     const promises = asArray(nextDocs).map(async nextDoc => {
-      let tstamp = nextDoc[FIELD.effect] || getStamp();      // the position in the date-range to Insert
-      const where: IWhere[] | void = await getWhere(nextDoc as IStoreMeta, auth)
-        .catch(err => { this.snack.open(err.message) });
-      if (!where) return;
+      let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Insert
+      let where: IWhere[];
+     
+      try {
+        nextDoc = await docPrep(nextDoc as IStoreMeta, this.auth.state());  // make sure we have a <key>
+        where = getWhere(nextDoc as IStoreMeta)
+      } catch (error) {
+        this.snack.open(error.message);                     // show the error to the User
+        return;                                             // abort the Insert/Update
+      }
 
       const currDocs = await this.snap<IStoreMeta>(nextDoc[FIELD.store])// read the store
-        .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally max one-prevDoc expected)
-        .then(table => updPrep(table, tstamp, this.fire))   // prepare the updates to effect/expire
+        .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally one-prevDoc expected)
+        .then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
       if (currDocs.updates.length) {
         if (currDocs.stamp > 0)
-          nextDoc[FIELD.effect] = currDocs.stamp;           // if the updPrep changed the effective-date
-        else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's _expire
+          nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>
+        else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's <expire>
       }
-      creates.push(nextDoc);
-      updates.push(...currDocs.updates);
+      creates.push(nextDoc);                                // push the prepared document-create
+      updates.push(...currDocs.updates);                    // push the associated document-updates
     })
 
-    return Promise.all(promises)                           // collect all the Creates/Updates/Deletes
-      .then(_ => this.batch(creates, updates, deletes))    // then apply writes in a Batch
+    return Promise.all(promises)                            // collect all the Creates/Updates/Deletes
+      .then(_ => this.batch(creates, updates, deletes))     // then apply writes in a Batch
   }
 
   /** Batch a series of writes */

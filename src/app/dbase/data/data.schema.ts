@@ -4,7 +4,7 @@ import { FIELD } from '@dbase/data/data.define';
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor';
 export type TStoreMember = 'profile' | 'account';
-export type TStoreAttend = 'attend';
+export type TStoreAttend = string;			// Attend docs will have a <store> that links to an Account _id
 export type TStore = TStoreClient | TStoreMember;
 
 type TSpan = 'full' | 'half';
@@ -15,7 +15,7 @@ type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'S
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
 
-// These are the meta-fields for a standard record
+// These are the meta-fields for a standard <store> record
 export interface IMeta {
 	[FIELD.id]?: string;									// the _id field on the remote database
 	[FIELD.create]?: number;							// the time when originally created
@@ -34,8 +34,9 @@ export interface IStoreBase extends IMeta {
 }
 
 export interface IStoreMeta extends IStoreBase {
-	[FIELD.id]: string;										// override the 'optional' on IMeta
-	[key: string]: any;										// additional fields specific to a 'store'
+	[FIELD.id]: string;										// override the 'optional' _id on IMeta
+	[FIELD.key]: string;									// override the 'optional' key on IStoreBase
+	[key: string]: any;										// additional fields specific to a <store>
 }
 
 //	/client/_default_
@@ -124,7 +125,7 @@ export interface IProvider extends IStoreBase {
 	[FIELD.store]: 'provider';
 	[FIELD.type]: TProvider;
 	[FIELD.key]: string;
-	sort: number;												// order to display to User
+	sort: number;												// lilst-order to display to User
 	prefix?: string;
 	scope?: string | string[];					// if array, joinScope determines how to encode as a string
 	joinScope?: string;									// what character separates the scope parameters, default ','
@@ -198,8 +199,8 @@ export interface IAccount extends IStoreBase {
 // /attend
 export interface IAttend extends IMeta {
 	[FIELD.store]: string;
+	[FIELD.type]: TClass;
 	stamp: number;
-	class: string;
 	cost: number;
 	track?: {
 		day: number;

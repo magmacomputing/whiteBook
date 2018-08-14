@@ -72,11 +72,13 @@ export class FireService {
 
 		doc = this.remId(doc);											// remove the meta-field from the document
 		return this.docRef(store, docId).set(doc)
+			.then(_ => docId)
 	}
 
 	updDoc(store: string, docId: string, data: IObject<any>) {
 		data = this.remId(data);
 		return this.docRef(store, docId).update(data)
+			.then(_ => docId);
 	}
 
 	getDoc(store: string, docId: string) {

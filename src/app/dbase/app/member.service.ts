@@ -37,15 +37,13 @@ export class MemberService {
 
 	/** Insert a new TopUp payment (do not set _effect/_expire) */
 	async setPayment(amount?: number, memberId?: string) {
-		const [uid, price] = await Promise.all([
-			this.getUserID(memberId),
-			this.getPrice('topUp', memberId)
-		])
+		const price = this.getPrice('topUp', memberId);
+		amount = !isUndefined(amount) ? amount : (await price).amount;
 
 		const accountDoc: IAccount = {
 			[FIELD.store]: STORE.account,
 			[FIELD.type]: 'topUp',
-			amount: !isUndefined(amount) ? amount : price.amount,
+			amount: amount,
 			active: false,
 			stamp: getStamp(),
 		}
@@ -55,25 +53,24 @@ export class MemberService {
 	}
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
-	async setAttend(event: IClass, price?: number, memberId?: string, date?: number) {
+	async setAttend(event: IClass, price: number = 0, memberId?: string, date?: number) {
 		const credit = await this.getCredit(memberId);
-		const activeId = credit.active[0][FIELD.id];
+		let activeId = credit.active[0][FIELD.id];
 
-		// if (!activeId)
-		// 	 ;											// TODO: mark a row as <active>
-
-		// TODO: get cost of event (normal, bonus, gift)
+		if (!activeId) {
+			activeId = await this.setPayment(undefined, memberId);
+		}
 
 		this.dbg('event: %j', event);
 		const attendDoc: IAttend = {
-			[FIELD.store]: activeId || '<garbage>',
+			[FIELD.store]: activeId || '<garbage>',								// <id> of Account's active document
+			[FIELD.type]: event[FIELD.key],												// the Attend's event/class
+			cost: price,
 			stamp: getStamp(),
-			class: event[FIELD.key],
-			cost: 0,
 		}
 
 		this.dbg('attend: %j', attendDoc);
-		return this.data.setDoc(STORE.attend, attendDoc as IStoreMeta);
+		return this.data.setDoc(STORE.attend, attendDoc);
 	}
 
 	private getUserID(memberId?: string) {										// get the current User's uid

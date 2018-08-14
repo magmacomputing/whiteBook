@@ -4,7 +4,6 @@ import { IWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
-import { IObject } from '@lib/object.library';
 
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
   return Object.keys(STORES)
@@ -12,26 +11,27 @@ export const getSlice = (store: string) => {    // determine the state-slice (co
     || 'attend'                                 // TODO: is it safe to assume <attend> if unknown 'store'?
 }
 
-/** prepare a where-clause to use when identifying existing documents that will clash with newDoc */
-export const getWhere = async (newDoc: IStoreMeta, auth: IAuthState) => {
+/** prepare a where-clause to use when identifying existing documents that will clash with nextDoc */
+export const getWhere = (nextDoc: IStoreMeta) => {
   const where: IWhere[] = [];
-  const collection = getSlice(newDoc[FIELD.store]);
+  const collection = getSlice(nextDoc[FIELD.store]);
   const filter = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
-  newDoc = await docPrep(newDoc, auth);         // make sure we have a <key> field
-
   filter.forEach(field => {
-    if (newDoc[field])                          // if that field exists in the doc, add it to the filter
-      where.push({ fieldPath: field, value: newDoc[field] })
+    if (nextDoc[field])                          // if that field exists in the doc, add it to the filter
+      where.push({ fieldPath: field, value: nextDoc[field] })
     else throw new Error(`missing required field: ${field}`)
   })
 
   return where;
 }
 
-export const docPrep = async (doc: IStoreMeta, auth: IAuthState) => {
-  if (!doc[FIELD.key] && auth && auth.userInfo)
-    doc[FIELD.key] = await auth.userInfo.uid;    // ensure uid is included on doc
+export const docPrep = (doc: IStoreBase, auth: IAuthState) => {
+  const collection = getSlice(doc[FIELD.store]);
+  const filter = FILTER[collection] || [];			// get the standard list of fields on which to filter
+
+  if (!doc[FIELD.key] && filter.includes(FIELD.key) && auth && auth.userInfo)
+    doc[FIELD.key] = auth.userInfo.uid;    // ensure uid is included on doc
   return doc;
 }
 
