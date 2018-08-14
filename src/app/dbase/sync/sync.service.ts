@@ -3,13 +3,15 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 import { DocumentChangeAction } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
+import { Navigate } from '@ngxs/router-plugin';
+import { ROUTE } from '@route/route.define';
 import { SLICE, IStoreDoc } from '@dbase/state/store.define';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { LoginToken, Logout } from '@dbase/state/auth.define';
+import { LoginToken } from '@dbase/state/auth.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -19,8 +21,6 @@ import { isFunction, sortKeys, IObject } from '@lib/object.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
-import { Navigate } from '@ngxs/router-plugin';
-import { ROUTE } from '@route/route.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -107,8 +107,8 @@ export class SyncService {
     }
 
     if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
-      const localStorage = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
-      const localStore = localStorage[listen.slice] || {};
+      const localSlice = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
+      const localStore = localSlice[listen.slice] || {};
       const localList: IStoreDoc[] = [];
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 
@@ -122,8 +122,16 @@ export class SyncService {
       if (localHash === storeHash)                    // compare what is in snap0 with localStorage
         return;                                       // ok, already sync'd  
 
-      this.dbg('localHash: %j', localHash);
-      this.dbg('storeHash: %j', storeHash);
+      Object.keys(localStore).forEach(async key => {
+        let rec1 = localStore[key];
+        let rec2 = snapList.map(itm => itm.store === key);
+        let [localHash, storeHash] = await Promise.all([
+          cryptoHash(rec1),
+          cryptoHash(rec2),
+        ])
+        this.dbg('rec1: %s, %j', key, localHash);
+        this.dbg('rec2: %j', storeHash);
+      })
       return;
       this.store.dispatch(new truncStore());          // otherwise, reset Store
     }
