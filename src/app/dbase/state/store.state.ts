@@ -10,7 +10,7 @@ import { SetAttend, DelAttend } from '@dbase/state/store.define';
 import { filterTable } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
-import { asArray, sortKeys } from '@lib/object.library';
+import { asArray, sortKeys, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /** a generic function that will invoke 'currStore' function on a particular Store */
@@ -19,12 +19,13 @@ export const getStore = <T>(obs$: Observable<ISelector>, store: string, filter: 
 
 /** a memoized function that searches a Store for current documents */
 export function currStore(state: IStoreState, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) {
+	const clone = cloneObj(state);										// clone to avoid mutating original Store
 	const filters = asArray(filter);
 	filters.push({ fieldPath: FIELD.expire, value: 0 });
 	filters.push({ fieldPath: FIELD.hidden, value: 0 });
 
-	return state
-		? filterTable<IStoreDoc>(state[store], filters)
+	return clone
+		? filterTable<IStoreDoc>(clone[store], filters)
 			.sort(sortKeys(...asArray(keys)))							// apply any requested sort-criteria
 		: []
 }
@@ -41,7 +42,7 @@ export class StoreState implements NgxsOnInit {
 		const state = getState() || {};
 		const store = this.filterStore(state, payload);
 
-		store.push(payload);										// push the changed ClientDoc into the Store
+		store.push(payload);														// push the changed ClientDoc into the Store
 		state[payload.store] = store;
 		this.dbg('%s: %j', this.name, payload);
 		patchState({ ...state });
