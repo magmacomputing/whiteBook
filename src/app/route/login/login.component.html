@@ -1,10 +1,10 @@
-<div *ngIf="(provider$ | async) || []; let provider">
-  <div *ngIf="provider.length; else newUser">
+<div *ngIf="(provider$ | async) || []; let providers">
+  <div *ngIf="providers.length; else newUser">
     <p>Please select a Login-Provider from the list below...</p>
   </div>
 
   <mat-card>
-    <mat-card-content *ngFor="let provider of provider$ | async; let last = last">
+    <mat-card-content *ngFor="let provider of providers ; let last = last">
       <button mat-raised-button [disabled]="provider._disable" (click)="auth.signIn(provider)">
         Login with {{ provider.key }}
       </button>
