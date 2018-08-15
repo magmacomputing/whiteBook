@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { StateContext, NgxsOnInit } from '@ngxs/store';
+import { StateContext, NgxsOnInit, createSelector } from '@ngxs/store';
 import { IStoreState, IStoreDoc, ISelector } from '@dbase/state/store.define';
 import { SetClient, DelClient } from '@dbase/state/store.define';
 import { SetMember, DelMember } from '@dbase/state/store.define';
@@ -12,24 +12,24 @@ import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray, sortKeys, cloneObj } from '@lib/object.library';
-import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 /** a generic function that will invoke 'currStore' function on a particular Store */
-export const getStore = <T>(obs$: Observable<ISelector>, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) =>
-	obs$.pipe(map(fn => fn(store, filter, keys)));
+export const getStore = <T>(obs$: Observable<ISelector<T>>, store: string, filter: IWhere | IWhere[] = [], sortBy: string | string[] = []) =>
+	obs$.pipe(map(fn => fn(store, filter, sortBy)));
 
 /** a memoized function that searches a Store for current documents */
-export function currStore(state: IStoreState, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) {
-	const clone = cloneObj(state);										// clone to avoid mutating original Store
+export function currStore(state: IStoreState, store: string, filter: IWhere | IWhere[] = [], sortBy: string | string[] = []) {
+	const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 	const filters = asArray(cloneObj(filter));
-	filters.push({ fieldPath: FIELD.effect, opStr: '>=', value: getStamp() });
+
+	// filters.push({ fieldPath: FIELD.effect, opStr: '<=', value: getStamp() });
 	filters.push({ fieldPath: FIELD.expire, value: 0 });
 	filters.push({ fieldPath: FIELD.hidden, value: false });
 
 	return clone
-		? filterTable<IStoreDoc>(clone[store], filters)
-			.sort(sortKeys(...asArray(keys)))							// apply any requested sort-criteria
+		? filterTable(clone, filters)
+			.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
 		: []
 }
 
@@ -71,5 +71,4 @@ export class StoreState implements NgxsOnInit {
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
-
 }

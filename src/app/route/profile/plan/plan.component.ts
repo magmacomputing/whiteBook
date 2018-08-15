@@ -11,6 +11,7 @@ import { MemberState } from '@dbase/state/member.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
+import { IProfilePlan, IPlan } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { dbg } from '@lib/logger.library';
@@ -20,8 +21,8 @@ import { dbg } from '@lib/logger.library';
   templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-  @Select(ClientState.getClient) client$!: Observable<ISelector>;
-  @Select(MemberState.getMember) member$!: Observable<ISelector>;
+  @Select(ClientState.current) client$!: Observable<ISelector<any>>;
+  @Select(MemberState.current) member$!: Observable<ISelector<any>>;
   @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
 
   private dbg: Function = dbg.bind(this);
@@ -32,11 +33,11 @@ export class PlanComponent implements OnInit {
 
   get profile$() {                // get the Member's current Plan
     const filter: IWhere = { fieldPath: FIELD.type, value: 'plan' }
-    return getStore(this.member$, STORE.profile, filter);
+    return getStore<IProfilePlan>(this.member$, STORE.profile, filter);
   }
 
   get plan$() {                   // get the available Plans
-    return getStore(this.client$, STORE.plan, undefined, ['sort', FIELD.key]);
+    return getStore<IPlan>(this.client$, STORE.plan, undefined, ['sort', FIELD.key]);
   }
 
   getPrice(plan: string) {

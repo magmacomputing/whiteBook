@@ -54,7 +54,7 @@ export class MemberState implements NgxsOnInit {
 
 	/** Selectors */
 	@Selector()											/** Get current (un-expired) documents */
-	static getMember(state: IStoreState) {
+	static current(state: IStoreState) {
 		return currStore.bind(this, state);
 	}
 }

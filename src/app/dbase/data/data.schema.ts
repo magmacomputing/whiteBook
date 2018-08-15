@@ -60,6 +60,13 @@ export interface IPrice extends IStoreBase {
 	amount: number;
 }
 
+//	/client/plan
+export interface IPlan extends IStoreBase {
+	[FIELD.store]: 'plan';
+	[FIELD.key]: string;
+	desc: string;
+	sort: number;
+}
 //	/client/class
 export interface IClass extends IStoreBase {
 	[FIELD.store]: 'class';

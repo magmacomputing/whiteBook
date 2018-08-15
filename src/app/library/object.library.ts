@@ -94,7 +94,6 @@ export const cloneObj = <T>(obj: T): T => {
   try {
     return JSON.parse(JSON.stringify(obj))
   } catch (e) {
-    console.log('cloneObj: %j', obj);
     return obj;
   }
 };

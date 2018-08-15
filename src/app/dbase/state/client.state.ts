@@ -52,7 +52,7 @@ export class ClientState implements NgxsOnInit {
 
 	/** Selectors */
 	@Selector()
-	static getClient(state: IStoreState) {
+	static current(state: IStoreState) {
 		return currStore.bind(this, state);
 	}
 }

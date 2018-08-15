@@ -33,11 +33,11 @@ export interface IStoreDoc {
 	[key: string]: any;
 }
 
-export interface ISelector {
-	(store: string, filter: IWhere | IWhere[], keys: string | string[]): IStoreDoc[];
+export interface ISelector<T> {
+	(store: string, filter: IWhere | IWhere[] | undefined, keys: string | string[]): T[];
 }
 
-export type IStoreState = {[slice: string]: IStoreDoc[]};
+export type IStoreState = {[store: string]: IStoreDoc[]};
 
 /** Actions */
 export class SetClient {										// Add a Client object into the Store

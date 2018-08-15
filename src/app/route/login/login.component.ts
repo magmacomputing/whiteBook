@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
+
 import { Select } from '@ngxs/store';
+import { SLICE } from '@dbase/state/store.define';
 import { currStore } from '@dbase/state/store.state';
 
 import { AuthService } from '@dbase/auth/auth.service';
@@ -13,8 +15,7 @@ import { IProvider } from '@dbase/data/data.schema';
 	styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-	@Select((state: any) => currStore(state.client, STORE.provider, undefined, ['sort', FIELD.key])) provider$!: Observable<IProvider[]>;
+	@Select((state: any) => currStore(state[SLICE.client], STORE.provider, undefined, ['sort', FIELD.key])) provider$!: Observable<IProvider[]>;
 
 	constructor(private readonly auth: AuthService) { }
-
 }
