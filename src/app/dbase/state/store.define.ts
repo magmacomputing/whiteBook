@@ -2,13 +2,13 @@ import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { IObject } from '@lib/object.library';
 
-export const SLICE = {
-	root: 'root',
-	client: 'client',
-	auth: 'auth',
-	router: 'router',
-	member: 'member',
-	attend: 'attend',
+export enum SLICE  {
+	root = 'root',
+	client = 'client',
+	auth = 'auth',
+	router = 'router',
+	member = 'member',
+	attend = 'attend',
 }
 
 /**
@@ -28,8 +28,8 @@ export const SLICE = {
  *  }
  */
 export interface IStoreDoc {
-	store: string;
 	[FIELD.id]: string;
+	[FIELD.store]: string;
 	[key: string]: any;
 }
 
@@ -37,7 +37,7 @@ export interface ISelector {
 	(store: string, filter: IWhere | IWhere[], keys: string | string[]): IStoreDoc[];
 }
 
-export type IStoreState = IObject<IStoreDoc[]>;
+export type IStoreState = {[slice: string]: IStoreDoc[]};
 
 /** Actions */
 export class SetClient {										// Add a Client object into the Store

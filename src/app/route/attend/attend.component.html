@@ -3,35 +3,37 @@
     <p>Please select an Event from the list below...</p>
   </div>
 </div>
+<div *ngFor="let dflt of default$ | async">
+  {{ dflt | json }}
+</div>
 
-<!-- <div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
-    <mat-tab-group [(selectedIndex)]="selectedIndex">
-      <mat-tab *ngFor="let loc of location$ | async; let idx = index">
-        <h3> {{ loc.name }} </h3>
-        <div *ngIf="locations.length > 1">{{ suffix(idx) }} of {{ locations.length }} locations</div>
-        <div *ngFor="let item of schedule$ | async">
-          <mat-card *ngIf="item.location === loc.key">
-            <mat-card-header>
-              <img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(item.key)">
-              <mat-card-title>
-                {{ item.key }}
-                <p>{{ item.start }}</p>
-              </mat-card-title>
-              <mat-card-subtitle>{{ item.desc }}</mat-card-subtitle>
+<div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+  <mat-tab-group [(selectedIndex)]="selectedIndex">
+    <mat-tab *ngFor="let loc of location$ | async; let idx = index">
+      <h3> {{ loc.name }} </h3>
+      <div *ngIf="locations.length > 1">{{ suffix(idx) }} of {{ locations.length }} locations</div>
+      <div *ngFor="let item of schedule$ | async">
+        <mat-card *ngIf="item.location === loc.key">
+          <mat-card-header>
+            <img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(item.key)">
+            <mat-card-title>
+              {{ item.key }}
+              <p>{{ item.start }}</p>
+            </mat-card-title>
+            <mat-card-subtitle>{{ item.desc }}</mat-card-subtitle>
 
-              <mat-card-content>
-                <button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
-                  Check-in: {{ item.price?.amount | currency }}
-                </button>
-              </mat-card-content>
-            </mat-card-header>
-          </mat-card>
-        </div>
-      </mat-tab>
-    </mat-tab-group>
-  </div>
-</div> -->
+            <mat-card-content>
+              <button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
+                Check-in: {{ item.price?.amount | currency }}
+              </button>
+            </mat-card-content>
+          </mat-card-header>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
 
 <ng-template #noSchedule>
-  Nothing available today
+  <h3>No classes available today</h3>
 </ng-template>

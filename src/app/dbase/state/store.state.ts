@@ -20,7 +20,7 @@ export const getStore = <T>(obs$: Observable<ISelector>, store: string, filter: 
 /** a memoized function that searches a Store for current documents */
 export function currStore(state: IStoreState, store: string, filter: IWhere | IWhere[] = [], keys: string | string[] = []) {
 	const clone = cloneObj(state);										// clone to avoid mutating original Store
-	const filters = asArray(filter);
+	const filters = asArray(cloneObj(filter));
 	filters.push({ fieldPath: FIELD.expire, value: 0 });
 	filters.push({ fieldPath: FIELD.hidden, value: 0 });
 

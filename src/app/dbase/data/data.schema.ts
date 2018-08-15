@@ -40,7 +40,7 @@ export interface IStoreMeta extends IStoreBase {
 }
 
 //	/client/_default_
-interface IDefault extends IStoreBase {
+export interface IDefault extends IStoreBase {
 	[FIELD.store]: '_default_';
 	[FIELD.type]: TStoreClient;
 	[FIELD.key]: string;
