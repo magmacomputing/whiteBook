@@ -1,8 +1,11 @@
-import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
-import { currStore } from '@dbase/state/store.state';
+import { State, Action, StateContext, Selector, NgxsOnInit, createSelector } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
+import { filterTable } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
+import { IWhere } from '@dbase/fire/fire.interface';
+
+import { cloneObj, asArray, sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState>({
@@ -51,8 +54,23 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	@Selector()
-	static current(state: IStoreState) {
-		return currStore.bind(this, state);
+	static current(store: string, filter?: IWhere | IWhere[], sortBy: string | string[] = []) {
+		return createSelector([ClientState], (state: IStoreState) => {
+			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
+			const filters = asArray(cloneObj(filter));
+
+			filters.push({ fieldPath: FIELD.expire, value: 0 });
+			filters.push({ fieldPath: FIELD.hidden, value: false });
+
+			return clone
+				? filterTable(clone, filters)
+					.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
+				: []
+		})
 	}
+
+	static store(store: string, filter?: IWhere | IWhere[]) {
+		return createSelector([ClientState], (state: IStoreState) => {
+			return cloneObj(state[store]);
+		}
 }

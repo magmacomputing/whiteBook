@@ -1,10 +1,13 @@
-import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
+import { State, Action, StateContext, NgxsOnInit, createSelector } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
-import { currStore } from '@dbase/state/store.state';
 
+import { filterTable } from '@dbase/app/app.library';
+import { IWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
+
+import { cloneObj, asArray, sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState>({
@@ -53,8 +56,23 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	@Selector()											/** Get current (un-expired) documents */
-	static current(state: IStoreState) {
-		return currStore.bind(this, state);
+	// @Selector()											/** Get current (un-expired) documents */
+	// static current(state: IStoreState) {
+	// 	return currStore.bind(this, state);
+	// }
+
+	static current(store: string, filter: IWhere | IWhere[] | undefined, sortBy: string | string[] = []) {
+		return createSelector([MemberState], (state: IStoreState) => {
+			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
+			const filters = asArray(cloneObj(filter));
+		
+			filters.push({ fieldPath: FIELD.expire, value: 0 });
+			filters.push({ fieldPath: FIELD.hidden, value: false });
+		
+			return clone
+				? filterTable(clone, filters)
+					.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
+				: []
+		})
 	}
 }
