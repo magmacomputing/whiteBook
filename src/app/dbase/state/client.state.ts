@@ -69,12 +69,12 @@ export class ClientState implements NgxsOnInit {
 		})
 	}
 
-	static store<T>(store: string, filter?: IWhere | IWhere[], date?:string|number) {
+	static store<T>(store: string, filter?: IWhere | IWhere[], date?: string | number) {
 		return createSelector([ClientState], (state: IStoreState) => {
 			const clone = cloneObj(state[store]);
 			const filters = asArray(cloneObj(filter));
-			
-			return asAt<T>(clone, filters, date);
+
+			return asAt<T>(clone as any[], filters, date);
 		})
 	}
 }

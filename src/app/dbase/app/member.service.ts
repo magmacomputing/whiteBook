@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 
-import { Store } from '@ngxs/store';
+import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { IUserInfo } from '@dbase/auth/auth.interface';
+import { UserProfile } from '@dbase/state/auth.define';
 
+import { asAt } from '@dbase/app/app.library';
 import { IWhere } from '@dbase/fire/fire.interface';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta } from '@dbase/data/data.schema';
-import { FIELD, STORE } from '@dbase/data/data.define';
-import { asAt } from '@dbase/app/app.library';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
@@ -20,10 +21,13 @@ export class MemberService {
 	private dbg: Function = dbg.bind(this);
 	private default: Promise<IStoreBase[]>;
 
-	constructor(private readonly data: DataService, private readonly store: Store) {
+	constructor(private readonly data: DataService, private readonly store: Store, private readonly action: Actions) {
 		this.dbg('new');
 		this.default = this.data.snap<IStoreBase>(STORE.default)
 			.then(table => asAt(table));																			// stash the current defaults
+		this.action
+			.pipe(ofActionDispatched(UserProfile))
+			.subscribe(payload => this.getProfile(payload));
 	}
 
 	async setPlan(plan: TPlan, amount: number) {
@@ -143,5 +147,18 @@ export class MemberService {
 			.then(table => table.filter(row => row.type === type))
 			.then(table => table[0])
 			.then(doc => { return { ...doc, ...{ [type]: doc[FIELD.key] } } })
+	}
+
+	/** check for change of User.Profile */
+	getProfile({ providerId, profile }: UserProfile) {
+
+		const profileUser = {
+			[FIELD.store]: STORE.profile,
+			[FIELD.type]: 'user',
+			providerId: providerId,
+			profile: profile,
+		}
+
+		this.data.insDoc(profileUser);
 	}
 }

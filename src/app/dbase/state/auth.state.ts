@@ -7,7 +7,7 @@ import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, UserProfile } from '@dbase/state/auth.define';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
@@ -89,8 +89,12 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSocial)														// process signInWithPopup()
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginSocial) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
-			.then(response => { ctx.patchState({ userProfile: response.additionalUserInfo }); return response })
-			.then(response => this.authSuccess(ctx, response.user, credential))
+			.then(response => {
+				const userProfile = response.additionalUserInfo;
+
+				ctx.patchState({ userProfile: userProfile });
+				this.authSuccess(ctx, response.user, credential);
+			})
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
 	}
 
@@ -135,6 +139,11 @@ export class AuthState implements NgxsOnInit {
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		this.snack.dismiss();
 		if (this.afAuth.auth.currentUser) {
+			const userProfile = ctx.getState().userProfile;
+
+			if (userProfile)
+				ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile));
+
 			(this.afAuth.auth.currentUser as User).getIdTokenResult()
 				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))

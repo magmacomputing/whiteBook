@@ -31,6 +31,10 @@ export class Logout {
 export class LogoutSuccess {
   static type = '[Auth] LogoutSuccess';
 }
+export class UserProfile {
+  static type = '[Auth] UserProfile';
+  constructor(public providerId: string, public profile: any) { }
+}
 
 // Events
 export class LoginRedirect {

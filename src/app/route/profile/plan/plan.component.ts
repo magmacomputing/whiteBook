@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Select, Store } from '@ngxs/store';
-import { ISelector, IStoreDoc } from '@dbase/state/store.define';
-import { getStore } from '@dbase/state/store.state';
 import { AuthState } from '@dbase/state/auth.state';
 import { IAuthState } from '@dbase/state/auth.define';
 import { ClientState } from '@dbase/state/client.state';
@@ -25,7 +23,7 @@ export class PlanComponent implements OnInit {
   @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
   @Select(ClientState.current(STORE.plan, undefined, ['sort', FIELD.key])) plan$!: Observable<IPlan[]>;
   @Select(MemberState.current(STORE.profile, { fieldPath: FIELD.type, value: 'plan' })) profile$!: Observable<IProfilePlan[]>;
-	
+
   private dbg: Function = dbg.bind(this);
 
   constructor(private readonly member: MemberService, private readonly store: Store) { }
@@ -37,7 +35,7 @@ export class PlanComponent implements OnInit {
       { fieldPath: FIELD.key, value: plan },
       { fieldPath: FIELD.type, value: 'topUp' },
     ]
-    return this.store.select((state: any) => asAt<IPrice>(state[STORE.price], filter));
+    return this.store.select(ClientState.store(STORE.price, filter));
   }
 
   showPlan(plan: string) {
