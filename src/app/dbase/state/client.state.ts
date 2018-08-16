@@ -72,5 +72,6 @@ export class ClientState implements NgxsOnInit {
 	static store(store: string, filter?: IWhere | IWhere[]) {
 		return createSelector([ClientState], (state: IStoreState) => {
 			return cloneObj(state[store]);
-		}
+		})
+	}
 }
