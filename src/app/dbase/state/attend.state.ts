@@ -18,23 +18,23 @@ export class AttendState implements NgxsOnInit {
 	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
 
 	@Action(SetAttend)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetAttend) {
+	setStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: SetAttend) {
 		const state = getState() || {};
 		const store = this.filterAttend(state, payload);
 
 		store.push(payload);										// push the changed AttendDoc into the Store
 		state[payload.store] = store;
-		this.dbg('setAttend: %j', payload);
+		if (debug) this.dbg('setAttend: %j', payload);
 		patchState({ ...state });
 	}
 
 	@Action(DelAttend)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelAttend) {
+	delStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
 		const store = this.filterAttend(getState(), payload);
 
 		state[payload.store] = store;
-		this.dbg('delAttend: %j', payload);
+		if (debug) this.dbg('delAttend: %j', payload);
 		patchState({ ...state });
 	}
 

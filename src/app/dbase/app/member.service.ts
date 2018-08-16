@@ -149,7 +149,7 @@ export class MemberService {
 			.then(doc => { return { ...doc, ...{ [type]: doc[FIELD.key] } } })
 	}
 
-	/** check for change of User.Profile */
+	/** check for change of User.additionalInfo */
 	getProfile({ providerId, profile }: UserProfile) {
 
 		const profileUser = {
@@ -158,7 +158,7 @@ export class MemberService {
 			providerId: providerId,
 			profile: profile,
 		}
-// TODO: check for change before insDoc, or provide <where> ?
-		this.data.insDoc(profileUser);
+		// TODO: check for change before insDoc, or provide <where> ?
+		this.data.insDoc(profileUser, { fieldPath: 'providerId', value: providerId });
 	}
 }

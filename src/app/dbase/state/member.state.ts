@@ -22,23 +22,23 @@ export class MemberState implements NgxsOnInit {
 	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
 
 	@Action(SetMember)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetMember) {
+	setStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: SetMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
 		store.push(payload);										// push the changed MemberDoc into the Store
 		state[payload.store] = store;
-		this.dbg('setMember: %j', payload);
+		if (debug) this.dbg('setMember: %j', payload);
 		patchState({ ...state });
 	}
 
 	@Action(DelMember)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelMember) {
+	delStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: DelMember) {
 		const state = getState() || {};
 		const store = this.filterMember(getState(), payload);
 
 		state[payload.store] = store;
-		this.dbg('delMember: %j', payload);
+		if (debug) this.dbg('delMember: %j', payload);
 		patchState({ ...state });
 	}
 
@@ -56,11 +56,6 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	// @Selector()											/** Get current (un-expired) documents */
-	// static current(state: IStoreState) {
-	// 	return currStore.bind(this, state);
-	// }
-
 	static current(store: string, filter: IWhere | IWhere[] | undefined, sortBy: string | string[] = []) {
 		return createSelector([MemberState], (state: IStoreState) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store

@@ -74,13 +74,15 @@ export class SyncService {
 
     this.listener[collection].cnt += 1;
 
+    const source = this.source(snaps);
+    const debug = source !== 'cache';
     const [snapAdd, snapMod, snapDel] = snaps.reduce((cnts, snap) => {
       const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
       cnts[idx] += 1;
       return cnts;
     }, [0, 0, 0]);
     this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
-      collection, listen.cnt, this.source(snaps), snapAdd, snapMod, snapDel);
+      collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
     switch (listen.slice) {                           // TODO: can we merge these?
       case SLICE.client:
@@ -131,13 +133,13 @@ export class SyncService {
       switch (snap.type) {
         case 'added':
         case 'modified':
-          this.store.dispatch(new setStore(data));
+          this.store.dispatch(new setStore(data, debug));
           if (data.store === STORE.profile && data.type === 'claims' && !data[FIELD.expire])
             this.store.dispatch(new LoginToken());    // special: access-level has changed
           break;
 
         case 'removed':
-          this.store.dispatch(new delStore(data));
+          this.store.dispatch(new delStore(data, debug));
           if (data.store === STORE.profile && data.type === 'plan' && !data[FIELD.expire])
             this.store.dispatch(new Navigate([ROUTE.plan])); // special: current-plan has been deleted
           break;

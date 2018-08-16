@@ -4,6 +4,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
+import { asArray } from '@lib/object.library';
 
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
   return Object.keys(STORES)
@@ -12,15 +13,20 @@ export const getSlice = (store: string) => {    // determine the state-slice (co
 }
 
 /** prepare a where-clause to use when identifying existing documents that will clash with nextDoc */
-export const getWhere = (nextDoc: IStoreMeta) => {
+export const getWhere = (nextDoc: IStoreMeta, filter: IWhere | IWhere[] = []) => {
   const where: IWhere[] = [];
   const collection = getSlice(nextDoc[FIELD.store]);
-  const filter = FILTER[collection] || [];			// get the standard list of fields on which to filter
+  const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
-  filter.forEach(field => {
-    if (nextDoc[field])                          // if that field exists in the doc, add it to the filter
+  filters.forEach(field => {
+    if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
       where.push({ fieldPath: field, value: nextDoc[field] })
     else throw new Error(`missing required field: ${field}`)
+  })
+
+  asArray(filter).forEach(clause => {           // add any additional match-criteria
+    if (nextDoc[clause.fieldPath as string])
+      where.push({ fieldPath: clause.fieldPath, value: clause.value })
   })
 
   return where;
@@ -28,10 +34,10 @@ export const getWhere = (nextDoc: IStoreMeta) => {
 
 export const docPrep = (doc: IStoreBase, auth: IAuthState) => {
   const collection = getSlice(doc[FIELD.store]);
-  const filter = FILTER[collection] || [];			// get the standard list of fields on which to filter
+  const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
-  if (!doc[FIELD.key] && filter.includes(FIELD.key) && auth && auth.userInfo)
-    doc[FIELD.key] = auth.userInfo.uid;    // ensure uid is included on doc
+  if (!doc[FIELD.key] && filters.includes(FIELD.key) && auth && auth.userInfo)
+    doc[FIELD.key] = auth.userInfo.uid;         // ensure uid is included on doc
   return doc;
 }
 

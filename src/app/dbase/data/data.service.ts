@@ -59,11 +59,11 @@ export class DataService {
   }
 
   get newId() {
-    return this.fire.newId();                       // get Firebase to generate a new Key
+    return this.fire.newId();                               // get Firebase to generate a new Key
   }
 
   async setDoc(store: string, doc: IStoreBase) {
-    doc = await docPrep(doc, this.auth.state());    // make sure we have a <key> field
+    doc = await docPrep(doc, this.auth.state());            // make sure we have a <key> field
     return this.fire.setDoc(store, doc);
   }
 
@@ -72,7 +72,7 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc */
-  insDoc(nextDocs: IStoreBase | IStoreBase[]) {
+  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: IWhere | IWhere[]) {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
     const deletes: IStoreBase[] = [];
@@ -81,10 +81,11 @@ export class DataService {
     const promises = asArray(nextDocs).map(async nextDoc => {
       let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Insert
       let where: IWhere[];
-     
+
       try {
         nextDoc = await docPrep(nextDoc as IStoreMeta, this.auth.state());  // make sure we have a <key>
-        where = getWhere(nextDoc as IStoreMeta)
+        where = getWhere(nextDoc as IStoreMeta, filter);
+        this.dbg('where: %j', where);
       } catch (error) {
         this.snack.open(error.message);                     // show the error to the User
         return;                                             // abort the Insert/Update
