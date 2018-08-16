@@ -1,7 +1,7 @@
 import { State, Action, StateContext, Selector, NgxsOnInit, createSelector } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
-import { filterTable } from '@dbase/app/app.library';
+import { filterTable, asAt } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
@@ -63,15 +63,18 @@ export class ClientState implements NgxsOnInit {
 			filters.push({ fieldPath: FIELD.hidden, value: false });
 
 			return clone
-				? filterTable(clone, filters)
+				? asAt(clone, filters)
 					.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
 				: []
 		})
 	}
 
-	static store(store: string, filter?: IWhere | IWhere[]) {
+	static store<T>(store: string, filter?: IWhere | IWhere[], date?:string|number) {
 		return createSelector([ClientState], (state: IStoreState) => {
-			return cloneObj(state[store]);
+			const clone = cloneObj(state[store]);
+			const filters = asArray(cloneObj(filter));
+			
+			return asAt<T>(clone, filters, date);
 		})
 	}
 }
