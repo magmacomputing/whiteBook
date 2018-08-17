@@ -36,7 +36,7 @@ export const docPrep = (doc: IStoreBase, auth: IAuthState) => {
   const collection = getSlice(doc[FIELD.store]);
   const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
   const uid = auth && auth.userInfo && auth.userInfo.uid;
-  console.log('auth: ', auth);
+
   if (!doc[FIELD.key] && filters.includes(FIELD.key) && uid)
     doc[FIELD.key] = uid;                       // ensure uid is included on doc
   return doc;
