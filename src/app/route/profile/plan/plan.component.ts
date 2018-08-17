@@ -9,11 +9,10 @@ import { MemberState } from '@dbase/state/member.state';
 
 import { MemberService } from '@dbase/app/member.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IProfilePlan, IPlan, IPrice } from '@dbase/data/data.schema';
+import { IProfilePlan, IPlan } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { dbg } from '@lib/logger.library';
-import { asAt } from '@dbase/app/app.library';
 
 @Component({
   selector: 'wb-plan',

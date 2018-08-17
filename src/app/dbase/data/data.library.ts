@@ -3,13 +3,13 @@ import { FireService } from '@dbase/fire/fire.service';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
-import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
-import { asArray } from '@lib/object.library';
+import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
+import { asArray, asString, sortObj, isObject } from '@lib/object.library';
 
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
   return Object.keys(STORES)
     .filter(col => STORES[col].includes(store))[0]
-    || 'attend'                                 // TODO: is it safe to assume <attend> if unknown 'store'?
+    || STORE.attend                             // TODO: is it safe to assume <attend> if unknown 'store'?
 }
 
 /** prepare a where-clause to use when identifying existing documents that will clash with nextDoc */
@@ -67,7 +67,7 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
           break;
 
         case tstamp < currEffect:               // back-date a Document
-          currUpdate[FIELD.effect] = currEffect; // ensure current Doc is effective
+          currUpdate[FIELD.effect] = currEffect;// ensure current Doc is effective
           stamp = -currEffect;                  // adjust new Doc's expiry
           break;
       }
@@ -76,5 +76,32 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
     })
   )
 
-  return { updates, stamp };                    // include the tstamp, in case it was changed
+  return { updates, stamp, data: currDocs };    // include the tstamp, in case it was changed
+}
+
+/**
+ * Discard the nextDoc if it is not different to at-least one of the currDocs  
+ * In other words, dont Create needlessly.
+ * @param discards: string[]      array of field-names to use in the compare
+ * @param nextDoc:  IStoreMeta    document about to be Created
+ * @param currDocs: IStoreMeta[]  array of documents matched to the Create document
+ */
+export const checkDiscard = (discards: string | string[], nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+  const isMatch = currDocs.map(currDoc =>
+    asArray(discards)
+      .every(field => {
+        const value1 = nextDoc[field];
+        const value2 = currDoc[field];
+        return (isObject(value1))
+          ? Object.is(JSON.stringify(sortObj(value1)), JSON.stringify(sortObj(value2)))
+          : asString(nextDoc[field]) == asString(currDoc[field])
+      })
+  )
+  // console.log('isMatch: ', isMatch);
+  // console.log('discards: ', discards);
+  // console.log('next: ', nextDoc['profile']);
+  // console.log('prev: ', currDocs[0]['profile']);
+  // console.log('match: ', asString(nextDoc['profile']) == asString(currDocs[0]['profile']));
+
+  return isMatch.includes(true)                 // at least one currDoc matches every field
 }

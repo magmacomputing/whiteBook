@@ -26,7 +26,7 @@ export class MemberService {
 		this.default = this.data.snap<IStoreBase>(STORE.default)
 			.then(table => asAt(table));																			// stash the current defaults
 		this.action
-			.pipe(ofActionDispatched(UserProfile))
+			.pipe(ofActionDispatched(UserProfile))														// special: listen for changes of the UserProfile
 			.subscribe(payload => this.getProfile(payload));
 	}
 
@@ -34,7 +34,7 @@ export class MemberService {
 		const doc: IStoreBase = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
-		this.data.insDoc(doc)
+		this.data.insDoc(doc, undefined, 'plan')
 			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
@@ -151,14 +151,16 @@ export class MemberService {
 
 	/** check for change of User.additionalInfo */
 	getProfile({ providerId, profile }: UserProfile) {
-
+		const where: IWhere[] = [
+			{ fieldPath: 'providerId', value: providerId },
+		]
 		const profileUser = {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'user',
 			providerId: providerId,
 			profile: profile,
 		}
-		// TODO: check for change before insDoc, or provide <where> ?
-		this.data.insDoc(profileUser, { fieldPath: 'providerId', value: providerId });
+
+		this.data.insDoc(profileUser, where, 'profile');
 	}
 }

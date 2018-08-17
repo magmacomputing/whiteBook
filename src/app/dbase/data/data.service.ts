@@ -7,7 +7,7 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
-import { getWhere, updPrep, getSlice, docPrep } from '@dbase/data/data.library';
+import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -72,7 +72,7 @@ export class DataService {
   }
 
   /** Expire any previous docs, and Insert new doc */
-  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: IWhere | IWhere[]) {
+  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: IWhere | IWhere[], discards: string |string[] = []) {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
     const deletes: IStoreBase[] = [];
@@ -85,7 +85,6 @@ export class DataService {
       try {
         nextDoc = await docPrep(nextDoc as IStoreMeta, this.auth.state());  // make sure we have a <key>
         where = getWhere(nextDoc as IStoreMeta, filter);
-        this.dbg('where: %j', where);
       } catch (error) {
         this.snack.open(error.message);                     // show the error to the User
         return;                                             // abort the Insert/Update
@@ -100,8 +99,13 @@ export class DataService {
           nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>
         else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's <expire>
       }
-      creates.push(nextDoc);                                // push the prepared document-create
-      updates.push(...currDocs.updates);                    // push the associated document-updates
+
+      if (!checkDiscard(discards, nextDoc as IStoreMeta, currDocs.data as IStoreMeta[])) {
+        creates.push(nextDoc);                              // push the prepared document-create
+        updates.push(...currDocs.updates);                  // push the associated document-updates
+      } else {
+        this.dbg('discard: %j', nextDoc);                   // discard when there is no change of value
+      }
     })
 
     return Promise.all(promises)                            // collect all the Creates/Updates/Deletes
