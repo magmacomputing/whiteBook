@@ -31,12 +31,12 @@ export class AuthState implements NgxsOnInit {
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
-		ctx.dispatch(new CheckSession());								/** Dispatch CheckSession on start */
+		ctx.dispatch(new CheckSession());						// Dispatch CheckSession on start
 	}
 
 	private authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
 		if (user) {
-			if (credential)													// have we been redirected here, via credential?
+			if (credential)														// have we been redirected here, via credential?
 				user.linkAndRetrieveDataWithCredential(credential);
 			ctx.dispatch(new LoginSuccess(user));
 		}
@@ -141,12 +141,13 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			const userProfile = ctx.getState().userProfile;
 
-			if (userProfile)
-				ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile));
-
 			(this.afAuth.auth.currentUser as User).getIdTokenResult()
 				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
+				.then(_ => {
+					if (userProfile)
+						ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile));
+				})
 		}
 	}
 

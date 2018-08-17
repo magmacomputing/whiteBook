@@ -12,7 +12,7 @@ export const getSlice = (store: string) => {    // determine the state-slice (co
     || STORE.attend                             // TODO: is it safe to assume <attend> if unknown 'store'?
 }
 
-/** prepare a where-clause to use when identifying existing documents that will clash with nextDoc */
+/** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: IStoreMeta, filter: IWhere | IWhere[] = []) => {
   const where: IWhere[] = [];
   const collection = getSlice(nextDoc[FIELD.store]);
@@ -35,9 +35,10 @@ export const getWhere = (nextDoc: IStoreMeta, filter: IWhere | IWhere[] = []) =>
 export const docPrep = (doc: IStoreBase, auth: IAuthState) => {
   const collection = getSlice(doc[FIELD.store]);
   const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
-
-  if (!doc[FIELD.key] && filters.includes(FIELD.key) && auth && auth.userInfo)
-    doc[FIELD.key] = auth.userInfo.uid;         // ensure uid is included on doc
+  const uid = auth && auth.userInfo && auth.userInfo.uid;
+  console.log('auth: ', auth);
+  if (!doc[FIELD.key] && filters.includes(FIELD.key) && uid)
+    doc[FIELD.key] = uid;                       // ensure uid is included on doc
   return doc;
 }
 
@@ -80,7 +81,7 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
 }
 
 /**
- * Discard the nextDoc if it is not different to at-least one of the currDocs  
+ * Discard the nextDoc if it is not different to every one of the currDocs  
  * In other words, dont Create needlessly.
  * @param discards: string[]      array of field-names to use in the compare
  * @param nextDoc:  IStoreMeta    document about to be Created
@@ -97,11 +98,6 @@ export const checkDiscard = (discards: string | string[], nextDoc: IStoreMeta, c
           : asString(nextDoc[field]) == asString(currDoc[field])
       })
   )
-  // console.log('isMatch: ', isMatch);
-  // console.log('discards: ', discards);
-  // console.log('next: ', nextDoc['profile']);
-  // console.log('prev: ', currDocs[0]['profile']);
-  // console.log('match: ', asString(nextDoc['profile']) == asString(currDocs[0]['profile']));
 
   return isMatch.includes(true)                 // at least one currDoc matches every field
 }

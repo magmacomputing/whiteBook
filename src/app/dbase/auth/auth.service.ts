@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
-import { TruncMember, TruncAttend } from '@dbase/state/store.define';
+import { TruncMember, TruncAttend, SLICE } from '@dbase/state/store.define';
 import { AuthState } from '@dbase/state/auth.state';
 
 import { AuthModule } from '@dbase/auth/auth.module';
@@ -33,7 +33,7 @@ export class AuthService {
 
   public state() {
     return this.store
-      .selectSnapshot<IAuthState>(AuthState.getUser);
+      .selectSnapshot<IAuthState>(state => state[SLICE.auth]);
   }
 
   public signOut() {
