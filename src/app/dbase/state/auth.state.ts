@@ -117,9 +117,10 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(Logout)																	// process signOut()
-	logout(ctx: StateContext<IAuthState>) {
-		return this.afAuth.auth.signOut()
-			.then(_ => ctx.dispatch(new LogoutSuccess()))
+	async logout(ctx: StateContext<IAuthState>) {
+		await this.afAuth.auth.signOut();
+		ctx.dispatch(new LogoutSuccess());
+		return;
 	}
 
 	/** Events */
@@ -128,7 +129,7 @@ export class AuthState implements NgxsOnInit {
 		const query: IQuery = { where: { fieldPath: FIELD.key, value: user.uid } };
 
 		if (this.afAuth.auth.currentUser) {
-			const userProfile = ctx.getState().userProfile;
+			const userProfile = ctx.getState().userProfile;				// TODO: Why this does not fire on signUp
 
 			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
@@ -141,15 +142,9 @@ export class AuthState implements NgxsOnInit {
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		this.snack.dismiss();
 		if (this.afAuth.auth.currentUser) {
-			// const userProfile = ctx.getState().userProfile;
-
-			(this.afAuth.auth.currentUser as User).getIdTokenResult()
+			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
-			// .then(_ => {
-			// 	if (userProfile)
-			// 		ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile));
-			// })
 		}
 	}
 
