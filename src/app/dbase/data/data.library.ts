@@ -4,7 +4,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
-import { asArray, asString, sortObj, isObject } from '@lib/object.library';
+import { asArray, asString, sortObj, isObject, equalObj } from '@lib/object.library';
 
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
   return Object.keys(STORES)
@@ -81,22 +81,19 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
 }
 
 /**
- * Discard the nextDoc if it is not different to every one of the currDocs  
+ * Discard the nextDoc if it is the same as at-least one of the currDocs  
  * In other words, dont Create needlessly.
  * @param discards: string[]      array of field-names to use in the compare
  * @param nextDoc:  IStoreMeta    document about to be Created
  * @param currDocs: IStoreMeta[]  array of documents matched to the Create document
  */
 export const checkDiscard = (discards: string | string[], nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
-  const isMatch = currDocs.map(currDoc =>
-    asArray(discards)
-      .every(field => {
-        const value1 = nextDoc[field];
-        const value2 = currDoc[field];
-        return (isObject(value1))
-          ? Object.is(JSON.stringify(sortObj(value1)), JSON.stringify(sortObj(value2)))
-          : asString(nextDoc[field]) == asString(currDoc[field])
-      })
+  const isMatch = currDocs.map(currDoc =>       // for each current document...
+    asArray(discards)                           // for each of the field-names to match...
+      .every(field => isObject(nextDoc[field])
+        ? equalObj(nextDoc[field], currDoc[field])
+        : asString(nextDoc[field]) == asString(currDoc[field])
+      )
   )
 
   return isMatch.includes(true)                 // at least one currDoc matches every field

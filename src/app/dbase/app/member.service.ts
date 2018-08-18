@@ -30,7 +30,7 @@ export class MemberService {
 			.subscribe(payload => this.getProfile(payload));
 	}
 
-	async setPlan(plan: TPlan, amount: number) {
+	async setPlan(plan: TPlan) {
 		const doc: IStoreBase = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
@@ -151,16 +151,19 @@ export class MemberService {
 
 	/** check for change of User.additionalInfo */
 	getProfile({ providerId, profile }: UserProfile) {
+		delete profile.link;							// special: FaceBook changes this field periodically
 		const where: IWhere[] = [
 			{ fieldPath: 'providerId', value: providerId },
 		]
 		const profileUser = {
+			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'user',
 			providerId: providerId,
 			profile: profile,
 		}
 
+		this.dbg('getProfile: %s, %j', providerId, where);
 		this.data.insDoc(profileUser, where, 'profile');
 	}
 }

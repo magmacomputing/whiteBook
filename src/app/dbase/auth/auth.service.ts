@@ -4,7 +4,6 @@ import { map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 import { TruncMember, TruncAttend, SLICE } from '@dbase/state/store.define';
-import { AuthState } from '@dbase/state/auth.state';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
@@ -46,60 +45,60 @@ export class AuthService {
     this.store.dispatch(new CheckSession());
   }
 
-  public async signIn(config: IProvider, opts: IObject<any> = {}) {
-    this.dbg('signIn: %j', config);
+  public async signIn(provider: IProvider, opts: IObject<any> = {}) {
+    this.dbg('signIn: %j', provider);
 
-    switch (config.type) {
+    switch (provider.type) {
       case undefined:
       case 'social':
-        this.signInSocial(config);
+        this.signInSocial(provider);
         break;
 
       case 'oauth':
-        this.signInOAuth(config);
+        this.signInOAuth(provider);
         break;
 
       case 'email':
-        this.signInEmail(config, opts.email, opts.password);
+        this.signInEmail(provider, opts.email, opts.password);
         break;
 
       case 'play':
-        this.signInPlay(config);
+        this.signInPlay(provider);
         break;
 
       case 'phone':
-        this.signInPhone(config);
+        this.signInPhone(provider);
         break;
 
       case 'anonymous':
-        this.signInAnon(config);
+        this.signInAnon(provider);
         break;
 
       default:
-        this.dbg('signIn: %s', config);
+        this.dbg('signIn: %s', provider);
         break;
     }
   }
 
   /** prepare the AuthProvider object before dispatching the SignIn flow */
-  private signInSocial(config: IProvider) {
-    const [authProvider, type] = getAuthProvider(config[FIELD.key]);
+  private signInSocial(provider: IProvider) {
+    const [authProvider, type] = getAuthProvider(provider[FIELD.key]);
 
-    asArray(config.scope)
+    asArray(provider.scope)
       .forEach(scope => (authProvider as TScopes).addScope(scope));
 
-    if (config.params)
-      (authProvider as TParams).setCustomParameters(config.params);
+    if (provider.params)
+      (authProvider as TParams).setCustomParameters(provider.params);
 
     this.store.dispatch(new LoginSocial(authProvider));
   }
 
-  private signInEmail(config: IProvider, email: string, password: string) {
+  private signInEmail(provider: IProvider, email: string, password: string) {
     this.store.dispatch(new LoginEmail(email, password));
   }
 
-  private signInOAuth(config: IProvider) { }
-  private signInPlay(config: IProvider) { }
-  private signInPhone(config: IProvider) { }
-  private signInAnon(config: IProvider) { }
+  private signInOAuth(provider: IProvider) { }
+  private signInPlay(provider: IProvider) { }
+  private signInPhone(provider: IProvider) { }
+  private signInAnon(provider: IProvider) { }
 }

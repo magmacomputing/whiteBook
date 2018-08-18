@@ -15,7 +15,7 @@ import { AuthService } from '@dbase/auth/auth.service';
 import { asAt } from '@dbase/app/app.library';
 
 import { getStamp } from '@lib/date.library';
-import { IObject, asArray } from '@lib/object.library';
+import { IObject, asArray, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -27,7 +27,6 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
   private dbg: Function = dbg.bind(this);
-  // public snapshot: IObject<Promise<IStoreMeta[]>> = {};
 
   constructor(private fire: FireService, private sync: SyncService, private auth: AuthService, private store: Store, private snack: MatSnackBar) {
     this.dbg('new');
@@ -71,15 +70,14 @@ export class DataService {
     return this.fire.updDoc(store, docId, data);
   }
 
-  /** Expire any previous docs, and Insert new doc */
-  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: IWhere | IWhere[], discards: string |string[] = []) {
+  /** Expire any current matching docs, and Create new doc */
+  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: IWhere | IWhere[], discards: string | string[] = []) {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
-    const deletes: IStoreBase[] = [];
     const stamp = getStamp();                               // the <effect> of the document-create
 
     const promises = asArray(nextDocs).map(async nextDoc => {
-      let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Insert
+      let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Create
       let where: IWhere[];
 
       try {
@@ -87,11 +85,11 @@ export class DataService {
         where = getWhere(nextDoc as IStoreMeta, filter);
       } catch (error) {
         this.snack.open(error.message);                     // show the error to the User
-        return;                                             // abort the Insert/Update
+        return;                                             // abort the Create/Update
       }
 
       const currDocs = await this.snap<IStoreMeta>(nextDoc[FIELD.store])// read the store
-        .then(table => asAt(table, where, tstamp))          // find where to insert new doc (generally one-prevDoc expected)
+        .then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
         .then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
       if (currDocs.updates.length) {
@@ -104,12 +102,14 @@ export class DataService {
         creates.push(nextDoc);                              // push the prepared document-create
         updates.push(...currDocs.updates);                  // push the associated document-updates
       } else {
-        this.dbg('discard: %j', nextDoc);                   // discard when there is no change of value
+        let discardDoc: any = cloneObj(nextDoc);
+        asArray(discards).forEach(field => delete discardDoc[field]);
+        this.dbg('discard: %j', discardDoc);                // discard when there is no change of value
       }
     })
 
     return Promise.all(promises)                            // collect all the Creates/Updates/Deletes
-      .then(_ => this.batch(creates, updates, deletes))     // then apply writes in a Batch
+      .then(_ => this.batch(creates, updates))                // then apply writes in a Batch
   }
 
   /** Batch a series of writes */

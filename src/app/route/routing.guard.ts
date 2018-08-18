@@ -6,12 +6,11 @@ import { map } from 'rxjs/operators';
 import { Select, Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 
-import { MemberState } from '@dbase/state/member.state';
 import { IAuthState } from '@dbase/state/auth.define';
+import { IStoreState } from '@dbase/state/store.define';
 
 import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IProfilePlan } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { isActive } from '@dbase/auth/auth.library';
 import { AuthModule } from '@dbase/auth/auth.module';
@@ -37,6 +36,7 @@ export class AuthGuard implements CanActivate {
 /** ensure Member Profile has a current 'plan' */
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
+  @Select() member$!: Observable<IStoreState>;
   private dbg: Function = dbg.bind(this);
 
   constructor(private store: Store) { this.dbg('new') }
@@ -44,8 +44,8 @@ export class ProfileGuard implements CanActivate {
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     const where: IWhere = { fieldPath: FIELD.type, value: 'plan' };
 
-    return this.store.selectOnce(MemberState).pipe(
-      map(member => asAt<IProfilePlan>(member[STORE.profile], where)),
+    return this.member$.pipe(
+      map(member => asAt(member[STORE.profile], where)),
       map(plan => {
         if (isArray(plan) && plan.length) return true;  // ok to access Route
 

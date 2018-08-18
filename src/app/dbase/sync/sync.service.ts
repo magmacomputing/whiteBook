@@ -120,9 +120,10 @@ export class SyncService {
         cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
       ])
 
-      listen.ready.resolve(true);                     // indicate snap0 is ready
-      if (localHash === storeHash)                    // compare what is in snap0 with localStorage
-        return;                                       // ok, already sync'd  
+      if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
+        listen.ready.resolve(true);                   // indicate snap0 is ready
+        return;                                       // ok, already sync'd
+      }
 
       this.store.dispatch(new truncStore());          // otherwise, reset Store
     }
@@ -145,6 +146,9 @@ export class SyncService {
           break;
       }
     })
+
+    if (listen.cnt === 0)
+      listen.ready.resolve(true);
   }
 
   private source(snaps: DocumentChangeAction<IStoreDoc>[]) {

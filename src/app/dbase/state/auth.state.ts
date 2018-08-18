@@ -2,7 +2,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, IdTokenResult, AuthCredential } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
-import { take, tap } from 'rxjs/operators';
+import { take, tap, map } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
@@ -34,10 +34,10 @@ export class AuthState implements NgxsOnInit {
 		ctx.dispatch(new CheckSession());						// Dispatch CheckSession on start
 	}
 
-	private authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
+	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
 		if (user) {
 			if (credential)														// have we been redirected here, via credential?
-				user.linkAndRetrieveDataWithCredential(credential);
+				await user.linkAndRetrieveDataWithCredential(credential);
 			ctx.dispatch(new LoginSuccess(user));
 		}
 		else ctx.dispatch(new LoginFailed(new Error('No User information available')))
@@ -90,9 +90,8 @@ export class AuthState implements NgxsOnInit {
 	loginSocial(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginSocial) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
 			.then(response => {
-				const userProfile = response.additionalUserInfo;
-
-				ctx.patchState({ userProfile: userProfile });
+				if (!credential)
+					ctx.patchState({ userProfile: response.additionalUserInfo });
 				this.authSuccess(ctx, response.user, credential);
 			})
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
@@ -128,26 +127,29 @@ export class AuthState implements NgxsOnInit {
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.key, value: user.uid } };
 
-		// TODO:  add in customClaims/[allow]
-		this.sync.on(COLLECTION.Attend, SLICE.attend, query);
-		this.sync.on(COLLECTION.Member, SLICE.member, query)
-			.then(_ => this.dbg('navigate: %s', ROUTE.attend))
-			.then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))	// wait for /member snap0 
+		if (this.afAuth.auth.currentUser) {
+			const userProfile = ctx.getState().userProfile;
+
+			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
+			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
+				.then(_ => { if (userProfile) ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile)) })
+				.then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
+		}
 	}
 
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		this.snack.dismiss();
 		if (this.afAuth.auth.currentUser) {
-			const userProfile = ctx.getState().userProfile;
+			// const userProfile = ctx.getState().userProfile;
 
 			(this.afAuth.auth.currentUser as User).getIdTokenResult()
 				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
-				.then(_ => {
-					if (userProfile)
-						ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile));
-				})
+			// .then(_ => {
+			// 	if (userProfile)
+			// 		ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile));
+			// })
 		}
 	}
 

@@ -26,6 +26,11 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
               : obj[key].sort()                   // sort Array    
             break;
 
+          case 'Date':
+            col[key] = new Date();
+            col[key].setTime(obj[key].getTime());
+            break;
+
           default:
             col[key] = obj[key];
             break;
@@ -97,6 +102,19 @@ export const cloneObj = <T>(obj: T): T => {
     return obj;
   }
 };
+
+/** deep-compare Objects for equality */
+export const equalObj = (obj1: any, obj2: any): boolean => {
+  Object.keys(obj1).forEach(field => {
+    if (!isObject(obj1[field]) && obj1[field] != obj2[field])
+      console.log('change: <', field, '> ', obj2[field], ' => ', obj1[field]);
+  })
+  return Object.keys(obj1).every(field =>
+    isObject(obj1[field])
+      ? equalObj(obj1[field], obj2[field])      // recurse to compare sub-object
+      : obj1[field] == obj2[field]
+  );
+}
 
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => Object.prototype.toString.call(obj).slice(8, -1);
