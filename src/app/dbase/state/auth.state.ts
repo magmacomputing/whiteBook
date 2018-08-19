@@ -79,7 +79,7 @@ export class AuthState implements NgxsOnInit {
 			let password = window.prompt('Please enter the password') || '';
 			ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
 		} else {
-			const [provider, type] = getAuthProvider(methods[0]);
+			const [type, provider] = getAuthProvider(methods[0]);
 			switch (type) {
 				case 'social':
 					ctx.dispatch(new LoginSocial(provider, link.credential));

@@ -6,51 +6,50 @@ import { TProvider } from '@dbase/data/data.schema';
 
 import { IObject, isNull } from '@lib/object.library';
 
-export const getAuthProvider = (providerId: string): [AuthProvider, TProvider] => {
+export const getAuthProvider = (providerId: string, token?: any): [TProvider, AuthProvider, AuthCredential | undefined] => {
 	let authProvider: AuthProvider;
-	let type: TProvider;
+	let authCredential: AuthCredential | undefined = undefined;
+	let type: TProvider = 'social';
 
 	switch (providerId) {
+		case 'email':
+			type = 'email'
+			authProvider = new auth.EmailAuthProvider();
+			if (token)
+				authCredential = auth.EmailAuthProvider.credential(token.email, token.password);
+			break;
+
 		case 'google':
 		case 'google.com':
 			authProvider = new auth.GoogleAuthProvider();
-			type = 'social';
+			if (token)
+				authCredential = auth.GoogleAuthProvider.credential(token.idToken, token.accessToken);
 			break;
 
 		case 'twitter':
 		case 'twitter.com':
 			authProvider = new auth.TwitterAuthProvider();
-			type = 'social';
+			if (token)
+				authCredential = auth.TwitterAuthProvider.credential(token.token, token.secret);
 			break;
 
 		case 'github':
 		case 'github.com':
 			authProvider = new auth.GithubAuthProvider();
-			type = 'social';
+			if (token)
+				authCredential = auth.GithubAuthProvider.credential(token);
 			break;
 
 		case 'facebook':
 		case 'facebook.com':
 		default:
 			authProvider = new auth.FacebookAuthProvider();
-			type = 'social';
+			if (token)
+				authCredential = auth.FacebookAuthProvider.credential(token);
 			break;
 	}
 
-	return [authProvider, type];
-}
-
-export const getAuthCredential = (providerId: string, opts: IObject<any>) => {
-	let authCredential: AuthCredential;
-
-	switch (providerId) {
-		case 'email':
-		default:
-			authCredential = auth.GoogleAuthProvider.credential(opts.email, opts.password);
-			break;
-	}
-
-	return authCredential;
+	return [type, authProvider, authCredential];
 }
 
 export const isActive = (auth: IAuthState) => {
