@@ -12,7 +12,7 @@ import { AuthService } from '@dbase/auth/auth.service';
 })
 export class AppComponent {
 
-  constructor(private readonly data: DataService, private readonly store: Store, private readonly auth: AuthService) { }
+  constructor(readonly data: DataService, readonly auth: AuthService, private readonly store: Store) { }
 
   navigate(url: string) {
     this.store.dispatch(new Navigate([url]));

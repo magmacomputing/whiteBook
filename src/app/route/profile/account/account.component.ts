@@ -9,7 +9,7 @@ import { MemberService } from '@dbase/app/member.service';
 })
 export class AccountComponent implements OnInit {
 
-  constructor(private readonly data: DataService, private readonly member: MemberService) { }
+  constructor(readonly member: MemberService) { }
 
   ngOnInit() { }
 

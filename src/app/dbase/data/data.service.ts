@@ -28,7 +28,7 @@ import { dbg } from '@lib/logger.library';
 export class DataService {
   private dbg: Function = dbg.bind(this);
 
-  constructor(private fire: FireService, private sync: SyncService, private auth: AuthService, private store: Store, private snack: MatSnackBar) {
+  constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
     this.dbg('new');
     this.syncOn(COLLECTION.Client, SLICE.client);   // initialize a listener to /client Collection
   }
