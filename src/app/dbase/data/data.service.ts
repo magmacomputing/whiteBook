@@ -101,10 +101,6 @@ export class DataService {
       if (!checkDiscard(discards, nextDoc as IStoreMeta, currDocs.data as IStoreMeta[])) {
         creates.push(nextDoc);                              // push the prepared document-create
         updates.push(...currDocs.updates);                  // push the associated document-updates
-      } else {
-        let discardDoc: any = cloneObj(nextDoc);
-        asArray(discards).forEach(field => delete discardDoc[field]);
-        this.dbg('discard: %j', discardDoc);                // discard when there is no change of value
       }
     })
 

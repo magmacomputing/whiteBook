@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, mergeMap, concatMap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { IStoreState } from '@dbase/state/store.define';
 
 import { MemberService } from '@dbase/app/member.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { ILocation, IDefault } from '@dbase/data/data.schema';
+import { ILocation, IDefault, ISchedule } from '@dbase/data/data.schema';
 
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
@@ -85,18 +85,21 @@ export class AttendComponent implements OnInit {
   get default$() {
     return this.client$.pipe(
       map((state: IStoreState) => state[STORE.default]),
-      map((table: IDefault[]) => table.forEach(row => this.default[row[FIELD.type]] = row[FIELD.key])),
     )
   }
 
-  // get location$() {                             // get the Locations that are on the Schedule for this.date
-  //   return this.schedule$.pipe(
-  //     map((table: ISchedule[]) => table.map(row => row.location || this.default.location)),
-  //     distinct(),
-  //     switchMap(locs => currStore(this.client$, STORE.location, { fieldPath: FIELD.key, value: locs })),
-  //     tap((locs: ILocation[]) => this.locations = locs)
-  //   )
-  // }
+  get location$() {                             // get the Locations that are on the Schedule for this.date
+    return this.schedule$.pipe(
+      mergeMap(_ => this.default$, (schedule, defaults) => {
+        const dflt = defaults.filter(itm => itm.type === 'location')[0];
+        return schedule.map(itm => Object.assign({}, { dflt }))
+      }),
+      // map((table: ISchedule[]) => table.map(row => row.location || this.default.location)),
+      // distinct(),
+      // switchMap(locs => currStore(this.client$, STORE.location, { fieldPath: FIELD.key, value: locs })),
+      // tap((locs: ILocation[]) => this.locations = locs)
+    )
+  }
 
   // TODO: popup info about a Class
   // showEvent(event: string) {
