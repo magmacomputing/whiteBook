@@ -4,22 +4,22 @@
   </div>
 
   <mat-card *ngFor="let plan of plan$ | async; last as last">
-    <mat-card-header>
-      <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan.key)">
-      <mat-card-title>
-        {{ plan.key }}
-      </mat-card-title>
-      <mat-card-subtitle>{{ plan.desc }}</mat-card-subtitle>
+    <div *ngIf="(getPrice(plan.key) | async)  || {}; let price">
+      <mat-card-header>
+        <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan.key)">
+        <mat-card-title>
+          {{ plan.key }}
+        </mat-card-title>
+        <mat-card-subtitle>{{ plan.desc }}</mat-card-subtitle>
 
-      <mat-card-content align="center">
-        <div *ngFor="let price of getPrice(plan.key) | async">
-          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key, price.amount)">
-            {{ price.amount | currency }}
+        <mat-card-content align="center">
+          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key)">
+            {{ price[0].amount | currency }}
           </button>
-        </div>
-      </mat-card-content>
-    </mat-card-header>
-    <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+        </mat-card-content>
+      </mat-card-header>
+      <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+    </div>
   </mat-card>
 </div>
 
