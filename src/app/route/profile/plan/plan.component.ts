@@ -19,7 +19,7 @@ import { dbg } from '@lib/logger.library';
   templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-  @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
+  @Select(AuthState) auth$!: Observable<IAuthState>;
   @Select(ClientState.current(STORE.plan, undefined, ['sort', FIELD.key])) plan$!: Observable<IPlan[]>;
   @Select(MemberState.current(STORE.profile, { fieldPath: FIELD.type, value: 'plan' })) profile$!: Observable<IProfilePlan[]>;
 

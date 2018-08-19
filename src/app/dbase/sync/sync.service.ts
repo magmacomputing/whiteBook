@@ -57,7 +57,7 @@ export class SyncService {
   }
 
   /** detach an existing snapshot listener */
-  public off(collection: string) {
+  public off(collection: string, trunc?: any) {
     const listen = this.listener[collection];
 
     if (listen && isFunction(listen.subscribe.unsubscribe)) {
@@ -65,6 +65,9 @@ export class SyncService {
       this.dbg('off: %s', collection);
     }
     delete this.listener[collection];
+
+    if (trunc)
+      this.store.dispatch(new trunc());
   }
 
   /** handler for snapshot listeners */
@@ -81,7 +84,7 @@ export class SyncService {
       cnts[idx] += 1;
       return cnts;
     }, [0, 0, 0]);
-    this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
+    this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
       collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
     switch (listen.slice) {                           // TODO: can we merge these?

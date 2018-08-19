@@ -1,10 +1,10 @@
-import { User, UserInfo, AuthProvider, IdTokenResult } from '@firebase/auth-types';
+import { User, UserInfo, AuthProvider, IdTokenResult, AdditionalUserInfo } from '@firebase/auth-types';
 import { ILink } from '@dbase/auth/auth.interface';
 
 export interface IAuthState {
   userInfo: UserInfo | null;
   userToken: IdTokenResult | null;
-  userProfile: any | null;            // additionalUserInfo
+  userProfile: AdditionalUserInfo | null | undefined; // additionalUserInfo
 }
 
 // Actions
@@ -31,9 +31,8 @@ export class Logout {
 export class LogoutSuccess {
   static type = '[Auth] LogoutSuccess';
 }
-export class UserProfile {
-  static type = '[Auth] UserProfile';
-  constructor(public providerId: string, public profile: any) { }
+export class AuthProfile {
+  static type = '[Auth] AuthProfile';
 }
 
 // Events

@@ -37,8 +37,6 @@ export class AuthService {
 
   public signOut() {
     this.store.dispatch(new Logout());
-    this.store.dispatch(new TruncMember());
-    this.store.dispatch(new TruncAttend());
   }
 
   public check() {

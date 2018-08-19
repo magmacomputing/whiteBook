@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
+import { timer } from 'rxjs';
+import { debounce } from 'rxjs/operators';
 
-import { Store, Actions, ofActionDispatched } from '@ngxs/store';
+import { Store, Actions, ofAction } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { IUserInfo } from '@dbase/auth/auth.interface';
-import { UserProfile } from '@dbase/state/auth.define';
+import { AuthProfile, IAuthState } from '@dbase/state/auth.define';
+import { AuthState } from '@dbase/state/auth.state';
 
 import { asAt } from '@dbase/app/app.library';
 import { IWhere } from '@dbase/fire/fire.interface';
@@ -13,7 +16,7 @@ import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, ISt
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
-import { isUndefined, asArray } from '@lib/object.library';
+import { isUndefined, asArray, cloneObj, isNull } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
@@ -24,10 +27,13 @@ export class MemberService {
 	constructor(private readonly data: DataService, private readonly store: Store, private readonly action: Actions) {
 		this.dbg('new');
 		this.default = this.data.snap<IStoreBase>(STORE.default)
-			.then(table => asAt(table));																			// stash the current defaults
-		this.action
-			.pipe(ofActionDispatched(UserProfile))														// special: listen for changes of the UserProfile
-			.subscribe(payload => this.getProfile(payload));
+			.then(table => asAt(table));								// stash the current defaults
+
+		this.action.pipe(															// special: listen for changes of the UserProfile
+			ofAction(AuthProfile),
+			debounce(_ => timer(1000)),
+		).subscribe(_ => this.getProfile());
+		// this.store.dispatch(new AuthProfile());
 	}
 
 	async setPlan(plan: TPlan) {
@@ -150,20 +156,28 @@ export class MemberService {
 	}
 
 	/** check for change of User.additionalInfo */
-	getProfile({ providerId, profile }: UserProfile) {
-		delete profile.link;							// special: FaceBook changes this field periodically
+	getProfile() {
+		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
+		if (isNull(auth.userProfile) || isUndefined(auth.userProfile))
+			return;													// No AdditionalUserInfo available
+
+		let authProfile = cloneObj(auth.userProfile);
+		if (authProfile.profile) {
+			const profile: any = authProfile.profile;
+			delete profile.link;						// special: FaceBook changes this field periodically
+			authProfile.profile = profile;	// rebuild authProfile.profile
+		}
+
 		const where: IWhere[] = [
-			{ fieldPath: 'providerId', value: providerId },
+			{ fieldPath: 'providerId', value: authProfile.providerId },
 		]
 		const profileUser = {
+			...authProfile,									// spread the authProfile object
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'user',
-			providerId: providerId,
-			profile: profile,
 		}
 
-		this.dbg('getProfile: %s, %j', providerId, where);
 		this.data.insDoc(profileUser, where, 'profile');
 	}
 }

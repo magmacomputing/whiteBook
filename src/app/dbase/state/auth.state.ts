@@ -2,12 +2,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { User, IdTokenResult, AuthCredential } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
-import { take, tap, map } from 'rxjs/operators';
+import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
-import { SLICE } from '@dbase/state/store.define';
+import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
 
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, UserProfile } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, AuthProfile } from '@dbase/state/auth.define';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
@@ -36,8 +36,10 @@ export class AuthState implements NgxsOnInit {
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
 		if (user) {
-			if (credential)														// have we been redirected here, via credential?
-				await user.linkAndRetrieveDataWithCredential(credential);
+			if (credential) {													// have we been redirected here, via credential?
+				const response = await user.linkAndRetrieveDataWithCredential(credential);
+				ctx.patchState({ userProfile: response.additionalUserInfo });
+			}
 			ctx.dispatch(new LoginSuccess(user));
 		}
 		else ctx.dispatch(new LoginFailed(new Error('No User information available')))
@@ -45,7 +47,7 @@ export class AuthState implements NgxsOnInit {
 
 	/** Selectors */
 	@Selector()
-	static getUser(state: IAuthState) {
+	static auth(state: IAuthState) {
 		return state;
 	}
 
@@ -53,7 +55,8 @@ export class AuthState implements NgxsOnInit {
 	@Action(CheckSession)													// on first connect, check if still logged-on
 	checkSession(ctx: StateContext<IAuthState>) {
 		if (!isActive(ctx.getState())) {						// check their prior auth-status
-			ctx.dispatch(new LoginRedirect())
+			ctx.dispatch(new LoginRedirect());
+			return;
 		}
 
 		return this.afAuth.authState								// then check to see if still authenticated
@@ -68,11 +71,10 @@ export class AuthState implements NgxsOnInit {
 			);
 	}
 
-	@Action(LoginLink)
+	@Action(LoginLink)														// attempt to link multiple providers
 	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
 
-		this.dbg('methods: %j', methods);
 		if (methods[0] === 'password') {
 			let password = window.prompt('Please enter the password') || '';
 			ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
@@ -119,6 +121,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(Logout)																	// process signOut()
 	async logout(ctx: StateContext<IAuthState>) {
 		await this.afAuth.auth.signOut();
+
 		ctx.dispatch(new LogoutSuccess());
 		return;
 	}
@@ -129,11 +132,9 @@ export class AuthState implements NgxsOnInit {
 		const query: IQuery = { where: { fieldPath: FIELD.key, value: user.uid } };
 
 		if (this.afAuth.auth.currentUser) {
-			const userProfile = ctx.getState().userProfile;				// TODO: Why this does not fire on signUp
-
 			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
-				.then(_ => { if (userProfile) ctx.dispatch(new UserProfile(userProfile.providerId, userProfile.profile)) })
+				.then(_ => ctx.dispatch(new AuthProfile()))					// check for AdditionalUserInfo
 				.then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
 		}
 	}
@@ -164,8 +165,8 @@ export class AuthState implements NgxsOnInit {
 
 	@Action([LoginFailed, LogoutSuccess])
 	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
-		this.sync.off(COLLECTION.Member);
-		this.sync.off(COLLECTION.Attend);
+		this.sync.off(COLLECTION.Member, TruncMember);
+		this.sync.off(COLLECTION.Attend, TruncAttend);
 		this.snack.dismiss();
 
 		if (error) {
