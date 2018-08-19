@@ -1,4 +1,5 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { auth as fb } from 'firebase/app';
 import { User, IdTokenResult, AuthCredential } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
@@ -54,7 +55,9 @@ export class AuthState implements NgxsOnInit {
 	/** Commands */
 	@Action(CheckSession)													// on first connect, check if still logged-on
 	checkSession(ctx: StateContext<IAuthState>) {
-		if (!isActive(ctx.getState())) {						// check their prior auth-status
+		const auth = ctx.getState();
+
+		if (!isActive(auth)) {											// check their prior auth-status
 			ctx.dispatch(new LoginRedirect());
 			return;
 		}
@@ -64,8 +67,13 @@ export class AuthState implements NgxsOnInit {
 				take(1),
 				tap(user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-					if (user)
+					if (user && auth.userInfo) {
+						// const [type, authProvider, authCredential] = getAuthProvider(auth.userInfo.providerId, auth.userToken);
+
+						// if (authCredential) {								// TODO: use authCredential to get additionalUserInfo
+						// }
 						ctx.dispatch(new LoginSuccess(user));
+					}
 					else ctx.dispatch(new Logout());
 				})
 			);

@@ -1,51 +1,52 @@
 import { auth } from 'firebase/app';
-import { AuthProvider, AuthCredential } from '@firebase/auth-types';
+import { AuthProvider, AuthCredential, IdTokenResult } from '@firebase/auth-types';
 
 import { IAuthState } from '@dbase/state/auth.define';
 import { TProvider } from '@dbase/data/data.schema';
 
-import { IObject, isNull } from '@lib/object.library';
+import { isNull } from '@lib/object.library';
 
-export const getAuthProvider = (providerId: string, token?: any): [TProvider, AuthProvider, AuthCredential | undefined] => {
+// TODO: derive token requirements from authState.userToken
+export const getAuthProvider = (providerId: string, userToken?: IdTokenResult | null): [TProvider, AuthProvider, AuthCredential | undefined] => {
 	let authProvider: AuthProvider;
 	let authCredential: AuthCredential | undefined = undefined;
-	let type: TProvider = 'social';
+	let type: TProvider = 'social';												// default to 'social'
 
 	switch (providerId) {
 		case 'email':
 			type = 'email'
 			authProvider = new auth.EmailAuthProvider();
-			if (token)
-				authCredential = auth.EmailAuthProvider.credential(token.email, token.password);
+			// if (userToken)
+			// 	authCredential = auth.EmailAuthProvider.credential(userToken.email, userToken.password);
 			break;
 
 		case 'google':
 		case 'google.com':
 			authProvider = new auth.GoogleAuthProvider();
-			if (token)
-				authCredential = auth.GoogleAuthProvider.credential(token.idToken, token.accessToken);
+			if (userToken)
+				authCredential = auth.GoogleAuthProvider.credential(userToken.token);
 			break;
 
 		case 'twitter':
 		case 'twitter.com':
 			authProvider = new auth.TwitterAuthProvider();
-			if (token)
-				authCredential = auth.TwitterAuthProvider.credential(token.token, token.secret);
+			if (userToken)
+				authCredential = auth.TwitterAuthProvider.credential(userToken.token, '')//, userToken.secret);
 			break;
 
 		case 'github':
 		case 'github.com':
 			authProvider = new auth.GithubAuthProvider();
-			if (token)
-				authCredential = auth.GithubAuthProvider.credential(token);
+			if (userToken)
+				authCredential = auth.GithubAuthProvider.credential(userToken.token);
 			break;
 
 		case 'facebook':
 		case 'facebook.com':
 		default:
 			authProvider = new auth.FacebookAuthProvider();
-			if (token)
-				authCredential = auth.FacebookAuthProvider.credential(token);
+			if (userToken)
+				authCredential = auth.FacebookAuthProvider.credential(userToken.token);
 			break;
 	}
 

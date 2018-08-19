@@ -101,8 +101,8 @@ export class AttendComponent implements OnInit {
     return this.schedule$.pipe(
       map((table: ISchedule[]) => table.map(row => row.location)),
       map(locs => locs.filter(arrayDistinct)),
-      tap(loc => this.dbg('loc: %j', loc)),
-      switchMap(loc => this.getStore(STORE.location, { fieldPath: FIELD.key, value: loc })),
+      // tap(loc => this.dbg('loc: %j', loc)),
+      // switchMap(loc => this.getStore(STORE.location, { fieldPath: FIELD.key, value: loc })),
       // mergeMap(_ => this.default$, (schedule, defaults) => {
       //   const dflt = defaults.filter(itm => itm.type === 'location')[0];
       //   return schedule.map(itm => Object.assign({}, { dflt }))
