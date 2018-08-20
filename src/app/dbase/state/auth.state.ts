@@ -68,14 +68,6 @@ export class AuthState implements NgxsOnInit {
 				tap(user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 					if (user && auth.userInfo) {
-						// const [type, authProvider, authCredential] = getAuthProvider(auth.userInfo.providerId, auth.userToken);
-						// user.getIdTokenResult()
-						// 	.then(response => {
-						// 		user.reauthenticateAndRetrieveDataWithCredential(authCredential);
-						// })
-
-						// if (authCredential) {								// TODO: use authCredential to get additionalUserInfo
-						// }
 						ctx.dispatch(new LoginSuccess(user));
 					}
 					else ctx.dispatch(new Logout());
