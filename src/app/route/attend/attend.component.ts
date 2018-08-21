@@ -56,7 +56,7 @@ export class AttendComponent implements OnInit {
       ),
       switchMap((result: any) => this.client$.pipe(         // get the prices[] for the effective ProfilePlan
         map((state: IStoreState) => asAt<IPrice>(state[STORE.price] as IPrice[],
-          [{ fieldPath: FIELD.key, value: result.profile.plan }], this.date)),
+          [{ fieldPath: FIELD.key, value: result.plan.plan }], this.date)),
         map(table => Object.assign({}, result, { price: table })),
       )),
     )
