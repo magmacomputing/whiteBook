@@ -1,0 +1,49 @@
+{
+	"user": {
+		"displayName": "Michael McRae",
+		"email": "michael@magmacomputing.com.au",
+		"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+		"providerId": "firebase",
+		"uid": "eS3mBl1SdwO2LjSWEHxLmOkYuog1"
+	},
+	"profile": {
+		"_id": "mNwpHJqKBeK1HkhvhnfK",
+		"key": "eS3mBl1SdwO2LjSWEHxLmOkYuog1",
+		"plan": "member",
+		"store": "profile",
+		"type": "plan"
+	},
+	"price": [
+		{
+			"_id": "9s1JVCQnCOcK01KDHIP6",
+			"_effect": 1514725200,
+			"amount": 5,
+			"key": "member",
+			"store": "price",
+			"type": "half"
+		},
+		{
+			"_id": "A2ZrHSOEGovIg3FUCjZG",
+			"_effect": 1514725200,
+			"amount": 10,
+			"key": "member",
+			"store": "price",
+			"type": "full"
+		},
+		{
+			"_id": "CzutaKlWSaubY1gRfsIH",
+			"amount": 5,
+			"key": "member",
+			"store": "price",
+			"type": "hold"
+		},
+		{
+			"_id": "YnTyupNiI3eEMCqJkCRi",
+			"_effect": 1514725200,
+			"amount": 100,
+			"key": "member",
+			"store": "price",
+			"type": "topUp"
+		}
+	]
+}
