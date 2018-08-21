@@ -1,10 +1,11 @@
-import { User, UserInfo, AuthProvider, IdTokenResult, AdditionalUserInfo } from '@firebase/auth-types';
+import { User, UserInfo, AuthProvider, IdTokenResult, AdditionalUserInfo, AuthCredential } from '@firebase/auth-types';
 import { ILink } from '@dbase/auth/auth.interface';
 
 export interface IAuthState {
   userInfo: UserInfo | null;
   userToken: IdTokenResult | null;
   userProfile: AdditionalUserInfo | null | undefined; // additionalUserInfo
+  userCredential: AuthCredential | null;
 }
 
 // Actions

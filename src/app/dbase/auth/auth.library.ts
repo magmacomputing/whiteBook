@@ -7,17 +7,21 @@ import { TProvider } from '@dbase/data/data.schema';
 import { isNull } from '@lib/object.library';
 
 // TODO: derive token requirements from authState.userToken
-export const getAuthProvider = (providerId: string, userToken?: IdTokenResult | null): [TProvider, AuthProvider, AuthCredential | undefined] => {
-	let authProvider: AuthProvider;
-	let authCredential: AuthCredential | undefined = undefined;
-	let type: TProvider = 'social';												// default to 'social'
+interface IEmailToken {
+	email: string;
+	password: string;
+}
+export const getAuthProvider = (providerId: string, userToken?: (IdTokenResult & IEmailToken) | null): [TProvider | undefined, AuthProvider | undefined, AuthCredential | undefined] => {
+	let authProvider: AuthProvider | undefined;
+	let authCredential: AuthCredential | undefined;
+	let type: TProvider | undefined = 'social';												// default to 'social'
 
 	switch (providerId) {
 		case 'email':
 			type = 'email'
 			authProvider = new auth.EmailAuthProvider();
-			// if (userToken)
-			// 	authCredential = auth.EmailAuthProvider.credential(userToken.email, userToken.password);
+			if (userToken)
+				authCredential = auth.EmailAuthProvider.credential(userToken.email, userToken.password);
 			break;
 
 		case 'google':
@@ -43,10 +47,13 @@ export const getAuthProvider = (providerId: string, userToken?: IdTokenResult | 
 
 		case 'facebook':
 		case 'facebook.com':
-		default:
 			authProvider = new auth.FacebookAuthProvider();
 			if (userToken)
 				authCredential = auth.FacebookAuthProvider.credential(userToken.token);
+			break;
+
+		default:
+			type = undefined;
 			break;
 	}
 

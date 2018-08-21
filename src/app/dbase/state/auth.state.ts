@@ -1,6 +1,6 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { auth as fb } from 'firebase/app';
-import { User, IdTokenResult, AuthCredential } from '@firebase/auth-types';
+import { User, IdTokenResult, AuthCredential, AuthProvider, GoogleAuthProvider } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { take, tap } from 'rxjs/operators';
@@ -16,6 +16,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { ROUTE } from '@route/route.define';
 import { dbg } from '@lib/logger.library';
+import { cloneObj } from '@lib/object.library';
 
 @State<IAuthState>({
 	name: SLICE.auth,
@@ -23,6 +24,7 @@ import { dbg } from '@lib/logger.library';
 		userInfo: null,
 		userToken: null,
 		userProfile: null,
+		userCredential: null,
 	}
 })
 export class AuthState implements NgxsOnInit {
@@ -65,9 +67,28 @@ export class AuthState implements NgxsOnInit {
 		return this.afAuth.authState								// then check to see if still authenticated
 			.pipe(
 				take(1),
-				tap(user => {
+				tap(async user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-					if (user && auth.userInfo) {
+					if (user) {
+						// if (auth.userCredential) {
+						// 	const idToken = await user.getIdTokenResult(true);
+						// 	user.reauthenticateAndRetrieveDataWithCredential(fb.GoogleAuthProvider.credential(idToken.token))
+						// 	// const accessToken = cloneObj<any>(auth.userCredential).accessToken;
+						// 	// user.reauthenticateAndRetrieveDataWithCredential(accessToken)
+						// 		.then(response => this.dbg('reauth: %j', response.additionalUserInfo));
+						// }
+						// 						const idToken = await user.getIdTokenResult(true);
+						// 						// const [, , authCredential] = getAuthProvider(user.providerId, decodeBase64(auth.userToken.token));
+						// 						const authCredential: AuthCredential = {
+						// 							providerId: user.providerId,
+						// 							signInMethod: auth.userToken.signInProvider as string,
+						// 						}
+						// this.dbg('credential: %j', authCredential)
+						// 						if (authCredential) {
+						// 							const response = await user.reauthenticateAndRetrieveDataWithCredential(authCredential);
+						// 							this.dbg('profile: %j', response.additionalUserInfo);
+						// 						}
+
 						ctx.dispatch(new LoginSuccess(user));
 					}
 					else ctx.dispatch(new Logout());
@@ -83,10 +104,10 @@ export class AuthState implements NgxsOnInit {
 			let password = window.prompt('Please enter the password') || '';
 			ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
 		} else {
-			const [type, provider] = getAuthProvider(methods[0]);
+			const [type, authProvider] = getAuthProvider(methods[0]);
 			switch (type) {
 				case 'social':
-					ctx.dispatch(new LoginSocial(provider, link.credential));
+					ctx.dispatch(new LoginSocial(authProvider as AuthProvider, link.credential));
 					break;
 			}
 		}
@@ -97,7 +118,7 @@ export class AuthState implements NgxsOnInit {
 		return this.afAuth.auth.signInWithPopup(authProvider)
 			.then(response => {
 				if (!credential)
-					ctx.patchState({ userProfile: response.additionalUserInfo });
+					ctx.patchState({ userProfile: response.additionalUserInfo, userCredential: response.credential });
 				this.authSuccess(ctx, response.user, credential);
 			})
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
@@ -180,7 +201,7 @@ export class AuthState implements NgxsOnInit {
 			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
-		ctx.setState({ userInfo: null, userToken: null, userProfile: null });
+		ctx.setState({ userInfo: null, userToken: null, userProfile: null, userCredential: null });
 		ctx.dispatch(new LoginRedirect());
 	}
 }

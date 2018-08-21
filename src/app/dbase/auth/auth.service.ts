@@ -15,6 +15,7 @@ import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { asArray, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { AuthProvider } from '@firebase/auth-types';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
@@ -81,6 +82,7 @@ export class AuthService {
   /** prepare the AuthProvider object before dispatching the SignIn flow */
   private signInSocial(provider: IProvider) {
     const [, authProvider] = getAuthProvider(provider[FIELD.key]);
+    if (!authProvider) return;                      // misconfigured providerId
 
     asArray(provider.scope)
       .forEach(scope => (authProvider as TScopes).addScope(scope));
