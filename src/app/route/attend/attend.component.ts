@@ -4,10 +4,11 @@ import { map, distinct, switchMap, filter } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { IStoreState } from '@dbase/state/store.define';
+import { IAuthState } from '@dbase/state/auth.define';
 
 import { MemberService } from '@dbase/app/member.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { ILocation, IDefault, ISchedule } from '@dbase/data/data.schema';
+import { ILocation, IDefault, ISchedule, IProfilePlan, IPlan, IPrice } from '@dbase/data/data.schema';
 import { IWhere } from '@dbase/fire/fire.interface';
 
 import { swipe } from '@lib/html.library';
@@ -16,6 +17,7 @@ import { fmtDate } from '@lib/date.library';
 import { asAt } from '@dbase/app/app.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { UserInfo } from '@firebase/auth-types';
 
 @Component({
   selector: 'wb-attend',
@@ -23,28 +25,43 @@ import { dbg } from '@lib/logger.library';
   styleUrls: ['./attend.component.css']
 })
 export class AttendComponent implements OnInit {
-  // @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
+  @Select((state: any) => state.auth) auth$!: Observable<IAuthState>;
   @Select((state: any) => state.client) client$!: Observable<IStoreState>;
-  // @Select(MemberState.getMember) member$!: Observable<ISelector>;
-  // @Select((state: any) => currStore(state.client, STORE.provider, undefined, ['start'])) schedule$!: Observable<ISchedule[]>;
+  @Select((state: any) => state.member) member$!: Observable<IStoreState>;
 
   public schedule$!: Observable<ISchedule[]>;
   public location$!: Observable<ILocation[]>;
   public default$!: Observable<IDefault[]>;
+  public profile$!: Observable<any>;
 
   private dbg: Function = dbg.bind(this);
   private date!: string;
-  public selectedIndex: number = 0;            // used by UI to swipe between <tabs>
-
+  public selectedIndex: number = 0;                         // used by UI to swipe between <tabs>
   private locations: ILocation[] = [];
-  private default: { [type: string]: string } = {};
 
   constructor(private readonly member: MemberService) { }
 
-  ngOnInit() {                                  // wire-up the Observables
+  ngOnInit() {                                              // wire-up the Observables
+    this.profile$ = this.auth$.pipe(
+      map(auth => auth.userInfo),                           // get the current User UID
+      switchMap((user: UserInfo) => this.member$.pipe(                   // search the /member store for an effective ProfilePlan
+        map((state: IStoreState) => asAt<IProfilePlan>(state[STORE.profile] as IProfilePlan[],
+          [{ fieldPath: FIELD.type, value: 'plan' }, { fieldPath: FIELD.key, value: user.uid }], this.date)),
+        map(table => Object.assign({}, { auth: user }, { profile: table[0] }),// return only the first occurrence
+        )),
+      ),
+      switchMap((result: any) => this.client$.pipe(
+        map((state: IStoreState) => asAt<IPrice>(state[STORE.price] as IPrice[],
+          [{ fieldPath: FIELD.key, value: result.profile.plan }], this.date)),
+        map(table => Object.assign({}, result, { price: table })),
+      )),
+    )
+    this.profile$.subscribe(plan => this.dbg('profile: %j', plan));
+
     this.default$ = this.client$.pipe(
       map((state: IStoreState) => state[STORE.default] as IDefault[]),
     )
+
     this.schedule$ = this.client$.pipe(
       map((state: IStoreState) => state[STORE.schedule] as ISchedule[]),
       map(table => asAt(table, { fieldPath: 'day', value: fmtDate(this.date).weekDay }, this.date)),
@@ -56,90 +73,15 @@ export class AttendComponent implements OnInit {
       switchMap(locn => this.client$.pipe(
         map((state: IStoreState) => state[STORE.location] as ILocation[]),
         map(table => table.filter(row => locn.includes(row[FIELD.key]))),
+        map(table => table.sort(sortKeys(['sort']))),
       ))
     )
   }
 
-  // get class$() {
-  //   return getStore(this.client$, STORE.class).pipe(
-  //     map(table => asAt(table, undefined, this.date))
-  //   )
-  // }
-
-  // get profile$() {                // get the Member's current Plan
-  //   const filter: IWhere = { fieldPath: FIELD.type, value: 'plan' }
-  //   return getStore(this.member$, STORE.profile, filter);
-  // }
-
-  // get price$() {                  // get the Member's applicable Prices
-  //   return this.profile$.pipe(
-  //     // map(profiles => profiles[0]),
-  //     // map(profile => profile.plan),
-  //     // switchMap(plan => getStore(this.client$, STORE.price, { fieldPath: FIELD.key, value: plan })),
-  //     map(table => asAt(table, undefined, this.date)),
-  //   )
-  // }
-
-  getStore(store: string, where: IWhere | IWhere[] = []) {
-    return this.client$.pipe(
-      map((state: IStoreState) => state[store]),
-      map(table => asAt(table, where, this.date)),
-    )
-  }
-
-  // get schedule$() {
-  //   const day = fmtDate(this.date).weekDay;
-  //   const where: IWhere = { fieldPath: 'day', value: day };
-
-  // return this.client$.pipe(
-  //   map((state: IStoreState) => state[STORE.schedule]),
-  //   map(table => asAt(table, where, this.date)),                    // get the Schedule for this.date
-  // return this.getStore(STORE.schedule, where).pipe(
-  //   map(table => table.sort(sortKeys('start'))),
-  // )
-
-  // return currStore(this.client$, STORE.schedule).pipe(
-  //   map((state: IStoreState) => state[STORE.schedule]),
-  //   map(table => asAt<ISchedule>(table, where, this.date)),          // get the Schedule for this.date
-  //   // mergeMap(table => this.class$, (schedule, events) => { // get the Classes
-  //   //   return schedule.map(itm => { itm.class = events.filter(event => event[FIELD.key] === itm[FIELD.key])[0]; return itm; })
-  //   // }),
-  //   // mergeMap(table => this.price$, (schedule, prices) => {
-  //   //   return schedule.map(itm => { itm.price = prices.filter(price => price[FIELD.type] === itm.class.type)[0]; return itm; })
-  //   // }),
-  //   map(table => table.sort(sortKeys('start'))),
-  // )
-  // }
-
-  // get default$() {
-  //   return this.client$.pipe(
-  //     map((state: IStoreState) => state[STORE.default]),
-  //   )
-  // }
-
-  // get location$() {                             // get the Locations that are on the Schedule for this.date
-  //   return this.schedule$.pipe(
-  //     map((table: ISchedule[]) => table.map(row => row.location)),
-  //     distinct(),
-  // switchMap(loc => this.getStore(STORE.location, { fieldPath: 'key', value: loc }).pipe(
-  //   tap(res => console.log('tap: ', tap)),
-  // )),
-  // map(locs => locs.filter(arrayDistinct)),
-  // tap(loc => this.dbg('loc: %j', loc)),
-  // switchMap(loc => this.getStore(STORE.location, { fieldPath: FIELD.key, value: loc })),
-  // mergeMap(_ => this.default$, (schedule, defaults) => {
-  //   const dflt = defaults.filter(itm => itm.type === 'location')[0];
-  //   return schedule.map(itm => Object.assign({}, { dflt }))
-  // }),
-  // switchMap(locs => currStore(this.client$, STORE.location, { fieldPath: FIELD.key, value: locs })),
-  // tap((locs: ILocation[]) => this.locations = locs)
-  // )
-  // }
-
   // TODO: popup info about a Class
-  // showEvent(event: string) {
-  //   this.dbg('event: %j', event);
-  // }
+  showEvent(event: string) {
+    this.dbg('event: %j', event);
+  }
 
   swipe(idx: number, event: any) {
     this.selectedIndex = swipe(idx, this.locations.length, event);
