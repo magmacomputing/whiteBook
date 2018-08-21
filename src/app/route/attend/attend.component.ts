@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, mergeMap, concatMap, distinct, tap, switchMap, filter } from 'rxjs/operators';
+import { map, distinct, switchMap, filter } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { IStoreState } from '@dbase/state/store.define';
@@ -15,7 +15,6 @@ import { suffix } from '@lib/number.library';
 import { fmtDate } from '@lib/date.library';
 import { asAt } from '@dbase/app/app.library';
 import { sortKeys } from '@lib/object.library';
-import { arrayDistinct } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -30,7 +29,7 @@ export class AttendComponent implements OnInit {
   // @Select((state: any) => currStore(state.client, STORE.provider, undefined, ['start'])) schedule$!: Observable<ISchedule[]>;
 
   public schedule$!: Observable<ISchedule[]>;
-  public location$!: Observable<string[]>;
+  public location$!: Observable<ILocation[]>;
   public default$!: Observable<IDefault[]>;
 
   private dbg: Function = dbg.bind(this);
@@ -49,10 +48,15 @@ export class AttendComponent implements OnInit {
     this.schedule$ = this.client$.pipe(
       map((state: IStoreState) => state[STORE.schedule] as ISchedule[]),
       map(table => asAt(table, { fieldPath: 'day', value: fmtDate(this.date).weekDay }, this.date)),
+      map(table => table.sort(sortKeys(['start']))),
     )
     this.location$ = this.schedule$.pipe(
       map(table => table.map(row => row.location)),
       distinct(),
+      switchMap(locn => this.client$.pipe(
+        map((state: IStoreState) => state[STORE.location] as ILocation[]),
+        map(table => table.filter(row => locn.includes(row[FIELD.key]))),
+      ))
     )
   }
 

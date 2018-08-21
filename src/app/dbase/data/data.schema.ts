@@ -97,6 +97,7 @@ export interface ISchedule extends IStoreBase {
 
 export interface ILocation extends IStoreBase {
 	[FIELD.store]: 'location';
+	[FIELD.key]: string;
 	name: string;
 	address?: {
 		line1: string;

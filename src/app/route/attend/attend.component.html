@@ -7,7 +7,7 @@
 <div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
   <mat-tab-group [(selectedIndex)]="selectedIndex">
     <mat-tab *ngFor="let loc of location$ | async; let idx = index">
-      <h3> {{ loc | json }} </h3>
+      <h3> {{ loc.name }} </h3>
       <!--  <div *ngIf="locations.length > 1">{{ suffix(idx) }} of {{ locations.length }} locations</div>
       <div *ngFor="let item of schedule$ | async">
         <mat-card *ngIf="item.location === loc.key">
