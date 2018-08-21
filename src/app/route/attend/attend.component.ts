@@ -51,7 +51,7 @@ export class AttendComponent implements OnInit {
       switchMap(user => this.member$.pipe(                   // search the /member store for an effective ProfilePlan
         map((state: IStoreState) => asAt<IProfilePlan>(state[STORE.profile] as IProfilePlan[],
           [{ fieldPath: FIELD.type, value: 'plan' }, { fieldPath: FIELD.key, value: user.uid }], this.date)),
-        map(table => Object.assign({}, { user }, { profile: table[0] }),// return only the first occurrence
+        map(table => Object.assign({}, { user }, { plan: table[0] }),// return only the first occurrence
         )),
       ),
       switchMap((result: any) => this.client$.pipe(         // get the prices[] for the effective ProfilePlan
