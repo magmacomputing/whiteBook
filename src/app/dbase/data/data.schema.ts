@@ -55,8 +55,8 @@ export interface IDefaultPlan extends IDefault {
 //	/client/price
 export interface IPrice extends IStoreBase {
 	[FIELD.store]: 'price';
-	[FIELD.key]: TPlan;
 	[FIELD.type]: TPrice;
+	[FIELD.key]: TPlan;
 	amount: number;
 }
 
