@@ -33,7 +33,7 @@ export class AttendComponent implements OnInit {
 
   public schedule$!: Observable<ISchedule[]>;
   public location$!: Observable<ILocation[]>;
-  public default$!: Observable<IDefault[]>;
+  // public default$!: Observable<IDefault[]>;
   // public profile$!: Observable<any>;
 
   private dbg: Function = dbg.bind(this);
@@ -45,10 +45,7 @@ export class AttendComponent implements OnInit {
 
   ngOnInit() {                                              // wire-up the Observables
     this.dbase.getMemberData().subscribe(member => this.dbg('profile: %j', member));
-
-    this.default$ = this.client$.pipe(
-      map((state: IStoreState) => state[STORE.default] as IDefault[]),
-    )
+    this.dbase.getDefault().subscribe(defaults => this.dbg('default: %j', defaults ));
 
     this.schedule$ = this.client$.pipe(
       map((state: IStoreState) => state[STORE.schedule] as ISchedule[]),
