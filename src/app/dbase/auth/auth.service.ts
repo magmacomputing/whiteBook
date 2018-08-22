@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
-import { TruncMember, TruncAttend, SLICE } from '@dbase/state/store.define';
+import { SLICE } from '@dbase/state/store.define';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
@@ -15,7 +15,6 @@ import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { asArray, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { AuthProvider } from '@firebase/auth-types';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {

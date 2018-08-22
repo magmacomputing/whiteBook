@@ -4,7 +4,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
-import { asArray, asString, sortObj, isObject, equalObj } from '@lib/object.library';
+import { asArray, asString, isObject, equalObj } from '@lib/object.library';
 
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
   return Object.keys(STORES)

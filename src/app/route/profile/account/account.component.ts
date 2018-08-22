@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { DataService } from '@dbase/data/data.service';
 import { MemberService } from '@dbase/app/member.service';
 
 @Component({
