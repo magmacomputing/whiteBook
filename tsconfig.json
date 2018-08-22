@@ -28,9 +28,6 @@
       "@dbase/*": [
         "src/app/dbase/*"
       ],
-      "@svc/*": [
-        "src/app/service/*"
-      ],
       "@route/*": [
         "src/app/route/*"
       ],

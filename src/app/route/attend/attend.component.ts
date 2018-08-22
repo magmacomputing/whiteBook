@@ -9,7 +9,7 @@ import { IAuthState } from '@dbase/state/auth.define';
 import { DBaseService } from '@dbase/app/dbase.service';
 import { MemberService } from '@dbase/app/member.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { ILocation, IDefault, ISchedule, IProfilePlan, IPrice } from '@dbase/data/data.schema';
+import { ILocation, IDefault, ISchedule } from '@dbase/data/data.schema';
 
 
 import { swipe } from '@lib/html.library';
@@ -18,8 +18,6 @@ import { fmtDate } from '@lib/date.library';
 import { asAt } from '@dbase/app/app.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { UserInfo, IdTokenResult } from '@firebase/auth-types';
-import { TTokenClaims } from '@dbase/auth/auth.interface';
 
 @Component({
   selector: 'wb-attend',

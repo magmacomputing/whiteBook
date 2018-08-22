@@ -1,4 +1,3 @@
-import { TStore, TStoreAttend, TStoreAdmin } from '@dbase/data/data.schema';
 import { IObject } from '@lib/object.library';
 
 export const enum COLLECTION {			// collection starts with upper-case, document with lower-case
