@@ -4,13 +4,11 @@ import { map, distinct, switchMap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { IStoreState } from '@dbase/state/store.define';
-import { IAuthState } from '@dbase/state/auth.define';
 
 import { DBaseService } from '@dbase/app/dbase.service';
 import { MemberService } from '@dbase/app/member.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { ILocation, IDefault, ISchedule } from '@dbase/data/data.schema';
-
+import { ILocation, ISchedule } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
@@ -25,14 +23,10 @@ import { dbg } from '@lib/logger.library';
   styleUrls: ['./attend.component.css']
 })
 export class AttendComponent implements OnInit {
-  @Select((state: any) => state.auth) auth$!: Observable<IAuthState>;
   @Select((state: any) => state.client) client$!: Observable<IStoreState>;
-  @Select((state: any) => state.member) member$!: Observable<IStoreState>;
 
-  public schedule$!: Observable<ISchedule[]>;
-  public location$!: Observable<ILocation[]>;
-  // public default$!: Observable<IDefault[]>;
-  // public profile$!: Observable<any>;
+  public timetable$!: Observable<any>;
+  // public location$!: Observable<ILocation[]>;
 
   private dbg: Function = dbg.bind(this);
   private date!: string;
@@ -43,22 +37,18 @@ export class AttendComponent implements OnInit {
 
   ngOnInit() {                                              // wire-up the Observables
     this.dbase.getMemberData().subscribe(member => this.dbg('profile: %j', member));
-    this.dbase.getDefault().subscribe(defaults => this.dbg('default: %j', defaults ));
+    this.dbase.getScheduleData().subscribe(schedule => this.dbg('schedule: %j', schedule));
 
-    this.schedule$ = this.client$.pipe(
-      map((state: IStoreState) => state[STORE.schedule] as ISchedule[]),
-      map(table => asAt(table, { fieldPath: 'day', value: fmtDate(this.date).weekDay }, this.date)),
-      map(table => table.sort(sortKeys(['start']))),
-    )
-    this.location$ = this.schedule$.pipe(
-      map(table => table.map(row => row.location)),
-      distinct(),
-      switchMap(locn => this.client$.pipe(
-        map((state: IStoreState) => state[STORE.location] as ILocation[]),
-        map(table => table.filter(row => locn.includes(row[FIELD.key]))),
-        map(table => table.sort(sortKeys(['sort']))),
-      ))
-    )
+    this.timetable$ = this.dbase.getScheduleData();
+    // this.location$ = this.schedule$.pipe(
+    //   map(table => table.map(row => row.location)),
+    //   distinct(),
+    //   switchMap(locn => this.client$.pipe(
+    //     map((state: IStoreState) => state[STORE.location] as ILocation[]),
+    //     map(table => table.filter(row => locn.includes(row[FIELD.key]))),
+    //     map(table => table.sort(sortKeys(['sort']))),
+    //   ))
+    // )
   }
 
   // TODO: popup info about a Class
