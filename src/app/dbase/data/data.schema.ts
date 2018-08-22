@@ -3,7 +3,7 @@ import { FIELD } from '@dbase/data/data.define';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor';
-export type TStoreMember = 'profile' | 'account';
+export type TStoreMember = 'profile' | 'account' | 'bonus';
 export type TStoreAttend = string;			// Attend docs will have a <store> that links to an Account _id
 export type TStore = TStoreClient | TStoreMember;
 
@@ -190,6 +190,7 @@ export interface IProfileUser extends IProfile {
 	user: any;
 }
 
+//	/member/account
 export interface IAccount extends IStoreBase {
 	[FIELD.store]: 'account';
 	[FIELD.type]: TPrice;
@@ -202,6 +203,14 @@ export interface IAccount extends IStoreBase {
 		key: string;
 		stamp: number;
 	}
+}
+
+//	/member/bonus
+export interface IBonus extends IStoreBase {
+	[FIELD.store]: 'bonus',
+	[FIELD.type]: string;
+	stamp: number;
+	expiry?: number;
 }
 
 // /attend

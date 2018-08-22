@@ -1,6 +1,5 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { auth as fb } from 'firebase/app';
-import { User, IdTokenResult, AuthCredential, AuthProvider, GoogleAuthProvider } from '@firebase/auth-types';
+import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { take, tap } from 'rxjs/operators';
@@ -16,7 +15,6 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { ROUTE } from '@route/route.define';
 import { dbg } from '@lib/logger.library';
-import { cloneObj } from '@lib/object.library';
 
 @State<IAuthState>({
 	name: SLICE.auth,

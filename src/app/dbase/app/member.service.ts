@@ -13,13 +13,14 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta } from '@dbase/data/data.schema';
+import { DBaseModule } from '@dbase/dbase.module';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
 import { isUndefined, asArray, cloneObj, isNull } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg: Function = dbg.bind(this);
 	private default: Promise<IStoreBase[]>;
@@ -32,8 +33,7 @@ export class MemberService {
 		this.action.pipe(															// special: listen for changes of the UserProfile
 			ofAction(AuthProfile),
 			debounce(_ => timer(1000)),
-		).subscribe(_ => this.getProfile());
-		// this.store.dispatch(new AuthProfile());
+		).subscribe(_ => this.getAuthProfile());
 	}
 
 	async setPlan(plan: TPlan) {
@@ -73,8 +73,8 @@ export class MemberService {
 
 		this.dbg('event: %j', event);
 		const attendDoc: IAttend = {
-			[FIELD.store]: activeId || '<garbage>',								// <id> of Account's active document
-			[FIELD.type]: event[FIELD.key],												// the Attend's event/class
+			[FIELD.store]: activeId || '<garbage>',							// <id> of Account's active document
+			[FIELD.type]: event[FIELD.key],											// the Attend's event/class
 			cost: price,
 			stamp: getStamp(),
 		}
@@ -83,7 +83,7 @@ export class MemberService {
 		return this.data.setDoc(STORE.attend, attendDoc);
 	}
 
-	private getUserID(memberId?: string) {										// get the current User's uid
+	private getUserID(memberId?: string) {									// get the current User's uid
 		return memberId || this.data.snap<IUserInfo>('userInfo')
 			.then(info => asArray(info)[0])
 			.then(info => info.uid);
@@ -91,7 +91,7 @@ export class MemberService {
 
 	async getCredit(memberId?: string) {
 		const where: IWhere[] = [
-			{ fieldPath: FIELD.type, value: 'topUp' },						// TODO: do we need to qualify just 'topUp' account payments?
+			{ fieldPath: FIELD.type, value: 'topUp' },					// TODO: do we need to qualify just 'topUp' account payments?
 			{ fieldPath: FIELD.key, value: await this.getUserID(memberId) },
 		]
 
@@ -104,14 +104,14 @@ export class MemberService {
 			if (!account.approve) sum.pend += account.amount;
 			if (account.active) sum.active.push(account);
 			return sum
-		}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] })											// calculate the Account summary
+		}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] })	// calculate the Account summary
 
 		const activeAccount = accountDocs.filter(account => account.active)[0] || {};
 		const activeId = activeAccount[FIELD.id] || '';
 
 		const attendDocs = await this.data.snap<IAttend>(activeId) || [];
-		attendDocs.reduce((summary, attend) => {			// get the Attend docs related to the active Account doc
-			summary.cost += attend.cost																	// add up each Attend's cost
+		attendDocs.reduce((summary, attend) => {							// get the Attend docs related to the active Account doc
+			summary.cost += attend.cost													// add up each Attend's cost
 			return summary;
 		}, summary)
 
@@ -152,11 +152,11 @@ export class MemberService {
 		return this.default
 			.then(table => table.filter(row => row.type === type))
 			.then(table => table[0])
-			.then(doc => { return { ...doc, ...{ [type]: doc[FIELD.key] } } })
+			.then(doc => ({ ...doc, ...{ [type]: doc[FIELD.key] } }))
 	}
 
 	/** check for change of User.additionalInfo */
-	getProfile() {
+	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 		if (isNull(auth.userProfile) || isUndefined(auth.userProfile))
 			return;													// No AdditionalUserInfo available
@@ -180,4 +180,5 @@ export class MemberService {
 
 		this.data.insDoc(profileUser, where, 'profile');
 	}
+
 }
