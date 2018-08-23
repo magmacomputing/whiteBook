@@ -9,7 +9,7 @@ import { IStoreState } from '@dbase/state/store.define';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IPrice, IDefault, IPlan, ISchedule, ILocation } from '@dbase/data/data.schema';
+import { IProfilePlan, IPrice, IDefault, IPlan, ISchedule, ILocation, IClass } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asAt } from '@dbase/app/app.library';
@@ -90,9 +90,22 @@ export class DBaseService {
    * class     -> has the Class-span (to use when determining pricing)
    */
   getScheduleData(date?: number, uid?: string) {
-    return this.client$.pipe(
+    return this.client$.pipe(                                   // get the items on todays schedule
       map((state: IStoreState) => asAt<ISchedule>(state[STORE.schedule] as ISchedule[],
         { fieldPath: 'day', value: fmtDate(date).weekDay }, date)),
+
+      map(table => table.map(row => this.client$.pipe( // get the Class store for this item
+        map((state: IStoreState) => asAt(state[STORE.class] as IClass[],
+          { fieldPath: FIELD.key, value: row[FIELD.key] }, date)),
+        map(table => Object.assign(row, { class: table[0] })),
+
+        switchMap(result => this.client$.pipe(                  // get the Price store for this item
+          map((state: IStoreState) => asAt<IPrice>(state[STORE.price] as IPrice[],
+            [{ fieldPath: FIELD.key, value: 'member' }, { fieldPath: FIELD.type, value: result.class[FIELD.type] }],
+            date)),
+          map(table => Object.assign(result, { price: table[0] })),
+        )),
+      ))),
       map(table => ({ schedule: table.sort(sortKeys(['start'])) })),
 
       map(result => Object.assign(result, { location: [... new Set(result.schedule.map(row => row.location))] })),
@@ -100,8 +113,7 @@ export class DBaseService {
         map((state: IStoreState) => asAt<ILocation>(state[STORE.location] as ILocation[],
           { fieldPath: FIELD.key, value: result.location }, date)),
         map(table => Object.assign(result, { location: table })),
-      ))
-
+      )),
     )
   }
 }
