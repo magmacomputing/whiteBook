@@ -79,7 +79,7 @@ export class DBaseService {
         map(table => Object.assign(result, { price: table })),
       )),
 
-      map(result => { delete result.defaults; return result; }),// drop the 'defaults' from the result object
+      // map(result => { delete result.defaults; return result; }),// drop the 'defaults' from the result object
     )
   }
 
@@ -97,7 +97,8 @@ export class DBaseService {
 
       map(result => Object.assign(result, { location: [... new Set(result.schedule.map(row => row.location))] })),
       switchMap(result => this.client$.pipe(
-        map((state: IStoreState) => asAt<ILocation>(state[STORE.location] as ILocation[], undefined, date)),
+        map((state: IStoreState) => asAt<ILocation>(state[STORE.location] as ILocation[],
+          { fieldPath: FIELD.key, value: result.location }, date)),
         map(table => Object.assign(result, { location: table })),
       ))
 
