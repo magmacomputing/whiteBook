@@ -24,7 +24,7 @@ import { dbg } from '@lib/logger.library';
  * It also has helper-methods to perform standard 'Joins' between various Store-documents
  */
 @Injectable({ providedIn: DBaseModule })
-export class DBaseService {
+export class StateService {
   @Select() auth$!: Observable<IAuthState>;
   @Select() client$!: Observable<IStoreState<any>>;
   @Select() member$!: Observable<IStoreState<any>>;

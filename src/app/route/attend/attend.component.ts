@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { DBaseService } from '@dbase/app/dbase.service';
+import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 import { ILocation } from '@dbase/data/data.schema';
 
@@ -22,13 +22,13 @@ export class AttendComponent implements OnInit {
   public selectedIndex: number = 0;                         // used by UI to swipe between <tabs>
   private locations: ILocation[] = [];
 
-  constructor(private readonly member: MemberService, public readonly dbase: DBaseService) { }
+  constructor(private readonly member: MemberService, public readonly state: StateService) { }
 
   ngOnInit() {                                              // wire-up the Observables
-    this.dbase.getMemberData().subscribe(member => this.dbg('profile: %j', member));
-    this.dbase.getScheduleData().subscribe(schedule => this.dbg('schedule: %j', schedule));
+    this.state.getMemberData().subscribe(member => this.dbg('profile: %j', member));
+    this.state.getScheduleData().subscribe(schedule => this.dbg('schedule: %j', schedule));
 
-    this.timetable$ = this.dbase.getScheduleData();
+    this.timetable$ = this.state.getScheduleData();
   }
 
   // TODO: popup info about a Class
