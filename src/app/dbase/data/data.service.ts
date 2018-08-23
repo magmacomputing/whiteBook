@@ -15,7 +15,8 @@ import { AuthService } from '@dbase/auth/auth.service';
 import { asAt } from '@dbase/app/app.library';
 
 import { getStamp } from '@lib/date.library';
-import { IObject, asArray } from '@lib/object.library';
+import { IObject } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**

@@ -11,7 +11,7 @@ import { IPrice, IClass, IMeta, IProfile, IProfilePlan, IDefaultPrice, IDefaultP
 import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
-import { isNumber, isUndefined } from '@lib/object.library';
+import { isNumber, isUndefined } from '@lib/type.library';
 import { fmtDate } from '@lib/date.library';
 import { DATE_FMT } from '@lib/date.define';
 import { dbg } from '@lib/logger.library';

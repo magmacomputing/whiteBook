@@ -5,10 +5,11 @@ import { asAt } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
 import { IWhere } from '@dbase/fire/fire.interface';
 
-import { cloneObj, asArray, sortKeys } from '@lib/object.library';
+import { cloneObj, sortKeys } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IStoreState>({
+@State<IStoreState<IStoreDoc>>({
 	name: SLICE.client,
 	defaults: {}
 })
@@ -17,10 +18,10 @@ export class ClientState implements NgxsOnInit {
 
 	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
 
 	@Action(SetClient)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: SetClient) {
+	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
@@ -31,7 +32,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(DelClient)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: DelClient) {
+	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
 
@@ -41,13 +42,13 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(TruncClient)
-	truncStore({ setState }: StateContext<IStoreState>) {
+	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>) {
 		this.dbg('truncClient');
 		setState({});
 	}
 
 	/** remove an item from the Client Store */
-	private filterClient(state: IStoreState, payload: IStoreDoc) {
+	private filterClient(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
 		const curr = state && state[payload.store] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -55,7 +56,7 @@ export class ClientState implements NgxsOnInit {
 
 	/** Selectors */
 	static current(store: string, filter?: IWhere | IWhere[], sortBy: string | string[] = []) {
-		return createSelector([ClientState], (state: IStoreState) => {
+		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 			const filters = asArray(cloneObj(filter));
 
@@ -70,7 +71,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	static store<T>(store: string, filter?: IWhere | IWhere[], date?: string | number) {
-		return createSelector([ClientState], (state: IStoreState) => {
+		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);
 			const filters = asArray(cloneObj(filter));
 

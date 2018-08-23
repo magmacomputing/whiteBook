@@ -4,7 +4,7 @@ import { AuthProvider, AuthCredential, IdTokenResult } from '@firebase/auth-type
 import { IAuthState } from '@dbase/state/auth.define';
 import { TProvider } from '@dbase/data/data.schema';
 
-import { isNull } from '@lib/object.library';
+import { isNull } from '@lib/type.library';
 
 // TODO: derive token requirements from authState.userToken
 interface IEmailToken {

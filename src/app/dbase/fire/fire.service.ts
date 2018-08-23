@@ -12,7 +12,9 @@ import { IMeta, IStoreBase } from '@dbase/data/data.schema';
 import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined, IObject, asArray } from '@lib/object.library';
+import { isUndefined } from '@lib/type.library';
+import { IObject } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**

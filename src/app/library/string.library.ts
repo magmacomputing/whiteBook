@@ -1,3 +1,5 @@
+import { isString } from '@lib/type.library'
+
 // General <string> functions
 
 export const toProperCase = (...str: string[]): string =>
@@ -13,3 +15,7 @@ export const toNumeric = (str: string | number, stripZero: boolean = false) =>
   isNumeric(str) && (str.toString().substring(0, 1) !== '0' || stripZero)
     ? parseInt(str.toString(), 10)
     : str;
+
+export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);
+export const toLower = (str: string) => isString(str) ? str.toLowerCase() : str;
+export const toUpper = (str: string) => isString(str) ? str.toUpperCase() : str;

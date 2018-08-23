@@ -13,7 +13,8 @@ import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
-import { asArray, IObject } from '@lib/object.library';
+import { IObject } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })

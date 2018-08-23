@@ -7,10 +7,11 @@ import { filterTable } from '@dbase/app/app.library';
 import { IWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 
-import { cloneObj, asArray, sortKeys } from '@lib/object.library';
+import { cloneObj, sortKeys } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IStoreState>({
+@State<IStoreState<IStoreDoc>>({
 	name: SLICE.member,
 	defaults: {}
 })
@@ -19,10 +20,10 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
 
 	@Action(SetMember)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: SetMember) {
+	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
@@ -33,7 +34,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(DelMember)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: DelMember) {
+	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
 		const store = this.filterMember(getState(), payload);
 
@@ -43,13 +44,13 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(TruncMember)
-	truncStore({ setState }: StateContext<IStoreState>) {
+	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>) {
 		this.dbg('truncMember');
 		setState({});
 	}
 
 	/** remove an item from the Member Store */
-	private filterMember(state: IStoreState, payload: IStoreDoc) {
+	private filterMember(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
 		const curr = state && state[payload.store] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -57,13 +58,13 @@ export class MemberState implements NgxsOnInit {
 
 	/** Selectors */
 	static current(store: string, filter: IWhere | IWhere[] | undefined, sortBy: string | string[] = []) {
-		return createSelector([MemberState], (state: IStoreState) => {
+		return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 			const filters = asArray(cloneObj(filter));
-		
+
 			filters.push({ fieldPath: FIELD.expire, value: 0 });
 			filters.push({ fieldPath: FIELD.hidden, value: false });
-		
+
 			return clone
 				? filterTable(clone, filters)
 					.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria

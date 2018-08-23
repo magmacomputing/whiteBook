@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
-import { Store, Select } from '@ngxs/store';
+import { Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { IAuthState } from '@dbase/state/auth.define';
 import { AuthState } from '@dbase/state/auth.state';
@@ -14,7 +14,7 @@ import { IWhere } from '@dbase/fire/fire.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 
 import { ROUTE } from '@route/route.define';
-import { isArray, isUndefined } from '@lib/object.library';
+import { isArray, isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })

@@ -1,7 +1,7 @@
 import { WhereFilterOp, Query } from '@firebase/firestore-types';
 import { IQuery, IWhere } from '@dbase/fire/fire.interface';
 
-import { asArray } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
 
 /** Collection reference, with any limit / order criteria */

@@ -6,7 +6,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IStoreState>({
+@State<IStoreState<IStoreDoc>>({
 	name: SLICE.attend,
 	defaults: {}
 })
@@ -15,10 +15,10 @@ export class AttendState implements NgxsOnInit {
 
 	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
 
 	@Action(SetAttend)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: SetAttend) {
+	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetAttend) {
 		const state = getState() || {};
 		const store = this.filterAttend(state, payload);
 
@@ -29,7 +29,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(DelAttend)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload, debug }: DelAttend) {
+	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
 		const store = this.filterAttend(getState(), payload);
 
@@ -39,13 +39,13 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(TruncAttend)
-	truncStore({ setState }: StateContext<IStoreState>) {
+	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>) {
 		this.dbg('truncAttend');
 		setState({});
 	}
 
 	/** remove an item from the Attend Store */
-	private filterAttend(state: IStoreState, payload: IStoreDoc) {
+	private filterAttend(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
 		const curr = state && state[payload.store] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -54,7 +54,7 @@ export class AttendState implements NgxsOnInit {
 	/** Selectors */
 	@Selector()
 	static getAttend(store: string, state: any) {
-		const attend: IStoreState = state[SLICE.attend];
+		const attend: IStoreState<IStoreDoc> = state[SLICE.attend];
 		return [...attend[store]
 			.filter(itm => !itm[FIELD.expire])
 			.filter(itm => !itm[FIELD.hidden])

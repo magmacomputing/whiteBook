@@ -1,4 +1,4 @@
-import { asString } from '@lib/object.library';
+import { asString } from '@lib/string.library';
 import { toHex } from '@lib/number.library';
 
 export const decodeBase64 = <T>(str: string): T =>

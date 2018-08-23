@@ -17,7 +17,8 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { isFunction, sortKeys, IObject } from '@lib/object.library';
+import { sortKeys, IObject } from '@lib/object.library';
+import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';

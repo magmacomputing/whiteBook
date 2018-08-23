@@ -8,7 +8,7 @@ import { FIELD } from '@dbase/data/data.define';
 
 import { DATE_FMT } from '@lib/date.define';
 import { fmtDate } from '@lib/date.library';
-import { isNumber } from '@lib/object.library';
+import { isNumber } from '@lib/type.library';
 // import { dbg } from '@lib/logger.library';
 
 // // import { AuthState, IAuthState } from '@svc/state/auth.state';

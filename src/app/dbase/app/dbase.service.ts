@@ -3,46 +3,53 @@ import { IdTokenResult, UserInfo } from '@firebase/auth-types';
 import { Observable } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 
-import { Store, Select } from '@ngxs/store';
+import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
 
+import { IWhere } from '@dbase/fire/fire.interface';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IPrice, IDefault, IPlan, ISchedule, ILocation, IClass } from '@dbase/data/data.schema';
+import { IProfilePlan, IPrice, IDefault, ISchedule, ILocation, IClass } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';
+import { arrayUnique } from '@lib/array.library';
 import { sortKeys } from '@lib/object.library';
-import { arrayDistinct } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * DBaseService is a helper-class that will perform 'Joins' between various Store-documents
- * and returns as an Observable
+ * DBaseService will wire-up subscribable Observables on the NGXS Store.
+ * It also has helper-methods to perform standard 'Joins' between various Store-documents
  */
 @Injectable({ providedIn: DBaseModule })
 export class DBaseService {
   @Select() auth$!: Observable<IAuthState>;
-  @Select() client$!: Observable<IStoreState>;
-  @Select() member$!: Observable<IStoreState>;
-  @Select() attend$!: Observable<IStoreState>;
+  @Select() client$!: Observable<IStoreState<any>>;
+  @Select() member$!: Observable<IStoreState<any>>;
+  @Select() attend$!: Observable<IStoreState<any>>;
 
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly store: Store) { }
+  constructor() { }
 
   /**
-   * Get the project defaults store, and arrange into an Object
+   * Get the project defaults store, and arrange into an Object keyed by the <type>
    */
   getDefaults(date?: number) {
     const result: { [key: string]: IDefault } = {};
 
     return this.client$.pipe(
-      map((state: IStoreState) => asAt<IDefault>(state[STORE.default] as IDefault[], undefined, date)),
+      map(state => asAt<IDefault>(state[STORE.default], undefined, date)),
       map(table => table.forEach(row => result[row[FIELD.type]] = row)),
       map(_ => result),
+    )
+  }
+
+  private getStore<T>(slice: Observable<any>, store: string, filter: IWhere | IWhere[] = [], date?: number) {
+    return slice.pipe(
+      map((state: IStoreState<T>) => asAt(state[store], filter, date)),
     )
   }
 
@@ -66,7 +73,7 @@ export class DBaseService {
       )),
 
       switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
-        map((state: IStoreState) => asAt<IProfilePlan>(state[STORE.profile] as IProfilePlan[],
+        map(state => asAt<IProfilePlan>(state[STORE.profile],
           [{ fieldPath: FIELD.type, value: 'plan' }, { fieldPath: FIELD.key, value: result.user.uid }], date)),
         map(table => table[0] || result.defaults.plan),         // return only the first occurrence, else default-plan
         map(row => Object.assign(result, { plan: row }),
@@ -74,12 +81,10 @@ export class DBaseService {
       ),
 
       switchMap(result => this.client$.pipe(                    // get the prices[] for the effective ProfilePlan
-        map((state: IStoreState) => asAt<IPrice>(state[STORE.price] as IPrice[],
+        map(state => asAt<IPrice>(state[STORE.price],
           [{ fieldPath: FIELD.key, value: result.plan.plan }], date)),
         map(table => Object.assign(result, { price: table })),
       )),
-
-      // map(result => { delete result.defaults; return result; }),// drop the 'defaults' from the result object
     )
   }
 
@@ -91,16 +96,16 @@ export class DBaseService {
    */
   getScheduleData(date?: number, uid?: string) {
     return this.client$.pipe(                                   // get the items on todays schedule
-      map((state: IStoreState) => asAt<ISchedule>(state[STORE.schedule] as ISchedule[],
+      map((state: IStoreState<ISchedule>) => asAt(state[STORE.schedule],
         { fieldPath: 'day', value: fmtDate(date).weekDay }, date)),
 
       map(table => table.map(row => this.client$.pipe( // get the Class store for this item
-        map((state: IStoreState) => asAt(state[STORE.class] as IClass[],
+        map((state: IStoreState<IClass>) => asAt(state[STORE.class],
           { fieldPath: FIELD.key, value: row[FIELD.key] }, date)),
         map(table => Object.assign(row, { class: table[0] })),
 
         switchMap(result => this.client$.pipe(                  // get the Price store for this item
-          map((state: IStoreState) => asAt<IPrice>(state[STORE.price] as IPrice[],
+          map((state: IStoreState<IPrice>) => asAt(state[STORE.price],
             [{ fieldPath: FIELD.key, value: 'member' }, { fieldPath: FIELD.type, value: result.class[FIELD.type] }],
             date)),
           map(table => Object.assign(result, { price: table[0] })),
@@ -108,12 +113,12 @@ export class DBaseService {
       ))),
       map(table => ({ schedule: table.sort(sortKeys(['start'])) })),
 
-      map(result => Object.assign(result, { location: [... new Set(result.schedule.map(row => row.location))] })),
-      switchMap(result => this.client$.pipe(
-        map((state: IStoreState) => asAt<ILocation>(state[STORE.location] as ILocation[],
-          { fieldPath: FIELD.key, value: result.location }, date)),
-        map(table => Object.assign(result, { location: table })),
-      )),
+      // map(result => Object.assign(result, { location: arrayUnique(result.schedule.map(row => row.location))) })),
+      // switchMap(result => this.client$.pipe(
+      //   map((state: IStoreState<ILocation>) => asAt(state[STORE.location],
+      //     { fieldPath: FIELD.key, value: result.location }, date)),
+      //   map(table => Object.assign(result, { location: table })),
+      // )),
     )
   }
 }

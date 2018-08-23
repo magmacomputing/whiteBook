@@ -17,7 +17,9 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
-import { isUndefined, asArray, cloneObj, isNull } from '@lib/object.library';
+import { isUndefined, isNull } from '@lib/type.library';
+import { asArray } from '@lib/array.library';
+import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })

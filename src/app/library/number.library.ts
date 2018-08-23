@@ -1,4 +1,5 @@
-import { asArray, asString } from '@lib/object.library';
+import { asString } from '@lib/string.library';
+import { asArray } from '@lib/array.library';
 
 export const toHex = (num: number | number[] = [], len: number = 40) => {
 	return asArray(num)

@@ -29,6 +29,8 @@ export enum SLICE {
 export interface IStoreDoc {
 	[FIELD.id]: string;
 	[FIELD.store]: string;
+	[FIELD.type]?: string;
+	[FIELD.key]: string;
 	[key: string]: any;
 }
 
@@ -36,7 +38,7 @@ export interface ISelector<T> {
 	(store: string, filter: IWhere | IWhere[] | undefined, keys: string | string[]): T[];
 }
 
-export type IStoreState = { [store: string]: IStoreDoc[] };
+export type IStoreState<T> = { [store: string]: T[] };
 
 /** Actions */
 export class SetClient {										// Add a Client object into the Store
