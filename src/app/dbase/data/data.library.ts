@@ -1,6 +1,6 @@
 import { IAuthState } from '@dbase/state/auth.define';
 import { FireService } from '@dbase/fire/fire.service';
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
@@ -16,8 +16,8 @@ export const getSlice = (store: string) => {    // determine the state-slice (co
 }
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
-export const getWhere = (nextDoc: IStoreMeta, filter: IWhere | IWhere[] = []) => {
-  const where: IWhere[] = [];
+export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
+  const where: TWhere = [];
   const collection = getSlice(nextDoc[FIELD.store]);
   const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 

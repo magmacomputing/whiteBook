@@ -10,7 +10,7 @@ import { MemberState } from '@dbase/state/member.state';
 import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 
 import { ROUTE } from '@route/route.define';
@@ -39,7 +39,7 @@ export class ProfileGuard implements CanActivate {
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     const member = this.store.selectSnapshot(MemberState)
-    const where: IWhere = { fieldPath: FIELD.type, value: 'plan' };
+    const where: TWhere = { fieldPath: FIELD.type, value: 'plan' };
     const plan = asAt<IProfilePlan>(member[STORE.profile], where);
 
     if (isArray(plan) && plan.length) return true;      // ok to access Route

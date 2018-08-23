@@ -1,4 +1,4 @@
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
 
@@ -19,7 +19,7 @@ import { toLower } from '@lib/string.library';
  * 		]  
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
-export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = []) => {
+export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 	return cloneObj(table) 															// clone to avoid mutating original array
 		.filter((row: IObject<any>) => {									// for each row, ...
 			return asArray(filters)													// 	apply each filter...
@@ -67,7 +67,7 @@ export const filterTable = <T>(table: T[] = [], filters: IWhere | IWhere[] = [])
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
  */
-export const asAt = <T>(table: T[], cond: IWhere | IWhere[] = [], date?: string | number) => {
+export const asAt = <T>(table: T[], cond: TWhere = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
 
 	return filterTable(cloneObj(table), cond)						// return the rows where date is between _effect and _expire

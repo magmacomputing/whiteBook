@@ -8,7 +8,7 @@ import { SLICE } from '@dbase/state/store.define';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
@@ -72,14 +72,14 @@ export class DataService {
   }
 
   /** Expire any current matching docs, and Create new doc */
-  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: IWhere | IWhere[], discards: string | string[] = []) {
+  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: TWhere, discards: string | string[] = []) {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
     const stamp = getStamp();                               // the <effect> of the document-create
 
     const promises = asArray(nextDocs).map(async nextDoc => {
       let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Create
-      let where: IWhere[];
+      let where: TWhere;
 
       try {
         nextDoc = await docPrep(nextDoc as IStoreMeta, this.auth.state());  // make sure we have a <key>

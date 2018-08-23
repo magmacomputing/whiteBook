@@ -6,6 +6,8 @@ export interface IWhere {
 	opStr?: WhereFilterOp | '!=';				// this is a *special* to allow additional operator (do not use on Firestore database!)
 	value: any | any[];
 }
+export type TWhere = IWhere | IWhere[];
+
 /** Query.orderBy */
 export interface IOrderBy {
 	fieldPath: string | FieldPath;
@@ -13,7 +15,7 @@ export interface IOrderBy {
 }
 /** Collection.Query */
 export interface IQuery {
-	where?: IWhere | IWhere[];
+	where?: TWhere;
 	orderBy?: IOrderBy | IOrderBy[];
 	limitTo?: number;
 }

@@ -4,7 +4,7 @@ import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 
 import { filterTable } from '@dbase/app/app.library';
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 
 import { cloneObj, sortKeys } from '@lib/object.library';
@@ -57,7 +57,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	static current(store: string, filter: IWhere | IWhere[] | undefined, sortBy: string | string[] = []) {
+	static current(store: string, filter: TWhere | undefined, sortBy: string | string[] = []) {
 		return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 			const filters = asArray(cloneObj(filter));

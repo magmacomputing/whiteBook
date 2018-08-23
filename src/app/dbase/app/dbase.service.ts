@@ -7,7 +7,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
 
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
 import { IProfilePlan, IPrice, IDefault, ISchedule, ILocation, IClass } from '@dbase/data/data.schema';
@@ -47,7 +47,7 @@ export class DBaseService {
     )
   }
 
-  private getStore<T>(slice: Observable<any>, store: string, filter: IWhere | IWhere[] = [], date?: number) {
+  private getStore<T>(slice: Observable<any>, store: string, filter: TWhere = [], date?: number) {
     return slice.pipe(
       map((state: IStoreState<T>) => asAt(state[store], filter, date)),
     )

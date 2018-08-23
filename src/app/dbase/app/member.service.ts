@@ -9,7 +9,7 @@ import { AuthProfile, IAuthState } from '@dbase/state/auth.define';
 import { AuthState } from '@dbase/state/auth.state';
 
 import { asAt } from '@dbase/app/app.library';
-import { IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta } from '@dbase/data/data.schema';
@@ -92,7 +92,7 @@ export class MemberService {
 	}
 
 	async getCredit(memberId?: string) {
-		const where: IWhere[] = [
+		const where: TWhere = [
 			{ fieldPath: FIELD.type, value: 'topUp' },					// TODO: do we need to qualify just 'topUp' account payments?
 			{ fieldPath: FIELD.key, value: await this.getUserID(memberId) },
 		]
@@ -123,7 +123,7 @@ export class MemberService {
 
 	async getPrice(type: string, memberId?: string) {				// type: 'full' | 'half' | 'topUp'
 		const planDoc = await this.getPlan(memberId);
-		const where: IWhere[] = [
+		const where: TWhere= [
 			{ fieldPath: FIELD.type, value: type },
 			{ fieldPath: FIELD.key, value: planDoc.plan },
 		];
@@ -136,7 +136,7 @@ export class MemberService {
 	}
 
 	async getPlan(memberId?: string) {											// find out the User's current <plan>
-		const where: IWhere[] = [
+		const where: TWhere = [
 			{ fieldPath: FIELD.type, value: 'plan' },
 			{ fieldPath: FIELD.key, value: await this.getUserID(memberId) },
 		];
@@ -170,7 +170,7 @@ export class MemberService {
 			authProfile.profile = profile;	// rebuild authProfile.profile
 		}
 
-		const where: IWhere[] = [
+		const where: TWhere = [
 			{ fieldPath: 'providerId', value: authProfile.providerId },
 		]
 		const profileUser = {
