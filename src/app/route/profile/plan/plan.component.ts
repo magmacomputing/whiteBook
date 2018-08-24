@@ -18,7 +18,6 @@ export class PlanComponent implements OnInit {
 
   ngOnInit() {
     this.planData$ = this.state.getPlanData();
-    this.planData$.subscribe(data => this.dbg('data: %j', data));
   }
 
   showPlan(plan: string) {

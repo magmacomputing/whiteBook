@@ -3,16 +3,158 @@
 		"displayName": "Michael McRae",
 		"email": "michael@magmacomputing.com.au",
 		"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-		"providerId": "firebase",
-		"uid": "eS3mBl1SdwO2LjSWEHxLmOkYuog1"
+		"uid": "eS3mBl1SdwO2LjSWEHxLmOkYuog1",
+		"claims": {
+			"memberName": "MichaelM"
+		}
 	},
-	"profile": {
-		"_id": "mNwpHJqKBeK1HkhvhnfK",
-		"key": "eS3mBl1SdwO2LjSWEHxLmOkYuog1",
-		"plan": "member",
-		"store": "profile",
-		"type": "plan"
+	"defaults": {
+		"class": {
+			"_id": "GNAHPk6mEEgDIsENspQN",
+			"key": "MultiStep",
+			"store": "_default_",
+			"type": "class"
+		},
+		"location": {
+			"_id": "HP4HcwOdspzbGOE3DarJ",
+			"key": "snap",
+			"store": "_default_",
+			"type": "location"
+		},
+		"instructor": {
+			"_id": "QN96BHvbJrrW3okc8jey",
+			"key": "JEC",
+			"store": "_default_",
+			"type": "instructor"
+		},
+		"plan": {
+			"_id": "XdyYNqJcE6t0yJI5vXym",
+			"key": "casual",
+			"store": "_default_",
+			"type": "plan"
+		},
+		"provider": {
+			"_id": "YdHy2It8c7SbWnxNObgQ",
+			"key": "facebook",
+			"store": "_default_",
+			"type": "provider"
+		},
+		"price": {
+			"_id": "urtjcWCD1d3CpougKedn",
+			"key": "casual",
+			"store": "_default_",
+			"type": "price"
+		},
+		"span": {
+			"_id": "zK7PKAeSUzSt1uvgWnzy",
+			"key": "full",
+			"store": "_default_",
+			"type": "span"
+		}
 	},
+	"member": {
+		"plan": {
+			"_id": "mNwpHJqKBeK1HkhvhnfK",
+			"key": "eS3mBl1SdwO2LjSWEHxLmOkYuog1",
+			"plan": "member",
+			"store": "profile",
+			"type": "plan"
+		},
+		"info": [
+			{
+				"_id": "1ItPiyDpAlNnjSJnHrMj",
+				"_effect": 1534661896,
+				"isNewUser": false,
+				"key": "eS3mBl1SdwO2LjSWEHxLmOkYuog1",
+				"profile": {
+					"age_range": {
+						"min": 21
+					},
+					"birthday": "01/01/1957",
+					"email": "michael@magmacomputing.com.au",
+					"first_name": "Michael",
+					"gender": "male",
+					"id": "100000138474102",
+					"last_name": "McRae",
+					"locale": "en_GB",
+					"name": "Michael McRae",
+					"picture": {
+						"data": {
+							"height": 100,
+							"is_silhouette": false,
+							"url": "https://scontent.xx.fbcdn.net/v/t1.0-1/c0.0.100.100/p100x100/25299342_1959170204097576_2174177630211488962_n.jpg?_nc_cat=0&oh=1be826769d60cbff35237153d9b3120e&oe=5BF67A21",
+							"width": 100
+						}
+					},
+					"timezone": 10,
+					"updated_time": "2018-08-19T06:57:14+0000",
+					"verified": true
+				},
+				"providerId": "facebook.com",
+				"store": "profile",
+				"type": "user"
+			},
+			{
+				"_id": "izafuCIvl9XWN4mHJcVk",
+				"_effect": 1534647903,
+				"isNewUser": true,
+				"key": "eS3mBl1SdwO2LjSWEHxLmOkYuog1",
+				"profile": {
+					"email": "michael@magmacomputing.com.au",
+					"family_name": "McRae",
+					"gender": "male",
+					"given_name": "Michael",
+					"hd": "magmacomputing.com.au",
+					"id": "110021813496510375957",
+					"locale": "en-GB",
+					"name": "Michael McRae",
+					"picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+					"verified_email": true
+				},
+				"providerId": "google.com",
+				"store": "profile",
+				"type": "user"
+			}
+		]
+	},
+	"plan": [
+		{
+			"_id": "e8ruBfvZGBGnIjAQNAJP",
+			"desc": "Basic Member Plan",
+			"key": "member",
+			"sort": 0,
+			"store": "plan"
+		},
+		{
+			"_id": "OdxocXL87G7VO4J60toY",
+			"desc": "Pay As You Go",
+			"key": "casual",
+			"sort": 1,
+			"store": "plan"
+		},
+		{
+			"_id": "klh85zCNuYjGsPzUa5od",
+			"desc": "Advanced members",
+			"key": "core",
+			"sort": 2,
+			"store": "plan"
+		},
+		{
+			"_id": "wdltDQKjafWgKverfNMZ",
+			"desc": "Snap Fitness members",
+			"key": "gratis",
+			"sort": 5,
+			"store": "plan"
+		},
+		{
+			"_id": "HoYDEwcqk4xMDelf1X2E",
+			"_hidden": true,
+			"desc": "Short Term Intro Pricing",
+			"key": "intro",
+			"sort": 9,
+			"store": "plan"
+		}
+	],
 	"price": [
 		{
 			"_id": "9s1JVCQnCOcK01KDHIP6",

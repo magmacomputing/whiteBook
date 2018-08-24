@@ -21,7 +21,10 @@ import { dbg } from '@lib/logger.library';
 
 export interface IProfileState {
   user: UserInfo & TTokenClaims;
-  member: [IProfilePlan | IProfileUser];
+  member: {
+    plan: IProfilePlan;
+    info: IProfileUser[];
+  }
   defaults: IDefault[];
   account?: IAccount[];
 }
@@ -66,7 +69,8 @@ export class StateService {
   /**
    * Assemble an Object describing a Member, returned as {user: {}, member: {}, price: {}, account: {}}, where:  
    * user   -> has general details about the User {displayName, email, photoURL, providerId, uid, claims}  
-   * member -> has the asAt ProfilePlan and ProfileUser documents, for the user.uid  
+   * memberPlan -> has the asAt ProfilePlan for the user.uid
+   * memberInfo -> has the additionalUserInfo ProfileUser documents, for the user.uid  
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
@@ -83,7 +87,12 @@ export class StateService {
       switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
         map(state => asAt<IProfilePlan | IProfileUser>(state[STORE.profile],
           [{ fieldPath: FIELD.type, value: ['plan', 'user'] }, { fieldPath: FIELD.key, value: result.user.uid }], date)),
-        map(table => Object.assign(result, { member: table }),
+        map(table => Object.assign(result, {
+          member: {
+            plan: table.filter(row => row[FIELD.type] === 'plan')[0],
+            info: table.filter(row => row[FIELD.type] === 'user')
+          }
+        }),
         )),
       ),
 
@@ -102,10 +111,11 @@ export class StateService {
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
       switchMap(result => this.getStore<IPlan>(this.client$, STORE.plan).pipe(
-        map(table => Object.assign(result, { plan: table })),
+        map(table => Object.assign(result, { plan: table.sort(sortKeys('sort', FIELD.key)) })),
       )),
 
       switchMap(result => this.getStore<IPrice>(this.client$, STORE.price).pipe(
+        map(table => table.filter(row => row[FIELD.key] === result.member.plan.plan)),
         map(table => Object.assign(result, { price: table })),
       )),
     )
