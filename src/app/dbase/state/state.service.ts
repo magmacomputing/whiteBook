@@ -20,8 +20,8 @@ import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * DBaseService will wire-up subscribable Observables on the NGXS Store.
- * It also has helper-methods to perform standard 'Joins' between various Store-documents
+ * StateService will wire-up Observables on the NGXS Store.  
+ * It also has helper-methods to perform 'Joins' between various Store-documents
  */
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
