@@ -10,14 +10,25 @@ import { IStoreState } from '@dbase/state/store.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IPrice, IDefault, ISchedule, ILocation, IClass } from '@dbase/data/data.schema';
+import { IProfilePlan, IPrice, IDefault, ISchedule, ILocation, IClass, IPlan, IAccount, IProfileUser } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';
-import { arrayUnique } from '@lib/array.library';
+import { asSet } from '@lib/array.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+
+export interface IProfileState {
+  user: UserInfo & TTokenClaims;
+  member: [IProfilePlan | IProfileUser];
+  defaults: IDefault[];
+  account?: IAccount[];
+}
+export interface IPlanState extends IProfileState {
+  plan: IPlan[];
+  price: IPrice[];
+}
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -25,18 +36,16 @@ import { dbg } from '@lib/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
-  @Select() auth$!: Observable<IAuthState>;
-  @Select() client$!: Observable<IStoreState<any>>;
-  @Select() member$!: Observable<IStoreState<any>>;
-  @Select() attend$!: Observable<IStoreState<any>>;
+  @Select() private auth$!: Observable<IAuthState>;
+  @Select() private client$!: Observable<IStoreState<any>>;
+  @Select() private member$!: Observable<IStoreState<any>>;
+  @Select() private attend$!: Observable<IStoreState<any>>;
 
   private dbg: Function = dbg.bind(this);
 
   constructor() { }
 
-  /**
-   * Get the project defaults store, and arrange into an Object keyed by the <type>
-   */
+  /** Get the project defaults Store, and arrange into an Object keyed by the <type> */
   getDefaults(date?: number) {
     const result: { [key: string]: IDefault } = {};
 
@@ -47,23 +56,22 @@ export class StateService {
     )
   }
 
-  private getStore<T>(slice: Observable<any>, store: string, filter: TWhere = [], date?: number) {
+  /** Generic Slice Observable */
+  private getStore<T>(slice: Observable<IStoreState<T>>, store: string, filter: TWhere = [], date?: number) {
     return slice.pipe(
-      map((state: IStoreState<T>) => asAt(state[store], filter, date)),
+      map(state => asAt<T>(state[store], filter, date)),
     )
   }
 
   /**
-   * Assemble an Object describing a Member, returned as {user: {}, plan: {}, price: {}, account: {}}, where:  
+   * Assemble an Object describing a Member, returned as {user: {}, member: {}, price: {}, account: {}}, where:  
    * user   -> has general details about the User {displayName, email, photoURL, providerId, uid, claims}  
-   * plan   -> has the asAt ProfilePlan document, for the user.uid  
-   * price  -> has an array of asAt Price documents that relate to plan.key  
-   * account-> has current (not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}  
+   * member -> has the asAt ProfilePlan and ProfileUser documents, for the user.uid  
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
    */
-  getMemberData(date?: number, uid?: string) {
+  getMemberData(date?: number, uid?: string): Observable<IProfileState> {
     return this.auth$.pipe(
       map(auth => ({ ...auth.userInfo, ...(auth.userToken as IdTokenResult).claims })),// get the current User
       map((user: UserInfo & TTokenClaims) => ({ user: { displayName: user.displayName, email: user.email, photoURL: user.photoURL, providerId: user.providerId, uid: user.uid, claims: user.claims } })),
@@ -73,16 +81,31 @@ export class StateService {
       )),
 
       switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
-        map(state => asAt<IProfilePlan>(state[STORE.profile],
-          [{ fieldPath: FIELD.type, value: 'plan' }, { fieldPath: FIELD.key, value: result.user.uid }], date)),
-        map(table => table[0] || result.defaults.plan),         // return only the first occurrence, else default-plan
-        map(row => Object.assign(result, { plan: row }),
+        map(state => asAt<IProfilePlan | IProfileUser>(state[STORE.profile],
+          [{ fieldPath: FIELD.type, value: ['plan', 'user'] }, { fieldPath: FIELD.key, value: result.user.uid }], date)),
+        map(table => Object.assign(result, { member: table }),
         )),
       ),
 
-      switchMap(result => this.client$.pipe(                    // get the prices[] for the effective ProfilePlan
-        map(state => asAt<IPrice>(state[STORE.price],
-          [{ fieldPath: FIELD.key, value: result.plan.plan }], date)),
+      // switchMap(result => this.client$.pipe(                    // get the prices[] for the effective ProfilePlan
+      //   map(state => asAt<IPrice>(state[STORE.price],
+      //     [{ fieldPath: FIELD.key, value: result.plan.plan }], date)),
+      //   map(table => Object.assign(result, { price: table })),
+      // )),
+    )
+  }
+
+  /** Add current Plan and Price to the Member Profile Observable
+   * price  -> has an array of asAt Price documents that relate to member.plan.key
+   * account-> has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}  
+  */
+  getPlanData(date?: number, uid?: string): Observable<IPlanState> {
+    return this.getMemberData(date, uid).pipe(
+      switchMap(result => this.getStore<IPlan>(this.client$, STORE.plan).pipe(
+        map(table => Object.assign(result, { plan: table })),
+      )),
+
+      switchMap(result => this.getStore<IPrice>(this.client$, STORE.price).pipe(
         map(table => Object.assign(result, { price: table })),
       )),
     )

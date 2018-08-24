@@ -1,31 +1,33 @@
 <div *ngIf="(profile$ | async) || []; let profile">
-  <div *ngIf="profile.length; else newPlan">
-    Your current Plan: {{ profile[0].plan }}
-  </div>
-
-  <mat-card *ngFor="let plan of plan$ | async; last as last">
-    <div *ngIf="(getPrice(plan.key) | async)  || {}; let price">
-      <mat-card-header>
-        <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan.key)">
-        <mat-card-title>
-          {{ plan.key }}
-        </mat-card-title>
-        <mat-card-subtitle>{{ plan.desc }}</mat-card-subtitle>
-
-        <mat-card-content align="center">
-          <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key)">
-            {{ price[0].amount | currency }}
-          </button>
-        </mat-card-content>
-      </mat-card-header>
-      <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+  <div>
+    <div *ngIf="profile.plan.length; else newPlan">
+      Your current Plan: {{ profile[0].plan }}
     </div>
-  </mat-card>
-</div>
 
-<ng-template #newPlan>
-  <div *ngIf="(auth$ | async) || {}; let auth">
-    <p>Welcome {{ auth?.userInfo?.displayName }} !!</p>
-    <p>Please select a Payment-Plan from the list below...</p>
+    <mat-card *ngFor="let plan of plan$ | async; last as last">
+      <div *ngIf="(getPrice(plan.key) | async)  || {}; let price">
+        <mat-card-header>
+          <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan.key)">
+          <mat-card-title>
+            {{ plan.key }}
+          </mat-card-title>
+          <mat-card-subtitle>{{ plan.desc }}</mat-card-subtitle>
+
+          <mat-card-content align="center">
+            <button mat-raised-button [disabled]="plan._disable || (profile.length != 0 && plan.key == profile[0].plan)" (click)="member.setPlan(plan.key)">
+              {{ price[0].amount | currency }}
+            </button>
+          </mat-card-content>
+        </mat-card-header>
+        <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+      </div>
+    </mat-card>
   </div>
-</ng-template>
+
+  <ng-template #newPlan>
+    <div *ngIf="(auth$ | async) || {}; let auth">
+      <p>Welcome {{ auth?.userInfo?.displayName }} !!</p>
+      <p>Please select a Payment-Plan from the list below...</p>
+    </div>
+  </ng-template>
+</div>

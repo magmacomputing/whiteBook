@@ -6,6 +6,7 @@ import { MemberService } from '@dbase/app/member.service';
 import { ILocation } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
+import { getStamp } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
 
@@ -18,17 +19,17 @@ export class AttendComponent implements OnInit {
   public timetable$!: Observable<any>;
 
   private dbg: Function = dbg.bind(this);
-  private date!: string;
+  private date!: number;
   public selectedIndex: number = 0;                         // used by UI to swipe between <tabs>
   private locations: ILocation[] = [];
 
   constructor(private readonly member: MemberService, public readonly state: StateService) { }
 
   ngOnInit() {                                              // wire-up the Observables
-    this.state.getMemberData().subscribe(member => this.dbg('profile: %j', member));
-    this.state.getScheduleData().subscribe(schedule => this.dbg('schedule: %j', schedule));
+    this.state.getMemberData(this.date).subscribe(member => this.dbg('profile: %j', member));
+    // this.state.getScheduleData(this.date).subscribe(schedule => this.dbg('schedule: %j', schedule));
 
-    this.timetable$ = this.state.getScheduleData();
+    this.timetable$ = this.state.getScheduleData(this.date);
   }
 
   // TODO: popup info about a Class

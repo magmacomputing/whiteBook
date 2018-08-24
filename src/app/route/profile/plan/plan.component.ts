@@ -1,16 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Select, Store } from '@ngxs/store';
-import { AuthState } from '@dbase/state/auth.state';
-import { IAuthState } from '@dbase/state/auth.define';
-import { ClientState } from '@dbase/state/client.state';
-import { MemberState } from '@dbase/state/member.state';
-
+import { StateService, IPlanState } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
-import { STORE, FIELD } from '@dbase/data/data.define';
-import { IProfilePlan, IPlan } from '@dbase/data/data.schema';
-import { TWhere } from '@dbase/fire/fire.interface';
 
 import { dbg } from '@lib/logger.library';
 
@@ -19,25 +11,17 @@ import { dbg } from '@lib/logger.library';
   templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-  @Select(AuthState) auth$!: Observable<IAuthState>;
-  @Select(ClientState.current(STORE.plan, undefined, ['sort', FIELD.key])) plan$!: Observable<IPlan[]>;
-  @Select(MemberState.current(STORE.profile, { fieldPath: FIELD.type, value: 'plan' })) profile$!: Observable<IProfilePlan[]>;
-
+  public planData$!: Observable<IPlanState>;
   private dbg: Function = dbg.bind(this);
 
-  constructor(private readonly member: MemberService, private readonly store: Store) { }
+  constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
-  ngOnInit() { }
-
-  getPrice(plan: string) {
-    const filter: TWhere = [
-      { fieldPath: FIELD.key, value: plan },
-      { fieldPath: FIELD.type, value: 'topUp' },
-    ]
-    return this.store.select(ClientState.store(STORE.price, filter));
+  ngOnInit() {
+    this.planData$ = this.state.getPlanData();
+    this.planData$.subscribe(data => this.dbg('data: %j', data));
   }
 
   showPlan(plan: string) {
-    this.dbg('show: %s', plan)
+    this.dbg('show: %s', plan);
   }
 }
