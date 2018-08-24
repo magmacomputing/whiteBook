@@ -7,7 +7,7 @@ import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
 
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, AuthProfile } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo } from '@dbase/state/auth.define';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
@@ -19,10 +19,10 @@ import { dbg } from '@lib/logger.library';
 @State<IAuthState>({
 	name: SLICE.auth,
 	defaults: {
-		userInfo: null,
-		userToken: null,
-		userProfile: null,
-		userCredential: null,
+		user: null,
+		token: null,
+		info: null,
+		credential: null,
 	}
 })
 export class AuthState implements NgxsOnInit {
@@ -39,7 +39,7 @@ export class AuthState implements NgxsOnInit {
 		if (user) {
 			if (credential) {													// have we been redirected here, via credential?
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
-				ctx.patchState({ userProfile: response.additionalUserInfo });
+				ctx.patchState({ info: response.additionalUserInfo });
 			}
 			ctx.dispatch(new LoginSuccess(user));
 		}
@@ -116,7 +116,7 @@ export class AuthState implements NgxsOnInit {
 		return this.afAuth.auth.signInWithPopup(authProvider)
 			.then(response => {
 				if (!credential)
-					ctx.patchState({ userProfile: response.additionalUserInfo, userCredential: response.credential });
+					ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
 				this.authSuccess(ctx, response.user, credential);
 			})
 			.catch(error => ctx.dispatch(new LoginFailed(error)))
@@ -157,7 +157,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
-				.then(_ => ctx.dispatch(new AuthProfile()))					// check for AdditionalUserInfo
+				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
 				.then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
 		}
 	}
@@ -167,16 +167,16 @@ export class AuthState implements NgxsOnInit {
 		this.snack.dismiss();
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
-				.then(userToken => ctx.patchState({ userInfo: user, userToken }))
-				.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
+				.then(token => ctx.patchState({ user, token }))
+				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
 		}
 	}
 
 	@Action(LoginToken)															// fetch latest IdToken
 	setToken(ctx: StateContext<IAuthState>) {
 		(this.afAuth.auth.currentUser as User).getIdTokenResult(true)
-			.then(userToken => ctx.patchState({ userToken }))
-			.then(_ => this.dbg('customClaims: %j', (ctx.getState().userToken as IdTokenResult).claims.claims))
+			.then(token => ctx.patchState({ token }))
+			.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
 	}
 
 	@Action(LoginRedirect)
@@ -199,7 +199,7 @@ export class AuthState implements NgxsOnInit {
 			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
-		ctx.setState({ userInfo: null, userToken: null, userProfile: null, userCredential: null });
+		ctx.setState({ user: null, token: null, info: null, credential: null });
 		ctx.dispatch(new LoginRedirect());
 	}
 }

@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 
-    return !isUndefined(auth.userToken);
+    return !isUndefined(auth.token);
   }
 }
 

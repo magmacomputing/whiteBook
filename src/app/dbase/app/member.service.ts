@@ -5,14 +5,14 @@ import { debounce } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { IUserInfo } from '@dbase/auth/auth.interface';
-import { AuthProfile, IAuthState } from '@dbase/state/auth.define';
-import { AuthState } from '@dbase/state/auth.state';
+// import { AuthState } from '@dbase/state/auth.define';
+// import { AuthState } from '@dbase/state/auth.state';
 
 import { asAt } from '@dbase/app/app.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta, IProfileInfo } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { ROUTE } from '@route/route.define';
@@ -21,6 +21,8 @@ import { isUndefined, isNull } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { LoginInfo, IAuthState } from '@dbase/state/auth.define';
+import { AuthState } from '@dbase/state/auth.state';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -32,8 +34,8 @@ export class MemberService {
 		this.default = this.data.snap<IStoreBase>(STORE.default)
 			.then(table => asAt(table));								// stash the current defaults
 
-		this.action.pipe(															// special: listen for changes of the UserProfile
-			ofAction(AuthProfile),
+		this.action.pipe(															// special: listen for changes of the auth.info
+			ofAction(LoginInfo),
 			debounce(_ => timer(1000)),
 		).subscribe(_ => this.getAuthProfile());
 	}
@@ -123,7 +125,7 @@ export class MemberService {
 
 	async getPrice(type: string, memberId?: string) {				// type: 'full' | 'half' | 'topUp'
 		const planDoc = await this.getPlan(memberId);
-		const where: TWhere= [
+		const where: TWhere = [
 			{ fieldPath: FIELD.type, value: type },
 			{ fieldPath: FIELD.key, value: planDoc.plan },
 		];
@@ -160,24 +162,22 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-		if (isNull(auth.userProfile) || isUndefined(auth.userProfile))
+		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
 
-		let authProfile = cloneObj(auth.userProfile);
-		if (authProfile.profile) {
-			const profile: any = authProfile.profile;
+		let authInfo = cloneObj(auth.info);
+		if (authInfo.profile) {
+			const profile: any = authInfo.profile;
 			delete profile.link;						// special: FaceBook changes this field periodically
-			authProfile.profile = profile;	// rebuild authProfile.profile
+			authInfo.profile = profile;			// rebuild authInfo.profile
 		}
 
-		const where: TWhere = [
-			{ fieldPath: 'providerId', value: authProfile.providerId },
-		]
-		const profileUser = {
-			...authProfile,									// spread the authProfile object
+		const where: TWhere = { fieldPath: 'providerId', value: authInfo.providerId };
+		const profileUser: IProfileInfo = {
+			...authInfo,										// spread the authInfo object
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
-			[FIELD.type]: 'user',
+			[FIELD.type]: 'info',
 		}
 
 		this.data.insDoc(profileUser, where, 'profile');

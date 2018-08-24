@@ -2,10 +2,10 @@ import { User, UserInfo, AuthProvider, IdTokenResult, AdditionalUserInfo, AuthCr
 import { ILink } from '@dbase/auth/auth.interface';
 
 export interface IAuthState {
-  userInfo: UserInfo | null;
-  userToken: IdTokenResult | null;
-  userProfile: AdditionalUserInfo | null | undefined; // additionalUserInfo
-  userCredential: AuthCredential | null;
+  user: UserInfo | null;
+  token: IdTokenResult | null;
+  info?: AdditionalUserInfo | null;       // additionalUserInfo from provider
+  credential?: AuthCredential | null;
 }
 
 // Actions
@@ -32,8 +32,8 @@ export class Logout {
 export class LogoutSuccess {
   static type = '[Auth] LogoutSuccess';
 }
-export class AuthProfile {
-  static type = '[Auth] AuthProfile';
+export class LoginInfo {
+  static type = '[Auth] LoginInfo';
 }
 
 // Events

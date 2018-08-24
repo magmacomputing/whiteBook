@@ -6,12 +6,12 @@ import { TProvider } from '@dbase/data/data.schema';
 
 import { isNull } from '@lib/type.library';
 
-// TODO: derive token requirements from authState.userToken
+// TODO: derive token requirements from authState.token
 interface IEmailToken {
 	email: string;
 	password: string;
 }
-export const getAuthProvider = (providerId: string, userToken?: (IdTokenResult & IEmailToken) | null): [TProvider | undefined, AuthProvider | undefined, AuthCredential | undefined] => {
+export const getAuthProvider = (providerId: string, token?: (IdTokenResult & IEmailToken) | null): [TProvider | undefined, AuthProvider | undefined, AuthCredential | undefined] => {
 	let authProvider: AuthProvider | undefined;
 	let authCredential: AuthCredential | undefined;
 	let type: TProvider | undefined = 'social';												// default to 'social'
@@ -20,36 +20,36 @@ export const getAuthProvider = (providerId: string, userToken?: (IdTokenResult &
 		case 'email':
 			type = 'email'
 			authProvider = new auth.EmailAuthProvider();
-			if (userToken)
-				authCredential = auth.EmailAuthProvider.credential(userToken.email, userToken.password);
+			if (token)
+				authCredential = auth.EmailAuthProvider.credential(token.email, token.password);
 			break;
 
 		case 'google':
 		case 'google.com':
 			authProvider = new auth.GoogleAuthProvider();
-			if (userToken)
-				authCredential = auth.GoogleAuthProvider.credential(userToken.token);
+			if (token)
+				authCredential = auth.GoogleAuthProvider.credential(token.token);
 			break;
 
 		case 'twitter':
 		case 'twitter.com':
 			authProvider = new auth.TwitterAuthProvider();
-			if (userToken)
-				authCredential = auth.TwitterAuthProvider.credential(userToken.token, '')//, userToken.secret);
+			if (token)
+				authCredential = auth.TwitterAuthProvider.credential(token.token, '')//, token.secret);
 			break;
 
 		case 'github':
 		case 'github.com':
 			authProvider = new auth.GithubAuthProvider();
-			if (userToken)
-				authCredential = auth.GithubAuthProvider.credential(userToken.token);
+			if (token)
+				authCredential = auth.GithubAuthProvider.credential(token.token);
 			break;
 
 		case 'facebook':
 		case 'facebook.com':
 			authProvider = new auth.FacebookAuthProvider();
-			if (userToken)
-				authCredential = auth.FacebookAuthProvider.credential(userToken.token);
+			if (token)
+				authCredential = auth.FacebookAuthProvider.credential(token.token);
 			break;
 
 		default:
@@ -62,9 +62,9 @@ export const getAuthProvider = (providerId: string, userToken?: (IdTokenResult &
 
 export const isActive = (auth: IAuthState) => {
 	switch (true) {
-		case isNull(auth.userInfo):
-		case isNull(auth.userToken):
-			// case !isNull(auth.userToken) && auth.userToken.claims[JWT.expires] < getStamp():
+		case isNull(auth.user):
+		case isNull(auth.token):
+			// case !isNull(auth.token) && auth.token.claims[JWT.expires] < getStamp():
 			return false;													// not authenticated
 
 		default:
