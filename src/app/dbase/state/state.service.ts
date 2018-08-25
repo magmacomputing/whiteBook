@@ -22,7 +22,7 @@ import { dbg } from '@lib/logger.library';
 export interface IProfileState {
   auth: {
     user: UserInfo;                     // Firebase User Account
-    claims: TTokenClaims;               // authenticated customClaims
+    claim?: TTokenClaims;               // authenticated customClaims
   }
   member: {
     plan?: IProfilePlan;                // member's effective plan
@@ -83,11 +83,11 @@ export class StateService {
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
     return this.auth$.pipe(
-      map(auth => ({ ...auth.user, ...(auth.token || {} as IdTokenResult).claims })),// get the current User
+      map(auth => ({ ...auth.user, ...auth.token })),// get the current User
       map((user: UserInfo & TTokenClaims) => ({
         auth: {
           user: this.getUser(user),
-          claims: user.claims
+          claim: user.claims
         }
       })),
 
@@ -115,10 +115,7 @@ export class StateService {
   */
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
-      // Special: if Member already has a plan, set _hidden on 'intro'
-      // TODO: disable any Plans whose topUp is less-than current, unless admin?
       switchMap(result => this.getStore<IPlan>(this.client$, STORE.plan).pipe(
-        map(table => table.map(row => Object.assign({ [FIELD.hidden]: !!result.member.plan && row[FIELD.key] === 'intro' }, row))),
         map(table => table.filter(row => !row[FIELD.hidden])),
         map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
       )),
