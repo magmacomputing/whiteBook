@@ -2,28 +2,28 @@
   <div *ngIf="data.member?.plan; else newPlan">
     Your current Plan: {{ data.member.plan.plan }}
   </div>
-  {{ data | json }}
-  <mat-card *ngFor="let plan of data.plan; last as isLast">
-    <mat-card-header>
-      <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan.key)">
-      <mat-card-title> {{ plan.key }} </mat-card-title>
-      <mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
 
-      <mat-card-content align="center">
-        <button mat-raised-button [disabled]="plan._disable || (data.member?.plan && plan.key == data.member.plan.plan)" (click)="member.setPlan(plan.key)">
-          <div *ngFor="let price of data.price">
-            <div *ngIf="price.type == 'topUp' && price.key == plan.key">
-              {{ price.amount | currency }}
-            </div>
-          </div>
-        </button>
-      </mat-card-content>
+  <mat-card *ngFor="let plan of data.client?.plan; last as isLast">
+    <mat-card-header>
+      <div *ngFor="let price of data.client?.price">
+        <span *ngIf="price.type == 'topUp' && price.key == plan.key">
+          <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(price.key, data.client.price)">
+          <mat-card-title> {{ plan.key }} </mat-card-title>
+          <mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
+
+          <mat-card-content align="center">
+            <button mat-raised-button [disabled]="plan._disable || (data.member?.plan && plan.key == data.member.plan.plan)" (click)="member.setPlan(plan.key)">
+              TopUp: {{ price.amount | currency }}
+            </button>
+          </mat-card-content>
+        </span>
+      </div>
     </mat-card-header>
     <mat-divider [inset]="true" *ngIf="!isLast"></mat-divider>
   </mat-card>
 
   <ng-template #newPlan>
-    <p>Welcome {{ data.user?.displayName }} !!</p>
+    <p>Welcome {{ data.auth?.user?.displayName }} !!</p>
     <p>Please select a Payment-Plan from the list below...</p>
   </ng-template>
 </div>

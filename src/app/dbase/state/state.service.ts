@@ -25,15 +25,17 @@ export interface IProfileState {
     claims: TTokenClaims;               // authenticated customClaims
   }
   member: {
-    plan: IProfilePlan;                 // member's effective plan
+    plan?: IProfilePlan;                // member's effective plan
     info?: IProfileInfo[];              // array of AdditionalUserInfo documents
     account?: IAccount[];               // array of active payment documents
   }
   defaults?: IDefault[];                // defaults to apply, if missing from Member data
 }
 export interface IPlanState extends IProfileState {
-  plan: IPlan[];                        // array of effective Plan documents
-  price: IPrice[];                      // array of effective Price documents for this Member plan
+  client: {
+    plan: IPlan[];                      // array of effective Plan documents
+    price: IPrice[];                    // array of effective Price documents
+  }
 }
 
 /**
@@ -83,17 +85,15 @@ export class StateService {
     return this.auth$.pipe(
       map(auth => ({ ...auth.user, ...(auth.token as IdTokenResult).claims })),// get the current User
       map((user: UserInfo & TTokenClaims) => ({
-        user: { displayName: user.displayName, email: user.email, photoURL: user.photoURL, providerId: user.providerId, uid: user.uid },
-        claims: user.claims
+        auth: {
+          user: { displayName: user.displayName, email: user.email, photoURL: user.photoURL, providerId: user.providerId, uid: user.uid },
+          claims: user.claims
+        }
       })),
-
-      // switchMap(result => this.getDefaults().pipe(              // inject the /client/_default_ store for current values
-      //   map(defaults => Object.assign(result, { defaults })),
-      // )),
 
       switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
         map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],
-          [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: result.user.uid }], date)),
+          [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: result.auth.user.uid }], date)),
         map(table => Object.assign(result, {
           member: {
             plan: table.filter(row => row[FIELD.type] === 'plan')[0],
@@ -105,19 +105,19 @@ export class StateService {
     )
   }
 
-  /** Add current Plan and Price to the Member Profile Observable
-   * price  -> has an array of asAt Price documents that relate to member.plan.key
-   * account-> has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}  
+  /** Add current Plan[] and Price[] to the Member Profile Observable
+   * client.plan  -> has an array of asAt Plan documents
+   * client.price -> has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}  
   */
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
       switchMap(result => this.getStore<IPlan>(this.client$, STORE.plan).pipe(
-        map(table => Object.assign(result, { plan: table.sort(sortKeys('sort', FIELD.key)) })),
+        map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
       )),
 
+      // TODO: if Member already has a plan, set _disable on 'intro'
       switchMap(result => this.getStore<IPrice>(this.client$, STORE.price).pipe(
-        map(table => table.filter(row => row[FIELD.key] === result.member.plan.plan)),
-        map(table => Object.assign(result, { price: table })),
+        map(table => Object.assign(result, { client: Object.assign(result.client, { price: table }) })),
       )),
     )
   }

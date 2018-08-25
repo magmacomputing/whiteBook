@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { StateService, IPlanState } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 
+import { IPrice } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -20,7 +22,7 @@ export class PlanComponent implements OnInit {
     this.planData$ = this.state.getPlanData();
   }
 
-  showPlan(plan: string) {
-    this.dbg('show: %s', plan);
+  showPlan(plan: string, price: IPrice[]) {
+    this.dbg('show: %j', price.filter(price => price[FIELD.key] === plan));
   }
 }
