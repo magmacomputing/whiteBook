@@ -1,4 +1,4 @@
-<div *ngIf="(planData$ | async) || []; let data">
+<div *ngIf="(data$ | async) || []; let data">
   <div *ngIf="data.member?.plan; else newPlan">
     Your current Plan: {{ data.member.plan.plan }}
   </div>
@@ -11,9 +11,9 @@
           <mat-card-title> {{ plan.key }} </mat-card-title>
           <mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
 
-          <mat-card-content align="center">
+          <mat-card-content align="right">
             <button mat-raised-button [disabled]="plan._disable || (data.member?.plan && plan.key == data.member.plan.plan)" (click)="member.setPlan(plan.key)">
-              TopUp: {{ price.amount | currency }}
+              {{ price.amount | currency }}
             </button>
           </mat-card-content>
         </span>

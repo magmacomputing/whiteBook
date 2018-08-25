@@ -13,13 +13,13 @@ import { dbg } from '@lib/logger.library';
   templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-  public planData$!: Observable<IPlanState>;
+  public data$!: Observable<IPlanState>;
   private dbg: Function = dbg.bind(this);
 
   constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
   ngOnInit() {
-    this.planData$ = this.state.getPlanData();
+    this.data$ = this.state.getPlanData();
   }
 
   showPlan(plan: string, price: IPrice[]) {

@@ -1,15 +1,16 @@
 {
-	"user": {
-		"displayName": "Michael McRae",
-		"email": "michael@magmacomputing.com.au",
-		"photoURL": "https: //graph.facebook.com/100000138474102/picture",
-		"uid": "tK8uq3RcMgZJFivYuPWcxvk7kAi2"
-	},
-	"claims": {
-		"memberName": "MichaelM"
+	"auth": {
+		"user": {
+			"displayName": "Michael McRae",
+			"email": "michael@magmacomputing.com.au",
+			"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+			"uid": "tK8uq3RcMgZJFivYuPWcxvk7kAi2"
+		},
+		"claims": {
+			"memberName": "MichaelM"
+		}
 	},
 	"member": {
-		"plan": [],
 		"info": [
 			{
 				"_id": "YX7FAZJfuaz0xuWzMumn",
@@ -43,166 +44,151 @@
 				"providerId": "facebook.com",
 				"store": "profile",
 				"type": "info"
+			},
+			{
+				"_id": "gFsvyKlMT4gLkvWWSSLv",
+				"_effect": 1535153546,
+				"isNewUser": false,
+				"key": "tK8uq3RcMgZJFivYuPWcxvk7kAi2",
+				"profile": {
+					"email": "michael@magmacomputing.com.au",
+					"family_name": "McRae",
+					"gender": "male",
+					"given_name": "Michael",
+					"hd": "magmacomputing.com.au",
+					"id": "110021813496510375957",
+					"locale": "en-GB",
+					"name": "Michael McRae",
+					"picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+					"verified_email": true
+				},
+				"providerId": "google.com",
+				"store": "profile",
+				"type": "info"
 			}
 		]
 	},
-	"plan": [
-		{
-			"_id": "e8ruBfvZGBGnIjAQNAJP",
-			"desc": "Basic Member Plan",
-			"key": "member",
-			"sort": 0,
-			"store": "plan"
-		},
-		{
-			"_id": "OdxocXL87G7VO4J60toY",
-			"desc": "Pay As You Go",
-			"key": "casual",
-			"sort": 1,
-			"store": "plan"
-		},
-		{
-			"_id": "klh85zCNuYjGsPzUa5od",
-			"desc": "Advanced members",
-			"key": "core",
-			"sort": 2,
-			"store": "plan"
-		},
-		{
-			"_id": "wdltDQKjafWgKverfNMZ",
-			"desc": "Snap Fitness members",
-			"key": "gratis",
-			"sort": 5,
-			"store": "plan"
-		},
-		{
-			"_id": "HoYDEwcqk4xMDelf1X2E",
-			"_hidden": true,
-			"desc": "Short Term Intro Pricing",
-			"key": "intro",
-			"sort": 9,
-			"store": "plan"
-		}
-	],
-	"price": [
-		{
-			"_id": "9s1JVCQnCOcK01KDHIP6",
-			"_effect": 1514725200,
-			"amount": 5,
-			"key": "member",
-			"store": "price",
-			"type": "half"
-		},
-		{
-			"_id": "A2ZrHSOEGovIg3FUCjZG",
-			"_effect": 1514725200,
-			"amount": 10,
-			"key": "member",
-			"store": "price",
-			"type": "full"
-		},
-		{
-			"_id": "ByCoQfsAyriucWvcTdzI",
-			"amount": 0,
-			"key": "casual",
-			"store": "price",
-			"type": "topUp"
-		},
-		{
-			"_id": "CzutaKlWSaubY1gRfsIH",
-			"amount": 5,
-			"key": "member",
-			"store": "price",
-			"type": "hold"
-		},
-		{
-			"_id": "J9iNirLvbgG6LcIlktiU",
-			"amount": 5,
-			"key": "intro",
-			"store": "price",
-			"type": "full"
-		},
-		{
-			"_id": "OdM9giBv3XQ0K3g6Pzz9",
-			"amount": 120,
-			"key": "core",
-			"store": "price",
-			"type": "topUp"
-		},
-		{
-			"_id": "PVXZClKAjD7Ans6C6APZ",
-			"amount": 0,
-			"key": "gratis",
-			"store": "price",
-			"type": "half"
-		},
-		{
-			"_id": "RdPPiIN7tBkmKUKyhiBY",
-			"amount": 0,
-			"key": "gratis",
-			"store": "price",
-			"type": "full"
-		},
-		{
-			"_id": "TrYB35vbm6KAWwjmatRP",
-			"amount": 20,
-			"key": "intro",
-			"store": "price",
-			"type": "topUp"
-		},
-		{
-			"_id": "YnTyupNiI3eEMCqJkCRi",
-			"_effect": 1514725200,
-			"amount": 100,
-			"key": "member",
-			"store": "price",
-			"type": "topUp"
-		},
-		{
-			"_id": "bHSXSZm7JOOw05lwOd63",
-			"_effect": 1514725200,
-			"amount": 7.5,
-			"key": "casual",
-			"store": "price",
-			"type": "half"
-		},
-		{
-			"_id": "iHbYhKllm5DtVTnSM7Gu",
-			"_effect": 1514725200,
-			"amount": 10,
-			"key": "core",
-			"store": "price",
-			"type": "full"
-		},
-		{
-			"_id": "jsxtBbcFDayiprwo2vyP",
-			"_effect": 1514725200,
-			"amount": 15,
-			"key": "casual",
-			"store": "price",
-			"type": "full"
-		},
-		{
-			"_id": "nCpVOuGV3dJ9AJwjz3jZ",
-			"_effect": 1514725200,
-			"amount": 5,
-			"key": "core",
-			"store": "price",
-			"type": "half"
-		},
-		{
-			"_id": "pZ2jZvE5sCeVOgnKYOaK",
-			"amount": 0,
-			"key": "gratis",
-			"store": "price",
-			"type": "topUp"
-		},
-		{
-			"_id": "xNYUXXb85sKRl81Wt0Tz",
-			"amount": 2.5,
-			"key": "intro",
-			"store": "price",
-			"type": "half"
-		}
-	]
+	"client": {
+		"price": [
+			{
+				"_id": "9s1JVCQnCOcK01KDHIP6",
+				"_effect": 1514725200,
+				"amount": 5,
+				"key": "member",
+				"store": "price",
+				"type": "half"
+			},
+			{
+				"_id": "A2ZrHSOEGovIg3FUCjZG",
+				"_effect": 1514725200,
+				"amount": 10,
+				"key": "member",
+				"store": "price",
+				"type": "full"
+			},
+			{
+				"_id": "ByCoQfsAyriucWvcTdzI",
+				"amount": 0,
+				"key": "casual",
+				"store": "price",
+				"type": "topUp"
+			},
+			{
+				"_id": "CzutaKlWSaubY1gRfsIH",
+				"amount": 5,
+				"key": "member",
+				"store": "price",
+				"type": "hold"
+			},
+			{
+				"_id": "J9iNirLvbgG6LcIlktiU",
+				"amount": 5,
+				"key": "intro",
+				"store": "price",
+				"type": "full"
+			},
+			{
+				"_id": "OdM9giBv3XQ0K3g6Pzz9",
+				"amount": 120,
+				"key": "core",
+				"store": "price",
+				"type": "topUp"
+			},
+			{
+				"_id": "PVXZClKAjD7Ans6C6APZ",
+				"amount": 0,
+				"key": "gratis",
+				"store": "price",
+				"type": "half"
+			},
+			{
+				"_id": "RdPPiIN7tBkmKUKyhiBY",
+				"amount": 0,
+				"key": "gratis",
+				"store": "price",
+				"type": "full"
+			},
+			{
+				"_id": "TrYB35vbm6KAWwjmatRP",
+				"amount": 20,
+				"key": "intro",
+				"store": "price",
+				"type": "topUp"
+			},
+			{
+				"_id": "YnTyupNiI3eEMCqJkCRi",
+				"_effect": 1514725200,
+				"amount": 100,
+				"key": "member",
+				"store": "price",
+				"type": "topUp"
+			},
+			{
+				"_id": "bHSXSZm7JOOw05lwOd63",
+				"_effect": 1514725200,
+				"amount": 7.5,
+				"key": "casual",
+				"store": "price",
+				"type": "half"
+			},
+			{
+				"_id": "iHbYhKllm5DtVTnSM7Gu",
+				"_effect": 1514725200,
+				"amount": 10,
+				"key": "core",
+				"store": "price",
+				"type": "full"
+			},
+			{
+				"_id": "jsxtBbcFDayiprwo2vyP",
+				"_effect": 1514725200,
+				"amount": 15,
+				"key": "casual",
+				"store": "price",
+				"type": "full"
+			},
+			{
+				"_id": "nCpVOuGV3dJ9AJwjz3jZ",
+				"_effect": 1514725200,
+				"amount": 5,
+				"key": "core",
+				"store": "price",
+				"type": "half"
+			},
+			{
+				"_id": "pZ2jZvE5sCeVOgnKYOaK",
+				"amount": 0,
+				"key": "gratis",
+				"store": "price",
+				"type": "topUp"
+			},
+			{
+				"_id": "xNYUXXb85sKRl81Wt0Tz",
+				"amount": 2.5,
+				"key": "intro",
+				"store": "price",
+				"type": "half"
+			}
+		]
+	}
 }

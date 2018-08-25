@@ -86,7 +86,7 @@ export class StateService {
       map(auth => ({ ...auth.user, ...(auth.token as IdTokenResult).claims })),// get the current User
       map((user: UserInfo & TTokenClaims) => ({
         auth: {
-          user: { displayName: user.displayName, email: user.email, photoURL: user.photoURL, providerId: user.providerId, uid: user.uid },
+          user: this.getUser(user),
           claims: user.claims
         }
       })),
@@ -103,6 +103,10 @@ export class StateService {
         )),
       ),
     )
+  }
+
+  private getUser({ displayName, email, photoURL, providerId, uid }: UserInfo) {
+    return { displayName, email, photoURL, providerId, uid };
   }
 
   /** Add current Plan[] and Price[] to the Member Profile Observable
