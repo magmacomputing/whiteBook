@@ -25,11 +25,19 @@ export class PlanComponent implements OnInit {
         const currentPlan = data.member.plan;
         const claim = data.auth.claim;
         const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
-        let plans = data.client.plan;
+        let plans = data.client.plan;                       // array of available plans
 
-        if (currentPlan && !isAdmin) {                       // Special: dont allow downgrades
-          const currentTopUp = data.client.price
+        if (currentPlan && !isAdmin) {                      // Special: dont allow downgrades
+          const currentTopUp = data.client.price            // find the current members topUp price
             .filter(price => price[FIELD.key] === currentPlan.plan && price[FIELD.type] === 'topUp')[0];
+
+          plans = plans.map(plan => {
+            const planPrice = data.client.price
+              .filter(price => price[FIELD.type] === 'topUp')[0];
+
+            plan[FIELD.hidden] = plan[FIELD.hidden] || (planPrice.amount < currentTopUp.amount);
+            return plan;
+          })
           // plans = plans
           //   .map(plan => Object.assign({ [FIELD.disable]: plan[FIELD.type] === 'topUp' && plan.}))
           // plans = plans.map(plan => Object.assign({ [FIELD.hidden]: plan[FIELD.key] === 'intro' }, plan));
