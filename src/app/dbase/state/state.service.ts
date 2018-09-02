@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { IdTokenResult, UserInfo } from '@firebase/auth-types';
+import { UserInfo } from '@firebase/auth-types';
 import { Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
@@ -10,12 +10,11 @@ import { IStoreState } from '@dbase/state/store.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IPrice, IDefault, ISchedule, ILocation, IClass, IPlan, IAccount, IProfileInfo } from '@dbase/data/data.schema';
+import { IProfilePlan, IPrice, IDefault, ISchedule, IClass, IPlan, IAccount, IProfileInfo } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';
-import { asSet } from '@lib/array.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
