@@ -1,5 +1,6 @@
 import { AngularFirestore } from 'angularfire2/firestore';
-import { Observable, defer } from 'rxjs';
+import { Observable, defer, combineLatest } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount } from '@dbase/data/data.schema';
@@ -41,9 +42,26 @@ export const getUser = (token: IFireClaims) =>
 
 export const joinDoc = (afs: AngularFirestore, paths: { [key: string]: string }) => {
   return (source: Observable<any>) => defer(() => {
-    let parent;
+    let parent: any;
     const keys = Object.keys(paths);
 
-    return source.pipe
+    return source.pipe(
+      switchMap(data => {
+        parent = data;
+
+        const docs$ = keys.map(key => {
+          return afs.doc('').valueChanges();
+        })
+
+        return combineLatest(docs$);
+      }),
+      map(arr => {
+        const joins = keys.reduce((acc, cur, idx) => {
+          return { ...acc, [cur]: arr[idx] };
+        }, {});
+
+        return { ...parent, ...joins };
+      })
+    )
   })
 }
