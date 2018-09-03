@@ -1,41 +1,23 @@
 import { Injectable } from '@angular/core';
-import { UserInfo } from '@firebase/auth-types';
+import { IdTokenResult } from '@firebase/auth-types';
 import { Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
+import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
+import { IPlanState, getUser, IProfileState, IUserState } from '@dbase/state/state.library';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DBaseModule } from '@dbase/dbase.module';
-import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IPrice, IDefault, ISchedule, IClass, IPlan, IAccount, IProfileInfo } from '@dbase/data/data.schema';
+import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-
-export interface IProfileState {
-  auth: {
-    user: UserInfo;                     // Firebase User Account
-    claim?: TTokenClaims;               // authenticated customClaims
-  }
-  member: {
-    plan?: IProfilePlan;                // member's effective plan
-    info?: IProfileInfo[];              // array of AdditionalUserInfo documents
-    account?: IAccount[];               // array of active payment documents
-  }
-  defaults?: IDefault[];                // defaults to apply, if missing from Member data
-}
-export interface IPlanState extends IProfileState {
-  client: {
-    plan: IPlan[];                      // array of effective Plan documents
-    price: IPrice[];                    // array of effective Price documents
-  }
-}
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -71,41 +53,46 @@ export class StateService {
   }
 
   /**
-   * Assemble an Object describing a Member returned as IProfileState, where:
-   * auth.user    -> has Firebase details about the User Account
+   * Assemble a UserState Object describing a User, where:  
+   * auth.user    -> has Firebase details about the User Account  
    * auth.claims  -> has authenticated customClaims
-   * member.plan  -> has the asAt ProfilePlan for the user.uid
-   * member.info  -> has the additionalUserInfo ProfileUser documents, for the user.uid  
+   */
+  getUserData(uid?: string): Observable<IUserState> {               // TODO: allow for optional <uid> parameter to resolve in admin$ state
+    return this.auth$.pipe(
+      map(auth => auth.token as IdTokenResult),
+      map(token => ({
+        auth: {
+          user: getUser(token.claims as IFireClaims),
+          claims: token.claims.claims,// as TTokenClaims,
+        }
+      })),
+    )
+  }
+
+  /**
+   * Extend UserState with an Object describing a Member returned as IProfileState, where:  
+   * member.plan  -> has the asAt ProfilePlan for the user.uid  
+   * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
-    return this.auth$.pipe(
-      map(auth => ({ ...auth.user, ...auth.token })),// get the current User
-      map((user: UserInfo & TTokenClaims) => ({
-        auth: {
-          user: this.getUser(user),
-          claim: user.claims
-        }
-      })),
+    return this.getUserData(uid).pipe(
+      map(auth => Object.assign({}, auth, { member: {} })),
 
-      switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
-        map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],
-          [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: result.auth.user.uid }], date)),
-        map(table => Object.assign(result, {
-          member: {
-            plan: table.filter(row => row[FIELD.type] === 'plan')[0],
-            info: table.filter(row => row[FIELD.type] === 'info')
-          }
-        }),
-        )),
-      ),
+      // switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
+      //   map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],
+      //     [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: result.auth.user.uid }], date)),
+      //   map(table => Object.assign(result, {
+      //     member: {
+      //       plan: table.filter(row => row[FIELD.type] === 'plan')[0],
+      //       info: table.filter(row => row[FIELD.type] === 'info')
+      //     }
+      //   }),
+      // )),
+      // ),
     )
-  }
-
-  private getUser({ displayName, email, photoURL, providerId, uid }: UserInfo) {
-    return { displayName, email, photoURL, providerId, uid };
   }
 
   /** Add current Plan[] and Price[] to the Member Profile Observable
