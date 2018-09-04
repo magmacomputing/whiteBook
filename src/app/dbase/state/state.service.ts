@@ -7,9 +7,8 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
-import { IPlanState, getUser, IProfileState, IUserState } from '@dbase/state/state.library';
+import { IPlanState, getUser, IProfileState, IUserState, getStore, joinDoc } from '@dbase/state/state.library';
 
-import { TWhere } from '@dbase/fire/fire.interface';
 import { DBaseModule } from '@dbase/dbase.module';
 import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -45,13 +44,6 @@ export class StateService {
     )
   }
 
-  /** Generic Slice Observable */
-  private getStore<T>(slice: Observable<IStoreState<T>>, store: string, filter: TWhere = [], date?: number) {
-    return slice.pipe(
-      map(state => asAt<T>(state[store], filter, date)),
-    )
-  }
-
   /**
    * Assemble a UserState Object describing a User, where:  
    * auth.user    -> has Firebase details about the User Account  
@@ -79,7 +71,8 @@ export class StateService {
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
     return this.getUserData(uid).pipe(
-      map(auth => Object.assign({}, auth, { member: {} })),
+      map(auth => Object.assign({}, auth)),
+      joinDoc((member$, {}) => source),
 
       // switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
       //   map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],
@@ -101,12 +94,12 @@ export class StateService {
   */
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
-      switchMap(result => this.getStore<IPlan>(this.client$, STORE.plan).pipe(
+      switchMap(result => getStore<IPlan>(this.client$, STORE.plan).pipe(
         map(table => table.filter(row => !row[FIELD.hidden])),
         map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
       )),
 
-      switchMap(result => this.getStore<IPrice>(this.client$, STORE.price).pipe(
+      switchMap(result => getStore<IPrice>(this.client$, STORE.price).pipe(
         map(table => table.filter(row => !row[FIELD.hidden])),
         map(table => Object.assign(result, { client: Object.assign(result.client, { price: table }) })),
       )),
