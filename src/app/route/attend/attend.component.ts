@@ -6,14 +6,12 @@ import { MemberService } from '@dbase/app/member.service';
 import { ILocation } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
-import { getStamp } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
   selector: 'wb-attend',
   templateUrl: './attend.component.html',
-  styleUrls: ['./attend.component.css']
 })
 export class AttendComponent implements OnInit {
   public timetable$!: Observable<any>;

@@ -71,8 +71,7 @@ export class StateService {
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
     return this.getUserData(uid).pipe(
-      map(auth => Object.assign({}, auth)),
-      joinDoc((member$, {}) => source),
+      joinDoc(this.member$, STORE.profile, { fieldPath: FIELD.type, value: ['plan', 'info'] }, date),
 
       // switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
       //   map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],

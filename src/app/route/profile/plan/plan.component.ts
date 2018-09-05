@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { StateService, IPlanState } from '@dbase/state/state.service';
+import { IPlanState } from '@dbase/state/state.library';
+import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 
 import { IPrice } from '@dbase/data/data.schema';
@@ -23,7 +24,7 @@ export class PlanComponent implements OnInit {
     this.data$ = this.state.getPlanData().pipe(
       map(data => {
         const currentPlan = data.member.plan;
-        const claim = data.auth.claim;
+        const claim = data.auth.claims;
         const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
         let plans = data.client.plan;                       // array of available plans
 
