@@ -7,7 +7,7 @@ import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, IStoreBase } from '@dbase/data/data.schema';
 
 import { asAt } from '@dbase/app/app.library';
-import { getPath } from '@lib/object.library';
+import { getPath, cloneObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { isString } from '@lib/type.library';
 
@@ -64,22 +64,29 @@ export const joinDoc = <T>(slice: Observable<IStoreState<T>>, store: string, fil
 
     return source.pipe(
       switchMap(data => {
-        parent = data;                  // stash the original parent data state
-        filter = asArray(filter).map(cond => {
-          cond.value = asArray(cond.value).map(value => isString(value) && value.includes('.') ? getPath(data, value) : value);
+        parent = data;                                        // stash the original parent data state
+
+        const criteria = asArray(cloneObj(filter)).map(cond => {
+          cond.value = asArray(cond.value).map(value =>       // loop through filter, checking each <value> clause
+            isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the source
+              ? getPath(data, value.replace('{{', '').replace('}}', ''))
+              : value
+          );
           if (cond.value.length === 1) cond.value = cond.value[0];
-          return cond;                  // evaulate each value, to see if it is a fieldPath reference on the source
+          return cond;
         })
-        return combineLatest(getStore(slice, store, filter, date));
+
+        return combineLatest(getStore(slice, store, criteria, date));
       }),
+
       map(res => {
         let joins: { [key: string]: any[] } = {};
         res.forEach(table => table.forEach((row: any) => {
-          const type: string = row.type;              // TODO: dont hardcode 'type'
+          const type: string = row.type;                      // TODO: dont hardcode 'type'
           joins[type] = joins[type] || [];
           joins[type].push(row);
         }))
-        return { ...parent, ...{ member: joins } }    // TODO: dont hardcode 'member'
+        return { ...parent, ...{ member: joins } }            // TODO: dont hardcode 'member'
       })
     )
   })

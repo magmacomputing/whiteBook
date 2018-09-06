@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 
 import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
@@ -16,6 +16,7 @@ import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { TWhere } from '@dbase/fire/fire.interface';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -68,20 +69,13 @@ export class StateService {
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
-    return this.getUserData(uid).pipe(
-      joinDoc(this.member$, STORE.profile, [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: 'auth.user.uid' }], date),
+    const filter: TWhere = [
+      { fieldPath: FIELD.type, value: ['plan', 'info'] },           // where the <type> is either 'plan' or 'info'
+      { fieldPath: FIELD.key, value: '{{auth.user.uid}}' },         // and the <key> is the getUserData()'s 'auth.user.uid'
+    ]
 
-      // switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
-      //   map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],
-      //     [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: result.auth.user.uid }], date)),
-      //   map(table => Object.assign(result, {
-      //     member: {
-      //       plan: table.filter(row => row[FIELD.type] === 'plan')[0],
-      //       info: table.filter(row => row[FIELD.type] === 'info')
-      //     }
-      //   }),
-      // )),
-      // ),
+    return this.getUserData(uid).pipe(
+      joinDoc(this.member$, STORE.profile, filter, date),
     )
   }
 
