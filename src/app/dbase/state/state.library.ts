@@ -1,12 +1,15 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, tap } from 'rxjs/operators';
 
-import { IStoreState } from '@dbase/state/store.define';
+import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount } from '@dbase/data/data.schema';
+import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, IStoreBase } from '@dbase/data/data.schema';
 
 import { asAt } from '@dbase/app/app.library';
+import { getPath } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
+import { isString } from '@lib/type.library';
 
 export interface IUserState {
   auth: {
@@ -16,8 +19,8 @@ export interface IUserState {
       displayName: string | null;
       email: string | null;
       photoURL: string | null;
-    };
-    claims: TTokenClaims;               // authenticated customClaims
+    } | null;
+    claims: TTokenClaims | null;        // authenticated customClaims
   }
 }
 
@@ -62,18 +65,21 @@ export const joinDoc = <T>(slice: Observable<IStoreState<T>>, store: string, fil
     return source.pipe(
       switchMap(data => {
         parent = data;                  // stash the original parent data state
-
-        const docs$ = getStore<T>(slice, store, filter, date);
-
-        return combineLatest(docs$);
+        filter = asArray(filter).map(cond => {
+          cond.value = asArray(cond.value).map(value => isString(value) && value.includes('.') ? getPath(data, value) : value);
+          if (cond.value.length === 1) cond.value = cond.value[0];
+          return cond;                  // evaulate each value, to see if it is a fieldPath reference on the source
+        })
+        return combineLatest(getStore(slice, store, filter, date));
       }),
-      map(arr => {
-        // const joins = keys.reduce((acc, cur, idx) => {
-        //   return { ...acc, [cur]: arr[idx] };
-        // }, {});
-
-        // return { ...parent, ...joins };
-        return { ...parent }
+      map(res => {
+        let joins: { [key: string]: any[] } = {};
+        res.forEach(table => table.forEach((row: any) => {
+          const type: string = row.type;              // TODO: dont hardcode 'type'
+          joins[type] = joins[type] || [];
+          joins[type].push(row);
+        }))
+        return { ...parent, ...{ member: joins } }    // TODO: dont hardcode 'member'
       })
     )
   })

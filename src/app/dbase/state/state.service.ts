@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { IdTokenResult } from '@firebase/auth-types';
 import { Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
@@ -51,13 +50,12 @@ export class StateService {
    */
   getUserData(uid?: string): Observable<IUserState> {               // TODO: allow for optional <uid> parameter to resolve in admin$ state
     return this.auth$.pipe(
-      map(auth => auth.token as IdTokenResult),
-      map(token => ({
-        auth: {
-          user: getUser(token.claims as IFireClaims),
-          claims: token.claims.claims,// as TTokenClaims,
-        }
-      })),
+      map(auth => auth.token),
+      map(token => {
+        return token && token.claims
+          ? { auth: { user: getUser(token.claims as IFireClaims), claims: token.claims.claims } }
+          : { auth: { user: null, claims: null } }
+      })
     )
   }
 
@@ -71,7 +69,7 @@ export class StateService {
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
     return this.getUserData(uid).pipe(
-      joinDoc(this.member$, STORE.profile, { fieldPath: FIELD.type, value: ['plan', 'info'] }, date),
+      joinDoc(this.member$, STORE.profile, [{ fieldPath: FIELD.type, value: ['plan', 'info'] }, { fieldPath: FIELD.key, value: 'auth.user.uid' }], date),
 
       // switchMap(result => this.member$.pipe(                    // search the /member store for the effective ProfilePlan
       //   map(state => asAt<IProfilePlan | IProfileInfo>(state[STORE.profile],

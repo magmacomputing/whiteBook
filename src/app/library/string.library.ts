@@ -1,4 +1,4 @@
-import { isString } from '@lib/type.library'
+import { isString } from '@lib/type.library';
 
 // General <string> functions
 

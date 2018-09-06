@@ -3,7 +3,10 @@ import { isObject, getType, isArray, isString } from '@lib/type.library';
 
 export interface IObject<T> { [key: string]: T; }
 
-/** General <object> functions */
+/** Get nested value */
+export const getPath = <T>(obj: object | null | undefined, path: string): T =>
+  path.split('.')
+    .reduce((xs: any, x) => (xs && xs[x]) ? xs[x] : null, obj);
 
 /** Sort Object by its keys */
 export const sortObj = (obj: any, deep: boolean = true): any => {
