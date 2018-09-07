@@ -20,7 +20,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
- * It also has helper-methods to perform 'Joins' between various Store-documents
+ * It also has helper-methods to perform 'Joins' between related Store-documents
  */
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
