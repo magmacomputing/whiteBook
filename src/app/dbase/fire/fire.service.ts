@@ -1,10 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
 import { MatSnackBar } from '@angular/material';
-import { tap } from 'rxjs/operators';
 
-import { AngularFirestore } from 'angularfire2/firestore';
-import { AngularFireFunctions } from 'angularfire2/functions';
+import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFireFunctions } from '@angular/fire/functions';
 import { DBaseModule } from '@dbase/dbase.module';
+
+import { tap } from 'rxjs/operators';
 
 import { FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';

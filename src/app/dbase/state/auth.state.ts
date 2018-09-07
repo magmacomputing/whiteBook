@@ -1,6 +1,6 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AngularFireAuth } from '@angular/fire/auth';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
-import { AngularFireAuth } from 'angularfire2/auth';
 
 import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -168,7 +168,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => ctx.patchState({ user, token }))
-				// .then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
+			// .then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
 		}
 	}
 

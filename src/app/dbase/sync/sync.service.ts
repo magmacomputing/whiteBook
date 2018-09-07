@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
+import { DocumentChangeAction } from '@angular/fire/firestore';
 import { SnapshotMetadata } from '@firebase/firestore-types';
-import { DocumentChangeAction } from 'angularfire2/firestore';
 
 import { Store } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
