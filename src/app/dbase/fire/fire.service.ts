@@ -7,10 +7,10 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { tap } from 'rxjs/operators';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data.define';
+import { IQuery } from '@dbase/fire.interface';
+import { IMeta, IStoreBase } from '@dbase/data.schema';
 import { getSlice } from '@dbase/data/data.library';
-import { IMeta, IStoreBase } from '@dbase/data/data.schema';
-import { IQuery } from '@dbase/fire/fire.interface';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined } from '@lib/type.library';

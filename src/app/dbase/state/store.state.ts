@@ -8,7 +8,7 @@ import { SetMember, DelMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend } from '@dbase/state/store.define';
 
 import { filterTable } from '@dbase/app/app.library';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { sortKeys, cloneObj } from '@lib/object.library';

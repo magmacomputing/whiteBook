@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 export enum SLICE {

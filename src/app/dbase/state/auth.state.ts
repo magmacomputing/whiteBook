@@ -10,7 +10,7 @@ import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo } from '@dbase/state/auth.define';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD } from '@dbase/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { ROUTE } from '@route/route.define';

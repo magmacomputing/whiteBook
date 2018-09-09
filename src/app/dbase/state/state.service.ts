@@ -9,8 +9,8 @@ import { IStoreState } from '@dbase/state/store.define';
 import { IPlanState, getUser, IProfileState, IUserState, getStore, joinDoc } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data.schema';
+import { STORE, FIELD } from '@dbase/data.define';
 
 import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';

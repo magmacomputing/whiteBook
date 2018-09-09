@@ -10,9 +10,9 @@ import { IUserInfo } from '@dbase/auth/auth.interface';
 
 import { asAt } from '@dbase/app/app.library';
 import { TWhere } from '@dbase/fire/fire.interface';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta, IProfileInfo } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta, IProfileInfo } from '@dbase/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { ROUTE } from '@route/route.define';

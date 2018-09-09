@@ -2,7 +2,7 @@ import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data.define';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 

@@ -1,5 +1,5 @@
 import { WhereFilterOp, Query } from '@firebase/firestore-types';
-import { IQuery, IWhere } from '@dbase/fire/fire.interface';
+import { IQuery, IWhere } from '@dbase/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';

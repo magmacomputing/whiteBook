@@ -2,7 +2,7 @@ import { State, Action, StateContext, NgxsOnInit, createSelector } from '@ngxs/s
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
 import { asAt } from '@dbase/app/app.library';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { cloneObj, sortKeys } from '@lib/object.library';

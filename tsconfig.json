@@ -23,7 +23,7 @@
         "src/environments/*"
       ],
       "@lib/*": [
-        "node_modules/@white/lib/*"
+        "node_modules/@white/library/*"
       ],
       "@dbase/*": [
         "src/app/dbase/*",
