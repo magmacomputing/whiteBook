@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
-import { ILocation } from '@dbase/data.schema';
+import { ILocation } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';

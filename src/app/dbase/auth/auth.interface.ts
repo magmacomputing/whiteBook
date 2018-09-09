@@ -1,5 +1,5 @@
 import { AuthCredential, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider } from '@firebase/auth-types';
-import { ICustomClaims } from '@dbase/data.schema';
+import { ICustomClaims } from '@dbase/data/data.schema';
 
 export type TParams = GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider | GithubAuthProvider;
 export type TScopes = GoogleAuthProvider | FacebookAuthProvider | GithubAuthProvider;

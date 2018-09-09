@@ -12,10 +12,10 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
-import { FIELD, STORE } from '@dbase/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
-import { IQuery } from '@dbase/fire.interface';
+import { IQuery } from '@dbase/fire/fire.interface';
 
 import { sortKeys, IObject } from '@lib/object.library';
 import { isFunction } from '@lib/type.library';

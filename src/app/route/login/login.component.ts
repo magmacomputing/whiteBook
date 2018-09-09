@@ -3,8 +3,8 @@ import { Observable } from 'rxjs';
 import { Select } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 
-import { STORE, FIELD } from '@dbase/data.define';
-import { IProvider } from '@dbase/data.schema';
+import { STORE, FIELD } from '@dbase/data/data.define';
+import { IProvider } from '@dbase/data/data.schema';
 import { AuthService } from '@dbase/auth/auth.service';
 
 @Component({

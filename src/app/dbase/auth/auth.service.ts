@@ -9,8 +9,8 @@ import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
-import { FIELD } from '@dbase/data.define';
-import { IProvider } from '@dbase/data.schema';
+import { FIELD } from '@dbase/data/data.define';
+import { IProvider } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { IObject } from '@lib/object.library';

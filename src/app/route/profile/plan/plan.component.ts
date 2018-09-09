@@ -6,8 +6,8 @@ import { IPlanState } from '@dbase/state/state.library';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 
-import { IPrice } from '@dbase/data.schema';
-import { FIELD } from '@dbase/data.define';
+import { IPrice } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 @Component({

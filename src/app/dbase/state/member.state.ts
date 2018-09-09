@@ -4,8 +4,8 @@ import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 
 import { filterTable } from '@dbase/app/app.library';
-import { TWhere } from '@dbase/fire.interface';
-import { FIELD } from '@dbase/data.define';
+import { TWhere } from '@dbase/fire/fire.interface';
+import { FIELD } from '@dbase/data/data.define';
 
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';

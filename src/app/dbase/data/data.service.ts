@@ -5,10 +5,10 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
-import { COLLECTION, FIELD } from '@dbase/data.define';
-import { IStoreMeta, IStoreBase } from '@dbase/data.schema';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
-import { TWhere } from '@dbase/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';

@@ -1,6 +1,6 @@
-import { TWhere } from '@dbase/fire.interface';
-import { FIELD } from '@dbase/data.define';
-import { IMeta } from '@dbase/data.schema';
+import { TWhere } from '@dbase/fire/fire.interface';
+import { FIELD } from '@dbase/data/data.define';
+import { IMeta } from '@dbase/data/data.schema';
 
 import { DATE_FMT } from '@lib/date.define';
 import { fmtDate } from '@lib/date.library';

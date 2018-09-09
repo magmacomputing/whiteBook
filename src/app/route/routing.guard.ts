@@ -8,9 +8,9 @@ import { AuthState } from '@dbase/state/auth.state';
 import { MemberState } from '@dbase/state/member.state';
 
 import { asAt } from '@dbase/app/app.library';
-import { STORE, FIELD } from '@dbase/data.define';
-import { IProfilePlan } from '@dbase/data.schema';
-import { TWhere } from '@dbase/fire.interface';
+import { STORE, FIELD } from '@dbase/data/data.define';
+import { IProfilePlan } from '@dbase/data/data.schema';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 
 import { ROUTE } from '@route/route.define';
