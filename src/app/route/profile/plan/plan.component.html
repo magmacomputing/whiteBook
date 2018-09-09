@@ -10,13 +10,14 @@
           <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(price.key, data.client.price)">
           <mat-card-title> {{ plan.key }} </mat-card-title>
           <mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
-        </mat-card-header>
 
-        <mat-card-content align="right">
-          <button mat-raised-button [disabled]="plan._disable || (data.member?.plan && plan.key == data.member.plan.plan)" (click)="member.setPlan(plan.key)">
-            {{ price.amount | currency }}
-          </button>
-        </mat-card-content>
+          <mat-card-content align="right">
+            <button mat-raised-button [disabled]="plan._disable || (data.member?.plan && plan.key == data.member.plan.plan)"
+              (click)="member.setPlan(plan.key)">
+              {{ price.amount | currency }}
+            </button>
+          </mat-card-content>
+        </mat-card-header>
         <mat-divider [inset]="true" *ngIf="!isLast"></mat-divider>
       </div>
     </div>
