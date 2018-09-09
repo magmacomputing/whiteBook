@@ -1,4 +1,5 @@
 import { AuthCredential, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider } from '@firebase/auth-types';
+import { ICustomClaims } from '@dbase/data.schema';
 
 export type TParams = GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider | GithubAuthProvider;
 export type TScopes = GoogleAuthProvider | FacebookAuthProvider | GithubAuthProvider;
@@ -22,15 +23,6 @@ export interface IUserInfo {			// borrowed from firebase-admin/auth
 	providerId: string;
 }
 
-type TRole = 'admin' | 'member' | 'guest';
-export interface ICustomClaims {	// a special sub-set of fields from the User Token
-	claims: {
-		roles?: TRole[];
-		memberName?: string;
-		memberAllow?: string[];
-		memberDeny?: string[];
-	}
-}
 export interface IFireClaims {
 	user_id: string;
 	name: string;

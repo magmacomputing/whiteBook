@@ -2,7 +2,7 @@ import { auth } from 'firebase/app';
 import { AuthProvider, AuthCredential, IdTokenResult } from '@firebase/auth-types';
 
 import { IAuthState } from '@dbase/state/auth.define';
-import { TProvider } from '@dbase/data/data.schema';
+import { TProvider } from '@dbase/data.schema';
 
 import { isNull } from '@lib/type.library';
 

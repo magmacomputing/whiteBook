@@ -23,10 +23,11 @@
         "src/environments/*"
       ],
       "@lib/*": [
-        "src/app/library/*"
+        "node_modules/@white/lib/*"
       ],
       "@dbase/*": [
-        "src/app/dbase/*"
+        "src/app/dbase/*",
+        "node_modules/@white/dbase/*"
       ],
       "@route/*": [
         "src/app/route/*"
