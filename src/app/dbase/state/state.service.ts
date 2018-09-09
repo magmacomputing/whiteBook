@@ -79,10 +79,10 @@ export class StateService {
     )
   }
 
-  /** Add current Plan[] and Price[] to the Member Profile Observable
-   * client.plan  -> has an array of asAt Plan documents
+  /** Add current Plan[] and Price[] to the Member Profile Observable  
+   * client.plan  -> has an array of asAt Plan documents  
    * client.price -> has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}  
-  */
+   */
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
       switchMap(result => getStore<IPlan>(this.client$, STORE.plan).pipe(
