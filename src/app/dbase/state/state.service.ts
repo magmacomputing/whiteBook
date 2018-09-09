@@ -16,7 +16,7 @@ import { asAt } from '@dbase/app/app.library';
 import { fmtDate } from '@lib/date.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire.interface';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  

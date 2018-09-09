@@ -9,7 +9,7 @@ import { IUserInfo } from '@dbase/auth/auth.interface';
 // import { AuthState } from '@dbase/state/auth.state';
 
 import { asAt } from '@dbase/app/app.library';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire.interface';
 import { FIELD, STORE } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta, IProfileInfo } from '@dbase/data.schema';

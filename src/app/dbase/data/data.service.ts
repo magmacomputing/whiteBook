@@ -8,7 +8,7 @@ import { SLICE } from '@dbase/state/store.define';
 import { COLLECTION, FIELD } from '@dbase/data.define';
 import { IStoreMeta, IStoreBase } from '@dbase/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';

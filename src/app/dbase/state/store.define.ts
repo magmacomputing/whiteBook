@@ -1,5 +1,5 @@
 import { FIELD } from '@dbase/data.define';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire.interface';
 
 export enum SLICE {
 	root = 'root',

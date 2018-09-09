@@ -1,4 +1,4 @@
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire.interface';
 import { FIELD } from '@dbase/data.define';
 import { IMeta } from '@dbase/data.schema';
 

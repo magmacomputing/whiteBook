@@ -1,6 +1,6 @@
 import { IAuthState } from '@dbase/state/auth.define';
 import { FireService } from '@dbase/fire/fire.service';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data.define';

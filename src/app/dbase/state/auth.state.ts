@@ -11,7 +11,7 @@ import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, Log
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data.define';
-import { IQuery } from '@dbase/fire/fire.interface';
+import { IQuery } from '@dbase/fire.interface';
 
 import { ROUTE } from '@route/route.define';
 import { dbg } from '@lib/logger.library';
