@@ -2,8 +2,8 @@ import { IAuthState } from '@dbase/state/auth.define';
 import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
-import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
+import { IStoreMeta, IStoreBase } from '@dbase/data.schema';
+import { FILTER, FIELD, STORES, STORE } from '@dbase/data.define';
 import { isObject } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { equalObj } from '@lib/object.library';
