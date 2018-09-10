@@ -1,19 +1,16 @@
 import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
-import { Select } from '@ngxs/store';
-import { ClientState } from '@dbase/state/client.state';
 
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
 import { AuthService } from '@dbase/auth/auth.service';
+import { StateService } from '@dbase/state/state.service';
 
 @Component({
 	selector: 'wb-login',
-	templateUrl: './login.component.html',
-	styleUrls: ['./login.component.css']
+	templateUrl: './login.component.html'
 })
 export class LoginComponent {
-	@Select(ClientState.current(STORE.provider, undefined, ['sort', FIELD.key])) provider$!: Observable<IProvider[]>;
+	public provider$ = this.state.getCurrent<IProvider>(STORE.provider, undefined, ['sort', FIELD.key]);
 
-	constructor(private readonly auth: AuthService) { }
+	constructor(private readonly state: StateService, private readonly auth: AuthService) { }
 }

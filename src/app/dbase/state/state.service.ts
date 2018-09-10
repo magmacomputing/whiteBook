@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 
-import { Select } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
@@ -11,12 +11,14 @@ import { IPlanState, getUser, IProfileState, IUserState, getStore, joinDoc } fro
 import { DBaseModule } from '@dbase/dbase.module';
 import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
+import { getSlice } from '@dbase/data/data.library';
+import { TWhere } from '@dbase/fire/fire.interface';
 
 import { asAt } from '@dbase/app/app.library';
+import { asArray } from '@lib/array.library';
 import { fmtDate } from '@lib/date.library';
-import { sortKeys } from '@lib/object.library';
+import { sortKeys, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { TWhere } from '@dbase/fire/fire.interface';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -28,10 +30,37 @@ export class StateService {
   @Select() private client$!: Observable<IStoreState<any>>;
   @Select() private member$!: Observable<IStoreState<any>>;
   @Select() private attend$!: Observable<IStoreState<any>>;
+  @Select() private admin$!: Observable<IStoreState<any>>;
 
   private dbg: Function = dbg.bind(this);
 
-  constructor() { }
+  constructor(private store: Store) { }
+
+  /**
+   * Fetch the current values for a supplied store
+   */
+  getCurrent<T>(store: string, filter?: TWhere, sortBy: string | string[] = []) {
+    const filters = asArray(cloneObj(filter));
+    let slice: Observable<any>;
+
+    switch (getSlice(store)) {                                      // TODO: determine <state> from 'this'
+      case 'auth': slice = this.auth$; break;
+      case 'client': slice = this.client$; break;
+      case 'member': slice = this.member$; break;
+      case 'attend': slice = this.attend$; break;
+      case 'admin': slice = this.admin$; break;
+      default: throw new Error('Cannot resolve state from ' + store);
+    }
+
+    filters.push({ fieldPath: FIELD.expire, value: 0 });
+    filters.push({ fieldPath: FIELD.hidden, value: false });
+
+    return slice.pipe(
+      map(state => asAt<T>(state[store], filters)),
+      map(table => table.sort(sortKeys(...asArray(sortBy)))					// apply any requested sort-criteria)
+      )
+    )
+  }
 
   /** Get the project defaults Store, and arrange into an Object keyed by the <type> */
   getDefaults(date?: number) {
