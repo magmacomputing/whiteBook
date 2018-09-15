@@ -6,18 +6,16 @@ import { Select, Store } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
-import { IPlanState, getUser, IProfileState, IUserState, getStore, joinDoc } from '@dbase/state/state.library';
+import { IPlanState, getUser, IProfileState, IUserState, joinDoc, getStore, IState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { getSlice } from '@dbase/data/data.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { asAt } from '@dbase/app/app.library';
 import { asArray } from '@lib/array.library';
 import { fmtDate } from '@lib/date.library';
-import { sortKeys, cloneObj } from '@lib/object.library';
+import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -33,32 +31,26 @@ export class StateService {
   @Select() private admin$!: Observable<IStoreState<any>>;
 
   private dbg: Function = dbg.bind(this);
+  public states: IState;
 
-  constructor(private store: Store) { }
-
-  /**
-   * Fetch the current values for a supplied store
-   */
-  getCurrent<T>(store: string, filter?: TWhere, sortBy: string | string[] = []) {
-    const filters = asArray(cloneObj(filter));
-    let slice: Observable<any>;
-
-    switch (getSlice(store)) {                                      // TODO: determine <state> from 'this'
-      case 'auth': slice = this.auth$; break;
-      case 'client': slice = this.client$; break;
-      case 'member': slice = this.member$; break;
-      case 'attend': slice = this.attend$; break;
-      case 'admin': slice = this.admin$; break;
-      default: throw new Error('Cannot resolve state from ' + store);
+  constructor(private store: Store) {
+    this.states = {                   // a Lookup map for Slice to State
+      'auth': this.auth$,
+      'client': this.client$,
+      'member': this.member$,
+      'attend': this.attend$,
+      'admin': this.admin$,
     }
+  }
 
+  /** Fetch the current, useable values for a supplied store */
+  getCurrent<T>(store: string, filter?: TWhere, sortBy: string | string[] = []) {
+    const filters = asArray(filter);
     filters.push({ fieldPath: FIELD.expire, value: 0 });
     filters.push({ fieldPath: FIELD.hidden, value: false });
 
-    return slice.pipe(
-      map(state => asAt<T>(state[store], filters)),
-      map(table => table.sort(sortKeys(...asArray(sortBy)))					// apply any requested sort-criteria)
-      )
+    return getStore<T>(this.states, store, filters).pipe(
+      map(table => table.sort(sortKeys(...asArray(sortBy)))),			// apply any requested sort-criteria)
     )
   }
 
@@ -66,8 +58,7 @@ export class StateService {
   getDefaults(date?: number) {
     const result: { [key: string]: IDefault } = {};
 
-    return this.client$.pipe(
-      map(state => asAt<IDefault>(state[STORE.default], undefined, date)),
+    return getStore<IDefault>(this.states, STORE.default).pipe(
       map(table => table.forEach(row => result[row[FIELD.type]] = row)),
       map(_ => result),
     )
@@ -93,18 +84,21 @@ export class StateService {
    * Extend UserState with an Object describing a Member returned as IProfileState, where:  
    * member.plan  -> has the asAt ProfilePlan for the user.uid  
    * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
+   * member.price -> has an array of IPrice that match the Member's plan-type
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
    */
   getMemberData(date?: number, uid?: string): Observable<IProfileState> {
-    const filter: TWhere = [
+    const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
+    const filterProfile: TWhere = [
       { fieldPath: FIELD.type, value: ['plan', 'info'] },           // where the <type> is either 'plan' or 'info'
-      { fieldPath: FIELD.key, value: '{{auth.user.uid}}' },         // and the <key> is the getUserData()'s 'auth.user.uid'
+      { fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
     ]
 
     return this.getUserData(uid).pipe(
-      joinDoc(this.member$, STORE.profile, filter, date),
+      joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
+      joinDoc(this.states, 'member', STORE.price, filterPrice, date),
     )
   }
 
@@ -114,12 +108,12 @@ export class StateService {
    */
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
-      switchMap(result => getStore<IPlan>(this.client$, STORE.plan).pipe(
+      switchMap(result => getStore<IPlan>(this.states, STORE.plan, undefined, date).pipe(
         map(table => table.filter(row => !row[FIELD.hidden])),
         map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
       )),
 
-      switchMap(result => getStore<IPrice>(this.client$, STORE.price).pipe(
+      switchMap(result => getStore<IPrice>(this.states, STORE.price, undefined, date).pipe(
         map(table => table.filter(row => !row[FIELD.hidden])),
         map(table => Object.assign(result, { client: Object.assign(result.client, { price: table }) })),
       )),
@@ -133,23 +127,25 @@ export class StateService {
    * class     -> has the Class-span (to use when determining pricing)
    */
   getScheduleData(date?: number, uid?: string) {
-    return this.client$.pipe(                                   // get the items on todays schedule
-      map((state: IStoreState<ISchedule>) => asAt(state[STORE.schedule],
-        { fieldPath: 'day', value: fmtDate(date).weekDay }, date)),
+    const filter: TWhere = { fieldPath: 'day', value: fmtDate(date).weekDay };
 
-      map(table => table.map(row => this.client$.pipe( // get the Class store for this item
-        map((state: IStoreState<IClass>) => asAt(state[STORE.class],
-          { fieldPath: FIELD.key, value: row[FIELD.key] }, date)),
-        map(table => Object.assign(row, { class: table[0] })),
+    return getStore<ISchedule>(this.states, STORE.schedule, filter, date).pipe( // get the items on todays schedule
+      // map((state: IStoreState<ISchedule>) => asAt(state[STORE.schedule],
+      //   { fieldPath: 'day', value: fmtDate(date).weekDay }, date)),
 
-        switchMap(result => this.client$.pipe(                  // get the Price store for this item
-          map((state: IStoreState<IPrice>) => asAt(state[STORE.price],
-            [{ fieldPath: FIELD.key, value: 'member' }, { fieldPath: FIELD.type, value: result.class[FIELD.type] }],
-            date)),
-          map(table => Object.assign(result, { price: table[0] })),
-        )),
-      ))),
-      map(table => ({ schedule: table.sort(sortKeys(['start'])) })),
+      // map(table => table.map(row => this.client$.pipe( // get the Class store for this item
+      //   map((state: IStoreState<IClass>) => asAt(state[STORE.class],
+      //     { fieldPath: FIELD.key, value: row[FIELD.key] }, date)),
+      //   map(table => Object.assign(row, { class: table[0] })),
+
+      //   switchMap(result => this.client$.pipe(                  // get the Price store for this item
+      //     map((state: IStoreState<IPrice>) => asAt(state[STORE.price],
+      //       [{ fieldPath: FIELD.key, value: 'member' }, { fieldPath: FIELD.type, value: result.class[FIELD.type] }],
+      //       date)),
+      //     map(table => Object.assign(result, { price: table[0] })),
+      //   )),
+      // ))),
+      // map(table => ({ schedule: table.sort(sortKeys(['start'])) })),
 
       // map(result => Object.assign(result, { location: arrayUnique(result.schedule.map(row => row.location))) })),
       // switchMap(result => this.client$.pipe(

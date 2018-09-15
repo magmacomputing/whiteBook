@@ -1,15 +1,17 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map, tap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 
-import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, IStoreBase } from '@dbase/data/data.schema';
+import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount } from '@dbase/data/data.schema';
 
-import { asAt } from '@dbase/app/app.library';
-import { getPath, cloneObj } from '@lib/object.library';
+import { getPath } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { isString } from '@lib/type.library';
+import { getSlice } from '@dbase/data/data.library';
+import { asAt } from '@dbase/app/app.library';
+
+export interface IState { [slice: string]: Observable<any> };
 
 export interface IUserState {
   auth: {
@@ -40,16 +42,22 @@ export interface IPlanState extends IProfileState {
   }
 }
 
+/** Generic Slice Observable */
+export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: number) => {
+  const slice = getSlice(store);
+  const state = states[slice];
+
+  if (!state)
+    throw new Error('Cannot resolve state from ' + store);
+
+  return state.pipe(
+    map(state => asAt<T>(state[store], filter, date)),
+  )
+}
+
 /** extract the required fields from the AuthToken object */
 export const getUser = (token: IFireClaims) =>
   ({ displayName: token.name, email: token.email, photoURL: token.picture, providerId: token.firebase.sign_in_provider, uid: token.user_id });
-
-
-/** Generic Slice Observable */
-export const getStore = <T>(slice: Observable<IStoreState<T>>, store: string, filter: TWhere = [], date?: number) =>
-  slice.pipe(
-    map(state => asAt<T>(state[store], filter, date)),
-  )
 
 /**
  * Join a Parent document to other documents referenced a supplied string of key fields  
@@ -58,7 +66,9 @@ export const getStore = <T>(slice: Observable<IStoreState<T>>, store: string, fi
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = <T>(slice: Observable<IStoreState<T>>, store: string, filter: TWhere = [], date?: number) => {
+export const joinDoc = <T>(states: IState, slice: string, store: string, filter: TWhere = [], date?: number) => {
+  const state = getSlice(store);
+
   return (source: Observable<any>) => defer(() => {
     let parent: any;
 
@@ -66,27 +76,26 @@ export const joinDoc = <T>(slice: Observable<IStoreState<T>>, store: string, fil
       switchMap(data => {
         parent = data;                                        // stash the original parent data state
 
-        const criteria = asArray(cloneObj(filter)).map(cond => {
-          cond.value = asArray(cond.value).map(value =>       // loop through filter, checking each <value> clause
-            isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the source
+        const filters = asArray(filter).map(cond => {
+          cond.value = asArray(cond.value).map(value => {      // loop through filter, checking each <value> clause
+            return isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the source
               ? getPath(data, value.replace('{{', '').replace('}}', ''))
               : value
-          );
+          });
           if (cond.value.length === 1) cond.value = cond.value[0];
           return cond;
         })
-
-        return combineLatest(getStore(slice, store, criteria, date));
+        return combineLatest(getStore(states, store, filters, date));
       }),
 
       map(res => {
-        let joins: { [key: string]: any[] } = {};
+        let joins: { [key: string]: any[] } = parent[slice] || {};
         res.forEach(table => table.forEach((row: any) => {
-          const type: string = row.type;                      // TODO: dont hardcode 'type'
+          const type: string = state === 'client' ? row.store : row.type;                      // TODO: dont hardcode 'type'
           joins[type] = joins[type] || [];
           joins[type].push(row);
         }))
-        return { ...parent, ...{ member: joins } }            // TODO: dont hardcode 'member'
+        return { ...parent, ...{ [slice]: joins } }//, ...{ [slice]: parent[slice] } }
       })
     )
   })

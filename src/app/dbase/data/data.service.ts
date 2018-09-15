@@ -95,7 +95,7 @@ export class DataService {
 
       if (currDocs.updates.length) {
         if (currDocs.stamp > 0)
-          nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>
+          nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>,
         else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's <expire>
       }
 

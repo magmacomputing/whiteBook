@@ -4,9 +4,24 @@ import { isObject, getType, isArray, isString } from '@lib/type.library';
 export interface IObject<T> { [key: string]: T; }
 
 /** Get nested value */
-export const getPath = <T>(obj: object | null | undefined, path: string): T =>
+export const getPathX = <T>(obj: object | null | undefined, path: string): T =>
   path.split('.')
     .reduce((xs: any, x) => (xs && xs[x]) ? xs[x] : null, obj);
+
+export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
+  let res = obj;
+  path.split('.')
+    .forEach(part => {
+      if (part.substring(part.length - 1) === ']') {
+        const ref = part.split('[');
+        const idx = ref[1].replace(']', '');
+        res = res[ref[0]][idx];
+      } else {
+        res = res[part] || null
+      }
+    })
+  return res;
+}
 
 /** Sort Object by its keys */
 export const sortObj = (obj: any, deep: boolean = true): any => {

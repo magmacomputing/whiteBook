@@ -58,7 +58,7 @@ export class ClientState implements NgxsOnInit {
 	static current(store: string, filter?: TWhere, sortBy: string | string[] = []) {	// no longer used
 		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
-			const filters = asArray(cloneObj(filter));
+			const filters = asArray(filter);
 
 			filters.push({ fieldPath: FIELD.expire, value: 0 });
 			filters.push({ fieldPath: FIELD.hidden, value: false });
@@ -73,7 +73,7 @@ export class ClientState implements NgxsOnInit {
 	static store<T>(store: string, filter?: TWhere, date?: string | number) {
 		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);
-			const filters = asArray(cloneObj(filter));
+			const filters = asArray(filter);
 
 			return asAt<T>(clone as any[], filters, date);
 		})

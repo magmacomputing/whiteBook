@@ -21,6 +21,7 @@ export class PlanComponent implements OnInit {
   constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
   ngOnInit() {
+    this.state.getMemberData().subscribe(data => this.dbg('member: %j', data));
     this.data$ = this.state.getPlanData()//.pipe(
     // map(data => {
     //   const currentPlan = data.member.plan;

@@ -1,0 +1,114 @@
+{
+  "auth": {
+    "user": {
+      "displayName": "Michael McRae",
+      "email": "michael@magmacomputing.com.au",
+      "photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+      "providerId": "google.com",
+      "uid": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2"
+    },
+    "claims": {
+      "memberName": "MichaelM"
+    }
+  },
+  "member": {
+    "plan": [
+      {
+        "_id": "B4guWzOEpoxwxTBOhUXl",
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "plan": "member",
+        "store": "profile",
+        "type": "plan"
+      }
+    ],
+    "info": [
+      {
+        "_id": "Dm1brl1mgwloHNhxrzNw",
+        "_effect": 1535168389,
+        "isNewUser": false,
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "profile": {
+          "age_range": {
+            "min": 21
+          },
+          "birthday": "01/01/1957",
+          "email": "michael@magmacomputing.com.au",
+          "first_name": "Michael",
+          "gender": "male",
+          "id": "100000138474102",
+          "last_name": "McRae",
+          "locale": "en_GB",
+          "name": "Michael McRae",
+          "picture": {
+            "data": {
+              "height": 100,
+              "is_silhouette": false,
+              "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/c0.0.100.100/p100x100/25299342_1959170204097576_2174177630211488962_n.jpg?_nc_cat=0&oh=1be826769d60cbff35237153d9b3120e&oe=5BF67A21",
+              "width": 100
+            }
+          },
+          "timezone": 10,
+          "updated_time": "2018-08-19T06:57:14+0000",
+          "verified": true
+        },
+        "providerId": "facebook.com",
+        "store": "profile",
+        "type": "info"
+      },
+      {
+        "_id": "FuO89a2sEobqKob7YIID",
+        "_effect": 1535168365,
+        "isNewUser": true,
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "profile": {
+          "email": "michael@magmacomputing.com.au",
+          "family_name": "McRae",
+          "gender": "male",
+          "given_name": "Michael",
+          "hd": "magmacomputing.com.au",
+          "id": "110021813496510375957",
+          "locale": "en-GB",
+          "name": "Michael McRae",
+          "picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+          "verified_email": true
+        },
+        "providerId": "google.com",
+        "store": "profile",
+        "type": "info"
+      }
+    ],
+    "price": [
+      {
+        "_id": "9s1JVCQnCOcK01KDHIP6",
+        "_effect": 1514725200,
+        "amount": 5,
+        "key": "member",
+        "store": "price",
+        "type": "half"
+      },
+      {
+        "_id": "A2ZrHSOEGovIg3FUCjZG",
+        "_effect": 1514725200,
+        "amount": 10,
+        "key": "member",
+        "store": "price",
+        "type": "full"
+      },
+      {
+        "_id": "CzutaKlWSaubY1gRfsIH",
+        "amount": 5,
+        "key": "member",
+        "store": "price",
+        "type": "hold"
+      },
+      {
+        "_id": "YnTyupNiI3eEMCqJkCRi",
+        "_effect": 1514725200,
+        "amount": 100,
+        "key": "member",
+        "store": "price",
+        "type": "topUp"
+      }
+    ]
+  }
+}

@@ -60,7 +60,7 @@ export class MemberState implements NgxsOnInit {
 	static current(store: string, filter: TWhere | undefined, sortBy: string | string[] = []) {
 		return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
-			const filters = asArray(cloneObj(filter));
+			const filters = asArray(filter);
 
 			filters.push({ fieldPath: FIELD.expire, value: 0 });
 			filters.push({ fieldPath: FIELD.hidden, value: false });

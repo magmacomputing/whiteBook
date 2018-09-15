@@ -24,7 +24,7 @@ export class AttendComponent implements OnInit {
   constructor(private readonly member: MemberService, public readonly state: StateService) { }
 
   ngOnInit() {                                              // wire-up the Observables
-    this.state.getMemberData(this.date).subscribe(member => this.dbg('profile: %j', member));
+    // this.state.getMemberData(this.date).subscribe(member => this.dbg('profile: %j', member));
     // this.state.getScheduleData(this.date).subscribe(schedule => this.dbg('schedule: %j', schedule));
 
     this.timetable$ = this.state.getScheduleData(this.date);
