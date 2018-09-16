@@ -62,14 +62,12 @@ export const getUser = (token: IFireClaims) =>
 /**
  * Join a Parent document to other documents referenced a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
- * slice:   the name of the index (eg. 'member') where to place the documents on the State Object  
+ * child:   the name of the index (eg. 'member') where to place the documents on the State Object  
  * store:   the documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = <T>(states: IState, slice: string, store: string, filter: TWhere = [], date?: number) => {
-  const state = getSlice(store);
-
+export const joinDoc = <T>(states: IState, child: string, store: string, filter: TWhere = [], date?: number) => {
   return (source: Observable<any>) => defer(() => {
     let parent: any;
 
@@ -90,13 +88,13 @@ export const joinDoc = <T>(states: IState, slice: string, store: string, filter:
       }),
 
       map(res => {
-        let joins: { [key: string]: any[] } = parent[slice] || {};
+        let joins: { [key: string]: any[] } = parent[child] || {};
         res.forEach(table => table.forEach((row: any) => {
-          const type: string = state === 'client' ? row.store : row.type;                      // TODO: dont hardcode 'type'
+          const type: string = (getSlice(store) === 'client') ? row.store : row.type;                      // TODO: dont hardcode 'type'
           joins[type] = joins[type] || [];
           joins[type].push(row);
         }))
-        return { ...parent, ...{ [slice]: joins } }//, ...{ [slice]: parent[slice] } }
+        return { ...parent, ...{ [child]: joins } };
       })
     )
   })
