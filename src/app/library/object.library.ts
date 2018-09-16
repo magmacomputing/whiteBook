@@ -8,6 +8,7 @@ export const getPathX = <T>(obj: object | null | undefined, path: string): T =>
   path.split('.')
     .reduce((xs: any, x) => (xs && xs[x]) ? xs[x] : null, obj);
 
+/** Get nested value, allow for array-references in <path> */
 export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
   let res = obj;
   path.split('.')

@@ -61,7 +61,8 @@ export const getUser = (token: IFireClaims) =>
 
 /**
  * Join a Parent document to other documents referenced a supplied string of key fields  
- * slice:   a section of the State (eg. member$) which contains the to-be-referenced documents  
+ * states:  an object of States (eg. member$) which contains the to-be-referenced documents
+ * slice:   the name of the index (eg. 'member') where to place the documents on the State Object  
  * store:   the documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
