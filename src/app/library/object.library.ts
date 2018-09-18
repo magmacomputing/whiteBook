@@ -13,6 +13,7 @@ export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
   let res = obj;
   path.split('.')
     .forEach(part => {
+      part = part.replace(' ', '');                   // remove <spaces> (added for readability)
       if (part.substring(part.length - 1) === ']') {
         const ref = part.split('[');
         const idx = ref[1].replace(']', '');

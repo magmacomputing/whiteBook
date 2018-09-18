@@ -80,7 +80,7 @@ export const joinDoc = <T>(states: IState, child: string, store: string, filter:
         const filters = asArray(filter).map(cond => {
           cond.value = asArray(cond.value).map(value => {      // loop through filter, checking each <value> clause
             return isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the parent
-              ? getPath(parent, value.replace('{{', '').replace('}}', '').replace(' ', ''))
+              ? getPath(parent, value.replace('{{', '').replace('}}', ''))
               : value
           });
           if (cond.value.length === 1) cond.value = cond.value[0];
