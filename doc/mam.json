@@ -110,5 +110,150 @@
         "type": "topUp"
       }
     ]
+  },
+  "client": {
+    "schedule": [
+      {
+        "_id": "7h1h9XDrOjnjwkgStWbt",
+        "_effect": 1399816800,
+        "day": 2,
+        "key": "StepDown",
+        "location": "snap",
+        "start": "19:30",
+        "store": "schedule",
+        "type": "class"
+      }
+    ],
+    "class": [
+      {
+        "_id": "3M7tI5vN4voSHcdfsEXg",
+        "color": "#0000ff",
+        "desc": "Multi-Platform routines",
+        "key": "MultiStep",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "4yq0gDgn52jsM68Zh6QP",
+        "color": "#cc0000",
+        "desc": "Start from the top of the Platform",
+        "key": "StepDown",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "b0HrAj1OJ7G7r5HJp8km",
+        "color": "#35c42c",
+        "desc": "Aerobic Action",
+        "key": "HiLo",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "bjrSxOgEmhZneYni5yDE",
+        "color": "#ff00ff",
+        "desc": "Dancing",
+        "key": "Zumba",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "bxZuumthkLpnuNbL1Liv",
+        "_hidden": true,
+        "color": "#00ffff",
+        "desc": "Learn the basics of the Platform",
+        "key": "StepBasic",
+        "store": "class",
+        "type": "half"
+      },
+      {
+        "_id": "lQVYyTJ6Aprh8Qhx2ETm",
+        "color": "#ff7935",
+        "desc": "75% around the platform",
+        "key": "AeroStep",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "z4YdKbXNHW8yQHvhC8B0",
+        "color": "#0897a6",
+        "desc": "A challenge for your brain, as well as your feet",
+        "key": "SmartStep",
+        "store": "class",
+        "type": "full"
+      }
+    ],
+    "location": [
+      {
+        "_id": "bq2fshryxsrISIMwJ9be",
+        "address": {
+          "line1": "113-115 Anzac Parade",
+          "postcode": "2033",
+          "state": "NSW",
+          "suburb": "Kensington"
+        },
+        "contact": {
+          "phone": "0431 492 180"
+        },
+        "key": "snap",
+        "map": {
+          "geo": {
+            "_lat": -33.9067795,
+            "_long": 151.2232555
+          },
+          "link": "https://goo.gl/maps/gtMLuJkjSWH2"
+        },
+        "name": "Snap Fitness Kensington",
+        "sort": 1,
+        "store": "location"
+      },
+      {
+        "_id": "ngMJ73zg9aUhnTxmaCJL",
+        "address": {
+          "line1": "365 Pacific Hwy",
+          "postcode": "2065",
+          "state": "NSW",
+          "suburb": "Crows Nest"
+        },
+        "contact": {
+          "phone": "(02) 9922 6666"
+        },
+        "key": "norths",
+        "map": {
+          "geo": {
+            "_lat": -33.8302819,
+            "_long": 151.203424
+          },
+          "link": "http://web2.northsydgi-h.schools.nsw.edu.au/public/"
+        },
+        "name": "North Sydney Girls High School",
+        "sort": 2,
+        "store": "location"
+      }
+    ],
+    "instructor": [
+      {
+        "_id": "iLMjxmFnKNNpHDzhN8ta",
+        "key": "JEC",
+        "link": [
+          {
+            "type": "facebook",
+            "url": "."
+          }
+        ],
+        "name": "Jorge Erazo Casanova",
+        "sort": 1,
+        "store": "instructor"
+      },
+      {
+        "_id": "jtWUu9sK848s0hgHBWJ9",
+        "_disable": true,
+        "_hidden": true,
+        "key": "MAM",
+        "name": "Michael McRae",
+        "sort": 9,
+        "store": "instructor"
+      }
+    ]
   }
 }

@@ -6,7 +6,7 @@ import { Select, Store } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
-import { IPlanState, getUser, IProfileState, IUserState, joinDoc, getStore, IState } from '@dbase/state/state.library';
+import { IPlanState, getUser, IProfileState, IUserState, joinDoc, getStore, IState, IAttendState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
@@ -110,28 +110,27 @@ export class StateService {
     return this.getMemberData(date, uid).pipe(
       joinDoc(this.states, 'client', STORE.plan, undefined, date),
       joinDoc(this.states, 'client', STORE.price, undefined, date),
-      // switchMap(result => getStore<IPlan>(this.states, STORE.plan, undefined, date).pipe(
-      //   map(table => table.filter(row => !row[FIELD.hidden])),
-      //   map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
-      // )),
-
-      // switchMap(result => getStore<IPrice>(this.states, STORE.price, undefined, date).pipe(
-      //   map(table => table.filter(row => !row[FIELD.hidden])),
-      //   map(table => Object.assign(result, { client: Object.assign(result.client, { price: table }) })),
-      // )),
     )
   }
 
   /**
    * Assemble an Object describing the specified day's values, as {schedule: {}, member: {}, class: {}}, where:
    * schedule  -> 
-   * member    -> has the Member-specific data (uid, plan, price[], account)
    * class     -> has the Class-span (to use when determining pricing)
    */
-  getScheduleData(date?: number, uid?: string) {
-    const filter: TWhere = { fieldPath: 'day', value: fmtDate(date).weekDay };
-
-    return getStore<ISchedule>(this.states, STORE.schedule, filter, date).pipe( // get the items on todays schedule
+  getScheduleData(date?: number, uid?: string): Observable<IAttendState> {
+    date = fmtDate('2018-09-16').milliSecond;
+    const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date).weekDay };
+    const filterClass: TWhere = { fieldPath: FIELD.key, value: `client.schedule[*].${FIELD.key}` }
+    this.dbg('weekDay: %s', fmtDate(date).weekDay);
+    return this.getMemberData(date, uid).pipe(
+      joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),
+      tap(res => this.dbg('today: %s, %j', new Date((date as number) * 1000).toLocaleDateString(), res.client.schedule.map((row: any) => row[FIELD.key]))),
+      joinDoc(this.states, 'client', STORE.class, filterClass, date),
+      tap(res => this.dbg('classes: %j', res.client.class)),
+      // joinDoc(this.states, 'client', STORE.location, undefined, date),
+      // joinDoc(this.states, 'client', STORE.instructor, undefined, date),
+      // return getStore<ISchedule>(this.states, STORE.schedule, filterSchedule, date).pipe( // get the items on todays schedule
       // map((state: IStoreState<ISchedule>) => asAt(state[STORE.schedule],
       //   { fieldPath: 'day', value: fmtDate(date).weekDay }, date)),
 

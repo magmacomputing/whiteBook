@@ -3,7 +3,7 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount } from '@dbase/data/data.schema';
+import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation } from '@dbase/data/data.schema';
 import { SORTBY } from '@dbase/data/data.define';
 
 import { getPath, sortKeys } from '@lib/object.library';
@@ -41,6 +41,15 @@ export interface IPlanState extends IProfileState {
   client: {
     plan: IPlan[];                      // array of effective Plan documents
     price: IPrice[];                    // array of effective Price documents
+  }
+}
+
+export interface IAttendState extends IProfileState {
+  client: {
+    schedule?: ISchedule[];
+    class?: IClass[];
+    location?: ILocation[];
+    instructor?: IInstructor[];
   }
 }
 

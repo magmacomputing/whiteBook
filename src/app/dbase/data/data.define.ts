@@ -57,4 +57,5 @@ export const FILTER: IObject<string[]> = {
 
 export const SORTBY: IObject<string[]> = {
 	[STORE.plan]: ['sort', FIELD.key],
+	[STORE.schedule]: ['day', 'start'],
 }

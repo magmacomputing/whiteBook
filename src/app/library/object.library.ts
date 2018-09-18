@@ -17,9 +17,14 @@ export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
       if (part.substring(part.length - 1) === ']') {
         const ref = part.split('[');
         const idx = ref[1].replace(']', '');
-        res = res[ref[0]][idx];
+
+        res = idx === '*'
+          ? res[ref[0]]                               // entire array
+          : res[ref[0]][idx]                          // else single element from array
       } else {
-        res = res[part] || null
+        res = isArray(res)
+          ? res.filter(item => item[part])
+          : res[part] || null
       }
     })
   return res;
