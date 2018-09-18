@@ -108,15 +108,17 @@ export class StateService {
    */
   getPlanData(date?: number, uid?: string): Observable<IPlanState> {
     return this.getMemberData(date, uid).pipe(
-      switchMap(result => getStore<IPlan>(this.states, STORE.plan, undefined, date).pipe(
-        map(table => table.filter(row => !row[FIELD.hidden])),
-        map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
-      )),
+      joinDoc(this.states, 'client', STORE.plan, undefined, date),
+      joinDoc(this.states, 'client', STORE.price, undefined, date),
+      // switchMap(result => getStore<IPlan>(this.states, STORE.plan, undefined, date).pipe(
+      //   map(table => table.filter(row => !row[FIELD.hidden])),
+      //   map(table => Object.assign(result, { client: { plan: table.sort(sortKeys('sort', FIELD.key)) } })),
+      // )),
 
-      switchMap(result => getStore<IPrice>(this.states, STORE.price, undefined, date).pipe(
-        map(table => table.filter(row => !row[FIELD.hidden])),
-        map(table => Object.assign(result, { client: Object.assign(result.client, { price: table }) })),
-      )),
+      // switchMap(result => getStore<IPrice>(this.states, STORE.price, undefined, date).pipe(
+      //   map(table => table.filter(row => !row[FIELD.hidden])),
+      //   map(table => Object.assign(result, { client: Object.assign(result.client, { price: table }) })),
+      // )),
     )
   }
 

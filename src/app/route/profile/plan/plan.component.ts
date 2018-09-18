@@ -21,33 +21,33 @@ export class PlanComponent implements OnInit {
   constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
   ngOnInit() {
-    this.state.getMemberData().subscribe(data => this.dbg('member: %j', data));
-    this.data$ = this.state.getPlanData()//.pipe(
-    // map(data => {
-    //   const currentPlan = data.member.plan;
-    //   const claim = data.auth.claims;
-    //   const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
-    //   let plans = data.client.plan;                       // array of available plans
+    this.data$ = this.state.getPlanData().pipe(
+      map(data => {
+        const claim = data.auth.claims;
+        const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
+        const myPlan = data.member.plan && data.member.plan[0].plan;
+        const myTopUp = data.member.price && data.member.price.filter(price => price[FIELD.type] === 'topUp')[0].amount || 0;
 
-    //   if (currentPlan && !isAdmin) {                      // Special: dont allow downgrades
-    //     const currentTopUp = data.client.price            // find the current members topUp price
-    //       .filter(price => price[FIELD.key] === currentPlan.plan && price[FIELD.type] === 'topUp')[0];
+        const plans = data.client.plan.map(plan => {            // array of available plans
+          const price = data.client.price                       // get the topUp for each Plan
+            .filter(price => price[FIELD.key] === plan[FIELD.key] && price[FIELD.type] === 'topUp')[0].amount;
 
-    //     plans = plans.map(plan => {
-    //       const planPrice = data.client.price
-    //         .filter(price => price[FIELD.type] === 'topUp')[0];
+          if (plan[FIELD.key] === myPlan)
+            plan[FIELD.disable] = true;                         // disable their current Plan, so cannot re-select
 
-    //       plan[FIELD.hidden] = plan[FIELD.hidden] || (planPrice.amount < currentTopUp.amount);
-    //       return plan;
-    //     })
-    // plans = plans
-    //   .map(plan => Object.assign({ [FIELD.disable]: plan[FIELD.type] === 'topUp' && plan.}))
-    // plans = plans.map(plan => Object.assign({ [FIELD.hidden]: plan[FIELD.key] === 'intro' }, plan));
-    //   }
+          if (price < myTopUp && !isAdmin)
+            plan[FIELD.disable] = true;                         // Special: dont allow downgrades in price
 
-    //   return Object.assign(data, { plan: plans });
-    // })
-    // )
+          if (myPlan && plan[FIELD.key] === 'intro' && !isAdmin)
+            plan[FIELD.hidden] = true;                          // Special: Intro is only available to new Members
+
+          return plan
+        });
+
+        data.client.plan = plans;                               // override the available Plans
+        return { ...data, };
+      })
+    )
   }
 
   showPlan(plan: string, price: IPrice[]) {

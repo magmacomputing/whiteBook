@@ -76,15 +76,15 @@ export class SyncService {
     const listen = this.listener[collection];
     let setStore: any, delStore: any, truncStore;
 
-    this.listener[collection].cnt += 1;
-
     const source = this.source(snaps);
-    const debug = source !== 'cache';
+    const debug = source !== 'cache' && this.listener[collection].cnt !== -1;
     const [snapAdd, snapMod, snapDel] = snaps.reduce((cnts, snap) => {
       const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
       cnts[idx] += 1;
       return cnts;
     }, [0, 0, 0]);
+
+    this.listener[collection].cnt += 1;
     this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
       collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 

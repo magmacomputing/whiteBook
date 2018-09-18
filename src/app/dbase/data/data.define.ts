@@ -54,3 +54,7 @@ export const FILTER: IObject<string[]> = {
 	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.key],
 	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.key],
 }
+
+export const SORTBY: IObject<string[]> = {
+	[STORE.plan]: ['sort', FIELD.key],
+}

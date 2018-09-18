@@ -4,8 +4,9 @@ import { switchMap, map } from 'rxjs/operators';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount } from '@dbase/data/data.schema';
+import { SORTBY } from '@dbase/data/data.define';
 
-import { getPath } from '@lib/object.library';
+import { getPath, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { isString } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
@@ -28,7 +29,8 @@ export interface IUserState {
 
 export interface IProfileState extends IUserState {
   member: {
-    plan?: IProfilePlan;                // member's effective plan
+    plan?: IProfilePlan[];              // member's effective plan
+    price?: IPrice[];                   // member's effective prices
     info?: IProfileInfo[];              // array of AdditionalUserInfo documents
     account?: IAccount[];               // array of active payment documents
   }
@@ -77,23 +79,33 @@ export const joinDoc = <T>(states: IState, child: string, store: string, filter:
 
         const filters = asArray(filter).map(cond => {
           cond.value = asArray(cond.value).map(value => {      // loop through filter, checking each <value> clause
-            return isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the source
-              ? getPath(data, value.replace('{{', '').replace('}}', ''))
+            return isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the parent
+              ? getPath(parent, value.replace('{{', '').replace('}}', ''))
               : value
           });
           if (cond.value.length === 1) cond.value = cond.value[0];
           return cond;
         })
+
         return combineLatest(getStore(states, store, filters, date));
       }),
 
       map(res => {
         let joins: { [key: string]: any[] } = parent[child] || {};
-        res.forEach(table => table.forEach((row: any) => {
-          const type: string = (getSlice(store) === 'client') ? row.store : row.type;                      // TODO: dont hardcode 'type'
-          joins[type] = joins[type] || [];
-          joins[type].push(row);
-        }))
+
+        res.forEach(table => table
+          .forEach((row: any) => {
+            const type: string = (getSlice(store) === 'client') ? row.store : row.type; // TODO: dont hardcode 'type'
+            joins[type] = joins[type] || [];
+            joins[type].push(row);
+          })
+        )
+
+        Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
+          const sortBy = SORTBY[table];
+          joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
+        })
+
         return { ...parent, ...{ [child]: joins } };
       })
     )

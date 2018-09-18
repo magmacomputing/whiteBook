@@ -1,18 +1,18 @@
 <div *ngIf="(data$ | async) || []; let data">
   <div *ngIf="data.member?.plan; else newPlan">
-    Your current Plan: {{ data.member.plan.plan }}
+    Your current Plan: {{ data.member.plan[0].plan }}
   </div>
 
   <mat-card *ngFor="let plan of data.client?.plan; last as isLast">
     <div *ngFor="let price of data.client?.price">
-      <div *ngIf="price.type == 'topUp' && price.key == plan.key">
+      <div *ngIf="price.type == 'topUp' && price.key == plan.key && !plan._hidden">
         <mat-card-header>
           <img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(price.key, data.client.price)">
           <mat-card-title> {{ plan.key }} </mat-card-title>
           <mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
 
           <mat-card-content align="right">
-            <button mat-raised-button [disabled]="plan._disable || (data.member?.plan && plan.key == data.member.plan.plan)"
+            <button mat-raised-button [disabled]="plan._disable"
               (click)="member.setPlan(plan.key)">
               {{ price.amount | currency }}
             </button>

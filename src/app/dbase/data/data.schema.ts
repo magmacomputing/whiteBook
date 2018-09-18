@@ -143,7 +143,7 @@ export interface IProvider extends IStoreBase {
 	[FIELD.store]: 'provider';
 	[FIELD.type]: TProvider;
 	[FIELD.key]: string;
-	sort: number;												// lilst-order to display to User
+	sort: number;												// list-order to display to User
 	prefix?: string;
 	scope?: string | string[];					// if array, joinScope determines how to encode as a string
 	joinScope?: string;									// what character separates the scope parameters, default ','
