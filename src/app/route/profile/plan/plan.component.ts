@@ -28,8 +28,8 @@ export class PlanComponent implements OnInit {
         const myPlan = data.member.plan && data.member.plan[0].plan;
         const myTopUp = data.member.price && data.member.price.filter(price => price[FIELD.type] === 'topUp')[0].amount || 0;
 
-        const plans = data.client.plan.map(plan => {            // array of available plans
-          const price = data.client.price                       // get the topUp for each Plan
+        const plans = data.client.plan.map(plan => {            // array of available Plans
+          const price = data.client.price                       // get the topUp for this Plan
             .filter(price => price[FIELD.key] === plan[FIELD.key] && price[FIELD.type] === 'topUp')[0].amount;
 
           if (plan[FIELD.key] === myPlan)
