@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
 
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
@@ -14,20 +13,18 @@ import { dbg } from '@lib/logger.library';
   templateUrl: './attend.component.html',
 })
 export class AttendComponent implements OnInit {
-  public timetable$!: Observable<any>;
-
   private dbg: Function = dbg.bind(this);
   private date!: number;
   public selectedIndex: number = 0;                         // used by UI to swipe between <tabs>
   private locations: ILocation[] = [];
+  
+  public timetable$ = this.state.getScheduleData(this.date);
 
   constructor(private readonly member: MemberService, public readonly state: StateService) { }
 
   ngOnInit() {                                              // wire-up the Observables
     // this.state.getMemberData(this.date).subscribe(member => this.dbg('profile: %j', member));
     this.state.getScheduleData(this.date).subscribe(schedule => this.dbg('schedule: %j', schedule));
-
-    this.timetable$ = this.state.getScheduleData(this.date);
   }
 
   // TODO: popup info about a Class

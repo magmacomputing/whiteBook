@@ -55,7 +55,18 @@ export const FILTER: IObject<string[]> = {
 	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.key],
 }
 
-export const SORTBY: IObject<string[]> = {
+export const SORTBY: IObject<string | string[]> = {
+	[STORE.provider]: ['sort', FIELD.key],
+	[STORE.profile]: [FIELD.key, FIELD.type],
 	[STORE.plan]: ['sort', FIELD.key],
-	[STORE.schedule]: ['day', 'start'],
+	[STORE.schedule]: ['location', FIELD.type, 'day', 'start', FIELD.key],
+	[STORE.calendar]: [FIELD.type, 'date', 'start'],
+	[STORE.class]: FIELD.key,
+	[STORE.event]: [FIELD.key, 'name'],
+	[STORE.price]: [FIELD.key, FIELD.type],
+	[STORE.attend]: [FIELD.key, FIELD.type, FIELD.effect],
+	[STORE.account]: [FIELD.key, FIELD.type, FIELD.effect],
+	[STORE.location]: ['sort', FIELD.key],
+	[STORE.instructor]: ['sort', FIELD.key],
+	[STORE.default]: [FIELD.key, FIELD.type],
 }

@@ -1,21 +1,19 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
+import { Select } from '@ngxs/store';
 
-import { Select, Store } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
-import { IPlanState, getUser, IProfileState, IUserState, joinDoc, getStore, IState, IAttendState } from '@dbase/state/state.library';
+import { getUser, IProfileState, IUserState, IPlanState, IAttendState, joinDoc, getStore, IState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { IPrice, IDefault, ISchedule, IClass, IPlan } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { fmtDate } from '@lib/date.library';
-import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -33,7 +31,7 @@ export class StateService {
   private dbg: Function = dbg.bind(this);
   public states: IState;
 
-  constructor(private store: Store) {
+  constructor() {
     this.states = {                   // a Lookup map for Slice to State
       'auth': this.auth$,
       'client': this.client$,
@@ -44,31 +42,19 @@ export class StateService {
   }
 
   /** Fetch the current, useable values for a supplied store */
-  getCurrent<T>(store: string, filter?: TWhere, sortBy: string | string[] = []) {
+  getCurrent<T>(store: string, filter?: TWhere) {
     const filters = asArray(filter);
     filters.push({ fieldPath: FIELD.expire, value: 0 });
     filters.push({ fieldPath: FIELD.hidden, value: false });
 
-    return getStore<T>(this.states, store, filters).pipe(
-      map(table => table.sort(sortKeys(...asArray(sortBy)))),			// apply any requested sort-criteria)
-    )
-  }
-
-  /** Get the project defaults Store, and arrange into an Object keyed by the <type> */
-  getDefaults(date?: number) {
-    const result: { [key: string]: IDefault } = {};
-
-    return getStore<IDefault>(this.states, STORE.default).pipe(
-      map(table => table.forEach(row => result[row[FIELD.type]] = row)),
-      map(_ => result),
-    )
+    return getStore<T>(this.states, store, filters);
   }
 
   /**
-   * Assemble a UserState Object describing a User, where:  
-   * auth.user    -> has Firebase details about the User Account  
-   * auth.claims  -> has authenticated customClaims
-   */
+  * Assemble a UserState Object describing a User, where:  
+  * auth.user    -> has Firebase details about the User Account  
+  * auth.claims  -> has authenticated customClaims
+  */
   getUserData(uid?: string): Observable<IUserState> {               // TODO: allow for optional <uid> parameter to resolve in admin$ state
     return this.auth$.pipe(
       map(auth => auth.token),

@@ -8,7 +8,7 @@ import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 
 import { getPath, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
-import { isString, isNull } from '@lib/type.library';
+import { isString, isNull, isArray } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
 import { asAt } from '@dbase/app/app.library';
 
@@ -57,12 +57,14 @@ export interface IAttendState extends IProfileState {
 export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: number) => {
   const slice = getSlice(store);
   const state = states[slice];
+  const sortBy = SORTBY[store];
 
   if (!state)
     throw new Error('Cannot resolve state from ' + store);
 
   return state.pipe(
     map(state => asAt<T>(state[store], filter, date)),
+    map(table => table.sort(sortKeys(...asArray(sortBy)))),
   )
 }
 
@@ -73,12 +75,12 @@ export const getUser = (token: IFireClaims) =>
 /**
  * Join a Parent document to other documents referenced a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
- * child:   the name of the index (eg. 'member') where to place the documents on the State Object  
+ * index:   the name of the index (eg. 'member') under which we place the documents on the State Object  
  * store:   the documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, child: string, store: string, filter: TWhere = [], date?: number) => {
+export const joinDoc = (states: IState, index: string, store: string, filter: TWhere = [], date?: number) => {
   return (source: Observable<any>) => defer(() => {
     let parent: any;
 
@@ -89,24 +91,30 @@ export const joinDoc = (states: IState, child: string, store: string, filter: TW
         const filters = asArray(filter).map(cond => {
           cond.value = asArray(cond.value).map(value => {     // loop through filter, checking each <value> clause
             const isPath = isString(value) && value.substring(0, 2) === '{{';
+            console.log('isPath: ', isPath, value);
             let defaultValue: string | undefined;
+            let lookup: any;
 
-            if (isPath) {
+            if (isPath) {                                     // check if is it a fieldPath reference on the parent
               const child = new String(value).replace('{{', '').replace('}}', '').replace(' ', '');
               const dflt = child.split('.').reverse()[0];     // get the last component of the fieldPath
-              const lookup = (parent['default'][STORE.default] as IDefault[])
+              const table = (parent['default'][STORE.default] as IDefault[])
                 .filter(row => row[FIELD.type] === dflt);     // find the default value for the requested fieldPath
-              defaultValue = lookup.length && lookup[0][FIELD.key] || undefined;
+              defaultValue = table.length && table[0][FIELD.key] || undefined;
+              lookup = getPath(parent, child);
               console.log('dflt: ', dflt, ', lookup: ', lookup, ', value: ', defaultValue, ', child: ', child);
+
+              if (isArray(lookup)) {
+                console.log('array: ', lookup, defaultValue);
+                lookup = lookup.map(res => isNull(res) ? defaultValue : res);
+              }
+            } else {
+              lookup = value;
             }
 
-            let lookup = isPath                               // check if is it a fieldPath reference on the parent
-              ? getPath(parent, child)
-              : value
-
-            // return isNull(lookup) ? defaultValue : lookup;
             return lookup;
           });
+
           if (cond.value.length === 1) cond.value = cond.value[0];
           return cond;
         })
@@ -116,7 +124,7 @@ export const joinDoc = (states: IState, child: string, store: string, filter: TW
       }),
 
       map(res => {
-        let joins: { [key: string]: any[] } = parent[child] || {};
+        let joins: { [key: string]: any[] } = parent[index] || {};
 
         res.forEach(table => table
           .forEach((row: any) => {
@@ -131,7 +139,7 @@ export const joinDoc = (states: IState, child: string, store: string, filter: TW
           joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
         })
 
-        return { ...parent, ...{ [child]: joins } };
+        return { ...parent, ...{ [index]: joins } };
       })
     )
   })
