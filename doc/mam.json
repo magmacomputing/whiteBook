@@ -111,13 +111,68 @@
       }
     ]
   },
+  "default": {
+    "_default_": [
+      {
+        "_id": "GNAHPk6mEEgDIsENspQN",
+        "key": "MultiStep",
+        "store": "_default_",
+        "type": "class"
+      },
+      {
+        "_id": "HP4HcwOdspzbGOE3DarJ",
+        "key": "snap",
+        "store": "_default_",
+        "type": "location"
+      },
+      {
+        "_id": "QN96BHvbJrrW3okc8jey",
+        "key": "JEC",
+        "store": "_default_",
+        "type": "instructor"
+      },
+      {
+        "_id": "XdyYNqJcE6t0yJI5vXym",
+        "key": "casual",
+        "store": "_default_",
+        "type": "plan"
+      },
+      {
+        "_id": "YdHy2It8c7SbWnxNObgQ",
+        "key": "facebook",
+        "store": "_default_",
+        "type": "provider"
+      },
+      {
+        "_id": "urtjcWCD1d3CpougKedn",
+        "key": "casual",
+        "store": "_default_",
+        "type": "price"
+      },
+      {
+        "_id": "zK7PKAeSUzSt1uvgWnzy",
+        "key": "full",
+        "store": "_default_",
+        "type": "span"
+      }
+    ]
+  },
   "client": {
     "schedule": [
       {
-        "_id": "7h1h9XDrOjnjwkgStWbt",
+        "_id": "7WfybBkopTIyC56X2Ntp",
+        "day": 3,
+        "key": "HiLo",
+        "location": "norths",
+        "start": "09:00",
+        "store": "schedule",
+        "type": "class"
+      },
+      {
+        "_id": "1K1tdzbZ71orYfqrPpmw",
         "_effect": 1399816800,
-        "day": 2,
-        "key": "StepDown",
+        "day": 3,
+        "key": "Zumba",
         "location": "snap",
         "start": "19:30",
         "store": "schedule",
@@ -125,22 +180,6 @@
       }
     ],
     "class": [
-      {
-        "_id": "3M7tI5vN4voSHcdfsEXg",
-        "color": "#0000ff",
-        "desc": "Multi-Platform routines",
-        "key": "MultiStep",
-        "store": "class",
-        "type": "full"
-      },
-      {
-        "_id": "4yq0gDgn52jsM68Zh6QP",
-        "color": "#cc0000",
-        "desc": "Start from the top of the Platform",
-        "key": "StepDown",
-        "store": "class",
-        "type": "full"
-      },
       {
         "_id": "b0HrAj1OJ7G7r5HJp8km",
         "color": "#35c42c",
@@ -154,31 +193,6 @@
         "color": "#ff00ff",
         "desc": "Dancing",
         "key": "Zumba",
-        "store": "class",
-        "type": "full"
-      },
-      {
-        "_id": "bxZuumthkLpnuNbL1Liv",
-        "_hidden": true,
-        "color": "#00ffff",
-        "desc": "Learn the basics of the Platform",
-        "key": "StepBasic",
-        "store": "class",
-        "type": "half"
-      },
-      {
-        "_id": "lQVYyTJ6Aprh8Qhx2ETm",
-        "color": "#ff7935",
-        "desc": "75% around the platform",
-        "key": "AeroStep",
-        "store": "class",
-        "type": "full"
-      },
-      {
-        "_id": "z4YdKbXNHW8yQHvhC8B0",
-        "color": "#0897a6",
-        "desc": "A challenge for your brain, as well as your feet",
-        "key": "SmartStep",
         "store": "class",
         "type": "full"
       }
@@ -229,30 +243,6 @@
         "name": "North Sydney Girls High School",
         "sort": 2,
         "store": "location"
-      }
-    ],
-    "instructor": [
-      {
-        "_id": "iLMjxmFnKNNpHDzhN8ta",
-        "key": "JEC",
-        "link": [
-          {
-            "type": "facebook",
-            "url": "."
-          }
-        ],
-        "name": "Jorge Erazo Casanova",
-        "sort": 1,
-        "store": "instructor"
-      },
-      {
-        "_id": "jtWUu9sK848s0hgHBWJ9",
-        "_disable": true,
-        "_hidden": true,
-        "key": "MAM",
-        "name": "Michael McRae",
-        "sort": 9,
-        "store": "instructor"
       }
     ]
   }

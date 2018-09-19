@@ -4,11 +4,11 @@ import { switchMap, map } from 'rxjs/operators';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation } from '@dbase/data/data.schema';
-import { SORTBY } from '@dbase/data/data.define';
+import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 
 import { getPath, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
-import { isString } from '@lib/type.library';
+import { isString, isNull } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
 import { asAt } from '@dbase/app/app.library';
 
@@ -78,7 +78,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = <T>(states: IState, child: string, store: string, filter: TWhere = [], date?: number) => {
+export const joinDoc = (states: IState, child: string, store: string, filter: TWhere = [], date?: number) => {
   return (source: Observable<any>) => defer(() => {
     let parent: any;
 
@@ -87,15 +87,31 @@ export const joinDoc = <T>(states: IState, child: string, store: string, filter:
         parent = data;                                        // stash the original parent data state
 
         const filters = asArray(filter).map(cond => {
-          cond.value = asArray(cond.value).map(value => {      // loop through filter, checking each <value> clause
-            return isString(value) && value.substring(0, 2) === '{{' // check if is it a fieldPath reference on the parent
-              ? getPath(parent, value.replace('{{', '').replace('}}', ''))
+          cond.value = asArray(cond.value).map(value => {     // loop through filter, checking each <value> clause
+            const isPath = isString(value) && value.substring(0, 2) === '{{';
+            let defaultValue: string | undefined;
+
+            if (isPath) {
+              const child = new String(value).replace('{{', '').replace('}}', '').replace(' ', '');
+              const dflt = child.split('.').reverse()[0];     // get the last component of the fieldPath
+              const lookup = (parent['default'][STORE.default] as IDefault[])
+                .filter(row => row[FIELD.type] === dflt);     // find the default value for the requested fieldPath
+              defaultValue = lookup.length && lookup[0][FIELD.key] || undefined;
+              console.log('dflt: ', dflt, ', lookup: ', lookup, ', value: ', defaultValue, ', child: ', child);
+            }
+
+            let lookup = isPath                               // check if is it a fieldPath reference on the parent
+              ? getPath(parent, child)
               : value
+
+            // return isNull(lookup) ? defaultValue : lookup;
+            return lookup;
           });
           if (cond.value.length === 1) cond.value = cond.value[0];
           return cond;
         })
 
+        console.log('store: ', store, ', filters: ', filters);
         return combineLatest(getStore(states, store, filters, date));
       }),
 

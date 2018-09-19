@@ -85,6 +85,7 @@ export class StateService {
    * member.plan  -> has the asAt ProfilePlan for the user.uid  
    * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
    * member.price -> has an array of IPrice that match the Member's plan-type
+   * default._default_ -> has an array of IDefault values
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
@@ -97,6 +98,7 @@ export class StateService {
     ]
 
     return this.getUserData(uid).pipe(
+      joinDoc(this.states, 'default', STORE.default, undefined, date),
       joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
       joinDoc(this.states, 'member', STORE.price, filterPrice, date),
     )
@@ -114,46 +116,23 @@ export class StateService {
   }
 
   /**
-   * Assemble an Object describing the specified day's values, as {schedule: {}, member: {}, class: {}}, where:
-   * schedule  -> 
-   * class     -> has the Class-span (to use when determining pricing)
+   * Assemble an Object describing the specified date's values, as {schedule: {}, class: {}, location: {}, instructor: {}}, where:
+   * schedule   -> has an array of Schedule items that are active on the weekday of the supplied date
+   * class      -> has the Classes that are available on that schedule
+   * location   -> has the Locations that are indicated on that schedule
+   * instructor -> has the Instructors that are indicated on that schedule
    */
   getScheduleData(date?: number, uid?: string): Observable<IAttendState> {
-    date = fmtDate('2018-09-16').milliSecond;
     const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date).weekDay };
-    const filterClass: TWhere = { fieldPath: FIELD.key, value: `client.schedule[*].${FIELD.key}` }
-    this.dbg('weekDay: %s', fmtDate(date).weekDay);
+    const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
+    const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
+    const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
+
     return this.getMemberData(date, uid).pipe(
       joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),
-      tap(res => this.dbg('today: %s, %j', new Date((date as number) * 1000).toLocaleDateString(), res.client.schedule.map((row: any) => row[FIELD.key]))),
       joinDoc(this.states, 'client', STORE.class, filterClass, date),
-      tap(res => this.dbg('classes: %j', res.client.class)),
-      // joinDoc(this.states, 'client', STORE.location, undefined, date),
-      // joinDoc(this.states, 'client', STORE.instructor, undefined, date),
-      // return getStore<ISchedule>(this.states, STORE.schedule, filterSchedule, date).pipe( // get the items on todays schedule
-      // map((state: IStoreState<ISchedule>) => asAt(state[STORE.schedule],
-      //   { fieldPath: 'day', value: fmtDate(date).weekDay }, date)),
-
-      // map(table => table.map(row => this.client$.pipe( // get the Class store for this item
-      //   map((state: IStoreState<IClass>) => asAt(state[STORE.class],
-      //     { fieldPath: FIELD.key, value: row[FIELD.key] }, date)),
-      //   map(table => Object.assign(row, { class: table[0] })),
-
-      //   switchMap(result => this.client$.pipe(                  // get the Price store for this item
-      //     map((state: IStoreState<IPrice>) => asAt(state[STORE.price],
-      //       [{ fieldPath: FIELD.key, value: 'member' }, { fieldPath: FIELD.type, value: result.class[FIELD.type] }],
-      //       date)),
-      //     map(table => Object.assign(result, { price: table[0] })),
-      //   )),
-      // ))),
-      // map(table => ({ schedule: table.sort(sortKeys(['start'])) })),
-
-      // map(result => Object.assign(result, { location: arrayUnique(result.schedule.map(row => row.location))) })),
-      // switchMap(result => this.client$.pipe(
-      //   map((state: IStoreState<ILocation>) => asAt(state[STORE.location],
-      //     { fieldPath: FIELD.key, value: result.location }, date)),
-      //   map(table => Object.assign(result, { location: table })),
-      // )),
+      joinDoc(this.states, 'client', STORE.location, filterLocation, date),
+      joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
     )
   }
 }

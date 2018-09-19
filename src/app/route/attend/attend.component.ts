@@ -27,7 +27,7 @@ export class AttendComponent implements OnInit {
     // this.state.getMemberData(this.date).subscribe(member => this.dbg('profile: %j', member));
     this.state.getScheduleData(this.date).subscribe(schedule => this.dbg('schedule: %j', schedule));
 
-    // this.timetable$ = this.state.getScheduleData(this.date);
+    this.timetable$ = this.state.getScheduleData(this.date);
   }
 
   // TODO: popup info about a Class

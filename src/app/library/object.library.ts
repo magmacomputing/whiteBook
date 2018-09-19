@@ -1,5 +1,5 @@
 import { isNumeric } from '@lib/string.library';
-import { isObject, getType, isArray, isString } from '@lib/type.library';
+import { isObject, getType, isArray } from '@lib/type.library';
 
 export interface IObject<T> { [key: string]: T; }
 
@@ -23,8 +23,8 @@ export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
           : res[ref[0]][idx]                          // else single element from array
       } else {
         res = isArray(res)
-          ? res.filter(item => item[part])
-          : res[part] || null
+          ? res.map(item => item[part])
+          : (res[part] || null)
       }
     })
   return res;

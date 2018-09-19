@@ -1,6 +1,6 @@
 <div *ngIf="(timetable$ | async) || {schedule:[],location:[]}; let timetable">
   <div>
-    <div *ngIf="timetable.schedule.length; else noSchedule">
+    <div *ngIf="timetable.schedule?.length; else noSchedule">
       <p>Please select an Event from the list below...</p>
     </div>
   </div>
