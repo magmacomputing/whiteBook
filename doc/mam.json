@@ -11,16 +11,53 @@
       "memberName": "MichaelM"
     }
   },
-  "member": {
-    "plan": [
+  "default": {
+    "_default_": [
       {
-        "_id": "B4guWzOEpoxwxTBOhUXl",
-        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
-        "plan": "member",
-        "store": "profile",
+        "_id": "QN96BHvbJrrW3okc8jey",
+        "key": "JEC",
+        "store": "_default_",
+        "type": "instructor"
+      },
+      {
+        "_id": "GNAHPk6mEEgDIsENspQN",
+        "key": "MultiStep",
+        "store": "_default_",
+        "type": "class"
+      },
+      {
+        "_id": "XdyYNqJcE6t0yJI5vXym",
+        "key": "casual",
+        "store": "_default_",
         "type": "plan"
+      },
+      {
+        "_id": "urtjcWCD1d3CpougKedn",
+        "key": "casual",
+        "store": "_default_",
+        "type": "price"
+      },
+      {
+        "_id": "YdHy2It8c7SbWnxNObgQ",
+        "key": "facebook",
+        "store": "_default_",
+        "type": "provider"
+      },
+      {
+        "_id": "zK7PKAeSUzSt1uvgWnzy",
+        "key": "full",
+        "store": "_default_",
+        "type": "span"
+      },
+      {
+        "_id": "HP4HcwOdspzbGOE3DarJ",
+        "key": "snap",
+        "store": "_default_",
+        "type": "location"
       }
-    ],
+    ]
+  },
+  "member": {
     "info": [
       {
         "_id": "Dm1brl1mgwloHNhxrzNw",
@@ -77,15 +114,16 @@
         "type": "info"
       }
     ],
-    "price": [
+    "plan": [
       {
-        "_id": "9s1JVCQnCOcK01KDHIP6",
-        "_effect": 1514725200,
-        "amount": 5,
-        "key": "member",
-        "store": "price",
-        "type": "half"
-      },
+        "_id": "B4guWzOEpoxwxTBOhUXl",
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "plan": "member",
+        "store": "profile",
+        "type": "plan"
+      }
+    ],
+    "price": [
       {
         "_id": "A2ZrHSOEGovIg3FUCjZG",
         "_effect": 1514725200,
@@ -93,6 +131,14 @@
         "key": "member",
         "store": "price",
         "type": "full"
+      },
+      {
+        "_id": "9s1JVCQnCOcK01KDHIP6",
+        "_effect": 1514725200,
+        "amount": 5,
+        "key": "member",
+        "store": "price",
+        "type": "half"
       },
       {
         "_id": "CzutaKlWSaubY1gRfsIH",
@@ -111,67 +157,12 @@
       }
     ]
   },
-  "default": {
-    "_default_": [
-      {
-        "_id": "GNAHPk6mEEgDIsENspQN",
-        "key": "MultiStep",
-        "store": "_default_",
-        "type": "class"
-      },
-      {
-        "_id": "HP4HcwOdspzbGOE3DarJ",
-        "key": "snap",
-        "store": "_default_",
-        "type": "location"
-      },
-      {
-        "_id": "QN96BHvbJrrW3okc8jey",
-        "key": "JEC",
-        "store": "_default_",
-        "type": "instructor"
-      },
-      {
-        "_id": "XdyYNqJcE6t0yJI5vXym",
-        "key": "casual",
-        "store": "_default_",
-        "type": "plan"
-      },
-      {
-        "_id": "YdHy2It8c7SbWnxNObgQ",
-        "key": "facebook",
-        "store": "_default_",
-        "type": "provider"
-      },
-      {
-        "_id": "urtjcWCD1d3CpougKedn",
-        "key": "casual",
-        "store": "_default_",
-        "type": "price"
-      },
-      {
-        "_id": "zK7PKAeSUzSt1uvgWnzy",
-        "key": "full",
-        "store": "_default_",
-        "type": "span"
-      }
-    ]
-  },
   "client": {
     "schedule": [
       {
-        "_id": "7WfybBkopTIyC56X2Ntp",
-        "day": 3,
-        "key": "HiLo",
-        "location": "norths",
-        "start": "09:00",
-        "store": "schedule",
-        "type": "class"
-      },
-      {
-        "_id": "1K1tdzbZ71orYfqrPpmw",
+        "_id": "rB1MumhCIHYjukzRTR0i",
         "_effect": 1399816800,
-        "day": 3,
+        "day": 5,
         "key": "Zumba",
         "location": "snap",
         "start": "19:30",
@@ -180,14 +171,6 @@
       }
     ],
     "class": [
-      {
-        "_id": "b0HrAj1OJ7G7r5HJp8km",
-        "color": "#35c42c",
-        "desc": "Aerobic Action",
-        "key": "HiLo",
-        "store": "class",
-        "type": "full"
-      },
       {
         "_id": "bjrSxOgEmhZneYni5yDE",
         "color": "#ff00ff",
@@ -220,29 +203,21 @@
         "name": "Snap Fitness Kensington",
         "sort": 1,
         "store": "location"
-      },
+      }
+    ],
+    "instructor": [
       {
-        "_id": "ngMJ73zg9aUhnTxmaCJL",
-        "address": {
-          "line1": "365 Pacific Hwy",
-          "postcode": "2065",
-          "state": "NSW",
-          "suburb": "Crows Nest"
-        },
-        "contact": {
-          "phone": "(02) 9922 6666"
-        },
-        "key": "norths",
-        "map": {
-          "geo": {
-            "_lat": -33.8302819,
-            "_long": 151.203424
-          },
-          "link": "http://web2.northsydgi-h.schools.nsw.edu.au/public/"
-        },
-        "name": "North Sydney Girls High School",
-        "sort": 2,
-        "store": "location"
+        "_id": "iLMjxmFnKNNpHDzhN8ta",
+        "key": "JEC",
+        "link": [
+          {
+            "type": "facebook",
+            "url": "."
+          }
+        ],
+        "name": "Jorge Erazo Casanova",
+        "sort": 1,
+        "store": "instructor"
       }
     ]
   }

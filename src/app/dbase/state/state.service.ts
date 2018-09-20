@@ -6,7 +6,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
-import { getUser, IProfileState, IUserState, IPlanState, IAttendState, joinDoc, getStore, IState } from '@dbase/state/state.library';
+import { getUser, IProfileState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -108,7 +108,7 @@ export class StateService {
    * location   -> has the Locations that are indicated on that schedule
    * instructor -> has the Instructors that are indicated on that schedule
    */
-  getScheduleData(date?: number, uid?: string): Observable<IAttendState> {
+  getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
     const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date).weekDay };
     const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
     const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };

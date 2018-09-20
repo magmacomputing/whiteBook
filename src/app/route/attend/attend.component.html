@@ -1,19 +1,19 @@
-<div *ngIf="(timetable$ | async) || {schedule:[],location:[]}; let timetable">
+<div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],location:[]}}; let timetable">
   <div>
-    <div *ngIf="timetable.schedule?.length; else noSchedule">
+    <div *ngIf="timetable.client?.schedule?.length; else noSchedule">
       <p>Please select an Event from the list below...</p>
     </div>
   </div>
 
   <div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
     <mat-tab-group [(selectedIndex)]="selectedIndex">
-      <mat-tab *ngFor="let loc of timetable.location; let idx = index">
+      <mat-tab *ngFor="let loc of timetable.client?.location; let idx = index">
         <h3> {{ loc.name }} </h3>
-        <div *ngIf="timetable.location.length > 1">{{ suffix(idx) }} of {{ timetable.location.length }} locations</div>
-        <div *ngFor="let item of timetable.schedule">
+        <div *ngIf="timetable.client?.location.length > 1">{{ suffix(idx) }} of {{ timetable.client?.location.length }} locations</div>
+        <div *ngFor="let item of timetable.client?.schedule">
           <mat-card *ngIf="item.location === loc.key">
             <mat-card-header>
-              <img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(item)">
+              <img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(timetable.client)">
               <mat-card-title>
                 {{ item.key }}
                 <p>{{ item.start }}</p>

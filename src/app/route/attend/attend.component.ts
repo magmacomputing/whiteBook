@@ -15,17 +15,14 @@ import { dbg } from '@lib/logger.library';
 export class AttendComponent implements OnInit {
   private dbg: Function = dbg.bind(this);
   private date!: number;
-  public selectedIndex: number = 0;                         // used by UI to swipe between <tabs>
+  public selectedIndex: number = 0;                           // used by UI to swipe between <tabs>
   private locations: ILocation[] = [];
-  
-  public timetable$ = this.state.getScheduleData(this.date);
+
+  public timetable$ = this.state.getTimetableData(this.date); // wire-up the timetable Observable
 
   constructor(private readonly member: MemberService, public readonly state: StateService) { }
 
-  ngOnInit() {                                              // wire-up the Observables
-    // this.state.getMemberData(this.date).subscribe(member => this.dbg('profile: %j', member));
-    this.state.getScheduleData(this.date).subscribe(schedule => this.dbg('schedule: %j', schedule));
-  }
+  ngOnInit() { }
 
   // TODO: popup info about a Class
   showEvent(event: string) {
