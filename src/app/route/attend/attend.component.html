@@ -19,7 +19,7 @@
                 <p>{{ item.start }}</p>
               </mat-card-title>
               <mat-card-subtitle>{{ item.desc }}</mat-card-subtitle>
-
+<!-- TODO: fetch price from timetable.member.price.<type> -->
               <mat-card-content>
                 <button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
                   Check-in: {{ item.price?.amount | currency }}
