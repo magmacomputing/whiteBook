@@ -50,6 +50,7 @@ export interface ITimetableState extends IProfileState {
     class?: IClass[];
     location?: ILocation[];
     instructor?: IInstructor[];
+    price?: IPrice[];
   }
 }
 
