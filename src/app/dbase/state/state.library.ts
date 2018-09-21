@@ -8,7 +8,7 @@ import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 
 import { getPath, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
-import { isString, isNull, isArray } from '@lib/type.library';
+import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
 import { asAt } from '@dbase/app/app.library';
 
@@ -44,12 +44,13 @@ export interface IPlanState extends IProfileState {
   }
 }
 
-export interface IAttendState extends IProfileState {
+export interface ITimetableState extends IProfileState {
   client: {
     schedule?: ISchedule[];
     class?: IClass[];
     location?: ILocation[];
     instructor?: IInstructor[];
+    price?: IPrice[];
   }
 }
 
@@ -86,40 +87,9 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
 
     return source.pipe(
       switchMap(data => {
+        const filters = decodeFilter(data, filter);           // loop through filters
         parent = data;                                        // stash the original parent data state
 
-        const filters = asArray(filter).map(cond => {
-          cond.value = asArray(cond.value).map(value => {     // loop through filter, checking each <value> clause
-            const isPath = isString(value) && value.substring(0, 2) === '{{';
-            console.log('isPath: ', isPath, value);
-            let defaultValue: string | undefined;
-            let lookup: any;
-
-            if (isPath) {                                     // check if is it a fieldPath reference on the parent
-              const child = new String(value).replace('{{', '').replace('}}', '').replace(' ', '');
-              const dflt = child.split('.').reverse()[0];     // get the last component of the fieldPath
-              const table = (parent['default'][STORE.default] as IDefault[])
-                .filter(row => row[FIELD.type] === dflt);     // find the default value for the requested fieldPath
-              defaultValue = table.length && table[0][FIELD.key] || undefined;
-              lookup = getPath(parent, child);
-              console.log('dflt: ', dflt, ', lookup: ', lookup, ', value: ', defaultValue, ', child: ', child);
-
-              if (isArray(lookup)) {
-                console.log('array: ', lookup, defaultValue);
-                lookup = lookup.map(res => isNull(res) ? defaultValue : res);
-              }
-            } else {
-              lookup = value;
-            }
-
-            return lookup;
-          });
-
-          if (cond.value.length === 1) cond.value = cond.value[0];
-          return cond;
-        })
-
-        console.log('store: ', store, ', filters: ', filters);
         return combineLatest(getStore(states, store, filters, date));
       }),
 
@@ -128,7 +98,7 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
 
         res.forEach(table => table
           .forEach((row: any) => {
-            const type: string = (getSlice(store) === 'client') ? row.store : row.type; // TODO: dont hardcode 'type'
+            const type: string = (getSlice(store) === 'client') ? row[FIELD.store] : row[FIELD.type]; // TODO: dont hardcode 'type'
             joins[type] = joins[type] || [];
             joins[type].push(row);
           })
@@ -142,5 +112,43 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
         return { ...parent, ...{ [index]: joins } };
       })
     )
+  })
+}
+
+/**
+ * A helper function to analyze the <value> field of each filter.  
+ * If <value> isString and matches {{...}}, it refers to the current <parent> data
+ */
+const decodeFilter = (parent: any, filter: TWhere) => {
+  return asArray(filter).map(cond => {                        // loop through each filter
+
+    cond.value = asArray(cond.value).map(value => {           // loop through filter's <value>
+
+      const isPath = isString(value) && value.substring(0, 2) === '{{';
+      let defaultValue: string | undefined;
+      let lookup: any;
+
+      if (isPath) {                                           // check if is it a fieldPath reference on the parent
+        const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
+        const dflt = child.split('.').reverse()[0];           // get the last component of the fieldPath
+        const table = (parent['default'][STORE.default] as IDefault[])
+          .filter(row => row[FIELD.type] === dflt);           // find the default value for the requested fieldPath
+
+        defaultValue = table.length && table[0][FIELD.key] || undefined;
+        lookup = getPath(parent, child);
+
+        if (isArray(lookup))                                  // if fieldPath doesnt exist on <parent>, then fallback to default
+          lookup = lookup.map(res => isNull(res) || isUndefined(res) ? defaultValue : res);
+
+      } else
+        lookup = value;                                       // a use-able value with no interpolation needed
+
+      return lookup;                                          // rebuild filter's <value>
+    });
+
+    if (cond.value.length === 1)
+      cond.value = cond.value[0];                             // an array of only one value, return as string
+
+    return cond;                                              // rebuild each filter
   })
 }
