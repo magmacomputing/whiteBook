@@ -6,7 +6,7 @@ import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 
-import { getPath, sortKeys } from '@lib/object.library';
+import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
@@ -87,7 +87,7 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
 
     return source.pipe(
       switchMap(data => {
-        const filters = decodeFilter(data, filter);           // loop through filters
+        const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
         parent = data;                                        // stash the original parent data state
 
         return combineLatest(getStore(states, store, filters, date));

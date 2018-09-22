@@ -5,13 +5,13 @@ import { map } from 'rxjs/operators';
 import { ITimetableState } from '@dbase/state/state.library';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
-import { ILocation, IPrice } from '@dbase/data/data.schema';
+
+import { FIELD } from '@dbase/data/data.define';
+import { IPrice } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
-import { FIELD } from '@dbase/data/data.define';
-import { isArray } from '@lib/type.library';
 
 @Component({
   selector: 'wb-attend',
@@ -43,8 +43,10 @@ export class AttendComponent implements OnInit {
         })
         
         this.locations = (data.client.location || []).length;
-        console.log('locations: ', this.locations);
+        this.selectedIndex = 0;
         data.client.price = costs;
+        this.dbg('locations: %s', this.locations);
+        // this.dbg('data: %j', data);
         return data;
       })
     )

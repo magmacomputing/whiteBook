@@ -1,96 +1,282 @@
 {
-  "schedule": [
-    {
-      "_id": "LuGA4hbbxUlfdhf9OoW9",
-      "day": 5,
-      "key": "ZumbaStep",
-      "location": "norths",
-      "start": "10:00",
-      "store": "schedule",
-      "type": "class"
+  "auth": {
+    "user": {
+      "displayName": "Michael McRae",
+      "email": "michael@magmacomputing.com.au",
+      "photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+      "providerId": "google.com",
+      "uid": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2"
     },
-    {
-      "_id": "rB1MumhCIHYjukzRTR0i",
-      "_effect": 1399816800,
-      "day": 5,
-      "key": "Zumba",
-      "location": "snap",
-      "start": "19:30",
-      "store": "schedule",
-      "type": "class"
+    "claims": {
+      "memberName": "MichaelM"
     }
-  ],
-  "class": [
-    {
-      "_id": "bjrSxOgEmhZneYni5yDE",
-      "color": "#ff00ff",
-      "desc": "Dancing",
-      "key": "Zumba",
-      "store": "class",
-      "type": "full"
-    }
-  ],
-  "location": [
-    {
-      "_id": "bq2fshryxsrISIMwJ9be",
-      "address": {
-        "line1": "113-115 Anzac Parade",
-        "postcode": "2033",
-        "state": "NSW",
-        "suburb": "Kensington"
+  },
+  "default": {
+    "_default_": [
+      {
+        "_id": "QN96BHvbJrrW3okc8jey",
+        "key": "JEC",
+        "store": "_default_",
+        "type": "instructor"
       },
-      "contact": {
-        "phone": "0431 492 180"
+      {
+        "_id": "GNAHPk6mEEgDIsENspQN",
+        "key": "MultiStep",
+        "store": "_default_",
+        "type": "class"
       },
-      "key": "snap",
-      "map": {
-        "geo": {
-          "_lat": -33.9067795,
-          "_long": 151.2232555
+      {
+        "_id": "XdyYNqJcE6t0yJI5vXym",
+        "key": "casual",
+        "store": "_default_",
+        "type": "plan"
+      },
+      {
+        "_id": "urtjcWCD1d3CpougKedn",
+        "key": "casual",
+        "store": "_default_",
+        "type": "price"
+      },
+      {
+        "_id": "YdHy2It8c7SbWnxNObgQ",
+        "key": "facebook",
+        "store": "_default_",
+        "type": "provider"
+      },
+      {
+        "_id": "zK7PKAeSUzSt1uvgWnzy",
+        "key": "full",
+        "store": "_default_",
+        "type": "span"
+      },
+      {
+        "_id": "HP4HcwOdspzbGOE3DarJ",
+        "key": "snap",
+        "store": "_default_",
+        "type": "location"
+      }
+    ]
+  },
+  "member": {
+    "info": [
+      {
+        "_id": "Dm1brl1mgwloHNhxrzNw",
+        "_effect": 1535168389,
+        "isNewUser": false,
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "profile": {
+          "age_range": {
+            "min": 21
+          },
+          "birthday": "01/01/1957",
+          "email": "michael@magmacomputing.com.au",
+          "first_name": "Michael",
+          "gender": "male",
+          "id": "100000138474102",
+          "last_name": "McRae",
+          "locale": "en_GB",
+          "name": "Michael McRae",
+          "picture": {
+            "data": {
+              "height": 100,
+              "is_silhouette": false,
+              "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/c0.0.100.100/p100x100/25299342_1959170204097576_2174177630211488962_n.jpg?_nc_cat=0&oh=1be826769d60cbff35237153d9b3120e&oe=5BF67A21",
+              "width": 100
+            }
+          },
+          "timezone": 10,
+          "updated_time": "2018-08-19T06:57:14+0000",
+          "verified": true
         },
-        "link": "https://goo.gl/maps/gtMLuJkjSWH2"
+        "providerId": "facebook.com",
+        "store": "profile",
+        "type": "info"
       },
-      "name": "Snap Fitness Kensington",
-      "sort": 1,
-      "store": "location"
-    },
-    {
-      "_id": "ngMJ73zg9aUhnTxmaCJL",
-      "address": {
-        "line1": "365 Pacific Hwy",
-        "postcode": "2065",
-        "state": "NSW",
-        "suburb": "Crows Nest"
-      },
-      "contact": {
-        "phone": "(02) 9922 6666"
-      },
-      "key": "norths",
-      "map": {
-        "geo": {
-          "_lat": -33.8302819,
-          "_long": 151.203424
+      {
+        "_id": "FuO89a2sEobqKob7YIID",
+        "_effect": 1535168365,
+        "isNewUser": true,
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "profile": {
+          "email": "michael@magmacomputing.com.au",
+          "family_name": "McRae",
+          "gender": "male",
+          "given_name": "Michael",
+          "hd": "magmacomputing.com.au",
+          "id": "110021813496510375957",
+          "locale": "en-GB",
+          "name": "Michael McRae",
+          "picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
+          "verified_email": true
         },
-        "link": "http://web2.northsydgi-h.schools.nsw.edu.au/public/"
+        "providerId": "google.com",
+        "store": "profile",
+        "type": "info"
+      }
+    ],
+    "plan": [
+      {
+        "_id": "B4guWzOEpoxwxTBOhUXl",
+        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
+        "plan": "member",
+        "store": "profile",
+        "type": "plan"
+      }
+    ],
+    "price": [
+      {
+        "_id": "A2ZrHSOEGovIg3FUCjZG",
+        "_effect": 1514725200,
+        "amount": 10,
+        "key": "member",
+        "store": "price",
+        "type": "full"
       },
-      "name": "North Sydney Girls High School",
-      "sort": 2,
-      "store": "location"
-    }
-  ],
-  "instructor": [
-    {
-      "_id": "iLMjxmFnKNNpHDzhN8ta",
-      "key": "JEC",
-      "link": [
-        {
-          "type": "facebook",
-          "url": "."
-        }
-      ],
-      "name": "Jorge Erazo Casanova",
-      "sort": 1,
-      "store": "instructor"
-    }
-  ]
+      {
+        "_id": "9s1JVCQnCOcK01KDHIP6",
+        "_effect": 1514725200,
+        "amount": 5,
+        "key": "member",
+        "store": "price",
+        "type": "half"
+      },
+      {
+        "_id": "CzutaKlWSaubY1gRfsIH",
+        "amount": 5,
+        "key": "member",
+        "store": "price",
+        "type": "hold"
+      },
+      {
+        "_id": "YnTyupNiI3eEMCqJkCRi",
+        "_effect": 1514725200,
+        "amount": 100,
+        "key": "member",
+        "store": "price",
+        "type": "topUp"
+      }
+    ]
+  },
+  "client": {
+    "schedule": [
+      {
+        "_id": "cUGa5RNx0qnFWNLTyRTl",
+        "day": 6,
+        "key": "MultiStep",
+        "location": "snap",
+        "start": "11:00",
+        "store": "schedule",
+        "type": "class"
+      },
+      {
+        "_id": "1NkQPKeuSC9OzfoVjThW",
+        "_effect": 1412514000,
+        "day": 6,
+        "key": "HiLo",
+        "location": "snap",
+        "start": "12:15",
+        "store": "schedule",
+        "type": "class"
+      }
+    ],
+    "class": [
+      {
+        "_id": "b0HrAj1OJ7G7r5HJp8km",
+        "color": "#35c42c",
+        "desc": "Aerobic Action",
+        "key": "HiLo",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "3M7tI5vN4voSHcdfsEXg",
+        "color": "#0000ff",
+        "desc": "Multi-Platform routines",
+        "key": "MultiStep",
+        "store": "class",
+        "type": "full"
+      },
+      {
+        "_id": "bxZuumthkLpnuNbL1Liv",
+        "_hidden": true,
+        "color": "#00ffff",
+        "desc": "Learn the basics of the Platform",
+        "key": "StepBasic",
+        "store": "class",
+        "type": "half"
+      }
+    ],
+    "location": [
+      {
+        "_id": "bq2fshryxsrISIMwJ9be",
+        "address": {
+          "line1": "113-115 Anzac Parade",
+          "postcode": "2033",
+          "state": "NSW",
+          "suburb": "Kensington"
+        },
+        "contact": {
+          "phone": "0431 492 180"
+        },
+        "key": "snap",
+        "map": {
+          "geo": {
+            "_lat": -33.9067795,
+            "_long": 151.2232555
+          },
+          "link": "https://goo.gl/maps/gtMLuJkjSWH2"
+        },
+        "name": "Snap Fitness Kensington",
+        "sort": 1,
+        "store": "location"
+      },
+      {
+        "_id": "ngMJ73zg9aUhnTxmaCJL",
+        "address": {
+          "line1": "365 Pacific Hwy",
+          "postcode": "2065",
+          "state": "NSW",
+          "suburb": "Crows Nest"
+        },
+        "contact": {
+          "phone": "(02) 9922 6666"
+        },
+        "key": "norths",
+        "map": {
+          "geo": {
+            "_lat": -33.8302819,
+            "_long": 151.203424
+          },
+          "link": "http://web2.northsydgi-h.schools.nsw.edu.au/public/"
+        },
+        "name": "North Sydney Girls High School",
+        "sort": 2,
+        "store": "location"
+      }
+    ],
+    "instructor": [
+      {
+        "_id": "iLMjxmFnKNNpHDzhN8ta",
+        "key": "JEC",
+        "link": [
+          {
+            "type": "facebook",
+            "url": "."
+          }
+        ],
+        "name": "Jorge Erazo Casanova",
+        "sort": 1,
+        "store": "instructor"
+      },
+      {
+        "_id": "jtWUu9sK848s0hgHBWJ9",
+        "_disable": true,
+        "_hidden": true,
+        "key": "MAM",
+        "name": "Michael McRae",
+        "sort": 9,
+        "store": "instructor"
+      }
+    ]
+  }
 }
