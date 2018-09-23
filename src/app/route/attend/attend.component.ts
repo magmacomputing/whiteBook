@@ -24,12 +24,14 @@ export class AttendComponent implements OnInit {
   public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
   public locations: number = 0;                       // used by UI to swipe between <tabs>
   public timetable$!: Observable<ITimetableState>;
+  public firstPaint = true;                           // indicate first-paint
 
   constructor(private readonly member: MemberService, public readonly state: StateService) { }
 
   ngOnInit() {                                        // wire-up the timetable Observable
     this.timetable$ = this.state.getTimetableData(this.date).pipe(
       map(data => {
+        const locs = (data.client.location || []).length;
         const sched = data.client.schedule || [];     // the schedule for today
         const event = data.client.class || [];        // the classes offered this.date
         const price = data.member.price || [];        // the prices per member's plan
@@ -41,12 +43,12 @@ export class AttendComponent implements OnInit {
 
           costs[idx] = cost;                          // stash the IPrice for each scheduled event
         })
-        
-        this.locations = (data.client.location || []).length;
-        this.selectedIndex = 0;
+
+        // this.firstPaint = false;                    // TODO: ok to animate if Observable re-emits
+        this.locations = locs;
+        this.selectedIndex = 0;                       // start on the first-page
         data.client.price = costs;
-        this.dbg('locations: %s', this.locations);
-        // this.dbg('data: %j', data);
+
         return data;
       })
     )
@@ -58,6 +60,7 @@ export class AttendComponent implements OnInit {
   }
 
   swipe(idx: number, event: any) {
+    this.firstPaint = false;                          // ok to animate
     this.selectedIndex = swipe(idx, this.locations, event);
   }
 

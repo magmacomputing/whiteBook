@@ -1,48 +1,48 @@
 <div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],location:[]}}; let timetable">
-	<div>
-		<div *ngIf="timetable.client?.schedule?.length; else noSchedule">
-			<p>Please select an Event from the list below...</p>
-		</div>
-	</div>
+  <div>
+    <div *ngIf="timetable.client?.schedule?.length; else noSchedule">
+      <p>Please select an Event from the list below...</p>
+    </div>
+  </div>
 
-	<div (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
-		<mat-tab-group [(selectedIndex)]="selectedIndex">
-			<mat-tab *ngFor="let loc of timetable.client?.location; let sfx = index">
-				<h3> {{ loc.name }} </h3>
+  <div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+  <mat-tab-group [(selectedIndex)]="selectedIndex">
+    <mat-tab *ngFor="let loc of timetable.client?.location; let sfx = index">
+      <h3> {{ loc.name }} </h3>
 
-				<div *ngIf="timetable.client?.location.length > 1">
-					{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
-				</div>
+      <div *ngIf="timetable.client?.location.length > 1">
+        {{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
+      </div>
 
-				<div *ngFor="let item of timetable.client?.schedule; let idx = index">
-					<mat-card *ngIf="item.location === loc.key">
+      <div *ngFor="let item of timetable.client?.schedule; let idx = index">
+        <mat-card *ngIf="item.location === loc.key">
 
-						<mat-card-header>
-							<img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(timetable.client)">
+          <mat-card-header>
+            <img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'" (click)="showEvent(timetable.client)">
 
-							<mat-card-title>
-								{{ item.key }}
-								<p>{{ item.start }}</p>
-							</mat-card-title>
-							
-							<mat-card-subtitle>
-								{{ item.desc }}
-							</mat-card-subtitle>
+            <mat-card-title>
+              {{ item.key }}
+              <p>{{ item.start }}</p>
+            </mat-card-title>
 
-							<mat-card-content>
-								<button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
-									Check-in: {{ timetable.client.price[idx]?.amount | currency }}
-								</button>
-							</mat-card-content>
-						</mat-card-header>
+            <mat-card-subtitle>
+              {{ item.desc }}
+            </mat-card-subtitle>
 
-					</mat-card>
-				</div>
-			</mat-tab>
-		</mat-tab-group>
-	</div>
+            <mat-card-content>
+              <button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
+                Check-in: {{ timetable.client.price[idx]?.amount | currency }}
+              </button>
+            </mat-card-content>
+          </mat-card-header>
+
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+  </div>
 </div>
 
 <ng-template #noSchedule>
-	<h3>No classes available today</h3>
+  <h3>Getting today's schedule</h3>
 </ng-template>
