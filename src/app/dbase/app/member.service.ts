@@ -172,6 +172,7 @@ export class MemberService {
 
 			if (profile.picture && profile.picture.data && profile.picture.url)	// special: FaceBook changes the url-segment periodically
 				profile.picture.data.url = profile.picture.data.url.split('?')[0];
+			this.dbg('url: %s', profile.picture.data.url);
 
 			authInfo.profile = profile;			// rebuild authInfo.profile
 		}

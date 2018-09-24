@@ -1,0 +1,10 @@
+*>  profile.user    should not be written.
+should be profile.info
+
+*> truncMember on signIn
+why when no change to data?
+
+*> memberLibrary.getProfileInfo
+conform info (gender, age, birthday)
+
+*> plan.component restrict 'Pension' plan if age < 60
