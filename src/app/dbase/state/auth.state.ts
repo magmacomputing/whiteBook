@@ -67,29 +67,10 @@ export class AuthState implements NgxsOnInit {
 				take(1),
 				tap(async user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-					if (user) {
-						// if (auth.userCredential) {
-						// 	const idToken = await user.getIdTokenResult(true);
-						// 	user.reauthenticateAndRetrieveDataWithCredential(fb.GoogleAuthProvider.credential(idToken.token))
-						// 	// const accessToken = cloneObj<any>(auth.userCredential).accessToken;
-						// 	// user.reauthenticateAndRetrieveDataWithCredential(accessToken)
-						// 		.then(response => this.dbg('reauth: %j', response.additionalUserInfo));
-						// }
-						// 						const idToken = await user.getIdTokenResult(true);
-						// 						// const [, , authCredential] = getAuthProvider(user.providerId, decodeBase64(auth.userToken.token));
-						// 						const authCredential: AuthCredential = {
-						// 							providerId: user.providerId,
-						// 							signInMethod: auth.userToken.signInProvider as string,
-						// 						}
-						// this.dbg('credential: %j', authCredential)
-						// 						if (authCredential) {
-						// 							const response = await user.reauthenticateAndRetrieveDataWithCredential(authCredential);
-						// 							this.dbg('profile: %j', response.additionalUserInfo);
-						// 						}
-
-						ctx.dispatch(new LoginSuccess(user));
-					}
-					else ctx.dispatch(new Logout());
+					ctx.dispatch(user
+						? new LoginSuccess(user)
+						: new Logout()
+					)
 				})
 			);
 	}

@@ -1,5 +1,6 @@
 import { isNumeric } from '@lib/string.library';
-import { isObject, getType, isArray } from '@lib/type.library';
+import { isObject, getType, isArray, isNull } from '@lib/type.library';
+import { isUndefined } from 'util';
 
 export interface IObject<T> { [key: string]: T; }
 
@@ -14,17 +15,20 @@ export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
   path.split('.')
     .forEach(part => {
       part = part.replace(' ', '');                   // remove <spaces> (added for readability)
+
       if (part.substring(part.length - 1) === ']') {
         const ref = part.split('[');
         const idx = ref[1].replace(']', '');
 
-        res = idx === '*'
-          ? res[ref[0]]                               // entire array
-          : res[ref[0]][idx]                          // else single element from array
+        if (res && res[ref[0]]) {
+          res = idx === '*'
+            ? res[ref[0]]                               // entire array
+            : res[ref[0]][idx]                          // else single element from array
+        }
       } else {
         res = isArray(res)
           ? res.map(item => item[part])
-          : (res[part] || null)
+          : (res && res[part] || null)
       }
     })
   return res;
@@ -133,14 +137,14 @@ export const cloneObj = <T>(obj: T): T => {
 /** deep-compare Objects for equality */
 export const equalObj = (obj1: any, obj2: any): boolean => {
   Object.keys(obj1).forEach(field => {
-    if (!isObject(obj1[field]) && obj1[field] != obj2[field])
+    if (!isObject(obj1[field]) && !isArray(obj1[field]) && obj1[field] != obj2[field])
       console.log('change: <', field, '> ', obj2[field], ' => ', obj1[field]);
   })
   return Object.keys(obj1).every(field =>
-    isObject(obj1[field])
+    isObject(obj1[field]) || isArray(obj1[field])
       ? equalObj(obj1[field], obj2[field])      // recurse to compare sub-object
       : obj1[field] == obj2[field]
-  );
+  )
 }
 
 export const isEmpty = (obj: object | any[]): boolean =>

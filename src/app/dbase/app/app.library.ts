@@ -61,14 +61,14 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 }
 
 /**
- * Search an array, returning rows that match all the 'conditions' *and* were active on the 'date'
+ * Search an array, returning rows that match all the conditions *and* were active on the 'date'
  * where the rows are greater-than-or-equal to the date, or less-than the date
  * @param table		The table-array to search
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
  */
 export const asAt = <T>(table: T[], cond: TWhere = [], date?: string | number) => {
-	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDayFmt).stamp;
+	const stamp = isNumber(date) ? date : fmtDate(date, DATE_FMT.yearMonthDaySep).stamp;
 
 	return filterTable(cloneObj(table), cond)						// return the rows where date is between _effect and _expire
 		.filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))

@@ -11,11 +11,11 @@ export interface IDate {
 	human: string;
 	yearMonth: number;
 	yearMonthDay: number;
-	yearMonthFmt: string;
-	yearMonthDayFmt: string;
+	yearMonthSep: string;
+	yearMonthDaySep: string;
 	yearWeek: number;
-	dayMonth: string;
-	dayMonthFmt: string;
+	dayMonthSep: string;
+	dayMonthSpace: string;
 	week: number;
 	weekDay: number;
 	day: number;
@@ -35,11 +35,11 @@ export const DATE_FMT: Record<keyof IDate, string> = {
 	human: 'ddd, DD MMM YYYY',              // more readable by Members
 	yearMonth: 'YYYYMM',                    // useful for sorting by month
 	yearMonthDay: 'YYYYMMDD',               // useful for sorting by date
-	yearMonthFmt: 'YYYY-MM',                // top-level date grouping
-	yearMonthDayFmt: 'YYYY-MMM-DD',         // with abbrev month-name
+	yearMonthSep: 'YYYY-MM',                // top-level date grouping
+	yearMonthDaySep: 'YYYY-MMM-DD',         // with abbrev month-name
 	yearWeek: 'GGGGWW',                     // useful for sorting by week
-	dayMonth: 'DD-MMM',                     // useful for showing short Date, dash separator
-	dayMonthFmt: 'DD MMM',                	// space separator
+	dayMonthSep: 'DD-MMM',                  // useful for showing short Date, dash separator
+	dayMonthSpace: 'DD MMM',                // space separator
 	week: 'ww',                             // week number, leading zero
 	weekDay: 'E',                           // day of week, Mon=1
 	day: 'D',                               // return the Day number

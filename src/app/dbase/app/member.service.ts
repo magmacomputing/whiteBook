@@ -169,6 +169,10 @@ export class MemberService {
 		if (authInfo.profile) {
 			const profile: any = authInfo.profile;
 			delete profile.link;						// special: FaceBook changes this field periodically
+
+			if (profile.picture && profile.picture.data && profile.picture.url)	// special: FaceBook changes the url-segment periodically
+				profile.picture.data.url = profile.picture.data.url.split('?')[0];
+
 			authInfo.profile = profile;			// rebuild authInfo.profile
 		}
 
