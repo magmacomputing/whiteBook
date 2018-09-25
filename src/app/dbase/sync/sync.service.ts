@@ -129,6 +129,7 @@ export class SyncService {
         return;                                       // ok, already sync'd
       }
 
+      this.dbg('hash: %s / %s', localHash, storeHash);
       this.store.dispatch(new truncStore());          // otherwise, reset Store
     }
 

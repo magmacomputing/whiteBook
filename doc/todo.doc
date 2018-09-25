@@ -1,7 +1,9 @@
 *>  profile.user    should not be written.
 should be profile.info
 
-*> truncMember on signIn
+*> on initial sign-up, why no profile.info
+
+*> truncMember on signIn ??
 why when no change to data?
 
 *> memberLibrary.getProfileInfo
