@@ -3,9 +3,6 @@ should be profile.info
 
 *> on initial sign-up, why no profile.info
 
-*> truncMember on signIn ??
-why when no change to data?
-
 *> memberLibrary.getProfileInfo
 conform info (gender, age, birthday)
 

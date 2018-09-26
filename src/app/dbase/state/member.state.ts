@@ -44,8 +44,8 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(TruncMember)
-	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>) {
-		this.dbg('truncMember');
+	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>, { debug }: TruncMember) {
+		if (debug) this.dbg('truncMember');
 		setState({});
 	}
 

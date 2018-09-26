@@ -42,8 +42,8 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(TruncClient)
-	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>) {
-		this.dbg('truncClient');
+	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>, { debug }: TruncClient) {
+		if (debug) this.dbg('truncClient');
 		setState({});
 	}
 

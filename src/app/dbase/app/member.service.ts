@@ -162,7 +162,7 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-		this.dbg('authInfo: %j', auth.info);
+		// this.dbg('authInfo: %j', auth.info);
 		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
 
@@ -173,6 +173,10 @@ export class MemberService {
 
 			if (profile.picture && profile.picture.data && profile.picture.data.url)	// special: FaceBook changes the url-segment periodically
 				profile.picture.data.url = profile.picture.data.url.split('?')[0];
+			if (profile.grantedScopes) {		// special: FaceBook returns different names periodically
+				profile.granted_scopes = profile.grantedScopes;
+				delete profile.grantedScopes;
+			}
 
 			authInfo.profile = profile;			// rebuild authInfo.profile
 		}

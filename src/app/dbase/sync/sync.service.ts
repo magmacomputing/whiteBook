@@ -74,7 +74,7 @@ export class SyncService {
   /** handler for snapshot listeners */
   private async sync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
     const listen = this.listener[collection];
-    let setStore: any, delStore: any, truncStore;
+    let setStore: any, delStore: any, truncStore: any;
 
     const source = this.source(snaps);
     const debug = source !== 'cache' && this.listener[collection].cnt !== -1;
@@ -119,18 +119,21 @@ export class SyncService {
       const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
 
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
-      let [localHash, storeHash] = await Promise.all([
-        cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
-        cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
-      ])
+      const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
+      const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
+      const [localHash, storeHash] = await Promise.all([cryptoHash(localSort), cryptoHash(snapSort),]);
 
       if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
         listen.ready.resolve(true);                   // indicate snap0 is ready
         return;                                       // ok, already sync'd
       }
 
-      this.dbg('hash: %s / %s', localHash, storeHash);
-      this.store.dispatch(new truncStore());          // otherwise, reset Store
+      if (debug) {                                    // we suspect tampering?
+        this.dbg('hash: %s / %s', localHash, storeHash);
+        this.dbg('local: %j', localSort);
+        this.dbg('store: %j', snapSort);
+      }
+      this.store.dispatch(new truncStore(debug));     // otherwise, reset Store
     }
 
     snaps.forEach(snap => {

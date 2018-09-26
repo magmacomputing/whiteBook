@@ -140,11 +140,17 @@ export const equalObj = (obj1: any, obj2: any): boolean => {
     if (!isObject(obj1[field]) && !isArray(obj1[field]) && obj1[field] != obj2[field])
       console.log('change: <', field, '> ', obj2[field], ' => ', obj1[field]);
   })
-  return Object.keys(obj1).every(field =>
-    isObject(obj1[field]) || isArray(obj1[field])
-      ? equalObj(obj1[field], obj2[field])      // recurse to compare sub-object
-      : obj1[field] == obj2[field]
-  )
+
+  return Object.keys(obj1).every(field => {
+    switch (getType(obj1[field])) {             // recurse if sub-object/-array
+      case 'Object':
+        return equalObj(obj1[field], obj2[field] || {});
+      case 'Array':
+        return equalObj(obj1[field], obj2[field] || []);
+      default:
+        return obj1[field] == obj2[field];
+    }
+  })
 }
 
 export const isEmpty = (obj: object | any[]): boolean =>

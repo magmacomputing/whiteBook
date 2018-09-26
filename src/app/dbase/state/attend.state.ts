@@ -39,8 +39,8 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(TruncAttend)
-	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>) {
-		this.dbg('truncAttend');
+	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>, { debug }: TruncAttend) {
+		if (debug) this.dbg('truncAttend');
 		setState({});
 	}
 
