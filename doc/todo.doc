@@ -10,3 +10,6 @@ why when no change to data?
 conform info (gender, age, birthday)
 
 *> plan.component restrict 'Pension' plan if age < 60
+
+*> spinner when loading ?
+so no false 'select plan'
