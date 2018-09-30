@@ -160,7 +160,7 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-		// this.dbg('authInfo: %j', auth.info);
+	
 		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
 
