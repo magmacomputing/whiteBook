@@ -12,6 +12,7 @@ export function dbg(fmt?: any, ...msg: any[]): void {
 
 export const log = (fmt?: any, ...msg: any[]): void => {
 	let out = 'log';
+	
 	if (isString(fmt)) {
 		let match = fmt.match(/(\w*):/i) || [];
 		if (['log', 'info', 'debug', 'warn', 'error'].includes(match[1]))

@@ -10,3 +10,5 @@ conform info (gender, age, birthday)
 
 *> spinner when loading ?
 so no false 'select plan'
+
+*> signInWithEmailAndPassword()

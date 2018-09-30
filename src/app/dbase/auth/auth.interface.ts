@@ -37,13 +37,13 @@ export interface IFireClaims {
 	}
 	auth_time: number;
 }
-export interface IJwtClaims {		// industry-standard json-web-token format
-	exp: number;									// expiration time
-	iss: string;									// issuer
-	iat?: number;									// issued time
-	nbf?: number;									// not before
-	aud?: string;									// audience
-	sub?: string;									// subject
+export interface IJwtClaims {			// industry-standard json-web-token format
+	exp: number;						// expiration time
+	iss: string;						// issuer
+	iat?: number;						// issued time
+	nbf?: number;						// not before
+	aud?: string;						// audience
+	sub?: string;						// subject
 }
 export type TTokenClaims = IFireClaims & ICustomClaims & IJwtClaims;
 export const enum JWT {

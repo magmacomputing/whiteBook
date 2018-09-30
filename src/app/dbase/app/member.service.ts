@@ -5,8 +5,6 @@ import { debounce } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 import { Navigate } from '@ngxs/router-plugin';
 import { IUserInfo } from '@dbase/auth/auth.interface';
-// import { AuthState } from '@dbase/state/auth.define';
-// import { AuthState } from '@dbase/state/auth.state';
 
 import { asAt } from '@dbase/app/app.library';
 import { TWhere } from '@dbase/fire/fire.interface';

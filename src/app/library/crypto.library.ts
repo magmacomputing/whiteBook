@@ -19,7 +19,7 @@ const decodeBuffer = (buf: Uint16Array) => new TextDecoder('utf-8').decode(buf);
 
 const cryptoKey = crypto.subtle.generateKey({ name: 'AES-CBC', length: 128 }, false, ['encrypt', 'decrypt']);
 const vector = crypto.getRandomValues(new Uint8Array(16));
-const asymetricKey = crypto.subtle.generateKey({
+const asymmetricKey = crypto.subtle.generateKey({
 	name: 'RSASSA-PKCS1-v1_5',
 	modulusLength: 2048,
 	publicExponent: new Uint8Array([1, 0, 1]),
@@ -37,9 +37,9 @@ export const cryptoDecrypt = async (secret: Promise<ArrayBuffer>) =>
 		.then(decodeBuffer);
 
 export const cryptoSign = async (doc: any) =>
-	crypto.subtle.sign('RSASSA-PKCS1-v1_5', (await asymetricKey).privateKey, encodeBuffer(doc))
+	crypto.subtle.sign('RSASSA-PKCS1-v1_5', (await asymmetricKey).privateKey, encodeBuffer(doc))
 		.then(result => new Uint16Array(result))
 		.then(decodeBuffer);
 
 export const cryptoVerify = async (signature: Promise<ArrayBuffer>, doc: any) =>
-	crypto.subtle.verify('RSASSA-PKCS1-v1_5', (await asymetricKey).publicKey, await signature, encodeBuffer(doc));
+	crypto.subtle.verify('RSASSA-PKCS1-v1_5', (await asymmetricKey).publicKey, await signature, encodeBuffer(doc));
