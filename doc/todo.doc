@@ -2,13 +2,12 @@
 should be profile.info
 
 *> on initial sign-up, why no profile.info
+timer?
 
 *> memberLibrary.getProfileInfo
 conform info (gender, age, birthday)
 
 *> plan.component restrict 'Pension' plan if age < 60
 
-*> spinner when loading ?
+*> spinner when loading ?  or add 'plan' to customClaims?
 so no false 'select plan'
-
-*> signInWithEmailAndPassword()
