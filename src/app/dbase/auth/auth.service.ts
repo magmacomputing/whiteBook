@@ -47,7 +47,7 @@ export class AuthService {
   public async signIn(provider: IProvider, opts: IObject<any> = {}) {
     this.dbg('signIn: %j', provider);
 
-    switch (provider.type) {
+    switch (provider[FIELD.type]) {
       case undefined:
       case 'social':
         this.signInSocial(provider);

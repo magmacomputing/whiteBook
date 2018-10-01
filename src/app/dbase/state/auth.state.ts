@@ -109,17 +109,21 @@ export class AuthState implements NgxsOnInit {
 		const m = `${method}WithEmailAndPassword` as TEmailMethod;
 		this.dbg('loginEmail: %s', method);
 
-		return this.afAuth.auth[m](email, password)
-			.then(response => this.authSuccess(ctx, response.user, credential))
-			.catch(async error => {
-				switch (error.code) {
-					case 'auth/user-not-found':				// need to 'create' first
-						return ctx.dispatch(new LoginEmail(email, password, 'createUser'));
+		try {
+			return this.afAuth.auth[m](email, password)
+				.then(response => this.authSuccess(ctx, response.user, credential))
+				.catch(async error => {
+					switch (error.code) {
+						case 'auth/user-not-found':				// need to 'create' first
+							return ctx.dispatch(new LoginEmail(email, password, 'createUser'));
 
-					default:
-						return ctx.dispatch(new LoginFailed(error));
-				}
-			})
+						default:
+							return ctx.dispatch(new LoginFailed(error));
+					}
+				})
+		} catch (error) {
+			return ctx.dispatch(new LoginFailed(error));
+		}
 	}
 
 	@Action(Logout)																	// process signOut()
