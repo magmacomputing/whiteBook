@@ -34,7 +34,7 @@ export class MemberService {
 
 		this.action.pipe(															// special: listen for changes of the auth.info
 			ofAction(LoginInfo),
-			debounce(_ => timer(1000)),
+			debounce(_ => timer(2000)),
 		).subscribe(_ => this.getAuthProfile());
 	}
 

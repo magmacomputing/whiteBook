@@ -1,4 +1,4 @@
-/** an array of Formats for Moment() to try against a string Date */
+/** an array of formats for Moment() to try against a string Date */
 export const MOMENT_FMT = [
 	'DD-MMM-YYYY',
 ];
