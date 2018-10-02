@@ -16,7 +16,6 @@ import { TScopes, TParams } from '@dbase/auth/auth.interface';
 import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { MemberService } from '@dbase/app/member.service';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {

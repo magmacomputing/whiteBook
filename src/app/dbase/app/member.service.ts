@@ -34,7 +34,7 @@ export class MemberService {
 
 		this.action.pipe(															// special: listen for changes of the auth.info
 			ofAction(LoginInfo),												// when 
-			debounce(_ => timer(2000)),								
+			debounce(_ => timer(2000)),
 		).subscribe(_ => this.getAuthProfile());
 	}
 
@@ -42,7 +42,7 @@ export class MemberService {
 		const doc: IStoreBase = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
-		this.data.insDoc(doc, undefined, 'plan')
+		return this.data.insDoc(doc, undefined, 'plan')
 			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
@@ -160,7 +160,7 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-	
+
 		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
 

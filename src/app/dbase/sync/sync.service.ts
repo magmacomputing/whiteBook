@@ -13,6 +13,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
+import { IStoreBase } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -116,7 +117,7 @@ export class SyncService {
       const localSlice = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
       const localStore = localSlice[listen.slice] || {};
       const localList: IStoreDoc[] = [];
-      const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
+      const snapList = snaps.map(snap => ({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() }));
 
       Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
       const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
@@ -137,7 +138,7 @@ export class SyncService {
     }
 
     snaps.forEach(snap => {
-      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+      const data = { [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreBase;
 
       switch (snap.type) {
         case 'added':
