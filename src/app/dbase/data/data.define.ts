@@ -31,6 +31,7 @@ export const enum STORE {
 	instructor = 'instructor',
 	default = '_default_',
 	config = '_config_',
+	schema = '_schema_',
 }
 
 export const enum FIELD {					// common Field names
@@ -69,4 +70,5 @@ export const SORTBY: IObject<string | string[]> = {
 	[STORE.location]: ['sort', FIELD.key],
 	[STORE.instructor]: ['sort', FIELD.key],
 	[STORE.default]: [FIELD.key, FIELD.type],
+	[STORE.schema]: [FIELD.type, FIELD.key],
 }

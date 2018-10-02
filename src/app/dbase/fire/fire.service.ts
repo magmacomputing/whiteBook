@@ -9,7 +9,7 @@ import { tap } from 'rxjs/operators';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
-import { IMeta, IStoreBase } from '@dbase/data/data.schema';
+import { IMeta, TStoreBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/data/data.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -57,7 +57,7 @@ export class FireService {
 	}
 
 	/** Batch a set of database-writes */
-	batch(creates: IStoreBase | IStoreBase[] = [], updates: IStoreBase | IStoreBase[] = [], deletes: IStoreBase | IStoreBase[] = []) {
+	batch(creates: TStoreBase = [], updates: TStoreBase = [], deletes: TStoreBase = []) {
 		const bat = this.afs.firestore.batch();
 
 		if (asArray(creates).length) this.dbg('creates: %j', creates);

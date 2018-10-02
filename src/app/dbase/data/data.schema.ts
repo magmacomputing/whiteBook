@@ -6,6 +6,8 @@ export type TStoreMember = 'profile' | 'account' | 'bonus';
 export type TStoreAttend = string;			// Attend docs will have a <store> that links to an Account _id
 export type TStore = TStoreClient | TStoreMember;
 
+export type TStoreBase = IStoreBase | IStoreBase[];
+
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold';
 type TProfile = 'plan' | 'claim' | 'info';

@@ -38,7 +38,7 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 export const docPrep = (doc: IStoreBase, auth: IAuthState) => {
   const collection = getSlice(doc[FIELD.store]);
   const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
-  const uid = auth!.user!.uid;
+  const uid = auth.user!.uid;
 
   if (!doc[FIELD.key] && filters.includes(FIELD.key) && uid)
     doc[FIELD.key] = uid;                       // ensure uid is included on doc

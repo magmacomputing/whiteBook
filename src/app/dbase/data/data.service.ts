@@ -6,7 +6,7 @@ import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
+import { IStoreMeta, IStoreBase, TStoreBase } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -18,10 +18,11 @@ import { getStamp } from '@lib/date.library';
 import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { MemberService } from '@dbase/app/member.service';
 
 /**
  * The DataService is responsible for managing the syncing between
- * the local State (ngxs 'Store') and the remote DataBase (Firebase Firestore).  
+ * the local State (ngxs 'Store') and the remote DataBase (Firebase 'Cloud Firestore').  
  * The intention is that all 'reads' are from State, and all 'writes' are to a persisted
  * local cache of the Database (which FireStore will sync back to the server).
  */
@@ -72,7 +73,7 @@ export class DataService {
   }
 
   /** Expire any current matching docs, and Create new doc */
-  insDoc(nextDocs: IStoreBase | IStoreBase[], filter?: TWhere, discards: string | string[] = []) {
+  async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: string | string[] = []) {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
     const stamp = getStamp();                               // the <effect> of the document-create
@@ -105,12 +106,12 @@ export class DataService {
       }
     })
 
-    return Promise.all(promises)                            // collect all the Creates/Updates/Deletes
-      .then(_ => this.batch(creates, updates))                // then apply writes in a Batch
+    await Promise.all(promises);                            // collect all the Creates/Updates/Deletes
+    return this.batch(creates, updates);                    // then apply writes in a Batch
   }
 
   /** Batch a series of writes */
-  batch(creates?: IStoreBase | IStoreBase[], updates?: IStoreBase | IStoreBase[], deletes?: IStoreBase | IStoreBase[]) {
+  batch(creates?: TStoreBase, updates?: TStoreBase, deletes?: TStoreBase) {
     return this.fire.batch(creates, updates, deletes);
   }
 }

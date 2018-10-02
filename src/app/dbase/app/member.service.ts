@@ -33,8 +33,8 @@ export class MemberService {
 			.then(table => asAt(table));								// stash the current defaults
 
 		this.action.pipe(															// special: listen for changes of the auth.info
-			ofAction(LoginInfo),
-			debounce(_ => timer(2000)),
+			ofAction(LoginInfo),												// when 
+			debounce(_ => timer(2000)),								
 		).subscribe(_ => this.getAuthProfile());
 	}
 
