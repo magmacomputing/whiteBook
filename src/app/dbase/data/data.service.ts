@@ -14,11 +14,11 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
 import { asAt } from '@dbase/app/app.library';
 
+import { TString } from '@lib/type.library';
 import { getStamp } from '@lib/date.library';
 import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { MemberService } from '@dbase/app/member.service';
 
 /**
  * The DataService is responsible for managing the syncing between
@@ -73,7 +73,7 @@ export class DataService {
   }
 
   /** Expire any current matching docs, and Create new doc */
-  async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: string | string[] = []) {
+  async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
     const creates: IStoreBase[] = [];
     const updates: IStoreBase[] = [];
     const stamp = getStamp();                               // the <effect> of the document-create

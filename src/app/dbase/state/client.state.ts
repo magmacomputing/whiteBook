@@ -5,6 +5,7 @@ import { asAt } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
+import { TString } from '@lib/type.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -55,7 +56,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	static current(store: string, filter?: TWhere, sortBy: string | string[] = []) {	// no longer used
+	static current(store: string, filter?: TWhere, sortBy: TString = []) {	// no longer used
 		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 			const filters = asArray(filter);

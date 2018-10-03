@@ -13,3 +13,6 @@ export const isNull = (obj?: any): obj is null => isType(obj, 'Null');
 export const isFunction = (obj?: any): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');
 export const isPromise = <T>(obj?: any): obj is Promise<T> => isType(obj, 'Promise');
 export const isUndefined = (obj?: any): obj is undefined => isType(obj, 'Undefined');
+
+export type TString = string | string[];
+export type TNumber = number | number[];

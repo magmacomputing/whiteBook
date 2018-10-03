@@ -32,10 +32,10 @@ export class MemberService {
 		this.default = this.data.snap<IStoreBase>(STORE.default)
 			.then(table => asAt(table));								// stash the current defaults
 
-		this.action.pipe(															// special: listen for changes of the auth.info
-			ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
-			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
-		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed
+		// this.action.pipe(															// special: listen for changes of the auth.info
+		// 	ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
+		// 	debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
+		// ).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed
 	}
 
 	async setPlan(plan: TPlan) {

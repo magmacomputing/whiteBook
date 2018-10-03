@@ -1,19 +1,23 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
-
 import { take, tap } from 'rxjs/operators';
-import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
-import { Navigate } from '@ngxs/router-plugin';
-import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
 
+import { Navigate } from '@ngxs/router-plugin';
+import { ROUTE } from '@route/route.define';
+
+import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
+import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo } from '@dbase/state/auth.define';
+
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { IQuery } from '@dbase/fire/fire.interface';
+import { IProfileInfo } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { ROUTE } from '@route/route.define';
+import { isNull, isUndefined } from '@lib/type.library';
+import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -106,11 +110,11 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
 	loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
-		const m = `${method}WithEmailAndPassword` as TEmailMethod;
+		const thisMethod = `${method}WithEmailAndPassword` as TEmailMethod;
 		this.dbg('loginEmail: %s', method);
 
 		try {
-			return this.afAuth.auth[m](email, password)
+			return this.afAuth.auth[thisMethod](email, password)
 				.then(response => this.authSuccess(ctx, response.user, credential))
 				.catch(async error => {
 					switch (error.code) {
@@ -153,7 +157,6 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => ctx.patchState({ user, token }))
-			// .then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
 		}
 	}
 
@@ -169,6 +172,38 @@ export class AuthState implements NgxsOnInit {
 
 		this.dbg('onLoginRedirect, navigating to /login');
 		ctx.dispatch(new Navigate([ROUTE.login]));
+	}
+
+	@Action(LoginInfo)															// monitor additionalUserInfo
+	getInfo(ctx: StateContext<IAuthState>) {
+		const authInfo = ctx.getState().info;
+
+		if (isNull(authInfo) || isUndefined(authInfo))
+			return;																			// No additionalUserInfo available for this Provider
+
+		if (authInfo.profile) {												// conform the profile to remove data we dont want to track
+			const profile: any = authInfo.profile;
+			delete profile.link;												// special: FaceBook changes this field periodically
+
+			if (profile.picture && profile.picture.data && profile.picture.data.url)	// special: FaceBook changes the url-segment periodically
+				profile.picture.data.url = profile.picture.data.url.split('?')[0];
+			if (profile.grantedScopes) {								// special: FaceBook returns different names periodically
+				profile.granted_scopes = profile.grantedScopes;
+				delete profile.grantedScopes;
+			}
+
+			authInfo.profile = profile;									// rebuild authInfo.profile
+		}
+
+		const where: TWhere = { fieldPath: 'providerId', value: authInfo.providerId };
+		const profileUser: IProfileInfo = {
+			...authInfo,																// spread the authInfo object
+			[FIELD.effect]: getStamp(),									// TODO: remove this when API supports local getMeta()
+			[FIELD.store]: STORE.profile,
+			[FIELD.type]: 'info',
+		}
+
+		// this.data.insDoc(profileUser, where, 'profile');
 	}
 
 	@Action([LoginFailed, LogoutSuccess])

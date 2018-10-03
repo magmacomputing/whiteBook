@@ -11,16 +11,17 @@ import { filterTable } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
+import { TString } from '@lib/type.library';
 import { sortKeys, cloneObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /** a generic function that will invoke 'currStore' function on a particular Store */
-export const getStore = <T>(obs$: Observable<ISelector<T>>, store: string, filter: TWhere = [], sortBy: string | string[] = []) =>
+export const getStore = <T>(obs$: Observable<ISelector<T>>, store: string, filter: TWhere = [], sortBy: TString = []) =>
 	obs$.pipe(map(fn => fn(store, filter, sortBy)));
 
 /** a memoized function that searches a Store for current documents */
-export function currStore(state: IStoreState<IStoreDoc>, store: string, filter: TWhere = [], sortBy: string | string[] = []) {
+export function currStore(state: IStoreState<IStoreDoc>, store: string, filter: TWhere = [], sortBy: TString = []) {
 	const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 	const filters = asArray(filter);
 

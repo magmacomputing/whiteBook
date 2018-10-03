@@ -1,4 +1,5 @@
 import { IObject } from '@lib/object.library';
+import { TString } from '@lib/type.library';
 
 export const enum COLLECTION {			// collection starts with upper-case, document with lower-case
 	Log = 'log',
@@ -56,7 +57,7 @@ export const FILTER: IObject<string[]> = {
 	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.key],
 }
 
-export const SORTBY: IObject<string | string[]> = {
+export const SORTBY: IObject<TString> = {
 	[STORE.provider]: ['sort', FIELD.key],
 	[STORE.profile]: [FIELD.key, FIELD.type],
 	[STORE.plan]: ['sort', FIELD.key],

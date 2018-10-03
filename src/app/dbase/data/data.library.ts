@@ -4,7 +4,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 
 import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
-import { isObject } from '@lib/type.library';
+import { isObject, TString } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { equalObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
@@ -90,7 +90,7 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
  * @param nextDoc:  IStoreMeta    document about to be Created
  * @param currDocs: IStoreMeta[]  array of documents matched to the Create document
  */
-export const checkDiscard = (discards: string | string[], nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
   const isMatch = currDocs.map(currDoc =>       // for each current document...
     asArray(discards)                           // for each of the field-names to match...
       .every(field => isObject(nextDoc[field])

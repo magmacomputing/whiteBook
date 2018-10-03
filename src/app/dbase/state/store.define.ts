@@ -1,5 +1,6 @@
 import { FIELD } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
+import { TString } from '@lib/type.library';
 
 export enum SLICE {
 	root = 'root',
@@ -35,7 +36,7 @@ export interface IStoreDoc {
 }
 
 export interface ISelector<T> {
-	(store: string, filter: TWhere | undefined, keys: string | string[]): T[];
+	(store: string, filter: TWhere | undefined, keys: TString): T[];
 }
 
 export type IStoreState<T> = { [store: string]: T[] };

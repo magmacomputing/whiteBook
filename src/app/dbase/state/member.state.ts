@@ -7,6 +7,7 @@ import { filterTable } from '@dbase/app/app.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 
+import { TString } from '@lib/type.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -57,7 +58,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	static current(store: string, filter: TWhere | undefined, sortBy: string | string[] = []) {
+	static current(store: string, filter: TWhere | undefined, sortBy: TString = []) {
 		return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
 			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
 			const filters = asArray(filter);
