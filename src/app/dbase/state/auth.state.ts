@@ -12,12 +12,9 @@ import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, Log
 
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
-import { IProfileInfo } from '@dbase/data/data.schema';
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IQuery, TWhere } from '@dbase/fire/fire.interface';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { IQuery } from '@dbase/fire/fire.interface';
 
-import { isNull, isUndefined } from '@lib/type.library';
-import { getStamp } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -172,38 +169,6 @@ export class AuthState implements NgxsOnInit {
 
 		this.dbg('onLoginRedirect, navigating to /login');
 		ctx.dispatch(new Navigate([ROUTE.login]));
-	}
-
-	@Action(LoginInfo)															// monitor additionalUserInfo
-	getInfo(ctx: StateContext<IAuthState>) {
-		const authInfo = ctx.getState().info;
-
-		if (isNull(authInfo) || isUndefined(authInfo))
-			return;																			// No additionalUserInfo available for this Provider
-
-		if (authInfo.profile) {												// conform the profile to remove data we dont want to track
-			const profile: any = authInfo.profile;
-			delete profile.link;												// special: FaceBook changes this field periodically
-
-			if (profile.picture && profile.picture.data && profile.picture.data.url)	// special: FaceBook changes the url-segment periodically
-				profile.picture.data.url = profile.picture.data.url.split('?')[0];
-			if (profile.grantedScopes) {								// special: FaceBook returns different names periodically
-				profile.granted_scopes = profile.grantedScopes;
-				delete profile.grantedScopes;
-			}
-
-			authInfo.profile = profile;									// rebuild authInfo.profile
-		}
-
-		const where: TWhere = { fieldPath: 'providerId', value: authInfo.providerId };
-		const profileUser: IProfileInfo = {
-			...authInfo,																// spread the authInfo object
-			[FIELD.effect]: getStamp(),									// TODO: remove this when API supports local getMeta()
-			[FIELD.store]: STORE.profile,
-			[FIELD.type]: 'info',
-		}
-
-		// this.data.insDoc(profileUser, where, 'profile');
 	}
 
 	@Action([LoginFailed, LogoutSuccess])

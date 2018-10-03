@@ -49,6 +49,7 @@ export class SyncService {
         .stateChanges()                               // watch for changes since last snapshot
         .subscribe(sync)
     }
+
     this.dbg('on: %s', collection);
     return ready.promise;                             // indicate when snap0 is complete
   }
