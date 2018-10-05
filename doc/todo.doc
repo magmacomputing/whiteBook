@@ -1,8 +1,3 @@
-*>  profile.user    should not be written.
-should be profile.info
-
-*> on initial sign-up, why no profile.info
-timer set to 2secs to try and fix
 
 *> memberLibrary.getProfileInfo
 conform info (gender, age, birthday)

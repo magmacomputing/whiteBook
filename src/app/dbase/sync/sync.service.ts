@@ -147,8 +147,6 @@ export class SyncService {
           this.store.dispatch(new setStore(data, debug));
           if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claims' && !data[FIELD.expire])
             this.store.dispatch(new LoginToken());    // special: access-level has changed
-          if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'user') // TODO: remove this when debugged
-            alert('profile.user');
           break;
 
         case 'removed':
