@@ -2,9 +2,9 @@
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
 
-	return type === 'Object' && getType(obj.constructor) === 'Function'
-		? obj.constructor.name
-		: type === 'Function' && getType(obj.constructor) === 'Function'
+	return type === 'Object'
+		? obj.constructor.name											// return Class name
+		: type === 'Function' && obj.valueOf().toString().substring(0, 6) === 'class '
 			? 'Class'
 			: type;
 };
@@ -20,6 +20,7 @@ export const isArray = (obj?: any): obj is any[] => isType(obj, 'Array');
 export const isNull = (obj?: any): obj is null => isType(obj, 'Null');
 export const isDate = (obj?: any): obj is Date => isType(obj, 'Date');
 export const isFunction = (obj?: any): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');
+export const isClass = (obj?: any): obj is Function => isType(obj, 'Class');
 export const isPromise = <T>(obj?: any): obj is Promise<T> => isType(obj, 'Promise');
 export const isUndefined = (obj?: any): obj is undefined => isType(obj, 'Undefined');
 
