@@ -188,7 +188,6 @@ export interface IProvider extends IStoreBase {
 export interface IProfile extends IStoreBase {
 	[FIELD.store]: 'profile';
 	[FIELD.type]: TProfile;
-	// [FIELD.key]?: string;													// UserID
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: 'plan';
@@ -204,6 +203,20 @@ export interface IProfileInfo extends IProfile {
 	providerId: string;
 	username?: string | null;
 	profile: any;
+}
+export type TProfileInfo = IProfileInfo | IProfileInfo[];
+
+export interface IMemberInfo {				// Conformed Info across Providers
+	provider: string;
+	id: string;                         // Provider Id
+	firstName?: string;
+	lastName?: string;
+	userName?: string;                  // their Provider username
+	fullName?: string;                  // their Provider displayname
+	email?: string;
+	gender?: string;
+	picture?: string;
+	birthday?: number;
 }
 
 //	/member/account
