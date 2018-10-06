@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
@@ -109,7 +109,7 @@ export class StateService {
    * instructor -> has the Instructors that are indicated on that schedule
    */
   getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
-    const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date).weekDay };
+    const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate('weekDay', date) };
     const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
     const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
     const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
