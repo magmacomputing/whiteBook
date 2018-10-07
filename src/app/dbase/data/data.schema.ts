@@ -10,7 +10,7 @@ export type TStore = TStoreClient | TStoreMember;
 export type TStoreBase = IStoreBase | IStoreBase[];
 
 type TSpan = 'full' | 'half';
-type TPrice = TSpan | 'topUp' | 'hold';
+type TPrice = TSpan | 'topUp' | 'hold' | 'credit';
 type TProfile = 'plan' | 'claim' | 'info';
 type TSchedule = 'event' | 'class' | 'special';
 type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';

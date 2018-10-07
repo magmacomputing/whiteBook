@@ -6,7 +6,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IStoreState } from '@dbase/state/store.define';
-import { getUser, IProfileState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState } from '@dbase/state/state.library';
+import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -67,7 +67,7 @@ export class StateService {
   }
 
   /**
-   * Extend UserState with an Object describing a Member returned as IProfileState, where:  
+   * Extend UserState with an Object describing a Member returned as IMemberState, where:  
    * member.plan  -> has the asAt ProfilePlan for the user.uid  
    * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
    * member.price -> has an array of IPrice that match the Member's plan-type
@@ -76,10 +76,14 @@ export class StateService {
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
    */
-  getMemberData(date?: number, uid?: string): Observable<IProfileState> {
+  getMemberData(date?: number, uid?: string): Observable<IMemberState> {
     const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
     const filterProfile: TWhere = [
       { fieldPath: FIELD.type, value: ['plan', 'info'] },           // where the <type> is either 'plan' or 'info'
+      { fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
+    ]
+    const filterAccount: TWhere = [
+      { fieldPath: FIELD.type, value: ['topUp'] },
       { fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
     ]
 
@@ -87,6 +91,7 @@ export class StateService {
       joinDoc(this.states, 'default', STORE.default, undefined, date),
       joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
       joinDoc(this.states, 'member', STORE.price, filterPrice, date),
+      joinDoc(this.states, 'member', STORE.account, filterAccount, date),
     )
   }
 
