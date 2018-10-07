@@ -1,5 +1,5 @@
 
-*> plan.component restrict 'Pension' plan if age < 60
+*> Plan UI... only show mat-card if not plan._hidden
 
 *> spinner when loading ?  or add 'plan' to customClaims?
 so no false 'select plan'

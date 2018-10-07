@@ -6,7 +6,7 @@ export const getType = (obj?: any): string => {
 		? obj.constructor.name											// return Class name
 		: type === 'Function' && obj.valueOf().toString().substring(0, 6) === 'class '
 			? 'Class'
-			: type;
+			: type
 };
 
 /** return a boolean if obj matches type */
@@ -23,12 +23,21 @@ export const isFunction = (obj?: any): obj is Function => isType(obj, 'Function'
 export const isClass = (obj?: any): obj is Function => isType(obj, 'Class');
 export const isPromise = <T>(obj?: any): obj is Promise<T> => isType(obj, 'Promise');
 export const isUndefined = (obj?: any): obj is undefined => isType(obj, 'Undefined');
+export const isBlob = (obj?: any): obj is Blob => isType(obj, 'Blob');
 
 export type TString = string | string[];
 export type TNumber = number | number[];
 
 /**
-const getType = (obj) => Object.prototype.toString.call(obj).slice(8, -1);
+const getType = (obj) => {
+	const type = Object.prototype.toString.call(obj).slice(8, -1);
+
+	return type === 'Object'
+		? obj.constructor.name											// return Class name
+		: type === 'Function' && obj.valueOf().toString().substring(0, 6) === 'class '
+			? 'Class'
+			: type
+};
 const isType = (obj, type = 'Object') => getType(obj).toLowerCase() === type.toLowerCase();
 const isString = (obj) => isType(obj, 'String');
 const isNumber = (obj) => isType(obj, 'Number');

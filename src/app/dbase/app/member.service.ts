@@ -10,6 +10,7 @@ import { AuthState } from '@dbase/state/auth.state';
 
 import { asAt } from '@dbase/app/app.library';
 import { TWhere } from '@dbase/fire/fire.interface';
+import { getMemberInfo } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta, IProfileInfo } from '@dbase/data/data.schema';
@@ -31,7 +32,7 @@ export class MemberService {
 		this.dbg('new');
 		this.default = this.data.snap<IStoreBase>(STORE.default)
 			.then(table => asAt(table));								// stash the current defaults
-		
+
 		this.action.pipe(															// special: listen for changes of the auth.info
 			ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
 			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
@@ -185,6 +186,7 @@ export class MemberService {
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'info',
+			detail: getMemberInfo(authInfo),
 		}
 
 		this.data.insDoc(profileUser, where, 'profile');

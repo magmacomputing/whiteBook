@@ -3,7 +3,7 @@
     Your current Plan: {{ data.member.plan[0].plan }}
   </div>
 
-  <mat-card *ngFor="let plan of data.client?.plan; last as isLast">
+  <mat-card *ngFor="let plan of data.client?.plan; last as isLast" [hidden]="plan._hidden">
     <div *ngFor="let price of data.client?.price">
       <div *ngIf="price.type == 'topUp' && price.key == plan.key && !plan._hidden">
         <mat-card-header>

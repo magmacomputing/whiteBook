@@ -203,6 +203,7 @@ export interface IProfileInfo extends IProfile {
 	providerId: string;
 	username?: string | null;
 	profile: any;
+	detail: IMemberInfo;
 }
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
 

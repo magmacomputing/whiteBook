@@ -1,8 +1,3 @@
-/** an array of formats for Moment() to try against a string Date */
-export const MOMENT_FMT = [
-	'DD-MMM-YYYY',
-];
-
 export interface IDate {
 	cell: string;
 	short: string;
@@ -16,6 +11,8 @@ export interface IDate {
 	yearWeek: number;
 	dayMonthSep: string;
 	dayMonthSpace: string;
+	dayMonthYearSep: string;
+	dayMonthYear: string;
 	week: number;
 	weekDay: number;
 	day: number;
@@ -40,6 +37,8 @@ export const DATE_FMT: Record<keyof IDate, string> = {
 	yearWeek: 'GGGGWW',                     // useful for sorting by week
 	dayMonthSep: 'DD-MMM',                  // useful for showing short Date, dash separator
 	dayMonthSpace: 'DD MMM',                // space separator
+	dayMonthYearSep: 'DD-MMM-YYYY',					// month-name
+	dayMonthYear: 'DD/MM/YYYY',							// month-number
 	week: 'ww',                             // week number, leading zero
 	weekDay: 'E',                           // day of week, Mon=1
 	day: 'D',                               // return the Day number
@@ -50,3 +49,11 @@ export const DATE_FMT: Record<keyof IDate, string> = {
 	log: 'HH:mm:ss.SSS',                    // useful for reporting timestamp in Log Spreadsheet
 	elapse: 'mm:ss.SSS'                     // useful for reporting duration
 };
+
+/** an array of formats for Moment() to try against a string Date */
+export const MOMENT_FMT = [
+	DATE_FMT.dayMonthYear,
+	DATE_FMT.yearMonthDaySep,
+	DATE_FMT.dayMonthYearSep,
+	DATE_FMT.stamp,
+];

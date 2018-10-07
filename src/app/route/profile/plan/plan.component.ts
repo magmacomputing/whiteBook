@@ -5,10 +5,12 @@ import { map } from 'rxjs/operators';
 import { IPlanState } from '@dbase/state/state.library';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
+import { getMemberAge } from '@dbase/app/member.library';
 
 import { IPrice } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
+import { isNumber } from '@lib/type.library';
 
 @Component({
   selector: 'wb-plan',
@@ -27,25 +29,35 @@ export class PlanComponent implements OnInit {
         const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
         const myPlan = data.member.plan && data.member.plan[0].plan;
         const myTopUp = data.member.price && data.member.price.filter(price => price[FIELD.type] === 'topUp')[0].amount || 0;
+        const myAge = getMemberAge(data.member.info);
 
         const plans = data.client.plan.map(plan => {            // array of available Plans
           const price = data.client.price                       // get the topUp for this Plan
             .filter(price => price[FIELD.key] === plan[FIELD.key] && price[FIELD.type] === 'topUp')[0].amount;
 
-          if (plan[FIELD.key] === myPlan)
-            plan[FIELD.disable] = true;                         // disable their current Plan, so cannot re-select
-
           if (price < myTopUp && !isAdmin)
-            plan[FIELD.disable] = true;                         // Special: dont allow downgrades in price
+            plan[FIELD.disable] = true;                         // special: dont allow downgrades in price
 
           if (myPlan && plan[FIELD.key] === 'intro' && !isAdmin)
-            plan[FIELD.hidden] = true;                          // Special: Intro is only available to new Members
+            plan[FIELD.hidden] = true;                          // special: Intro is only available to new Members
+
+          if (plan[FIELD.key] === 'pension') {
+            if (myAge < 60 && !isAdmin)
+              plan[FIELD.hidden] = true;
+            else {                                              // special: Pension is only available to senior Member
+              plan[FIELD.disable] = false;
+              plan[FIELD.hidden] = false;
+            }
+          }
+
+          if (plan[FIELD.key] === myPlan)
+            plan[FIELD.disable] = true;                         // disable their current Plan, so cannot re-select
 
           return plan
         });
 
         data.client.plan = plans;                               // override the available Plans
-        return { ...data, };
+        return { ...data };
       })
     )
   }
