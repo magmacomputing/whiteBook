@@ -7,7 +7,7 @@ import { isNumber } from 'util';
 
 /** Helper functions to standardize Date/Time formats */
 
-const getMoment = (dt?: string | number, fmt: TString = MOMENT_FMT) =>
+export const getMoment = (dt?: string | number, fmt: TString = MOMENT_FMT) =>
 	dt ? moment(dt, fmt) : moment(moment.now());
 
 export const fmtDate = (key: keyof IDate, dt?: string | number, fmt: TString = MOMENT_FMT) =>

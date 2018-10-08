@@ -2,7 +2,6 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
 
-import { DATE_FMT } from '@lib/date.define';
 import { getStamp } from '@lib/date.library';
 import { isString, isUndefined, isArray, isNumber } from '@lib/type.library';
 import { IObject, cloneObj } from '@lib/object.library';
