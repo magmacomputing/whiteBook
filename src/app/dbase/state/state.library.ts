@@ -3,7 +3,7 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation } from '@dbase/data/data.schema';
+import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
@@ -11,6 +11,8 @@ import { asArray } from '@lib/array.library';
 import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
 import { asAt } from '@dbase/app/app.library';
+import { fmtDate } from '@lib/date.library';
+import { DATE_FMT } from '@lib/date.define';
 
 export interface IState { [slice: string]: Observable<any> };
 
@@ -48,6 +50,8 @@ export interface ITimetableState extends IMemberState {
   client: {
     schedule?: ISchedule[];
     class?: IClass[];
+    event?: IEvent[];
+    calendar?: ICalendar[];
     location?: ILocation[];
     instructor?: IInstructor[];
     price?: IPrice[];
@@ -99,6 +103,10 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
         res.forEach(table => table
           .forEach((row: any) => {
             const type: string = (getSlice(store) === 'client') ? row[FIELD.store] : row[FIELD.type]; // TODO: dont hardcode 'type'
+
+            if (store === STORE.calendar)                     // Special: add a 'day' field to Calendar
+              row.day = fmtDate('weekDay', row[FIELD.key], DATE_FMT.yearMonthDay) as number;
+
             joins[type] = joins[type] || [];
             joins[type].push(row);
           })

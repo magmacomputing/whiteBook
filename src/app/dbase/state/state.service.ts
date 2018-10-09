@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
@@ -10,10 +10,12 @@ import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
+import { ICalendar } from '@dbase/data/data.schema';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { fmtDate } from '@lib/date.library';
+import { DATE_FMT } from '@lib/date.define';
+import { fmtDate, getMoment } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -71,17 +73,18 @@ export class StateService {
    * member.plan  -> has the asAt ProfilePlan for the user.uid  
    * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
    * member.price -> has an array of IPrice that match the Member's plan-type
+	 * member.account->has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}
    * default._default_ -> has an array of IDefault values
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
    * @param uid:	string	An optional User UID (defaults to current logged-on User)
    */
 	getMemberData(date?: number, uid?: string): Observable<IMemberState> {
-		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
 		const filterProfile: TWhere = [
 			{ fieldPath: FIELD.type, value: ['plan', 'info'] },           // where the <type> is either 'plan' or 'info'
 			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
 		]
+		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
 		const filterAccount: TWhere = [
 			{ fieldPath: FIELD.type, value: ['topUp'] },
 			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
@@ -97,7 +100,7 @@ export class StateService {
 
   /** Add current Plan[] and Price[] to the Member Profile Observable  
    * client.plan  -> has an array of asAt Plan documents  
-   * client.price -> has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}  
+   * client.price -> has an array of asAt Price documents
    */
 	getPlanData(date?: number, uid?: string): Observable<IPlanState> {
 		return this.getMemberData(date, uid).pipe(
@@ -107,14 +110,18 @@ export class StateService {
 	}
 
   /**
-   * Assemble an Object describing the specified date's values, as {schedule: {}, class: {}, location: {}, instructor: {}}, where:
-   * schedule   -> has an array of Schedule items that are active on the weekday of the supplied date
-   * class      -> has the Classes that are available on that schedule
-   * location   -> has the Locations that are indicated on that schedule
+   * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
+   * schedule   -> has an array of Schedule info for the weekday of the supplied date  
+   * class      -> has the Classes that are available on that schedule  
+	 * calendar		-> has the Calendar event for that date (to override regular class)  
+	 * event			-> has the Events that are indicated on that calendar
+   * location   -> has the Locations that are indicated on that schedule  
    * instructor -> has the Instructors that are indicated on that schedule
    */
 	getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate('weekDay', date) };
+		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate('yearMonthDay', date) };
+		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
@@ -122,16 +129,24 @@ export class StateService {
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
+			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date),
+			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
 		)
 	}
 
   /**
-   * Assemble an standalone Object describing the Class schedule for the supplied week.  
-	 * It will take the ITimetable format (described above)
+   * Assemble an standalone Object describing the Class schedule for the week that matches the supplied date.  
+	 * It will take the ITimetable format (described in getTimetableData)
    */
 	getScheduleData(date?: number): Observable<ITimetableState> {
+		const moment = getMoment(date);
+		const filterCalendar: TWhere = [
+			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate('yearMonthDay', moment.startOf('week')) },
+			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate('yearMonthDay', moment.endOf('week')) },
+		]
+		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
@@ -140,6 +155,8 @@ export class StateService {
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'client', STORE.schedule, undefined, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
+			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date),
+			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
 		)

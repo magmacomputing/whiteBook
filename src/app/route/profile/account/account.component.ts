@@ -16,10 +16,10 @@ export class AccountComponent implements OnInit {
   constructor(readonly state: StateService, readonly member: MemberService) { }
 
   ngOnInit() {
-    this.data$.subscribe(data => {
+    // this.data$.subscribe(data => {
       // this.dbg('data: %j', data);
-      this.state.getScheduleData().subscribe(data => this.dbg('schedule: %j', data));
-    })
+      // this.state.getScheduleData().subscribe(data => this.dbg('schedule: %j', data.client.calendar));
+    // })
   }
 
 }

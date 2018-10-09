@@ -44,7 +44,7 @@ export class AttendComponent implements OnInit {
           costs[idx] = cost;                          // stash the IPrice for each scheduled event
         })
 
-        // this.firstPaint = false;                    // TODO: ok to animate if Observable re-emits
+        // this.firstPaint = false;                   // TODO: ok to animate if Observable re-emits
         this.locations = locs;
         this.selectedIndex = 0;                       // start on the first-page
         data.client.price = costs;

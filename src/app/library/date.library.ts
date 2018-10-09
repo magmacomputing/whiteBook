@@ -7,10 +7,10 @@ import { isNumber } from 'util';
 
 /** Helper functions to standardize Date/Time formats */
 
-export const getMoment = (dt?: string | number, fmt: TString = MOMENT_FMT) =>
+export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
 	dt ? moment(dt, fmt) : moment(moment.now());
 
-export const fmtDate = (key: keyof IDate, dt?: string | number, fmt: TString = MOMENT_FMT) =>
+export const fmtDate = (key: keyof IDate, dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
 	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key]));
 
 // shortcut to fmtDate('stamp', ...)

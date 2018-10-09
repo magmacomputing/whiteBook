@@ -13,6 +13,7 @@ type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold' | 'credit';
 type TProfile = 'plan' | 'claim' | 'info';
 type TSchedule = 'event' | 'class' | 'special';
+type TCalendar = 'event' | 'special'
 type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'social' | 'oauth' | 'email' | 'play' | 'phone' | 'anonymous';
@@ -43,7 +44,7 @@ export interface IMeta {
 export interface IStoreBase extends IMeta {
 	[FIELD.store]: TStore | TStoreAdmin | TStoreAttend,
 	[FIELD.type]?: string,
-	[FIELD.key]?: string,
+	[FIELD.key]?: string | number,
 }
 
 export interface IStoreMeta extends IStoreBase {
@@ -96,6 +97,17 @@ export interface IEvent extends IStoreBase {
 	name: string;
 	desc: string;
 	class: TClass | TClass[];
+}
+
+//	/client/calendar
+export interface ICalendar extends IStoreBase {
+	[FIELD.store]: 'calendar';
+	[FIELD.type]: string;
+	[FIELD.key]: number;
+	desc?: string;
+	location?: string;
+	name: string;
+	start: string;
 }
 
 //	/client/schedule
