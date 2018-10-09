@@ -3,3 +3,7 @@
 
 *> spinner when loading ?  or add 'plan' to customClaims?
 so no false 'select plan'
+
+*> account component
+show current account status,
+allow payment, hold
