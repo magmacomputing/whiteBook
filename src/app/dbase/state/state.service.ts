@@ -13,7 +13,7 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { fmtDate, getMoment, getStamp } from '@lib/date.library';
+import { fmtDate } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
 /**
