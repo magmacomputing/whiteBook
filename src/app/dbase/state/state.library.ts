@@ -3,16 +3,17 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
+import { asAt } from '@dbase/app/app.library';
+
 import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
-
-import { getPath, sortKeys, cloneObj } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
-import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
 import { getSlice } from '@dbase/data/data.library';
-import { asAt } from '@dbase/app/app.library';
-import { fmtDate } from '@lib/date.library';
+
+import { asArray } from '@lib/array.library';
 import { DATE_FMT } from '@lib/date.define';
+import { fmtDate } from '@lib/date.library';
+import { getPath, sortKeys, cloneObj } from '@lib/object.library';
+import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
 
 export interface IState { [slice: string]: Observable<any> };
 
