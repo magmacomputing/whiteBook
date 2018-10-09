@@ -1,20 +1,18 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
-import { IAuthState } from '@dbase/state/auth.define';
 import { IFireClaims } from '@dbase/auth/auth.interface';
+import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
 import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD } from '@dbase/data/data.define';
-import { ICalendar } from '@dbase/data/data.schema';
 import { TWhere } from '@dbase/fire/fire.interface';
+import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
-import { DATE_FMT } from '@lib/date.define';
 import { fmtDate, getMoment } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 
@@ -137,7 +135,7 @@ export class StateService {
 	}
 
   /**
-   * Assemble an standalone Object describing the Class schedule for the week that matches the supplied date.  
+   * Assemble an standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
    */
 	getScheduleData(date?: number): Observable<ITimetableState> {
