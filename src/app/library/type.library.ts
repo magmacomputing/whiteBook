@@ -4,7 +4,7 @@ export const getType = (obj?: any): string => {
 
 	return type === 'Object'
 		? obj.constructor.name											// return Class name
-		: type === 'Function' && obj.valueOf().toString().substring(0, 6) === 'class '
+		: type === 'Function' && obj.valueOf().toString().startsWith('class ')
 			? 'Class'
 			: type
 }
