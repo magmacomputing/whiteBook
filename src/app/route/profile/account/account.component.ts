@@ -17,9 +17,9 @@ export class AccountComponent implements OnInit {
 
   ngOnInit() {
     // this.data$.subscribe(data => {
-      // this.dbg('data: %j', data);
-      // this.state.getScheduleData().subscribe(data => this.dbg('schedule: %j', data.client.calendar));
+    //   this.dbg('data: %j', data);
     // })
+    this.state.getScheduleData().subscribe(data => this.dbg('schedule: %j', data.client));
   }
 
 }

@@ -10,8 +10,6 @@ import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
 import { asArray } from '@lib/array.library';
-import { DATE_FMT } from '@lib/date.define';
-import { fmtDate } from '@lib/date.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
 
@@ -104,9 +102,6 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
         res.forEach(table => table
           .forEach((row: any) => {
             const type: string = (getSlice(store) === 'client') ? row[FIELD.store] : row[FIELD.type]; // TODO: dont hardcode 'type'
-
-            if (store === STORE.calendar)                     // Special: add a 'day' field to Calendar
-              row.day = fmtDate('weekDay', row[FIELD.key], DATE_FMT.yearMonthDay) as number;
 
             joins[type] = joins[type] || [];
             joins[type].push(row);
