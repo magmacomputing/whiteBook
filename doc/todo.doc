@@ -1,7 +1,7 @@
 
 *> Plan UI... only show mat-card if not plan._hidden
 
-*> spinner when loading ?  or add 'plan' to customClaims?
+*> spinner when initial-loading ?  or add 'plan' to customClaims so quicker?
 so no false 'select plan'
 
 *> account component
