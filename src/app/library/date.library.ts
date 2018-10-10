@@ -1,9 +1,8 @@
 import * as moment from 'moment';
 
 import { DATE_FMT, MOMENT_FMT, IDate } from '@lib/date.define';
-import { TString, isString } from '@lib/type.library';
+import { TString, isString, isNumber } from '@lib/type.library';
 import { toNumeric } from '@lib/string.library';
-import { isNumber } from 'util';
 
 /** Helper functions to standardize Date/Time formats */
 
