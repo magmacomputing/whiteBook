@@ -1,13 +1,13 @@
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
-	const type = Object.prototype.toString.call(obj).slice(8, -1);
+	const type: string = Object.prototype.toString.call(obj).slice(8, -1);
 
 	return type === 'Object'
 		? obj.constructor.name											// return Class name
 		: type === 'Function' && obj.valueOf().toString().substring(0, 6) === 'class '
 			? 'Class'
 			: type
-};
+}
 
 /** return a boolean if obj matches type */
 export const isType = (obj: any, type: string = 'Object'): boolean => getType(obj).toLowerCase() === type.toLowerCase();
@@ -34,10 +34,10 @@ const getType = (obj) => {
 
 	return type === 'Object'
 		? obj.constructor.name											// return Class name
-		: type === 'Function' && obj.valueOf().toString().substring(0, 6) === 'class '
+		: type === 'Function' && obj.valueOf().toString().startsWith('class ')
 			? 'Class'
 			: type
-};
+}
 const isType = (obj, type = 'Object') => getType(obj).toLowerCase() === type.toLowerCase();
 const isString = (obj) => isType(obj, 'String');
 const isNumber = (obj) => isType(obj, 'Number');
