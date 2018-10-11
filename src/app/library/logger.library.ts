@@ -22,8 +22,8 @@ export const log = (fmt?: any, ...msg: any[]): void => {
 }
 
 /**
- * attempt to use sprintf-style formatting on a string.
- * if the format does not contain a '%'-char, then de-construct the arguments
+ * use sprintf-style formatting on a string.  
+ * if the format does not contain a corresponding '%'-char, then de-construct the arguments
  */
 export const sprintf = (fmt: any, ...msg: any[]): string => {
 	if (isString(fmt) && !fmt.includes('%')) {

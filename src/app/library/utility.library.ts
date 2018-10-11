@@ -1,4 +1,9 @@
-import { IPromise } from '@lib/utility.interface';
+
+export interface IPromise<T> {
+	promise: Promise<T>;
+	resolve: (value?: T | PromiseLike<T> | undefined) => void;
+	reject: (reason?: any) => void;
+}
 
 /** General utility functions */
 

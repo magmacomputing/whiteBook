@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { IPromise } from '@lib/utility.interface';
+import { IPromise } from '@lib/utility.library';
 
 export interface IListen {
 	slice: string;												// slice of ngxs/store
@@ -9,4 +9,3 @@ export interface IListen {
 };
 
 export const StoreStorage = '@@STATE';
-export const StoreHash = '@@HASH';
