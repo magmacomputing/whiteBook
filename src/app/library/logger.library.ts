@@ -1,10 +1,11 @@
 import { format } from 'util';
-import { isString, isObject } from '@lib/type.library';
+import { isString, isObject, isUndefined } from '@lib/type.library';
 
 /** console.log() formatter */
 export function dbg(fmt?: any, ...msg: any[]): void {
-	let name = this && this.constructor && this.constructor.name || '';
-	let sep = isString(fmt) && (fmt.includes(':') || msg.length === 0)
+	// export const dbg = (fmt?: any, ...msg: any[]): void => {
+	const name = this && this.constructor && this.constructor.name || '';
+	const sep = isString(fmt) && (fmt.includes(':') || msg.length === 0)
 		? '.' : ': ';
 
 	log(name + sep + fmt, ...msg);// prepend the current Module name to aid debugging
@@ -12,7 +13,7 @@ export function dbg(fmt?: any, ...msg: any[]): void {
 
 export const log = (fmt?: any, ...msg: any[]): void => {
 	let out = 'log';
-	
+
 	if (isString(fmt)) {
 		let match = fmt.match(/(\w*):/i) || [];
 		if (['log', 'info', 'debug', 'warn', 'error'].includes(match[1]))
