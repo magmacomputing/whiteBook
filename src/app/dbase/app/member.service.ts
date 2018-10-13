@@ -67,7 +67,7 @@ export class MemberService {
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(event: IClass, price: number = 0, memberId?: string, date?: number) {
-		const credit = await this.getCredit(memberId);
+		const credit = await this.getCredit();
 		let activeId = credit.active[0][FIELD.id];
 
 		if (!activeId) {
@@ -92,15 +92,7 @@ export class MemberService {
 			.then(info => info.uid);
 	}
 
-	async getCredit(memberId?: string) {
-		const where: TWhere = [
-			{ fieldPath: FIELD.type, value: 'topUp' },					// TODO: do we need to qualify just 'topUp' account payments?
-			{ fieldPath: FIELD.key, value: await this.getUserID(memberId) },
-		]
-
-		const accountDocs = await this.data.snap<IAccount>(STORE.account)
-			.then(table => asAt(table, where));									// get the User's current Account Docs
-
+	async getCredit(accountDocs: IAccount[] = []) {
 		const summary = accountDocs.reduce((sum, account) => {
 			if (account.approve) sum.pay += account.amount;
 			if (account.active) sum.bank += account.bank || 0;

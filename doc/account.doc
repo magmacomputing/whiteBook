@@ -1,1 +1,17 @@
 wire up StateService.getMemberData()
+inject MemberService
+
+show  current balance
+
+
+show Firebase Account details
+		firstName
+		lastName
+		gender
+		birthDay
+
+
+allow
+	topUp								# additional payment
+	changePlan
+	onHold
