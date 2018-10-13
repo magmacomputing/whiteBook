@@ -13,11 +13,12 @@ export const getMemberInfo = (info: AdditionalUserInfo) => {
     id: profile.id,
     firstName: profile.given_name || profile.first_name || profile.firstName,
     lastName: profile.family_name || profile.last_name || profile.lastName,
-    fullName: profile.name,
+    fullName: profile.name || profile.login,
     email: profile.email || profile.emailAddress,
     gender: profile.gender,
     picture: profile.pictureUrl
-      || profile.thumbnail
+			|| profile.thumbnail
+			|| profile.avatar_url									// github
       || isString(profile.picture) && profile.picture
       || isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url
       || undefined,

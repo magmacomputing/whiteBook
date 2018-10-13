@@ -60,9 +60,9 @@ export class FireService {
 	batch(creates: TStoreBase = [], updates: TStoreBase = [], deletes: TStoreBase = []) {
 		const bat = this.afs.firestore.batch();
 
-		if (asArray(creates).length) this.dbg('creates: %j', creates);
-		if (asArray(updates).length) this.dbg('updates: %j', updates);
-		if (asArray(deletes).length) this.dbg('deletes: %j', deletes);
+		if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
+		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
+		if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));

@@ -1,194 +1,45 @@
 {
-	"auth": {
-		"user": {
-			"displayName": "Michael McRae",
-			"email": "michael@magmacomputing.com.au",
-			"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-			"uid": "tK8uq3RcMgZJFivYuPWcxvk7kAi2"
-		},
-		"claims": {
-			"memberName": "MichaelM"
-		}
+	"isNewUser": false,
+	"profile": {
+		"gists_url": "https://api.github.com/users/magmacomputing/gists{/gist_id}",
+		"followers": 0,
+		"location": "Sydney, Australia",
+		"site_admin": false,
+		"login": "magmacomputing",
+		"company": null,
+		"public_repos": 4,
+		"hireable": null,
+		"bio": null,
+		"node_id": "MDQ6VXNlcjY5MzU0OTY=",
+		"repos_url": "https://api.github.com/users/magmacomputing/repos",
+		"subscriptions_url": "https://api.github.com/users/magmacomputing/subscriptions",
+		"url": "https://api.github.com/users/magmacomputing",
+		"avatar_url": "https://avatars0.githubusercontent.com/u/6935496?v=4",
+		"html_url": "https://github.com/magmacomputing",
+		"email": "michael@magmacomputing.com.au",
+		"organizations_url": "https://api.github.com/users/magmacomputing/orgs",
+		"following_url": "https://api.github.com/users/magmacomputing/following{/other_user}",
+		"id": 6935496,
+		"created_at": "2014-03-12T23:51:31Z",
+		"updated_at": "2018-10-13T22:20:24Z",
+		"starred_url": "https://api.github.com/users/magmacomputing/starred{/owner}{/repo}",
+		"public_gists": 0,
+		"received_events_url": "https://api.github.com/users/magmacomputing/received_events",
+		"type": "User",
+		"events_url": "https://api.github.com/users/magmacomputing/events{/privacy}",
+		"followers_url": "https://api.github.com/users/magmacomputing/followers",
+		"blog": "",
+		"following": 0,
+		"gravatar_id": "",
+		"name": "Michael McRae"
 	},
-	"member": {
-		"info": [
-			{
-				"_id": "YX7FAZJfuaz0xuWzMumn",
-				"_effect": 1535152219,
-				"isNewUser": true,
-				"key": "tK8uq3RcMgZJFivYuPWcxvk7kAi2",
-				"profile": {
-					"age_range": {
-						"min": 21
-					},
-					"birthday": "01/01/1957",
-					"email": "michael@magmacomputing.com.au",
-					"first_name": "Michael",
-					"gender": "male",
-					"id": "100000138474102",
-					"last_name": "McRae",
-					"locale": "en_GB",
-					"name": "Michael McRae",
-					"picture": {
-						"data": {
-							"height": 100,
-							"is_silhouette": false,
-							"url": "https://scontent.xx.fbcdn.net/v/t1.0-1/c0.0.100.100/p100x100/25299342_1959170204097576_2174177630211488962_n.jpg?_nc_cat=0&oh=1be826769d60cbff35237153d9b3120e&oe=5BF67A21",
-							"width": 100
-						}
-					},
-					"timezone": 10,
-					"updated_time": "2018-08-19T06:57:14+0000",
-					"verified": true
-				},
-				"providerId": "facebook.com",
-				"store": "profile",
-				"type": "info"
-			},
-			{
-				"_id": "gFsvyKlMT4gLkvWWSSLv",
-				"_effect": 1535153546,
-				"isNewUser": false,
-				"key": "tK8uq3RcMgZJFivYuPWcxvk7kAi2",
-				"profile": {
-					"email": "michael@magmacomputing.com.au",
-					"family_name": "McRae",
-					"gender": "male",
-					"given_name": "Michael",
-					"hd": "magmacomputing.com.au",
-					"id": "110021813496510375957",
-					"locale": "en-GB",
-					"name": "Michael McRae",
-					"picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-					"verified_email": true
-				},
-				"providerId": "google.com",
-				"store": "profile",
-				"type": "info"
-			}
-		]
-	},
-	"client": {
-		"price": [
-			{
-				"_id": "9s1JVCQnCOcK01KDHIP6",
-				"_effect": 1514725200,
-				"amount": 5,
-				"key": "member",
-				"store": "price",
-				"type": "half"
-			},
-			{
-				"_id": "A2ZrHSOEGovIg3FUCjZG",
-				"_effect": 1514725200,
-				"amount": 10,
-				"key": "member",
-				"store": "price",
-				"type": "full"
-			},
-			{
-				"_id": "ByCoQfsAyriucWvcTdzI",
-				"amount": 0,
-				"key": "casual",
-				"store": "price",
-				"type": "topUp"
-			},
-			{
-				"_id": "CzutaKlWSaubY1gRfsIH",
-				"amount": 5,
-				"key": "member",
-				"store": "price",
-				"type": "hold"
-			},
-			{
-				"_id": "J9iNirLvbgG6LcIlktiU",
-				"amount": 5,
-				"key": "intro",
-				"store": "price",
-				"type": "full"
-			},
-			{
-				"_id": "OdM9giBv3XQ0K3g6Pzz9",
-				"amount": 120,
-				"key": "core",
-				"store": "price",
-				"type": "topUp"
-			},
-			{
-				"_id": "PVXZClKAjD7Ans6C6APZ",
-				"amount": 0,
-				"key": "gratis",
-				"store": "price",
-				"type": "half"
-			},
-			{
-				"_id": "RdPPiIN7tBkmKUKyhiBY",
-				"amount": 0,
-				"key": "gratis",
-				"store": "price",
-				"type": "full"
-			},
-			{
-				"_id": "TrYB35vbm6KAWwjmatRP",
-				"amount": 20,
-				"key": "intro",
-				"store": "price",
-				"type": "topUp"
-			},
-			{
-				"_id": "YnTyupNiI3eEMCqJkCRi",
-				"_effect": 1514725200,
-				"amount": 100,
-				"key": "member",
-				"store": "price",
-				"type": "topUp"
-			},
-			{
-				"_id": "bHSXSZm7JOOw05lwOd63",
-				"_effect": 1514725200,
-				"amount": 7.5,
-				"key": "casual",
-				"store": "price",
-				"type": "half"
-			},
-			{
-				"_id": "iHbYhKllm5DtVTnSM7Gu",
-				"_effect": 1514725200,
-				"amount": 10,
-				"key": "core",
-				"store": "price",
-				"type": "full"
-			},
-			{
-				"_id": "jsxtBbcFDayiprwo2vyP",
-				"_effect": 1514725200,
-				"amount": 15,
-				"key": "casual",
-				"store": "price",
-				"type": "full"
-			},
-			{
-				"_id": "nCpVOuGV3dJ9AJwjz3jZ",
-				"_effect": 1514725200,
-				"amount": 5,
-				"key": "core",
-				"store": "price",
-				"type": "half"
-			},
-			{
-				"_id": "pZ2jZvE5sCeVOgnKYOaK",
-				"amount": 0,
-				"key": "gratis",
-				"store": "price",
-				"type": "topUp"
-			},
-			{
-				"_id": "xNYUXXb85sKRl81Wt0Tz",
-				"amount": 2.5,
-				"key": "intro",
-				"store": "price",
-				"type": "half"
-			}
-		]
+	"username": "magmacomputing",
+	"providerId": "github.com",
+	"detail": {
+		"provider": "github.com",
+		"fullName": "Michael McRae",
+		"id": 6935496,
+		"picture": "https://avatars0.githubusercontent.com/u/6935496?v=4",
+		"email": "michael@magmacomputing.com.au"
 	}
 }
