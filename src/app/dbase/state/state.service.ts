@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
@@ -15,6 +15,7 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { asArray } from '@lib/array.library';
 import { fmtDate, getMoment } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
+import { IAccount } from '@dbase/data/data.schema';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -106,14 +107,28 @@ export class StateService {
 	 * member.account	-> has an array of current (not asAt) details about the Member's account payments  
 	 * member.summary	-> has an object summarising the Member's account value as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}
 	 */
-	getAccountData(): Observable<IAccountState> {
+	getAccountData(uid?: string): Observable<IAccountState> {
 		const filterAccount: TWhere = [
 			{ fieldPath: FIELD.type, value: ['topUp'] },
-			// { fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
+			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
 		]
+		const filterAttend: TWhere = [
+		];
 
 		return this.getMemberData().pipe(
-			joinDoc(this.states, 'member', STORE.account, filterAccount, undefined),
+			joinDoc(this.states, 'account', STORE.account, filterAccount, undefined),
+			switchMap(source => {																					// calculate the Account summary
+				console.log('source: ', source);
+				source.account.summary = source.account.topUp.reduce((sum: any, account: any) => {
+					if (account.approve) sum.pay += account.amount;
+					if (account.active) sum.bank += account.bank || 0;
+					if (!account.approve) sum.pend += account.amount;
+					if (account.active) sum.active.push(account);
+					return sum
+				}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] })
+
+				return of(source)
+			}),
 		)
 	}
 

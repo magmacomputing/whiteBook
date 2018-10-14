@@ -46,12 +46,14 @@ export interface IPlanState extends IMemberState {
 }
 
 export interface IAccountState extends IMemberState {
-	account: IAccount[];									// array of active payment documents
-	summary: {
-		pay: number;
-		bank: number;
-		pend: number;
-		cost: number;
+	account: {
+		payment: IAccount[];								// array of active payment documents
+		summary: {
+			pay: number;
+			bank: number;
+			pend: number;
+			cost: number;
+		}
 	}
 }
 
@@ -118,7 +120,7 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
 							joins[type].push(row);
 						})
 					} else {
-						joins[store] = joins[store] || [];
+						joins[store] = joins[store] || [];								// if there are no documents that match the criteria, return empty array
 					}
 				})
 
