@@ -16,8 +16,8 @@ export class LoginLink {
   static type = '[Auth] LoginLink';
   constructor(public link: ILink) { }
 }
-export class LoginSocial {
-  static type = '[Auth] LoginSocial';
+export class LoginIdentity {
+  static type = '[Auth] LoginIdentity';
   constructor(public authProvider: AuthProvider, public credential?: any) { }
 }
 export class LoginEmail {

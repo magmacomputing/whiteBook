@@ -14,7 +14,7 @@ interface IEmailToken {
 export const getAuthProvider = (providerId: string, token?: (IdTokenResult & IEmailToken) | null): [TProvider | undefined, AuthProvider | undefined, AuthCredential | undefined] => {
 	let authProvider: AuthProvider | undefined;
 	let authCredential: AuthCredential | undefined;
-	let type: TProvider | undefined = 'social';												// default to 'social'
+	let type: TProvider | undefined = 'identity';												// default to 'identity'
 
 	switch (providerId) {
 		case 'email':

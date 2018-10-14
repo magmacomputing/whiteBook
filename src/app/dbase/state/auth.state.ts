@@ -8,7 +8,7 @@ import { ROUTE } from '@route/route.define';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginSocial, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo } from '@dbase/state/auth.define';
 
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -86,15 +86,15 @@ export class AuthState implements NgxsOnInit {
 		} else {
 			const [type, authProvider] = getAuthProvider(methods[0]);
 			switch (type) {
-				case 'social':
-					ctx.dispatch(new LoginSocial(authProvider as AuthProvider, link.credential));
+				case 'identity':
+					ctx.dispatch(new LoginIdentity(authProvider as AuthProvider, link.credential));
 					break;
 			}
 		}
 	}
 
-	@Action(LoginSocial)														// process signInWithPopup()
-	loginSocial(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginSocial) {
+	@Action(LoginIdentity)														// process signInWithPopup()
+	loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
 		return this.afAuth.auth.signInWithPopup(authProvider)
 			.then(response => {
 				if (!credential)

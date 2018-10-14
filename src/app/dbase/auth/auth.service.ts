@@ -7,7 +7,7 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { LoginSocial, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
+import { LoginIdentity, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
@@ -49,8 +49,8 @@ export class AuthService {
 
 		switch (provider[FIELD.type]) {
 			case undefined:
-			case 'social':
-				this.signInSocial(provider);
+			case 'identity':
+				this.signInIdentity(provider);
 				break;
 
 			case 'oauth':
@@ -80,7 +80,7 @@ export class AuthService {
 	}
 
 	/** prepare the AuthProvider object before dispatching the SignIn flow */
-	private signInSocial(provider: IProvider) {
+	private signInIdentity(provider: IProvider) {
 		const [, authProvider] = getAuthProvider(provider[FIELD.key]);
 		if (!authProvider) return;                      // misconfigured providerId
 
@@ -90,7 +90,7 @@ export class AuthService {
 		if (provider.params)
 			(authProvider as TParams).setCustomParameters(provider.params);
 
-		this.store.dispatch(new LoginSocial(authProvider));
+		this.store.dispatch(new LoginIdentity(authProvider));
 	}
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
@@ -98,7 +98,7 @@ export class AuthService {
 	}
 
 	private signInOAuth(provider: IProvider) { }
-	private signInPlay(provider: IProvider) { }
 	private signInPhone(provider: IProvider) { }
+	private signInPlay(provider: IProvider) { }
 	private signInAnon(provider: IProvider) { }
 }
