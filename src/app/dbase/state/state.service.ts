@@ -6,7 +6,7 @@ import { Select } from '@ngxs/store';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState } from '@dbase/state/state.library';
+import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState, IAccountState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
@@ -71,7 +71,6 @@ export class StateService {
    * member.plan  -> has the asAt ProfilePlan for the user.uid  
    * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
    * member.price -> has an array of IPrice that match the Member's plan-type
-	 * member.account->has current(not asAt) details about the Member's account as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}
    * default._default_ -> has an array of IDefault values
    * 
    * @param date:	number	An optional as-at date to determine rows in an effective date-range
@@ -83,16 +82,11 @@ export class StateService {
 			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
 		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
-		const filterAccount: TWhere = [
-			{ fieldPath: FIELD.type, value: ['topUp'] },
-			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
-		]
 
 		return this.getUserData(uid).pipe(
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
-			joinDoc(this.states, 'member', STORE.account, filterAccount, date),
 		)
 	}
 
@@ -106,6 +100,23 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.price, undefined, date),
 		)
 	}
+
+	/**
+	 * Add Account details to the Member Profile Observable  
+	 * member.account	-> has an array of current (not asAt) details about the Member's account payments  
+	 * member.summary	-> has an object summarising the Member's account value as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}
+	 */
+	getAccountData(): Observable<IAccountState> {
+		const filterAccount: TWhere = [
+			{ fieldPath: FIELD.type, value: ['topUp'] },
+			// { fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
+		]
+
+		return this.getMemberData().pipe(
+			joinDoc(this.states, 'member', STORE.account, filterAccount, undefined),
+		)
+	}
+
 
   /**
    * Assemble an Object describing the Timetable for a specified date, as , where keys are:  

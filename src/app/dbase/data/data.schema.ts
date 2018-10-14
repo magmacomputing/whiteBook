@@ -10,7 +10,8 @@ export type TStore = TStoreClient | TStoreMember;
 export type TStoreBase = IStoreBase | IStoreBase[];
 
 type TSpan = 'full' | 'half';
-type TPrice = TSpan | 'topUp' | 'hold' | 'credit';
+type TPrice = TSpan | 'topUp';
+type TAccount = 'topUp' | 'hold' | 'credit' | 'close';
 type TProfile = 'plan' | 'claim' | 'info';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
@@ -102,7 +103,7 @@ export interface IEvent extends IStoreBase {
 //	/client/calendar
 export interface ICalendar extends IStoreBase {
 	[FIELD.store]: 'calendar';
-	[FIELD.type]: string;
+	[FIELD.type]: TCalendar;
 	[FIELD.key]: number;
 	desc?: string;
 	location?: string;
@@ -235,7 +236,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 //	/member/account
 export interface IAccount extends IStoreBase {
 	[FIELD.store]: 'account';
-	[FIELD.type]: TPrice;
+	[FIELD.type]: TAccount;
 	amount: number;
 	stamp: number;
 	active: boolean;

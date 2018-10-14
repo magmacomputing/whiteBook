@@ -31,23 +31,17 @@ export class PlanComponent implements OnInit {
 				const price = data.client.price                       // get the topUp for this Plan
 					.filter(price => price[FIELD.key] === plan[FIELD.key] && price[FIELD.type] === 'topUp')[0].amount;
 
-				if (price < myTopUp && !isAdmin)
-					plan[FIELD.disable] = true;                         // special: dont allow downgrades in price
+				if (price < myTopUp && !isAdmin)                      // Special: dont allow downgrades in price
+					plan[FIELD.disable] = true;
 
-				if (myPlan && plan[FIELD.key] === 'intro' && !isAdmin)
-					plan[FIELD.hidden] = true;                          // special: Intro is only available to new Members
+				if (plan[FIELD.key] === 'intro')											// Special: Intro is only available to new Members
+					plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
 
-				if (plan[FIELD.key] === 'pension') {
-					if (myAge < 60 && !isAdmin)
-						plan[FIELD.hidden] = true;
-					else {                                              // special: Pension is only available to senior Member
-						plan[FIELD.disable] = false;
-						plan[FIELD.hidden] = false;
-					}
-				}
+				if (plan[FIELD.key] === 'pension')										// Special: Pension is only available to senior Member
+					plan[FIELD.hidden] = (myAge < 60 && !isAdmin) ? true : false;
 
-				if (plan[FIELD.key] === myPlan)
-					plan[FIELD.disable] = true;                         // disable their current Plan, so cannot re-select
+				if (plan[FIELD.key] === myPlan)                       // disable their current Plan, so cannot re-select
+					plan[FIELD.disable] = true;
 
 				return plan
 			});

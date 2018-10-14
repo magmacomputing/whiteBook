@@ -1,7 +1,7 @@
-<div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],location:[]}}; let timetable">
+<div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],price:[],location:[],instructor:[]}}; let timetable">
   <div>
     <div *ngIf="timetable.client?.schedule?.length; else noSchedule">
-      <p>Please select an Event from the list below...</p>
+			<p>Please select an Event from the list below...</p>
     </div>
   </div>
 

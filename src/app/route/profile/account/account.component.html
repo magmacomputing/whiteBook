@@ -4,3 +4,8 @@
 <button (click)="member.setPayment()">TopUp</button>
 <p></p>
 <button (click)="member.getPlan()">Default Plan</button>
+
+<div *ngIf="(data$ | async) ; let data">
+
+
+</div>
