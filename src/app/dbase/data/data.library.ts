@@ -80,7 +80,7 @@ export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: Fire
     })
   )
 
-  return { updates, stamp, data: currDocs };    // include the tstamp, in case it was changed
+  return { updates, stamp, data: currDocs };    // include the stamp, in case it was changed
 }
 
 /**

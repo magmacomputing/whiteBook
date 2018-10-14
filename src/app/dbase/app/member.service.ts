@@ -161,6 +161,7 @@ export class MemberService {
 		if (authInfo.profile) {
 			const profile: any = authInfo.profile;
 			delete profile.link;						// special: FaceBook changes this field periodically
+			// delete profile.updated_at;			// special: Github might report this field only as a change
 
 			if (profile.picture && profile.picture.data && profile.picture.data.url)	// special: FaceBook changes the url-segment periodically
 				profile.picture.data.url = profile.picture.data.url.split('?')[0];
