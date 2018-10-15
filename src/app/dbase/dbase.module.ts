@@ -14,13 +14,13 @@ import { AttendState } from '@dbase/state/attend.state';
 const fb = environment.firebase || {};
 
 @NgModule({
-  imports: [
-    CommonModule,
-    NgxsModule.forFeature([ClientState, MemberState, AttendState]),
-    AngularFireModule.initializeApp(fb.app, fb.config),
-    AngularFirestoreModule.enablePersistence(),
-    AngularFireFunctionsModule,
-  ],
-  declarations: []
+	imports: [
+		CommonModule,
+		NgxsModule.forFeature([ClientState, MemberState, AttendState]),
+		AngularFireModule.initializeApp(fb.app, fb.config),
+		AngularFirestoreModule.enablePersistence(),
+		AngularFireFunctionsModule,
+	],
+	declarations: []
 })
 export class DBaseModule { }
