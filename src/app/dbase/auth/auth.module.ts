@@ -6,11 +6,11 @@ import { NgxsModule } from '@ngxs/store';
 import { AuthState } from '@dbase/state/auth.state';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    NgxsModule.forFeature([AuthState]),
-    AngularFireAuthModule,
-  ],
-  declarations: [],
+	imports: [
+		CommonModule,
+		NgxsModule.forFeature([AuthState]),
+		AngularFireAuthModule,
+	],
+	declarations: [],
 })
 export class AuthModule { }

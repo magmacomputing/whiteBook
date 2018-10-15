@@ -19,32 +19,32 @@ import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {
-  private dbg: Function = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
-  constructor(private store: Store) { this.dbg('new') }
+	constructor(private store: Store) { this.dbg('new') }
 
-  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
+	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 
-    return !isUndefined(auth.token);
-  }
+		return !isUndefined(auth.token);
+	}
 }
 
 /** ensure Member Profile has a current 'plan' */
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
-  private dbg: Function = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
-  constructor(private store: Store) { this.dbg('new') }
+	constructor(private store: Store) { this.dbg('new') }
 
-  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const member = this.store.selectSnapshot(MemberState)
-    const where: TWhere = { fieldPath: FIELD.type, value: 'plan' };
-    const plan = asAt<IProfilePlan>(member[STORE.profile], where);
+	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+		const member = this.store.selectSnapshot(MemberState)
+		const where: TWhere = { fieldPath: FIELD.type, value: 'plan' };
+		const plan = asAt<IProfilePlan>(member[STORE.profile], where);
 
-    if (isArray(plan) && plan.length) return true;      // ok to access Route
+		if (isArray(plan) && plan.length) return true;      // ok to access Route
 
-    this.store.dispatch(new Navigate([ROUTE.plan]));
-    return false;
-  }
+		this.store.dispatch(new Navigate([ROUTE.plan]));
+		return false;
+	}
 }

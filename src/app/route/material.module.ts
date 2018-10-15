@@ -12,26 +12,26 @@ import { MatNativeDateModule } from '@angular/material';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTabsModule  } from '@angular/material/tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 
 const modules = [
-  MatToolbarModule,
-  MatMenuModule,
-  MatButtonModule,
-  MatIconModule,
-  MatCheckboxModule,
-  MatCardModule,
-  MatDatepickerModule,
-  MatNativeDateModule,
-  MatExpansionModule,
-  MatDividerModule,
-  MatSnackBarModule,
-  MatTabsModule,
+	MatToolbarModule,
+	MatMenuModule,
+	MatButtonModule,
+	MatIconModule,
+	MatCheckboxModule,
+	MatCardModule,
+	MatDatepickerModule,
+	MatNativeDateModule,
+	MatExpansionModule,
+	MatDividerModule,
+	MatSnackBarModule,
+	MatTabsModule,
 ]
 
 @NgModule({
-  imports: [...modules],
-  exports: [...modules],
-  providers: [{ provide: MATERIAL_SANITY_CHECKS, useValue: false }],
+	imports: [...modules],
+	exports: [...modules],
+	providers: [{ provide: MATERIAL_SANITY_CHECKS, useValue: false }],
 })
 export class MaterialModule { }

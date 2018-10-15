@@ -28,90 +28,90 @@ import { dbg } from '@lib/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
-  private dbg: Function = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
-  constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
-    this.dbg('new');
-    this.syncOn(COLLECTION.Client, SLICE.client);   // initialize a listener to /client Collection
-  }
+	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
+		this.dbg('new');
+		this.syncOn(COLLECTION.Client, SLICE.client);   // initialize a listener to /client Collection
+	}
 
-  /** Make Store data available in a Promise */
-  snap<T>(store: string) {
-    const slice = getSlice(store);
+	/** Make Store data available in a Promise */
+	snap<T>(store: string) {
+		const slice = getSlice(store);
 
-    return this.store
-      .selectOnce<T[]>(state => state[slice][store])
-      .toPromise()
-  }
+		return this.store
+			.selectOnce<T[]>(state => state[slice][store])
+			.toPromise()
+	}
 
-  syncOn(collection: string, slice: string = SLICE.client) {
-    return this.sync.on(collection, slice);         // init a listener to a collection
-  }
+	syncOn(collection: string, slice: string = SLICE.client) {
+		return this.sync.on(collection, slice);         // init a listener to a collection
+	}
 
-  syncOff() {
-    return this.sync.off(COLLECTION.Client);        // unsubscribe a collection's listener
-  }
+	syncOff() {
+		return this.sync.off(COLLECTION.Client);        // unsubscribe a collection's listener
+	}
 
-  getMeta(store: string, docId: string) {
-    const collection = getSlice(store);
-    return collection
-      ? this.fire.getMeta(collection, docId)
-      : Promise.reject(`Cannot determine slice: ${store}`)
-  }
+	getMeta(store: string, docId: string) {
+		const collection = getSlice(store);
+		return collection
+			? this.fire.getMeta(collection, docId)
+			: Promise.reject(`Cannot determine slice: ${store}`)
+	}
 
-  get newId() {
-    return this.fire.newId();                       // get Firebase to generate a new Key
-  }
+	get newId() {
+		return this.fire.newId();                       // get Firebase to generate a new Key
+	}
 
-  async setDoc(store: string, doc: IStoreBase) {
-    doc = await docPrep(doc, this.auth.state());    // make sure we have a <key> field
-    return this.fire.setDoc(store, doc);
-  }
+	async setDoc(store: string, doc: IStoreBase) {
+		doc = await docPrep(doc, this.auth.state());    // make sure we have a <key> field
+		return this.fire.setDoc(store, doc);
+	}
 
-  updDoc(store: string, docId: string, data: IObject<any>) {
-    return this.fire.updDoc(store, docId, data);
-  }
+	updDoc(store: string, docId: string, data: IObject<any>) {
+		return this.fire.updDoc(store, docId, data);
+	}
 
-  /** Expire any current matching docs, and Create new doc */
-  async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
-    const creates: IStoreBase[] = [];
-    const updates: IStoreBase[] = [];
-    const stamp = getStamp();                               // the <effect> of the document-create
+	/** Expire any current matching docs, and Create new doc */
+	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
+		const creates: IStoreBase[] = [];
+		const updates: IStoreBase[] = [];
+		const stamp = getStamp();                               // the <effect> of the document-create
 
-    const promises = asArray(nextDocs).map(async nextDoc => {
-      let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Create
-      let where: TWhere;
+		const promises = asArray(nextDocs).map(async nextDoc => {
+			let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Create
+			let where: TWhere;
 
-      try {
-        nextDoc = await docPrep(nextDoc as IStoreMeta, this.auth.state());  // make sure we have a <key>
-        where = getWhere(nextDoc as IStoreMeta, filter);
-      } catch (error) {
-        this.snack.open(error.message);                     // show the error to the User
-        return;                                             // abort the Create/Update
-      }
+			try {
+				nextDoc = await docPrep(nextDoc as IStoreMeta, this.auth.state());  // make sure we have a <key>
+				where = getWhere(nextDoc as IStoreMeta, filter);
+			} catch (error) {
+				this.snack.open(error.message);                     // show the error to the User
+				return;                                             // abort the Create/Update
+			}
 
-      const currDocs = await this.snap<IStoreMeta>(nextDoc[FIELD.store])// read the store
-        .then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
-        .then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
+			const currDocs = await this.snap<IStoreMeta>(nextDoc[FIELD.store])// read the store
+				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
+				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
-      if (currDocs.updates.length) {
-        if (currDocs.stamp > 0)
-          nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>,
-        else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's <expire>
-      }
+			if (currDocs.updates.length) {
+				if (currDocs.stamp > 0)
+					nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>,
+				else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's <expire>
+			}
 
-      if (!checkDiscard(discards, nextDoc as IStoreMeta, currDocs.data as IStoreMeta[])) {
-        creates.push(nextDoc);                              // push the prepared document-create
-        updates.push(...currDocs.updates);                  // push the associated document-updates
-      }
-    })
+			if (!checkDiscard(discards, nextDoc as IStoreMeta, currDocs.data as IStoreMeta[])) {
+				creates.push(nextDoc);                              // push the prepared document-create
+				updates.push(...currDocs.updates);                  // push the associated document-updates
+			}
+		})
 
-    await Promise.all(promises);                            // collect all the Creates/Updates/Deletes
-    return this.batch(creates, updates);                    // then apply writes in a Batch
-  }
+		await Promise.all(promises);                            // collect all the Creates/Updates/Deletes
+		return this.batch(creates, updates);                    // then apply writes in a Batch
+	}
 
-  /** Batch a series of writes */
-  batch(creates?: TStoreBase, updates?: TStoreBase, deletes?: TStoreBase) {
-    return this.fire.batch(creates, updates, deletes);
-  }
+	/** Batch a series of writes */
+	batch(creates?: TStoreBase, updates?: TStoreBase, deletes?: TStoreBase) {
+		return this.fire.batch(creates, updates, deletes);
+	}
 }

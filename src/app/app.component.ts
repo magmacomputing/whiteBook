@@ -6,14 +6,14 @@ import { DataService } from '@dbase/data/data.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
 @Component({
-  selector: 'wb-root',
-  templateUrl: './app.component.html',
+	selector: 'wb-root',
+	templateUrl: './app.component.html',
 })
 export class AppComponent {
 
-  constructor(readonly data: DataService, readonly auth: AuthService, private readonly store: Store) { }
+	constructor(readonly data: DataService, readonly auth: AuthService, private readonly store: Store) { }
 
-  navigate(url: string) {
-    this.store.dispatch(new Navigate([url]));
-  }
+	navigate(url: string) {
+		this.store.dispatch(new Navigate([url]));
+	}
 }

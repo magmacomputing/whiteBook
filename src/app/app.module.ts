@@ -15,21 +15,21 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-  ],
-  imports: [
-    NgxsModule.forRoot([]),
-    NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
-    NgxsRouterPluginModule.forRoot(),
-    BrowserModule,
-    BrowserAnimationsModule,
-    DBaseModule,
-    AuthModule,
-    RoutingModule,
-    ServiceWorkerModule.register('/ngsw-worker.js', { enabled: environment.production }),
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+	declarations: [
+		AppComponent,
+	],
+	imports: [
+		NgxsModule.forRoot([]),
+		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
+		NgxsRouterPluginModule.forRoot(),
+		BrowserModule,
+		BrowserAnimationsModule,
+		DBaseModule,
+		AuthModule,
+		RoutingModule,
+		ServiceWorkerModule.register('/ngsw-worker.js', { enabled: environment.production }),
+	],
+	providers: [],
+	bootstrap: [AppComponent]
 })
 export class AppModule { }

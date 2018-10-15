@@ -11,19 +11,19 @@ export const toHex = (num: TNumber = [], len: number = 40) => {
 }
 
 export const suffix = (idx: number) => {
-  const str = asString(idx + 1);
-  let sfx = 'th';
+	const str = asString(idx + 1);
+	let sfx = 'th';
 
-  switch (true) {
-    case str.slice(-1) === '1' && str.slice(-2) !== '11':
-      sfx = 'st';
-      break;
-    case str.slice(-1) === '2' && str.slice(-2) !== '12':
-      sfx = 'nd';
-      break;
-    case str.slice(-1) === '3' && str.slice(-2) !== '13':
-      sfx = 'rd';
-      break;
-  }
-  return str + sfx;
+	switch (true) {
+		case str.slice(-1) === '1' && str.slice(-2) !== '11':
+			sfx = 'st';
+			break;
+		case str.slice(-1) === '2' && str.slice(-2) !== '12':
+			sfx = 'nd';
+			break;
+		case str.slice(-1) === '3' && str.slice(-2) !== '13':
+			sfx = 'rd';
+			break;
+	}
+	return str + sfx;
 }
