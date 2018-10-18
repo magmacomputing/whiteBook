@@ -20,7 +20,7 @@ export class AccountComponent implements OnInit {
 
 	ngOnInit() {
 		this.data$ = this.state.getAccountData().pipe(
-			tap(data => this.dbg('account: %j', data.account)),
+			tap(data => this.dbg('account: %j', data)),
 		)
 	}
 

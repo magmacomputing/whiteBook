@@ -116,7 +116,7 @@ export class StateService {
 		];
 
 		return this.getMemberData().pipe(
-			joinDoc(this.states, 'account', STORE.account, filterAccount, undefined),
+			joinDoc(this.states, 'account.payment', STORE.account, filterAccount, undefined),
 			joinDoc(this.states, 'account', STORE.attend, filterAttend, undefined),
 			joinSum(),
 		)

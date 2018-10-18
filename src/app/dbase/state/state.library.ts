@@ -5,7 +5,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar } from '@dbase/data/data.schema';
+import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
@@ -33,7 +33,6 @@ export interface IMemberState extends IUserState {
 		plan?: IProfilePlan[];              // member's effective plan
 		price?: IPrice[];                   // member's effective prices
 		info?: IProfileInfo[];              // array of AdditionalUserInfo documents
-		// account?: IAccount[];               // array of active payment documents
 	}
 	defaults?: IDefault[];                // defaults to apply, if missing from Member data
 }
@@ -45,15 +44,18 @@ export interface IPlanState extends IMemberState {
 	}
 }
 
+interface ISummary {
+	pay: number;
+	bank: number;
+	pend: number;
+	cost: number;
+	active: IAccount[];
+}
 export interface IAccountState extends IMemberState {
 	account: {
 		payment: IAccount[];								// array of active payment documents
-		summary: {
-			pay: number;
-			bank: number;
-			pend: number;
-			cost: number;
-		}
+		attend: IAttend[];
+		summary: ISummary;
 	}
 }
 
@@ -91,12 +93,12 @@ export const getUser = (token: IFireClaims) =>
 /**
  * Join a Parent document to other documents referenced a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
- * index:   the name of the index (eg. 'member') under which we place the documents on the State Object  
+ * node:   	the name of the node (eg. 'member') under which we place the documents on the State Object  
  * store:   the documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, index: string, store: string, filter: TWhere = [], date?: number) => {
+export const joinDoc = (states: IState, node: string, store: string, filter: TWhere = [], date?: number) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
@@ -109,7 +111,7 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
 			}),
 
 			map(res => {
-				let joins: { [key: string]: any[] } = parent[index] || {};
+				let joins: { [key: string]: any[] } = parent[node] || {};
 
 				res.forEach(table => {
 					if (table.length) {
@@ -129,7 +131,7 @@ export const joinDoc = (states: IState, index: string, store: string, filter: TW
 					joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
 				})
 
-				return { ...parent, ...{ [index]: joins } };
+				return { ...parent, ...{ [node]: joins } };
 			})
 		)
 	})
@@ -178,15 +180,12 @@ const decodeFilter = (parent: any, filter: TWhere) => {
  */
 export const joinSum = () => {
 	return (source: Observable<any>) => defer(() => {
-		let parent: any;
-
 		return source.pipe(
-			map(source => {																					// calculate the Account summary
-				parent = source;                                      // stash the original parent data state
-				const summary = { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] };
+			map((source: IAccountState) => {												// calculate the Account summary
+				const summary = { pay: 0, bank: 0, pend: 0, cost: 0, active: [] } as ISummary;
 
-				if (source.account && isArray(source.account.topUp)) {
-					source.account.summary = source.account.topUp.reduce((sum: any, account: any) => {
+				if (source.account && isArray(source.account.payment)) {
+					source.account.summary = source.account.payment.reduce((sum, account: any) => {
 						if (account.approve) sum.pay += account.amount;
 						if (account.active) sum.bank += account.bank || 0;
 						if (!account.approve) sum.pend += account.amount;
@@ -196,11 +195,13 @@ export const joinSum = () => {
 				}
 
 				if (source.account && isArray(source.account.attend)) {
-
+					source.account.attend.reduce((sum, attend) => {			// get the Attend docs related to the active Account doc
+						sum.cost += attend.cost														// add up each Attend's cost
+						return sum;
+					}, summary)
 				}
 
-				parent.account = { ...source.account, ...{ summary } };
-				return { ...parent };
+				return { ...source, ...{ summary } };
 			}),
 		)
 	})
