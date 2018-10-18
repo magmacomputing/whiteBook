@@ -25,8 +25,8 @@ export class PlanComponent implements OnInit {
 		this.data$ = this.state.getPlanData().pipe(map(data => {
 			const claim = data.auth.claims;
 			const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
-			const myPlan = data.member.plan && data.member.plan[0].plan;
-			const myTopUp = data.member.price && data.member.price.filter(price => price[FIELD.type] === 'topUp')[0].amount || 0;
+			const myPlan = data.member.plan && data.member.plan.length && data.member.plan[0].plan;
+			const myTopUp = data.member.price && data.member.price.length && data.member.price.filter(price => price[FIELD.type] === 'topUp')[0].amount || 0;
 			const myAge = getMemberAge(data.member.info);
 
 			const plans = data.client.plan.map(plan => {            // array of available Plans
