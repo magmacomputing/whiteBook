@@ -1,4 +1,4 @@
-import { Observable, defer, combineLatest } from 'rxjs';
+import { Observable, defer, combineLatest, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
@@ -170,5 +170,38 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 			cond.value = cond.value[0];                             // an array of only one value, return as string
 
 		return cond;                                              // rebuild each filter
+	})
+}
+
+/**
+ * Use the Observable on active IAccount[] & IAttend[] to determine current account-status (credit, pending, bank, etc.)
+ */
+export const joinSum = () => {
+	return (source: Observable<any>) => defer(() => {
+		let parent: any;
+
+		return source.pipe(
+			map(source => {																					// calculate the Account summary
+				parent = source;                                      // stash the original parent data state
+				const summary = { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] };
+
+				if (source.account && isArray(source.account.topUp)) {
+					source.account.summary = source.account.topUp.reduce((sum: any, account: any) => {
+						if (account.approve) sum.pay += account.amount;
+						if (account.active) sum.bank += account.bank || 0;
+						if (!account.approve) sum.pend += account.amount;
+						if (account.active) sum.active.push(account[FIELD.id]);
+						return sum
+					}, summary)
+				}
+
+				if (source.account && isArray(source.account.attend)) {
+
+				}
+
+				parent.account = { ...source.account, ...{ summary } };
+				return { ...parent };
+			}),
+		)
 	})
 }

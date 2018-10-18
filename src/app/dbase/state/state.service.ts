@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState, IAccountState } from '@dbase/state/state.library';
+import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState, IAccountState, joinSum } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
@@ -15,7 +15,6 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { asArray } from '@lib/array.library';
 import { fmtDate, getMoment } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
-import { IAccount } from '@dbase/data/data.schema';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -118,18 +117,8 @@ export class StateService {
 
 		return this.getMemberData().pipe(
 			joinDoc(this.states, 'account', STORE.account, filterAccount, undefined),
-			switchMap(source => {																					// calculate the Account summary
-				console.log('source: ', source);
-				source.account.summary = source.account.topUp.reduce((sum: any, account: any) => {
-					if (account.approve) sum.pay += account.amount;
-					if (account.active) sum.bank += account.bank || 0;
-					if (!account.approve) sum.pend += account.amount;
-					if (account.active) sum.active.push(account);
-					return sum
-				}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] })
-
-				return of(source)
-			}),
+			joinDoc(this.states, 'account', STORE.attend, filterAttend, undefined),
+			joinSum(),
 		)
 	}
 
