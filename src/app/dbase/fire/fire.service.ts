@@ -1,11 +1,10 @@
 import { Injectable, NgZone } from '@angular/core';
 import { MatSnackBar } from '@angular/material';
+import { tap } from 'rxjs/operators';
 
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { DBaseModule } from '@dbase/dbase.module';
-
-import { tap } from 'rxjs/operators';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -60,7 +59,7 @@ export class FireService {
 		const bat = this.afs.firestore.batch();
 
 		if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
-		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates));
+		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
 		if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));

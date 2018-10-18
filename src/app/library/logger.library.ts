@@ -1,5 +1,5 @@
 import { format } from 'util';
-import { isString, isObject, isUndefined } from '@lib/type.library';
+import { isString, isObject } from '@lib/type.library';
 
 /** console.log() formatter */
 export function dbg(fmt?: any, ...msg: any[]): void {

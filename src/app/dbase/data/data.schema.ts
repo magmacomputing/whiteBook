@@ -43,19 +43,6 @@ export interface IMeta {
 	[FIELD.type]?: string;
 }
 
-// to use when building a new Store Document for insert
-// export interface IStoreBase extends IMeta {
-// 	// [FIELD.store]: TStore | TStoreAdmin | TStoreAttend,
-// 	// [FIELD.type]?: string,
-// 	[FIELD.key]?: string | number,
-// }
-
-// export interface IStoreMeta extends IStoreBase {
-// 	[FIELD.id]: string;										// override the 'optional' _id on IMeta
-// 	[FIELD.key]: string;									// override the 'optional' key on IStoreBase
-// 	[key: string]: any;										// additional fields specific to a <store>
-// }
-
 /**
  * We have two main types of 'store' documents.  
  * One for 'client', keyed by 'store/type/key',  

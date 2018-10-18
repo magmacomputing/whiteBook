@@ -1,13 +1,7 @@
-import { State, Action, StateContext, NgxsOnInit, createSelector } from '@ngxs/store';
+import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
-import { asAt } from '@dbase/app/app.library';
 import { FIELD } from '@dbase/data/data.define';
-import { TWhere } from '@dbase/fire/fire.interface';
-
-import { TString } from '@lib/type.library';
-import { cloneObj, sortKeys } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState<IStoreDoc>>({

@@ -6,7 +6,7 @@ import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, IStoreMeta } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -16,7 +16,6 @@ import { asAt } from '@dbase/app/app.library';
 
 import { TString } from '@lib/type.library';
 import { getStamp } from '@lib/date.library';
-import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
