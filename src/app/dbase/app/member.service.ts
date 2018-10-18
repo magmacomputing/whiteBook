@@ -13,7 +13,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount, IStoreBase, IAttend, IPrice, IStoreMeta, IProfileInfo } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IClass, IAccount, IAttend, IPrice, IProfileInfo, IDefault } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { ROUTE } from '@route/route.define';
@@ -26,11 +26,11 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg: Function = dbg.bind(this);
-	private default: Promise<IStoreBase[]>;
+	private default: Promise<IDefault[]>;
 
 	constructor(private readonly data: DataService, private readonly store: Store, private action: Actions) {
 		this.dbg('new');
-		this.default = this.data.snap<IStoreBase>(STORE.default)
+		this.default = this.data.snap<IDefault>(STORE.default)
 			.then(table => asAt(table));								// stash the current defaults
 
 		this.action.pipe(															// special: listen for changes of the auth.info
@@ -40,7 +40,7 @@ export class MemberService {
 	}
 
 	async setPlan(plan: TPlan) {
-		const doc: IStoreBase = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
+		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
 		return this.data.insDoc(doc, undefined, 'plan')
@@ -53,7 +53,7 @@ export class MemberService {
 		const price = this.getPrice('topUp', memberId);
 		amount = !isUndefined(amount) ? amount : (await price).amount;
 
-		const accountDoc: IAccount = {
+		const accountDoc: Partial<IAccount> = {
 			[FIELD.store]: STORE.account,
 			[FIELD.type]: 'topUp',
 			amount: amount,
@@ -62,7 +62,7 @@ export class MemberService {
 		}
 
 		this.dbg('account: %j', accountDoc);
-		return this.data.setDoc(STORE.account, accountDoc as IStoreMeta);
+		return this.data.setDoc(STORE.account, accountDoc as IAccount);
 	}
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
@@ -75,7 +75,7 @@ export class MemberService {
 		}
 
 		this.dbg('event: %j', event);
-		const attendDoc: IAttend = {
+		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: activeId || '<garbage>',							// <id> of Account's active document
 			[FIELD.type]: event[FIELD.key],											// the Attend's event/class
 			cost: price,
@@ -83,7 +83,7 @@ export class MemberService {
 		}
 
 		this.dbg('attend: %j', attendDoc);
-		return this.data.setDoc(STORE.attend, attendDoc);
+		return this.data.setDoc(STORE.attend, attendDoc as IAttend);
 	}
 
 	private getUserID(memberId?: string) {									// get the current User's uid
@@ -131,7 +131,7 @@ export class MemberService {
 	async getPlan(memberId?: string) {											// find out the User's current <plan>
 		const where: TWhere = [
 			{ fieldPath: FIELD.type, value: 'plan' },
-			{ fieldPath: FIELD.key, value: await this.getUserID(memberId) },
+			{ fieldPath: FIELD.uid, value: await this.getUserID(memberId) },
 		];
 
 		const defaultDoc = await this.getDefault(STORE.plan);
@@ -161,7 +161,7 @@ export class MemberService {
 		if (authInfo.profile) {
 			const profile: any = authInfo.profile;
 			delete profile.link;						// special: FaceBook changes this field periodically
-			// delete profile.updated_at;			// special: Github might report this field only as a change
+			delete profile.updated_at;			// special: Github might report only this field as a change
 
 			if (profile.picture && profile.picture.data && profile.picture.data.url)	// special: FaceBook changes the url-segment periodically
 				profile.picture.data.url = profile.picture.data.url.split('?')[0];
@@ -174,7 +174,7 @@ export class MemberService {
 		}
 
 		const where: TWhere = { fieldPath: 'providerId', value: authInfo.providerId };
-		const profileUser: IProfileInfo = {
+		const profileUser: Partial<IProfileInfo> = {
 			...authInfo,										// spread the authInfo object
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
@@ -182,7 +182,7 @@ export class MemberService {
 			detail: getMemberInfo(authInfo),
 		}
 
-		this.data.insDoc(profileUser, where, 'profile');
+		this.data.insDoc(profileUser as IProfileInfo, where, STORE.profile);
 	}
 
 }

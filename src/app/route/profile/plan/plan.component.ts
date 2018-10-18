@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { StateService } from '@dbase/state/state.service';
+import { IPlanState } from '@dbase/state/state.library';
 import { MemberService } from '@dbase/app/member.service';
 import { getMemberAge } from '@dbase/app/member.library';
 
@@ -14,13 +16,13 @@ import { dbg } from '@lib/logger.library';
 	templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-	public data$ = this.state.getPlanData();
+	public data$!: Observable<IPlanState>;
 	private dbg: Function = dbg.bind(this);
 
 	constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
 	ngOnInit() {
-		this.data$.pipe(map(data => {
+		this.data$ = this.state.getPlanData().pipe(map(data => {
 			const claim = data.auth.claims;
 			const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
 			const myPlan = data.member.plan && data.member.plan[0].plan;

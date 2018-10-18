@@ -66,10 +66,10 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
  */
-export const asAt = <T>(table: T[], cond: TWhere = [], date?: string | number) => {
+export const asAt = <T extends IMeta>(table: T[], cond: TWhere = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : getStamp(date);
 
 	return filterTable(cloneObj(table), cond)						// return the rows where date is between _effect and _expire
-		.filter((row: IMeta) => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
-		.filter((row: IMeta) => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
+		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 }

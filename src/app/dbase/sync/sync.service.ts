@@ -13,7 +13,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IStoreBase } from '@dbase/data/data.schema';
+import { IMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -139,7 +139,7 @@ export class SyncService {
 		}
 
 		snaps.forEach(snap => {
-			const data = { [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreBase;
+			const data = { [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IMeta;
 
 			switch (snap.type) {
 				case 'added':

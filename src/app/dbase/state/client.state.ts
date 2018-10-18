@@ -56,27 +56,27 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	static current(store: string, filter?: TWhere, sortBy: TString = []) {	// no longer used
-		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
-			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
-			const filters = asArray(filter);
+	// static current(store: string, filter?: TWhere, sortBy: TString = []) {	// no longer used
+	// 	return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
+	// 		const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
+	// 		const filters = asArray(filter);
 
-			filters.push({ fieldPath: FIELD.expire, value: 0 });
-			filters.push({ fieldPath: FIELD.hidden, value: false });
+	// 		filters.push({ fieldPath: FIELD.expire, value: 0 });
+	// 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-			return clone
-				? asAt(clone, filters)
-					.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
-				: []
-		})
-	}
+	// 		return clone
+	// 			? asAt(clone, filters)
+	// 				.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
+	// 			: []
+	// 	})
+	// }
 
-	static store<T>(store: string, filter?: TWhere, date?: string | number) {
-		return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
-			const clone = cloneObj(state[store]);
-			const filters = asArray(filter);
+	// static store<T>(store: string, filter?: TWhere, date?: string | number) {
+	// 	return createSelector([ClientState], (state: IStoreState<IStoreDoc>) => {
+	// 		const clone = cloneObj(state[store]);
+	// 		const filters = asArray(filter);
 
-			return asAt<T>(clone as any[], filters, date);
-		})
-	}
+	// 		return asAt<T>(clone, filters, date);
+	// 	})
+	// }
 }

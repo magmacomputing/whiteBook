@@ -53,23 +53,23 @@ export const enum FIELD {					// common Field names
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
 export const FILTER: IObject<string[]> = {
 	[COLLECTION.Client]: [FIELD.store, FIELD.key],
-	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.key],
-	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.key],
+	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.uid],
+	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.uid],
 }
 
 export const SORTBY: IObject<TString> = {
 	[STORE.provider]: ['sort', FIELD.key],
-	[STORE.profile]: [FIELD.key, FIELD.type],
 	[STORE.plan]: ['sort', FIELD.key],
 	[STORE.schedule]: ['location', FIELD.type, 'day', 'start', FIELD.key],
 	[STORE.calendar]: [FIELD.key, 'start'],
 	[STORE.class]: FIELD.key,
 	[STORE.event]: [FIELD.key, 'name'],
 	[STORE.price]: [FIELD.key, FIELD.type],
-	[STORE.attend]: [FIELD.key, FIELD.type, FIELD.effect],
-	[STORE.account]: [FIELD.key, FIELD.type, FIELD.effect],
 	[STORE.location]: ['sort', FIELD.key],
 	[STORE.instructor]: ['sort', FIELD.key],
-	[STORE.default]: [FIELD.key, FIELD.type],
+	[STORE.default]: [FIELD.type, FIELD.key],
 	[STORE.schema]: [FIELD.type, FIELD.key],
+	[STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],
+	[STORE.account]: [FIELD.uid, FIELD.type, FIELD.effect],
+	[STORE.attend]: [FIELD.uid, FIELD.type, FIELD.effect],
 }

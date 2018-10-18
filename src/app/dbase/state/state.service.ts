@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
@@ -80,7 +80,7 @@ export class StateService {
 	getMemberData(date?: number, uid?: string): Observable<IMemberState> {
 		const filterProfile: TWhere = [
 			{ fieldPath: FIELD.type, value: ['plan', 'info'] },           // where the <type> is either 'plan' or 'info'
-			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
+			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getUserData()'s 'auth.user.uid'
 		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
 
@@ -99,6 +99,7 @@ export class StateService {
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
 			joinDoc(this.states, 'client', STORE.price, undefined, date),
+			// tap(state => this.dbg('state: %j', state)),
 		)
 	}
 
@@ -110,7 +111,7 @@ export class StateService {
 	getAccountData(uid?: string): Observable<IAccountState> {
 		const filterAccount: TWhere = [
 			{ fieldPath: FIELD.type, value: ['topUp'] },
-			{ fieldPath: FIELD.key, value: uid || '{{auth.user.uid}}' },  // and the <key> is the getUserData()'s 'auth.user.uid'
+			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getUserData()'s 'auth.user.uid'
 		]
 		const filterAttend: TWhere = [
 		];

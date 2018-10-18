@@ -58,18 +58,18 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** Selectors */
-	static current(store: string, filter: TWhere | undefined, sortBy: TString = []) {
-		return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
-			const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
-			const filters = asArray(filter);
+	// static current(store: string, filter: TWhere | undefined, sortBy: TString = []) {
+	// 	return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
+	// 		const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
+	// 		const filters = asArray(filter);
 
-			filters.push({ fieldPath: FIELD.expire, value: 0 });
-			filters.push({ fieldPath: FIELD.hidden, value: false });
+	// 		filters.push({ fieldPath: FIELD.expire, value: 0 });
+	// 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-			return clone
-				? filterTable(clone, filters)
-					.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
-				: []
-		})
-	}
+	// 		return clone
+	// 			? filterTable(clone, filters)
+	// 				.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
+	// 			: []
+	// 	})
+	// }
 }

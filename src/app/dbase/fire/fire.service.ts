@@ -9,12 +9,11 @@ import { tap } from 'rxjs/operators';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
-import { IMeta, TStoreBase } from '@dbase/data/data.schema';
+import { IMeta, TMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/data/data.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined } from '@lib/type.library';
-import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -57,31 +56,31 @@ export class FireService {
 	}
 
 	/** Batch a set of database-writes */
-	batch(creates: TStoreBase = [], updates: TStoreBase = [], deletes: TStoreBase = []) {
+	async batch(creates: TMeta = [], updates: TMeta = [], deletes: TMeta = []) {
 		const bat = this.afs.firestore.batch();
 
 		if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
-		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
+		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates));
 		if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
 
-		return bat.commit();
+		bat.commit();
 	}
 
-	setDoc(store: string, doc: IObject<any>) {
+	async setDoc(store: string, doc: IMeta) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
 		doc = this.remId(doc);											// remove the meta-field from the document
-		return this.docRef(store, docId).set(doc)
-			.then(_ => docId)
+		await this.docRef(store, docId).set(doc);
+		return docId;
 	}
 
-	updDoc(store: string, docId: string, data: IObject<any>) {
+	async updDoc(store: string, docId: string, data: IMeta) {
 		data = this.remId(data);
-		return this.docRef(store, docId).update(data)
-			.then(_ => docId);
+		await this.docRef(store, docId).update(data)
+		return docId;
 	}
 
 	getDoc(store: string, docId: string) {

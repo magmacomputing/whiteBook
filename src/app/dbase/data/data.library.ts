@@ -2,7 +2,7 @@ import { IAuthState } from '@dbase/state/auth.define';
 import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { IStoreMeta, IStoreBase } from '@dbase/data/data.schema';
+import { TStoreBase, isClientStore, IStoreMeta, IMeta } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
 import { isObject, TString } from '@lib/type.library';
 import { asString } from '@lib/string.library';
@@ -35,28 +35,28 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	return where;
 }
 
-export const docPrep = (doc: IStoreBase, auth: IAuthState) => {
-	const collection = getSlice(doc[FIELD.store]);
-	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
-	const uid = auth.user!.uid;
+export const docPrep = (doc: TStoreBase, auth: IAuthState) => {
+	const uid = auth.user!.uid;										// get the current user's uid
 
-	if (!doc[FIELD.key] && filters.includes(FIELD.key) && uid)
-		doc[FIELD.key] = uid;                       // ensure uid is included on doc
+	if (!isClientStore(doc)) {										// if not a /client document
+		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
+			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
+	}
 	return doc;
 }
 
 /** Expire current docs */
-export const updPrep = async (currDocs: IStoreMeta[], tstamp: number, fire: FireService) => {
+export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: FireService) => {
 	let stamp = tstamp;                           // stash the tstamp
 	const updates = await Promise.all(
 		currDocs.map(async currDoc => {             // loop through existing-docs first, to determine currEffect/currExpire range
 			const currStore = currDoc[FIELD.store];
-			const currUpdate: IStoreBase = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore };;
+			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as TStoreBase;
 			const currExpire = currDoc[FIELD.expire];
 			let currEffect = currDoc[FIELD.effect];
 
 			if (!currEffect) {                        // _create is only available from server
-				currEffect = await fire.getMeta(currStore, currDoc[FIELD.id])
+				currEffect = await fire.getMeta(currStore, currDoc[FIELD.id] as string)
 					.then(meta => meta[FIELD.create] || Number.MIN_SAFE_INTEGER);
 			}
 
