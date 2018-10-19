@@ -5,7 +5,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IAccount, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
+import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IPayment, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
@@ -49,13 +49,13 @@ interface ISummary {
 	bank: number;
 	pend: number;
 	cost: number;
-	active: IAccount[];
 }
 export interface IAccountState extends IMemberState {
 	account: {
-		payment: IAccount[];								// array of active payment documents
+		payment: IPayment[];								// array of active payment documents
 		attend: IAttend[];
 		summary: ISummary;
+		active?: string;										// the currently 'active' IPayment row
 	}
 }
 
@@ -111,12 +111,15 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 			}),
 
 			map(res => {
-				let joins: { [key: string]: any[] } = parent[node] || {};
+				const nodes = node.split('.');
+				let joins: { [key: string]: any[] } = parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach((row: any) => {
-							const type: string = (getSlice(store) === 'client') ? row[FIELD.store] : row[FIELD.type]; // TODO: dont hardcode 'type'
+							const type: string = (getSlice(store) === 'client')
+								? row[FIELD.store]
+								: (nodes[1] || row[FIELD.type])
 
 							joins[type] = joins[type] || [];
 							joins[type].push(row);
@@ -127,11 +130,13 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 				})
 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
-					const sortBy = SORTBY[table];
-					joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
+					if (isArray(joins[table])) {
+						const sortBy = SORTBY[table];
+						joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
+					}
 				})
 
-				return { ...parent, ...{ [node]: joins } };
+				return { ...parent, ...{ [nodes[0]]: joins } };
 			})
 		)
 	})
@@ -176,7 +181,7 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 }
 
 /**
- * Use the Observable on active IAccount[] & IAttend[] to determine current account-status (credit, pending, bank, etc.)
+ * Use the Observable on active IPayment[] & IAttend[] to determine current account-status (credit, pending, bank, etc.)
  */
 export const joinSum = () => {
 	return (source: Observable<any>) => defer(() => {
@@ -189,7 +194,6 @@ export const joinSum = () => {
 						if (account.approve) sum.pay += account.amount;
 						if (account.active) sum.bank += account.bank || 0;
 						if (!account.approve) sum.pend += account.amount;
-						if (account.active) sum.active.push(account[FIELD.id]);
 						return sum
 					}, summary)
 				}
@@ -201,8 +205,28 @@ export const joinSum = () => {
 					}, summary)
 				}
 
-				return { ...source, ...{ summary } };
+				return { ...source };
 			}),
 		)
 	})
 }
+
+/**
+ * There is only 1 Account marked 'active' at any time.  
+ * The rest are assumed to be pre-payments.
+ */
+export const getActive = () => {
+	return (source: Observable<any>) => defer(() => {
+		return source.pipe(
+			map((source: IAccountState) => {
+				if (source.account && isArray(source.account.payment)) {
+					const payments = source.account.payment
+						.filter(row => row.active)[0];										// get the first 'active' document found
+					source.account.active = payments[FIELD.id];					// and stash it's FIELD.id
+				}
+
+				return { ...source };
+			}),
+		)
+	})
+} 

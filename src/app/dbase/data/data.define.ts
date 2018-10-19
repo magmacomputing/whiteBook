@@ -13,13 +13,13 @@ export const enum COLLECTION {			// collection starts with upper-case, document 
 export const STORES: { [col: string]: string[] } = {
 	auth: ['userInfo', 'userToken'],
 	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', '_default_', '_config_', '_schema_'],
-	member: ['account', 'profile'],
+	member: ['payment', 'profile'],
 	attend: ['attend'],
 }
 
 export const enum STORE {
 	profile = 'profile',
-	account = 'account',
+	payment = 'payment',
 	attend = 'attend',
 	provider = 'provider',
 	class = 'class',
@@ -70,6 +70,6 @@ export const SORTBY: IObject<TString> = {
 	[STORE.default]: [FIELD.type, FIELD.key],
 	[STORE.schema]: [FIELD.type, FIELD.key],
 	[STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],
-	[STORE.account]: [FIELD.uid, FIELD.type, FIELD.effect],
+	[STORE.payment]: [FIELD.uid, FIELD.type, FIELD.effect],
 	[STORE.attend]: [FIELD.uid, FIELD.type, FIELD.effect],
 }

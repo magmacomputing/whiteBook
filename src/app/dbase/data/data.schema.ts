@@ -3,14 +3,14 @@ import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor';
-export type TStoreMember = 'profile' | 'account' | 'bonus';
-export type TStoreAttend = string;			// Attend docs will have a <store> that links to an Account _id
+export type TStoreMember = 'profile' | 'payment' | 'bonus';
+export type TStoreAttend = string;			// Attend docs will have a <store> that links to an Payment _id
 
 export type TMeta = IMeta | IMeta[];
 
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp';
-type TAccount = 'topUp' | 'hold' | 'credit' | 'close';
+type TPayment = 'topUp' | 'hold' | 'credit' | 'close';
 type TProfile = 'plan' | 'claim' | 'info';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
@@ -68,12 +68,6 @@ export interface IDefault extends IClientBase {
 	[FIELD.store]: '_default_';
 	[FIELD.type]: TStoreClient;
 	[FIELD.key]: string;
-}
-export interface IDefaultPrice extends IDefault {
-	[FIELD.type]: 'price';
-}
-export interface IDefaultPlan extends IDefault {
-	[FIELD.type]: 'plan';
 }
 
 //	/client/price
@@ -242,10 +236,10 @@ export interface IMemberInfo {				// Conformed Info across Providers
 	birthday?: number;
 }
 
-//	/member/account
-export interface IAccount extends IMemberBase {
-	[FIELD.store]: 'account';
-	[FIELD.type]: TAccount;
+//	/member/payment
+export interface IPayment extends IMemberBase {
+	[FIELD.store]: 'payment';
+	[FIELD.type]: TPayment;
 	amount: number;
 	stamp: number;
 	active: boolean;

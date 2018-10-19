@@ -4,7 +4,7 @@
 			"displayName": "Michael McRae",
 			"email": "michael@magmacomputing.com.au",
 			"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-			"providerId": "github.com",
+			"providerId": "google.com",
 			"uid": "Iru8CN58IWWOygCxuX1W9MZ99FN2"
 		}
 	},
@@ -291,8 +291,8 @@
 			}
 		]
 	},
-	"account.payment": {
-		"topUp": [
+	"account": {
+		"payment": [
 			{
 				"_id": "bdVTxODYEmsA8O0yU4vZ",
 				"active": true,
@@ -307,16 +307,16 @@
 				"type": "topUp",
 				"uid": "Iru8CN58IWWOygCxuX1W9MZ99FN2"
 			}
-		]
-	},
-	"account": {
-		"attend": []
-	},
-	"summary": {
-		"pay": 0,
-		"bank": 0,
-		"pend": 0,
-		"cost": 0,
-		"active": []
+		],
+		"attend": [],
+		"summary": {
+			"pay": 100,
+			"bank": 0,
+			"pend": 0,
+			"cost": 0,
+			"active": [
+				"bdVTxODYEmsA8O0yU4vZ"
+			]
+		}
 	}
 }

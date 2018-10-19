@@ -6,10 +6,10 @@ import { Select } from '@ngxs/store';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState, IAccountState, joinSum } from '@dbase/state/state.library';
+import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState, IAccountState, joinSum, getActive } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
@@ -98,7 +98,6 @@ export class StateService {
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
 			joinDoc(this.states, 'client', STORE.price, undefined, date),
-			// tap(state => this.dbg('state: %j', state)),
 		)
 	}
 
@@ -108,20 +107,16 @@ export class StateService {
 	 * member.summary	-> has an object summarising the Member's account value as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}
 	 */
 	getAccountData(uid?: string): Observable<IAccountState> {
-		const filterAccount: TWhere = [
-			{ fieldPath: FIELD.type, value: ['topUp'] },
-			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getUserData()'s 'auth.user.uid'
-		]
-		const filterAttend: TWhere = [
-		];
+		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
+		const filterAttend: IWhere = { fieldPath: FIELD.store, value: '{{account.active}}' };
 
 		return this.getMemberData().pipe(
-			joinDoc(this.states, 'account.payment', STORE.account, filterAccount, undefined),
-			joinDoc(this.states, 'account', STORE.attend, filterAttend, undefined),
-			joinSum(),
+			joinDoc(this.states, 'account', STORE.payment, filterPayment),
+			getActive(),																									// determine the ID of the active IPayment
+			joinDoc(this.states, 'account', STORE.attend, filterAttend),	// join IAttend documents with that Active IPayment
+			joinSum(),																										// calc an account-summary observable
 		)
 	}
-
 
   /**
    * Assemble an Object describing the Timetable for a specified date, as , where keys are:  

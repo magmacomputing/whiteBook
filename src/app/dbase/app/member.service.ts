@@ -13,7 +13,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IClass, IAccount, IAttend, IPrice, IProfileInfo, IDefault } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IClass, IPayment, IAttend, IPrice, IProfileInfo, IDefault } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { ROUTE } from '@route/route.define';
@@ -53,8 +53,8 @@ export class MemberService {
 		const price = this.getPrice('topUp', memberId);
 		amount = !isUndefined(amount) ? amount : (await price).amount;
 
-		const accountDoc: Partial<IAccount> = {
-			[FIELD.store]: STORE.account,
+		const accountDoc: Partial<IPayment> = {
+			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
 			amount: amount,
 			active: false,
@@ -62,7 +62,7 @@ export class MemberService {
 		}
 
 		this.dbg('account: %j', accountDoc);
-		return this.data.setDoc(STORE.account, accountDoc as IAccount);
+		return this.data.setDoc(STORE.payment, accountDoc as IPayment);
 	}
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
@@ -92,14 +92,14 @@ export class MemberService {
 			.then(info => info.uid);
 	}
 
-	async getCredit(accountDocs: IAccount[] = []) {
+	async getCredit(accountDocs: IPayment[] = []) {
 		const summary = accountDocs.reduce((sum, account) => {
 			if (account.approve) sum.pay += account.amount;
 			if (account.active) sum.bank += account.bank || 0;
 			if (!account.approve) sum.pend += account.amount;
 			if (account.active) sum.active.push(account);
 			return sum
-		}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IAccount[]>[] })	// calculate the Account summary
+		}, { pay: 0, bank: 0, pend: 0, cost: 0, active: <IPayment[]>[] })	// calculate the Account summary
 
 		const activeAccount = accountDocs.filter(account => account.active)[0] || {};
 		const activeId = activeAccount[FIELD.id] || '';

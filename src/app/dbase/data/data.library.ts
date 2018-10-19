@@ -2,7 +2,7 @@ import { IAuthState } from '@dbase/state/auth.define';
 import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { TStoreBase, isClientStore, IStoreMeta, IMeta } from '@dbase/data/data.schema';
+import { TStoreBase, isClientStore, IStoreMeta } from '@dbase/data/data.schema';
 import { FILTER, FIELD, STORES, STORE } from '@dbase/data/data.define';
 import { isObject, TString } from '@lib/type.library';
 import { asString } from '@lib/string.library';
