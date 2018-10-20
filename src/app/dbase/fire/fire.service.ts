@@ -8,7 +8,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
-import { IMeta, TMeta } from '@dbase/data/data.schema';
+import { IMeta, TStoreBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/data/data.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -55,15 +55,15 @@ export class FireService {
 	}
 
 	/** Batch a set of database-writes */
-	async batch(creates: TMeta = [], updates: TMeta = [], deletes: TMeta = []) {
+	async batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
 		if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
 		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
 		if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
-		asArray(creates).forEach(ins => bat.set(this.docRef(ins.store), this.remId(ins)));
-		asArray(updates).forEach(upd => bat.update(this.docRef(upd.store, upd[FIELD.id]), this.remId(upd)));
-		asArray(deletes).forEach(del => bat.delete(this.docRef(del.store, del[FIELD.id])));
+		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remId(ins)));
+		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remId(upd)));
+		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
 		bat.commit();
 	}

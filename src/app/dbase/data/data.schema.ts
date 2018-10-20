@@ -39,8 +39,6 @@ export interface IMeta {
 	[FIELD.expire]?: number;							// the time before which (less-than) this row is expired, or '0' for un-expired
 	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client
 	[FIELD.disable]?: boolean;						// valid value, greyed-out to the client
-	[FIELD.store]: TStoreClient | TStoreMember | TStoreAdmin | TStoreAttend;
-	[FIELD.type]?: string;
 }
 
 /**
@@ -48,13 +46,20 @@ export interface IMeta {
  * One for 'client', keyed by 'store/type/key',  
  * the other for 'member', keyed by 'store/type/uid'
  */
-export type TStoreBase = IClientBase | IMemberBase;
-export interface IClientBase extends IMeta {
+export type TStoreBase = IClientBase | IMemberBase | IAttendBase;
+interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreAdmin;
+	[FIELD.type]?: string;
 	[FIELD.key]: string | number;
 }
-export interface IMemberBase extends IMeta {
-	[FIELD.store]: TStoreMember | TStoreAttend;
+interface IMemberBase extends IMeta {
+	[FIELD.store]: TStoreMember;
+	[FIELD.type]?: string;
+	[FIELD.uid]: string;
+}
+interface IAttendBase extends IMeta {
+	[FIELD.store]: TStoreAttend;
+	[FIELD.type]?: string;
 	[FIELD.uid]: string;
 }
 export interface IStoreMeta extends IMeta {

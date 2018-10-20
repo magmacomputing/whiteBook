@@ -10,9 +10,11 @@ import { equalObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
-	return Object.keys(STORES)
-		.filter(col => STORES[col].includes(store))[0]
-		|| STORE.attend                             // TODO: is it safe to assume <attend> if unknown 'store'?
+	const slices = Object.keys(STORES)
+		.filter(col => STORES[col].includes(store));
+	if (!slices.length)
+		window.alert(`Unexpected store: ${store}`);
+	return slices[0] || STORE.attend;							// TODO: is it safe to assume <attend> if unknown 'store'?
 }
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */

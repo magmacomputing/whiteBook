@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { ITimetableState } from '@dbase/state/state.library';
+import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 

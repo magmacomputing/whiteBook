@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { IPlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { IPlanState } from '@dbase/state/state.library';
 import { MemberService } from '@dbase/app/member.service';
 import { getMemberAge } from '@dbase/app/member.library';
 
