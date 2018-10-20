@@ -112,7 +112,7 @@ export class StateService {
 		const filterAttend: IWhere = { fieldPath: FIELD.store, value: '{{account.active}}' };
 
 		return this.getMemberData().pipe(
-			joinDoc(this.states, 'account', STORE.payment, filterPayment, undefined, sumPayment),
+			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account', STORE.attend, filterAttend, undefined, sumAttend),
 		)
 	}
