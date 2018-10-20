@@ -6,7 +6,8 @@ import { Select } from '@ngxs/store';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { getUser, IMemberState, IUserState, IPlanState, ITimetableState, joinDoc, getStore, IState, IAccountState, joinSum, getActive } from '@dbase/state/state.library';
+import { IMemberState, IUserState, IPlanState, ITimetableState, IState, IAccountState } from '@dbase/state/state.define';
+import { getUser, joinDoc, getStore, sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
@@ -111,10 +112,8 @@ export class StateService {
 		const filterAttend: IWhere = { fieldPath: FIELD.store, value: '{{account.active}}' };
 
 		return this.getMemberData().pipe(
-			joinDoc(this.states, 'account', STORE.payment, filterPayment),
-			getActive(),																									// determine the ID of the active IPayment
-			joinDoc(this.states, 'account', STORE.attend, filterAttend),	// join IAttend documents with that Active IPayment
-			joinSum(),																										// calc an account-summary observable
+			joinDoc(this.states, 'account', STORE.payment, filterPayment, undefined, sumPayment),
+			joinDoc(this.states, 'account', STORE.attend, filterAttend, undefined, sumAttend),
 		)
 	}
 

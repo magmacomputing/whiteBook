@@ -2,74 +2,17 @@ import { Observable, defer, combineLatest, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
-import { TTokenClaims, IFireClaims } from '@dbase/auth/auth.interface';
+import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
-import { IProfilePlan, IProfileInfo, IDefault, IPlan, IPrice, IPayment, ISchedule, IClass, IInstructor, ILocation, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
+import { IState, IAccountState } from '@dbase/state/state.define';
+import { IDefault } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
-import { isString, isNull, isArray, isUndefined } from '@lib/type.library';
-
-export interface IState { [slice: string]: Observable<any> };
-
-export interface IUserState {
-	auth: {
-		user: {                             // generic information returned from a Provider
-			uid: string;
-			providerId: string;
-			displayName: string | null;
-			email: string | null;
-			photoURL: string | null;
-		} | null;
-		claims: TTokenClaims | null;        // authenticated customClaims
-	}
-}
-
-export interface IMemberState extends IUserState {
-	member: {
-		plan?: IProfilePlan[];              // member's effective plan
-		price?: IPrice[];                   // member's effective prices
-		info?: IProfileInfo[];              // array of AdditionalUserInfo documents
-	}
-	defaults?: IDefault[];                // defaults to apply, if missing from Member data
-}
-
-export interface IPlanState extends IMemberState {
-	client: {
-		plan: IPlan[];                      // array of effective Plan documents
-		price: IPrice[];                    // array of effective Price documents
-	}
-}
-
-interface ISummary {
-	pay: number;
-	bank: number;
-	pend: number;
-	cost: number;
-}
-export interface IAccountState extends IMemberState {
-	account: {
-		payment: IPayment[];								// array of active payment documents
-		attend: IAttend[];
-		summary: ISummary;
-		active?: string;										// the currently 'active' IPayment row
-	}
-}
-
-export interface ITimetableState extends IMemberState {
-	client: {
-		schedule?: ISchedule[];
-		class?: IClass[];
-		event?: IEvent[];
-		calendar?: ICalendar[];
-		location?: ILocation[];
-		instructor?: IInstructor[];
-		price?: IPrice[];
-	}
-}
+import { isString, isNull, isArray, isUndefined, isFunction } from '@lib/type.library';
 
 /** Generic Slice Observable */
 export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: number) => {
@@ -98,7 +41,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string, store: string, filter: TWhere = [], date?: number) => {
+export const joinDoc = (states: IState, node: string, store: string, filter: TWhere = [], date?: number, callBack?: Function) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
@@ -137,7 +80,12 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 				})
 
 				return { ...parent, ...{ [nodes[0]]: joins } };
-			})
+			}),
+			map(data =>
+				isFunction(callBack)
+					? callBack(data)
+					: data
+			),
 		)
 	})
 }
@@ -181,52 +129,36 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 }
 
 /**
- * Use the Observable on active IPayment[] & IAttend[] to determine current account-status (credit, pending, bank, etc.)
+ * Use the Observable on active IPayment[] to determine current account-status (credit, pending, bank, etc.)
  */
-export const joinSum = () => {
-	return (source: Observable<any>) => defer(() => {
-		return source.pipe(
-			map((source: IAccountState) => {												// calculate the Account summary
-				const summary = { pay: 0, bank: 0, pend: 0, cost: 0, active: [] } as ISummary;
+export const sumPayment = (source: IAccountState) => {
+	console.log('source: ', source);
+	if (source.account && isArray(source.account.payment)) {
+		source.account.summary = source.account.payment.reduce((sum, account) => {
+			if (account.active)
+				source.account.active.push(account[FIELD.id] as string);
+			sum.bank += account.bank || 0;
 
-				if (source.account && isArray(source.account.payment)) {
-					source.account.summary = source.account.payment.reduce((sum, account: any) => {
-						if (account.approve) sum.pay += account.amount;
-						if (account.active) sum.bank += account.bank || 0;
-						if (!account.approve) sum.pend += account.amount;
-						return sum
-					}, summary)
-				}
+			if (account.approve) sum.pay += account.amount;
+			if (!account.approve) sum.pend += account.amount;
+			return sum;
+		}, { pay: 0, bank: 0, pend: 0, cost: 0 })
+		source.account.active = [];
+	}
 
-				if (source.account && isArray(source.account.attend)) {
-					source.account.attend.reduce((sum, attend) => {			// get the Attend docs related to the active Account doc
-						sum.cost += attend.cost														// add up each Attend's cost
-						return sum;
-					}, summary)
-				}
-
-				return { ...source };
-			}),
-		)
-	})
+	return { ...source }
 }
 
 /**
- * There is only 1 Account marked 'active' at any time.  
- * The rest are assumed to be pre-payments.
+ * Use the Observable on IAttend[] to determine the cost of the Classes on the active IPayment
  */
-export const getActive = () => {
-	return (source: Observable<any>) => defer(() => {
-		return source.pipe(
-			map((source: IAccountState) => {
-				if (source.account && isArray(source.account.payment)) {
-					const payments = source.account.payment
-						.filter(row => row.active)[0];										// get the first 'active' document found
-					source.account.active = payments[FIELD.id];					// and stash it's FIELD.id
-				}
+export const sumAttend = (source: IAccountState) => {
+	if (source.account && isArray(source.account.attend)) {
+		source.account.summary = source.account.attend.reduce((sum, attend) => {
+			sum.cost += attend.cost														// add up each Attend's cost
+			return sum;
+		}, source.account.summary)
+	}
 
-				return { ...source };
-			}),
-		)
-	})
+	return { ...source }
 } 
