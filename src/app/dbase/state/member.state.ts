@@ -1,12 +1,12 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SLICE } from '@dbase/state/store.define';
-import { IStoreState, IStoreDoc } from '@dbase/state/store.define';
+import { IStoreState, IMemberDoc } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
-@State<IStoreState<IStoreDoc>>({
+@State<IStoreState<IMemberDoc>>({
 	name: SLICE.member,
 	defaults: {}
 })
@@ -15,10 +15,10 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState<IMemberDoc>>) { this.dbg('init:'); }
 
 	@Action(SetMember)
-	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetMember) {
+	setStore({ patchState, getState }: StateContext<IStoreState<IMemberDoc>>, { payload, debug }: SetMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
@@ -29,7 +29,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(DelMember)
-	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelMember) {
+	delStore({ patchState, getState }: StateContext<IStoreState<IMemberDoc>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
 		const store = this.filterMember(getState(), payload);
 
@@ -39,31 +39,15 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(TruncMember)
-	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>, { debug }: TruncMember) {
+	truncStore({ setState }: StateContext<IStoreState<IMemberDoc>>, { debug }: TruncMember) {
 		if (debug) this.dbg('truncMember');
 		setState({});
 	}
 
 	/** remove an item from the Member Store */
-	private filterMember(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
+	private filterMember(state: IStoreState<IMemberDoc>, payload: IMemberDoc) {
 		const curr = state && state[payload.store] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
-
-	/** Selectors */
-	// static current(store: string, filter: TWhere | undefined, sortBy: TString = []) {
-	// 	return createSelector([MemberState], (state: IStoreState<IStoreDoc>) => {
-	// 		const clone = cloneObj(state[store]);							// clone to avoid mutating original Store
-	// 		const filters = asArray(filter);
-
-	// 		filters.push({ fieldPath: FIELD.expire, value: 0 });
-	// 		filters.push({ fieldPath: FIELD.hidden, value: false });
-
-	// 		return clone
-	// 			? filterTable(clone, filters)
-	// 				.sort(sortKeys(...asArray(sortBy)))						// apply any requested sort-criteria
-	// 			: []
-	// 	})
-	// }
 }

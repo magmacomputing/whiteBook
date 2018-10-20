@@ -21,10 +21,10 @@ export enum SLICE {
  * 	},
  * member: {																// Member slice, keyed by User.uid
  *      profile: [ {profile documents} ],   // Plan, Claims, User, etc.
- *      account: [ {account documents} ],   // describe payments
+ *      payment: [ {payment documents} ],   // describe payments
  *  },
  * attend: {																// Attend slice, keyed by User.uid
- *      {accountId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
+ *      {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
  *  }
  */
 export interface IStoreDoc {
@@ -32,6 +32,13 @@ export interface IStoreDoc {
 	[FIELD.store]: string;
 	[FIELD.type]?: string;
 	[FIELD.key]: string;
+	[key: string]: any;
+}
+export interface IMemberDoc {
+	[FIELD.id]: string;
+	[FIELD.store]: string;
+	[FIELD.type]?: string;
+	[FIELD.uid]: string;
 	[key: string]: any;
 }
 
@@ -59,12 +66,12 @@ export class TruncClient {										// Truncate a Client object from the Store
 
 export class SetMember {										// Add a Member object into the Store
 	static type = '[Sync Service] Set Member';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { };
+	constructor(public payload: IMemberDoc, public debug: boolean = true) { };
 }
 
 export class DelMember {										// Remove a Member object from the Store
 	static type = '[Sync Service] Delete Member';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { };
+	constructor(public payload: IMemberDoc, public debug: boolean = true) { };
 }
 
 export class TruncMember {									// Truncate a Member object from the Store
@@ -74,12 +81,12 @@ export class TruncMember {									// Truncate a Member object from the Store
 
 export class SetAttend {										// Add Attend object into the Store
 	static type = '[Sync Service] Set Attend';
-	constructor(public payload: IStoreDoc, public debug: boolean= true) { }
+	constructor(public payload: IMemberDoc, public debug: boolean = true) { }
 }
 
 export class DelAttend {										// Remove Attend object from the Store
 	static type = '[Sync Service] Delete Attend';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { }
+	constructor(public payload: IMemberDoc, public debug: boolean = true) { }
 }
 
 export class TruncAttend {									// Truncate Attend object from the Store

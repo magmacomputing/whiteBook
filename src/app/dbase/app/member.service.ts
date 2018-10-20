@@ -76,8 +76,10 @@ export class MemberService {
 
 		this.dbg('event: %j', event);
 		const attendDoc: Partial<IAttend> = {
-			[FIELD.store]: activeId || '<garbage>',							// <id> of Account's active document
+			[FIELD.store]: STORE.attend,												// <id> of Account's active document
 			[FIELD.type]: event[FIELD.key],											// the Attend's event/class
+			payment: activeId,
+			schedule: '',
 			cost: price,
 			stamp: getStamp(),
 		}

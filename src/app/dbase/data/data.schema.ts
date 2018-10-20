@@ -4,7 +4,7 @@ import { TString } from '@lib/type.library';
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor';
 export type TStoreMember = 'profile' | 'payment' | 'bonus';
-export type TStoreAttend = string;			// Attend docs will have a <store> that links to an Payment _id
+export type TStoreAttend = 'attend';
 
 export type TMeta = IMeta | IMeta[];
 
@@ -266,6 +266,7 @@ export interface IBonus extends IMemberBase {
 
 // /attend
 export interface IAttend extends IAttendBase {
+	payment: string;									// the /member/payment _id
 	schedule: string;									// the /client/schedule _id
 	stamp: number;
 	cost: number;											// the amount the member was charged
