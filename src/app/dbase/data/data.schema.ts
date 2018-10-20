@@ -265,14 +265,13 @@ export interface IBonus extends IMemberBase {
 }
 
 // /attend
-export interface IAttend extends IMemberBase {
-	[FIELD.store]: string;
-	[FIELD.type]: TClass;
+export interface IAttend extends IAttendBase {
+	schedule: string;									// the /client/schedule _id
 	stamp: number;
-	cost: number;
-	track?: {
-		day: number;
-		week: number;
-		month: number;
+	cost: number;											// the amount the member was charged
+	track?: {													// to use in bonus-checking
+		day: number;										// weekDay attended
+		week: number;										// yearWeek attended
+		month: number;									// yearMonth attended
 	}
 }

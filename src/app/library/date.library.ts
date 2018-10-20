@@ -44,7 +44,7 @@ const DATE_FMT: Record<keyof IDate, string> = {
 	dayMonthSpace: 'DD MMM',                // space separator
 	dayMonthYearSep: 'DD-MMM-YYYY',					// month-name
 	dayMonthYear: 'DD/MM/YYYY',							// month-number
-	week: 'ww',                             // week number, leading zero
+	week: 'ww',                       		  // week number, leading zero
 	weekDay: 'E',                           // day of week, Mon=1
 	day: 'D',                               // return the Day number
 	dayZZ: 'DD',														// Day number, leading zero
