@@ -6,7 +6,7 @@ import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
 import { IState, IAccountState } from '@dbase/state/state.define';
-import { IDefault } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
@@ -18,17 +18,16 @@ import { isString, isNull, isArray, isUndefined, isFunction } from '@lib/type.li
  * Generic Slice Observable  
  * Special logic to slice 'attend' store, as it uses non-standard indexing
  */
-export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: number) => {
+export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
 	const slice = getSlice(store);
-	const state = states[slice];
+	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
-	const index = (store === STORE.attend) ? asArray(filter)[0].value[0] : store;
 
 	if (!state)
 		throw new Error('Cannot resolve state from ' + store);
 
 	return state.pipe(
-		map(state => asAt(state[index], filter, date)),
+		map(state => asAt<T>(state[index || store], filter, date)),
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
 }
@@ -52,27 +51,30 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
+				const index = (store === STORE.attend) ? filters[0].value[0] : store;	// TODO: dont rely on defined filter
 				parent = data;                                        // stash the original parent data state
 
-				return combineLatest(getStore(states, store, filters, date));
+				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
 			}),
 
 			map(res => {
 				const nodes = node.split('.');
-				let joins: { [key: string]: any[] } = parent[nodes[0]] || {};
+				let joins: { [key: string]: TStoreBase[] } = parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {
-						table.forEach((row: any) => {
-							const type: string = (getSlice(store) === 'client')
+						table.forEach(row => {
+							const type = (getSlice(store) === 'client')
 								? row[FIELD.store]
-								: (nodes[1] || row[FIELD.type])
+								: (nodes[1] || row[FIELD.type] || row[FIELD.store])
 
 							joins[type] = joins[type] || [];
+							joins[type] = joins[type].filter(item => item[FIELD.id] !== row[FIELD.id]);
 							joins[type].push(row);
 						})
 					} else {
-						joins[store] = joins[store] || [];								// if there are no documents that match the criteria, return empty array
+						const type = nodes[1] || store;
+						joins[type] = joins[type] || [];								// if there are no documents that match the criteria, return empty array
 					}
 				})
 
@@ -158,10 +160,10 @@ export const sumPayment = (source: IAccountState) => {
  */
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
-		source.account.summary = source.account.attend.reduce((sum, attend) => {
-			sum.cost += attend.cost														// add up each Attend's cost
-			return sum;
-		}, source.account.summary)
+		source.account.summary.cost = source.account.attend.reduce((cost, attend) => {
+			cost += attend.cost														// add up each Attend's cost
+			return cost;
+		}, 0)
 	}
 
 	return { ...source }

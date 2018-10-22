@@ -48,7 +48,7 @@ export class StateService {
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-		return getStore<T>(this.states, store, filters);
+		return getStore<T>(this.states, store, filters) ;
 	}
 
   /**
