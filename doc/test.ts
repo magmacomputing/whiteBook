@@ -1,1 +1,0 @@
-const beer = '🍺 Beer Me';

@@ -303,20 +303,20 @@
 					"uid": "JorgeEC"
 				},
 				"stamp": 123456,
-				"store": "account",
+				"store": "payment",
 				"type": "topUp",
 				"uid": "Iru8CN58IWWOygCxuX1W9MZ99FN2"
 			}
 		],
-		"attend": [],
+		"active": [
+			"bdVTxODYEmsA8O0yU4vZ"
+		],
 		"summary": {
 			"pay": 100,
 			"bank": 0,
 			"pend": 0,
-			"cost": 0,
-			"active": [
-				"bdVTxODYEmsA8O0yU4vZ"
-			]
-		}
+			"cost": 0
+		},
+		"attend": []
 	}
 }

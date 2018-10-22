@@ -91,7 +91,8 @@ export class StateService {
 		)
 	}
 
-  /** Add current Plan[] and Price[] to the Member Profile Observable  
+  /**
+	 * Add current Plan[] and Price[] to the Member Profile Observable  
    * client.plan  -> has an array of asAt Plan documents  
    * client.price -> has an array of asAt Price documents
    */
@@ -104,12 +105,14 @@ export class StateService {
 
 	/**
 	 * Add Account details to the Member Profile Observable  
-	 * member.account	-> has an array of current (not asAt) details about the Member's account payments  
-	 * member.summary	-> has an object summarising the Member's account value as {pay: $, bank: $, pend: $, cost: $, active: <accountId>}
+	 * account.payment-> has an array of current (not asAt) details about the Member's account payments  
+	 * account.active	-> has an array of payments ids that are <active> (only 1 expected)  
+	 * account.attend	-> has an array of attendances against the <active> payment  
+	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $, active: paymentId[] }
 	 */
 	getAccountData(uid?: string): Observable<IAccountState> {
 		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
-		const filterAttend: IWhere = { fieldPath: FIELD.store, value: '{{account.active}}' };
+		const filterAttend: IWhere = { fieldPath: 'payment', value: '{{account.active}}' };
 
 		return this.getMemberData().pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
