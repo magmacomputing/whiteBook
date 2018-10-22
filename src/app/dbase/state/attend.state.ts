@@ -30,7 +30,7 @@ export class AttendState implements NgxsOnInit {
 	@Action(DelAttend)
 	delStore({ patchState, getState }: StateContext<IStoreState<IMemberDoc>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
-		const payment = this.filterAttend(getState(), payload);
+		const payment = this.filterAttend(state, payload);
 
 		state[payload.payment] = payment;
 		if (debug) this.dbg('delAttend: %j', payload);

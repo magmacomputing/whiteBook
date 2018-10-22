@@ -31,7 +31,7 @@ export class MemberState implements NgxsOnInit {
 	@Action(DelMember)
 	delStore({ patchState, getState }: StateContext<IStoreState<IMemberDoc>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
-		const store = this.filterMember(getState(), payload);
+		const store = this.filterMember(state, payload);
 
 		state[payload.store] = store;
 		if (debug) this.dbg('delMember: %j', payload);

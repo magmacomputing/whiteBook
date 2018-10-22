@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
@@ -116,7 +116,7 @@ export class StateService {
 
 		return this.getMemberData().pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
-			joinDoc(this.states, 'account', STORE.attend, filterAttend, undefined, sumAttend),
+			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)
 	}
 

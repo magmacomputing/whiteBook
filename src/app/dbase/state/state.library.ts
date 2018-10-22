@@ -1,5 +1,5 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, tap } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@dbase/auth/auth.interface';
@@ -14,18 +14,22 @@ import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { isString, isNull, isArray, isUndefined, isFunction } from '@lib/type.library';
 
-/** Generic Slice Observable */
+/**
+ * Generic Slice Observable  
+ * Special logic to slice 'attend' store, as it uses non-standard indexing
+ */
 export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: number) => {
 	const slice = getSlice(store);
 	const state = states[slice];
 	const sortBy = SORTBY[store];
+	const index = (store === STORE.attend) ? asArray(filter)[0].value[0] : store;
 
 	if (!state)
 		throw new Error('Cannot resolve state from ' + store);
 
 	return state.pipe(
-		map(state => asAt(state[store], filter, date)),
-		map(table => table.sort(sortKeys(...asArray(sortBy)))),
+		map(state => asAt(state[index], filter, date)),
+		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
 }
 
@@ -134,6 +138,7 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
 		source.account.active = [];
+
 		source.account.summary = source.account.payment.reduce((sum, account) => {
 			if (account.active)
 				source.account.active.push(account[FIELD.id] as string);
