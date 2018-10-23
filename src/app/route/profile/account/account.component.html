@@ -1,11 +1,17 @@
-<p></p>
-<button (click)="member.getCredit()">Credit</button>
-<p></p>
-<button (click)="member.setPayment()">TopUp</button>
-<p></p>
-<button (click)="member.getPlan()">Default Plan</button>
+<div *ngIf="data$ | async; let data">
+	<p>Credit: {{ data.account?.summary.pay | currency }}</p>
+	<p>Pend: {{ data.account?.summary.pend | currency }}</p>
+	<p>Bank: {{ data.account?.summary.bank | currency }}</p>
+	<p>Cost: {{ data.account?.summary.cost | currency }}</p>
 
-<div *ngIf="(data$ | async) ; let data">
+	<p></p>
+	<button (click)="member.setPayment()">TopUp</button>
+	<p></p>
+	<button (click)="member.getPlan()">Default Plan</button>
 
 
 </div>
+
+<ng-template #nodata>
+	<h3>Cannot find your data details</h3>
+</ng-template>
