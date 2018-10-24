@@ -7,7 +7,7 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
-import { IQuery } from '@dbase/fire/fire.interface';
+import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IMeta, TStoreBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/data/data.library';
 import { fnQuery } from '@dbase/fire/fire.library';
@@ -58,9 +58,9 @@ export class FireService {
 	async batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
-		if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
-		if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
-		if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
+		// if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
+		// if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
+		// if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
@@ -86,15 +86,7 @@ export class FireService {
 		return this.docRef(store, docId).get()
 	}
 
-	getMeta(store: string, docId: string): Promise<{
-		exists: boolean;
-		[FIELD.id]: string;
-		[FIELD.create]: number | undefined;
-		[FIELD.update]: number | undefined;
-		[FIELD.access]: number | undefined;
-		subcollections: string[];
-		path: string;
-	}> {
+	getMeta(store: string, docId: string) {
 		const slice = getSlice(store);
 		const readMeta = this.aff.httpsCallable('readMeta');
 		let snack = true;
@@ -108,6 +100,6 @@ export class FireService {
 
 		return readMeta({ collection: slice, [FIELD.id]: docId })
 			.pipe(tap(_ => { snack = false; this.snack.dismiss(); }))
-			.toPromise()
+			.toPromise<IDocMeta>()
 	}
 }

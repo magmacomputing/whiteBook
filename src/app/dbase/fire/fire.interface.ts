@@ -1,4 +1,5 @@
 import { WhereFilterOp, FieldPath } from '@firebase/firestore-types';
+import { FIELD } from '@dbase/data/data.define';
 
 /** Query.where */
 export interface IWhere {
@@ -18,4 +19,15 @@ export interface IQuery {
 	where?: TWhere;
 	orderBy?: IOrderBy | IOrderBy[];
 	limitTo?: number;
+}
+
+/** FirestoreFunction getMeta() */
+export interface IDocMeta {
+	exists: boolean;
+	[FIELD.id]: string;
+	[FIELD.create]: number | undefined;
+	[FIELD.update]: number | undefined;
+	[FIELD.access]: number | undefined;
+	subcollections: string[];
+	path: string;
 }

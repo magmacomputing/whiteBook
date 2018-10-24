@@ -1,5 +1,5 @@
 import { WhereFilterOp, Query } from '@firebase/firestore-types';
-import { IQuery, IWhere } from '@dbase/fire/fire.interface';
+import { IQuery } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
@@ -8,7 +8,7 @@ import { isNumeric } from '@lib/string.library';
 export const fnQuery = (query: IQuery = {}) => {
 	return (colRef: Query) => {															// return a Query-function
 		if (query.where)
-			asArray<IWhere>(query.where)
+			asArray(query.where)
 				.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as WhereFilterOp, qry.value));
 
 		if (query.orderBy)
