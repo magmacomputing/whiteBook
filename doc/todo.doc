@@ -5,5 +5,8 @@
 so no false 'select plan'
 
 *> account component
-show current account status,
 allow payment, hold
+
+*> migrate User, connect to FaceBook
+(works if Google first)
+permissions error if Github
