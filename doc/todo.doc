@@ -10,3 +10,6 @@ allow payment, hold
 *> migrate User, connect to FaceBook
 (works if Google first)
 permissions error if Github
+
+*> Profile detail
+granted_scopes ?
