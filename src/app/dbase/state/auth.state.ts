@@ -79,6 +79,7 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginLink)														// attempt to link multiple providers
 	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
+		this.dbg('methods: %j', methods);
 
 		if (methods[0] === 'password') {
 			let password = window.prompt('Please enter the password') || '';
@@ -94,14 +95,17 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginIdentity)														// process signInWithPopup()
-	loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
-		return this.afAuth.auth.signInWithPopup(authProvider)
-			.then(response => {
-				if (!credential)
-					ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
-				this.authSuccess(ctx, response.user, credential);
-			})
-			.catch(error => ctx.dispatch(new LoginFailed(error)))
+	async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
+		try {
+			const response = await this.afAuth.auth.signInWithPopup(authProvider);
+
+			if (!credential)
+				ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
+			this.authSuccess(ctx, response.user, credential);
+
+		} catch (error) {
+			ctx.dispatch(new LoginFailed(error));
+		}
 	}
 
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
