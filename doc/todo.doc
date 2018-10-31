@@ -7,9 +7,9 @@ so no false 'select plan'
 *> account component
 allow payment, hold
 
-*> migrate User, connect to FaceBook
-(works if Google first)
-permissions error if Github
+*> migrate User
+allow for multiple providers
+test if multiple instances of same source
 
 *> Profile detail
 granted_scopes ?
