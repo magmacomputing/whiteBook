@@ -10,10 +10,10 @@ export const getMemberInfo = (info: AdditionalUserInfo) => {
 	const profile: { [key: string]: any; } = info.profile || {};
 	return {
 		provider: info.providerId,
-		id: profile.id,
+		id: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
 		lastName: profile.family_name || profile.last_name || profile.lastName,
-		fullName: profile.name || profile.login,
+		displayName: profile.name || profile.login,
 		email: profile.email || profile.emailAddress,
 		gender: profile.gender,
 		picture: profile.pictureUrl

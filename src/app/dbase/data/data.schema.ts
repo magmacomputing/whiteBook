@@ -234,7 +234,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 	firstName?: string;
 	lastName?: string;
 	userName?: string;                  // their Provider username
-	fullName?: string;                  // their Provider displayname
+	displayName?: string;               // their Provider displayname
 	email?: string;
 	gender?: string;
 	picture?: string;
