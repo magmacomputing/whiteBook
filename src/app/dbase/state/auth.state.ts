@@ -8,7 +8,7 @@ import { ROUTE } from '@route/route.define';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth } from '@dbase/state/auth.define';
 
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -103,6 +103,19 @@ export class AuthState implements NgxsOnInit {
 				ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
 			this.authSuccess(ctx, response.user, credential);
 
+		} catch (error) {
+			ctx.dispatch(new LoginFailed(error));
+		}
+	}
+
+	@Action(LoginOAuth)
+	async loginToken(ctx: StateContext<IAuthState>, { token, credential }: LoginOAuth) {
+		try {
+			const response = await this.afAuth.auth.signInWithCustomToken(token);
+
+			if (!credential)
+				ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
+			this.authSuccess(ctx, response.user, credential);
 		} catch (error) {
 			ctx.dispatch(new LoginFailed(error));
 		}

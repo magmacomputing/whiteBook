@@ -7,7 +7,7 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { LoginIdentity, Logout, CheckSession, IAuthState, LoginEmail } from '@dbase/state/auth.define';
+import { LoginIdentity, Logout, CheckSession, IAuthState, LoginEmail, LoginOAuth } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
@@ -102,6 +102,10 @@ export class AuthService {
 		const urlQuery = Object.entries(provider)
 			.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&');
 		const popup = window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
+	}
+
+	public signInToken(token: string) {
+		return this.store.dispatch(new LoginOAuth(token));
 	}
 
 	private signInPhone(provider: IProvider) { }

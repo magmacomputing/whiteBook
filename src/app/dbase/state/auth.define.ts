@@ -20,6 +20,10 @@ export class LoginIdentity {
 	static type = '[Auth] LoginIdentity';
 	constructor(public authProvider: AuthProvider, public credential?: any) { }
 }
+export class LoginOAuth {
+	static type = '[Auth] LoginOAuth';
+	constructor(public token: string, public credential?: any) { }
+}
 export class LoginEmail {
 	static type = '[Auth] LoginEmail';
 	constructor(public email: string, public password: string,
