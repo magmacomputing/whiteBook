@@ -1,4 +1,5 @@
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 import { take, tap } from 'rxjs/operators';
@@ -6,7 +7,7 @@ import { take, tap } from 'rxjs/operators';
 import { Navigate } from '@ngxs/router-plugin';
 import { ROUTE } from '@route/route.define';
 
-import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
+import { State, Selector, StateContext, Action, NgxsOnInit, Store, Select } from '@ngxs/store';
 import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth } from '@dbase/state/auth.define';
 
@@ -59,6 +60,7 @@ export class AuthState implements NgxsOnInit {
 		const auth = ctx.getState();
 
 		if (!isActive(auth)) {											// check their prior auth-status
+			this.dbg('no longer active');
 			ctx.dispatch(new LoginRedirect());
 			return;
 		}

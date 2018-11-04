@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
+import { RouterStateModel } from '@ngxs/router-plugin';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
@@ -24,6 +25,7 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
+	@Select() private route$!: Observable<RouterStateModel>;
 	@Select() private client$!: Observable<IStoreState<any>>;
 	@Select() private member$!: Observable<IStoreState<any>>;
 	@Select() private attend$!: Observable<IStoreState<any>>;
@@ -49,6 +51,11 @@ export class StateService {
 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
 		return getStore<T>(this.states, store, filters) ;
+	}
+
+	/** Router */
+	getRoute() {
+		return this.route$;
 	}
 
   /**

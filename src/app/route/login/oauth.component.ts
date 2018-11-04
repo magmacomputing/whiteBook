@@ -16,12 +16,15 @@ export class OAuthComponent implements OnInit, OnDestroy {
 	private dbg: Function = dbg.bind(this);
 	private subscription!: Subscription;
 
-	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService) { }
+	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService) {
+		this.dbg('init');
+	 }
 
 	ngOnInit() {
 		const urlAccess = 'https://us-central1-whitefire-dev.cloudfunctions.net/authAccess';
 		const code = this.route.snapshot.queryParamMap.get('code')
-
+		this.dbg('code: %j', code);
+		
 		if (code) {
 			this.subscription = this.http.post<any>(`${urlAccess}&code=${code}`, {}).pipe(
 				tap(res => this.dbg('token: %j', res)),
