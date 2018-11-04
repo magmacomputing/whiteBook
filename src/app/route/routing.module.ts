@@ -20,6 +20,6 @@ const routes: Routes = [
 @NgModule({
 	imports: [CommonModule, MaterialModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule],
-	declarations: [LoginComponent, AttendComponent,],
+	declarations: [LoginComponent, OAuthComponent, AttendComponent,],
 })
 export class RoutingModule { }

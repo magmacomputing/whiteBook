@@ -105,6 +105,7 @@ export class AuthService {
 	}
 
 	public signInToken(token: string) {
+		window.close();
 		return this.store.dispatch(new LoginOAuth(token));
 	}
 

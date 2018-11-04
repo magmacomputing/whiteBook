@@ -29,13 +29,5 @@ export class LoginComponent implements OnInit {
 		}
 
 		this.auth.signIn(provider, opts);
-
-		// this.data.getMeta('provider', 'ASHmpwKiE7fEBrhu9xwM')
-		// .then(meta => this.dbg('meta: %j', meta));
-
-		// this.data.getToken(provider)
-		// 	.then((token: string) => this.dbg('token: %j', token));
-		// .then(meta => console.log('meta: ', meta));
-
 	}
 }
