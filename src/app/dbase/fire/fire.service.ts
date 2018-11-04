@@ -87,19 +87,30 @@ export class FireService {
 	}
 
 	getMeta(store: string, docId: string) {
-		const slice = getSlice(store);
-		const readMeta = this.aff.httpsCallable('readMeta');
-		let snack = true;
+		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
+	}
 
-		setTimeout(() => {                                    // if no response in one-second, show the snackbar
+	getToken(data: Object) {
+		return this.callHttps<string>('getToken', data, `getting token`);
+	}
+
+	/**
+	 * Call a server-function
+	 */
+	private callHttps<T>(fnName: string, args: Object, msg: string) {
+		const fn = this.aff.httpsCallable(fnName);
+		let snack = true;																				// set a snackbar flag
+
+		setTimeout(() => {																			// if no response in one-second, show the snackbar
 			if (snack) {
-				this.zone.run(_ =>																// wrap snackbar in Angular Zone
-					this.snack.open(`checking ${store}`))						// let the User know there is a delay
+				this.zone.run(() =>																	// wrap snackbar in Angular Zone
+					this.snack.open(msg))															// let the User know there is a delay
 			}
 		}, 1000);
 
-		return readMeta({ collection: slice, [FIELD.id]: docId })
+		return fn(args)
 			.pipe(tap(_ => { snack = false; this.snack.dismiss(); }))
-			.toPromise<IDocMeta>()
+			.toPromise<T>()
 	}
+
 }

@@ -97,7 +97,9 @@ export class AuthService {
 		this.store.dispatch(new LoginEmail(email, password));
 	}
 
-	private signInOAuth(provider: IProvider) { }
+	private signInOAuth(provider: IProvider) { 
+		
+	}
 	private signInPhone(provider: IProvider) { }
 	private signInPlay(provider: IProvider) { }
 	private signInAnon(provider: IProvider) { }

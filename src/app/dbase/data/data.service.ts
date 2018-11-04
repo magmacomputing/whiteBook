@@ -52,9 +52,8 @@ export class DataService {
 	}
 
 	getMeta(store: string, docId: string) {
-		const collection = getSlice(store);
-		return collection
-			? this.fire.getMeta(collection, docId)
+		return store
+			? this.fire.getMeta(store, docId)
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
 

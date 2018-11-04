@@ -4,6 +4,7 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
 import { AuthService } from '@dbase/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
+import { FireService } from '@dbase/fire/fire.service';
 
 @Component({
 	selector: 'wb-login',

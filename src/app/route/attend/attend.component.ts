@@ -12,6 +12,8 @@ import { IPrice } from '@dbase/data/data.schema';
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
+import { FireService } from '@dbase/fire/fire.service';
+import { DataService } from '@dbase/data/data.service';
 
 @Component({
 	selector: 'wb-attend',
@@ -26,7 +28,7 @@ export class AttendComponent implements OnInit {
 	public timetable$!: Observable<ITimetableState>;
 	public firstPaint = true;                           // indicate first-paint
 
-	constructor(private readonly member: MemberService, public readonly state: StateService) { }
+	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) { }
 
 	ngOnInit() {                                        // wire-up the timetable Observable
 		this.timetable$ = this.state.getTimetableData(this.date).pipe(
@@ -56,7 +58,10 @@ export class AttendComponent implements OnInit {
 
 	// TODO: popup info about a Class
 	showEvent(event: string) {
-		this.dbg('event: %j', event);
+		// this.dbg('event: %j', event);
+
+		this.data.getMeta('provider', 'ASHmpwKiE7fEBrhu9xwM')
+		.then(meta => console.log('meta: ', meta));
 	}
 
 	swipe(idx: number, event: any) {
