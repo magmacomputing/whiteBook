@@ -58,7 +58,7 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
 			let currEffect = currDoc[FIELD.effect];
 
 			if (!currEffect) {                        // _create is only available from server
-				currEffect = await fire.getMeta(currStore, currDoc[FIELD.id] as string)
+				currEffect = await fire.callMeta(currStore, currDoc[FIELD.id] as string)
 					.then(meta => meta[FIELD.create] || Number.MIN_SAFE_INTEGER);
 			}
 
