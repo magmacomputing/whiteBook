@@ -86,11 +86,11 @@ export class FireService {
 		return this.docRef(store, docId).get()
 	}
 
-	getMeta(store: string, docId: string) {
+	callMeta(store: string, docId: string) {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
-	getToken(data: Object) {
+	callToken(data: Object) {
 		return this.callHttps<string>('getToken', data, `getting token`);
 	}
 

@@ -53,8 +53,12 @@ export class DataService {
 
 	getMeta(store: string, docId: string) {
 		return store
-			? this.fire.getMeta(store, docId)
+			? this.fire.callMeta(store, docId)
 			: Promise.reject(`Cannot determine slice: ${store}`)
+	}
+
+	getToken(data: Object) {
+		return this.fire.callToken(data);
 	}
 
 	get newId() {

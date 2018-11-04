@@ -58,10 +58,7 @@ export class AttendComponent implements OnInit {
 
 	// TODO: popup info about a Class
 	showEvent(event: string) {
-		// this.dbg('event: %j', event);
-
-		this.data.getMeta('provider', 'ASHmpwKiE7fEBrhu9xwM')
-		.then(meta => console.log('meta: ', meta));
+		this.dbg('event: %j', event);
 	}
 
 	swipe(idx: number, event: any) {

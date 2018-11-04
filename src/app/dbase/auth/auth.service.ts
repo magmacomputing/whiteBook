@@ -97,9 +97,13 @@ export class AuthService {
 		this.store.dispatch(new LoginEmail(email, password));
 	}
 
-	private signInOAuth(provider: IProvider) { 
-		
+	private signInOAuth(provider: IProvider) {
+		const urlRequest = 'https://us-central1-whitefire-dev.cloudfunctions.net/authRequest';
+		const urlQuery = Object.entries(provider)
+			.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&');
+		const popup = window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
 	}
+
 	private signInPhone(provider: IProvider) { }
 	private signInPlay(provider: IProvider) { }
 	private signInAnon(provider: IProvider) { }
