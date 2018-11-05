@@ -5,5 +5,7 @@
 	<button [disabled]="!(auth.isAuth | async)" (click)="navigate('/profile/plan')">Plan</button>
 	<p></p>
 	<button [disabled]="!(auth.isAuth | async)" (click)="navigate('/profile/account')">Account</button>
+	<p>	</p>
+	<button [disabled]="(auth.isAuth | async)" (click)="navigate('/login/oauth')">OAuth</button>
 
 </router-outlet>

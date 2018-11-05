@@ -99,8 +99,9 @@ export class AuthService {
 
 	private signInOAuth(provider: IProvider) {
 		const urlRequest = 'https://us-central1-whitefire-dev.cloudfunctions.net/authRequest';
-		const urlQuery = Object.entries(provider)
-			.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&');
+		// const urlQuery = Object.entries(provider)
+		// 	.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&');
+		const urlQuery = `prefix=${provider.prefix}`;
 		const popup = window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
 	}
 

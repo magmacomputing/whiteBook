@@ -1,40 +1,33 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
-import { from, Subscription } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { from } from 'rxjs';
+import { tap, switchMap } from 'rxjs/operators';
 
 import { AuthService } from '@dbase/auth/auth.service';
 import { dbg } from '@lib/logger.library';
 
 @Component({
-	selector: 'wb-oauth',
-	templateUrl: './oauth.component.html',
+  selector: 'wb-oauth',
+  templateUrl: './oauth.component.html',
 })
-export class OAuthComponent implements OnInit, OnDestroy {
-	private dbg: Function = dbg.bind(this);
-	private subscription!: Subscription;
+export class OAuthComponent implements OnInit {
+  private dbg: Function = dbg.bind(this);
 
-	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService) {
-		this.dbg('init');
-	 }
+  constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService) { }
 
-	ngOnInit() {
-		const urlAccess = 'https://us-central1-whitefire-dev.cloudfunctions.net/authAccess';
-		const code = this.route.snapshot.queryParamMap.get('code')
-		this.dbg('code: %j', code);
-		
-		if (code) {
-			this.subscription = this.http.post<any>(`${urlAccess}&code=${code}`, {}).pipe(
-				tap(res => this.dbg('token: %j', res)),
-				switchMap(res => from(this.auth.signInToken(res.authToken)))
-			)
-				.subscribe()
-		}
-	}
+  ngOnInit() {
+    const code = this.route.snapshot.queryParamMap.get('code');
+    this.dbg('code: %s', code);
 
-	ngOnDestroy() {
-		this.subscription && this.subscription.unsubscribe();
-	}
+    if (code) {
+      const urlAccess = 'https://us-central1-whitefire-dev.cloudfunctions.net/authAccess';
+
+      this.http.post<any>(urlAccess, {}).pipe(
+        tap(res => this.dbg('result: %j', res)),
+        switchMap(res => from(this.auth.signInToken(res.authToken))),
+      )
+    }
+  }
 }
