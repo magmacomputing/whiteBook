@@ -11,7 +11,7 @@ import { OAuthComponent } from './login/oauth.component';
 
 const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
-	{ path: 'login/:oauth', component: OAuthComponent },
+	{ path: 'login/oauth', component: OAuthComponent },
 	{ path: 'attend', component: AttendComponent, canActivate: [AuthGuard, ProfileGuard] },
 	{ path: 'profile', loadChildren: '@route/profile/profile.module#ProfileModule', canActivate: [AuthGuard] },
 	{ path: 'admin', loadChildren: '@route/admin/admin.module#AdminModule', canActivate: [AuthGuard] },

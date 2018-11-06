@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Store } from '@ngxs/store';
-import { Navigate } from '@ngxs/router-plugin';
+import { Router } from '@angular/router';
+// import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
 import { AuthService } from '@dbase/auth/auth.service';
@@ -11,9 +12,10 @@ import { AuthService } from '@dbase/auth/auth.service';
 })
 export class AppComponent {
 
-	constructor(readonly data: DataService, readonly auth: AuthService, private readonly store: Store) { }
+	constructor(readonly data: DataService, readonly auth: AuthService, private readonly store: Store, private router: Router) { }
 
 	navigate(url: string) {
-		this.store.dispatch(new Navigate([url]));
+		this.router.navigateByUrl(url);
+		// this.store.dispatch(new Navigate([url]));
 	}
 }

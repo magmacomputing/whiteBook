@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 
 import { Store } from '@ngxs/store';
-import { Navigate } from '@ngxs/router-plugin';
+// import { Navigate } from '@ngxs/router-plugin';
 import { IAuthState } from '@dbase/state/auth.define';
 import { AuthState } from '@dbase/state/auth.state';
 import { MemberState } from '@dbase/state/member.state';
@@ -35,7 +35,7 @@ export class AuthGuard implements CanActivate {
 export class ProfileGuard implements CanActivate {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private store: Store) { this.dbg('new') }
+	constructor(private store: Store, private router: Router) { this.dbg('new') }
 
 	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 		const member = this.store.selectSnapshot(MemberState)
@@ -44,7 +44,8 @@ export class ProfileGuard implements CanActivate {
 
 		if (isArray(plan) && plan.length) return true;      // ok to access Route
 
-		this.store.dispatch(new Navigate([ROUTE.plan]));
+		// this.store.dispatch(new Navigate([ROUTE.plan]));
+		this.router.navigateByUrl(ROUTE.plan);
 		return false;
 	}
 }

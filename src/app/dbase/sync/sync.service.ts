@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 import { SnapshotMetadata } from '@firebase/firestore-types';
 
 import { Store } from '@ngxs/store';
-import { Navigate } from '@ngxs/router-plugin';
+// import { Navigate } from '@ngxs/router-plugin';
 import { ROUTE } from '@route/route.define';
 import { SLICE, IStoreDoc } from '@dbase/state/store.define';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
@@ -29,7 +30,7 @@ export class SyncService {
 	private dbg: Function = dbg.bind(this);
 	private listener: IObject<IListen>;
 
-	constructor(private fire: FireService, private store: Store) {
+	constructor(private fire: FireService, private store: Store, private router: Router) {
 		this.dbg('new');
 		this.listener = {};
 	}
@@ -152,7 +153,8 @@ export class SyncService {
 				case 'removed':
 					this.store.dispatch(new delStore(data, debug));
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-						this.store.dispatch(new Navigate([ROUTE.plan])); // special: current-plan has been deleted
+						// this.store.dispatch(new Navigate([ROUTE.plan])); // special: current-plan has been deleted
+						this.router.navigateByUrl(ROUTE.plan);
 					break;
 			}
 		})

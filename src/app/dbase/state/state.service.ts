@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+
 import { Observable, of } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
-import { RouterStateModel } from '@ngxs/router-plugin';
+// import { RouterStateModel } from '@ngxs/router-plugin';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
@@ -25,7 +27,7 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
-	@Select() private route$!: Observable<RouterStateModel>;
+	// @Select() private route$!: Observable<RouterStateModel>;
 	@Select() private client$!: Observable<IStoreState<any>>;
 	@Select() private member$!: Observable<IStoreState<any>>;
 	@Select() private attend$!: Observable<IStoreState<any>>;
@@ -34,7 +36,7 @@ export class StateService {
 	private dbg: Function = dbg.bind(this);
 	public states: IState;
 
-	constructor() {
+	constructor(private router: Router) {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'auth': this.auth$,
 			'client': this.client$,
@@ -55,7 +57,8 @@ export class StateService {
 
 	/** Router */
 	getRoute() {
-		return this.route$;
+		// return this.route$;
+		return this.router.url;
 	}
 
   /**

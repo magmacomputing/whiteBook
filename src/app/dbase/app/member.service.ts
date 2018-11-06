@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { timer } from 'rxjs';
 import { debounce } from 'rxjs/operators';
 
 import { Store, Actions, ofAction } from '@ngxs/store';
-import { Navigate } from '@ngxs/router-plugin';
+// import { Navigate } from '@ngxs/router-plugin';
 import { IUserInfo } from '@dbase/auth/auth.interface';
 import { IAuthState, LoginInfo } from '@dbase/state/auth.define';
 import { AuthState } from '@dbase/state/auth.state';
@@ -28,7 +29,7 @@ export class MemberService {
 	private dbg: Function = dbg.bind(this);
 	private default: Promise<IDefault[]>;
 
-	constructor(private readonly data: DataService, private readonly store: Store, private action: Actions) {
+	constructor(private readonly data: DataService, private readonly store: Store, private action: Actions, private router: Router) {
 		this.dbg('new');
 		this.default = this.data.snap<IDefault>(STORE.default)
 			.then(table => asAt(table));								// stash the current defaults
@@ -44,7 +45,8 @@ export class MemberService {
 
 		this.dbg('plan: %j', doc);
 		return this.data.insDoc(doc, undefined, 'plan')
-			.then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
+			// .then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
+			.then(_ => this.router.navigateByUrl(ROUTE.attend))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 

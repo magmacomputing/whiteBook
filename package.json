@@ -21,7 +21,7 @@
     "@angular/pwa": "^0.10.4",
     "@angular/router": "^7.0.2",
     "@angular/service-worker": "^7.0.2",
-    "@ngxs/router-plugin": "^3.2.0-dev.master-e7d5450",
+    "@ngxs/router-plugin": "^3.2.0",
     "@ngxs/storage-plugin": "^3.2.0-dev.master-e7d5450",
     "@ngxs/store": "^3.2.0-dev.master-e7d5450",
     "core-js": "^2.5.7",

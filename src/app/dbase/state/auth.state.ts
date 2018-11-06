@@ -1,9 +1,10 @@
+import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 import { take, tap } from 'rxjs/operators';
 
-import { Navigate } from '@ngxs/router-plugin';
+// import { Navigate } from '@ngxs/router-plugin';
 import { ROUTE } from '@route/route.define';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -29,7 +30,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar, private router: Router) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -162,7 +163,8 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
-				.then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
+				// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
+				.then(_ => this.router.navigateByUrl(ROUTE.attend))
 		}
 	}
 
@@ -185,7 +187,8 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginRedirect)
 	onLoginRedirect(ctx: StateContext<IAuthState>) {//	/member
 		this.dbg('onLoginRedirect, navigating to /login');
-		ctx.dispatch(new Navigate([ROUTE.login]));
+		// ctx.dispatch(new Navigate([ROUTE.login]));
+		this.router.navigateByUrl(ROUTE.login);
 	}
 
 	@Action([LoginFailed, LogoutSuccess])
