@@ -15,7 +15,9 @@ import { dbg } from '@lib/logger.library';
 export class OAuthComponent implements OnInit {
   private dbg: Function = dbg.bind(this);
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService) { }
+  constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService) {
+    this.dbg('route: %j', route.snapshot.url);
+   }
 
   ngOnInit() {
     const code = this.route.snapshot.queryParamMap.get('code');

@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
+// import { Navigate } from '@ngxs/router-plugin';
 import { SLICE } from '@dbase/state/store.define';
 
 import { AuthModule } from '@dbase/auth/auth.module';
@@ -102,6 +103,8 @@ export class AuthService {
 		// const urlQuery = Object.entries(provider)
 		// 	.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&');
 		const urlQuery = `prefix=${provider.prefix}`;
+
+		// this.store.dispatch(new Navigate(['login/oauth']));
 		const popup = window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
 	}
 

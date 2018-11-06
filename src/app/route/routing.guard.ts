@@ -14,19 +14,25 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 
 import { ROUTE } from '@route/route.define';
-import { isArray, isUndefined } from '@lib/type.library';
+import { isArray, isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private store: Store) { this.dbg('new') }
+	constructor(private store: Store, private router: Router) { this.dbg('new') }
 
 	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 
-		return !isUndefined(auth.token);
+		this.dbg('canActivate: %j', auth.token);
+		if (!isUndefined(auth.token) && !isNull(auth.token))
+			return true;
+		
+		// this.store.dispatch(new Navigate([ROUTE.login]));
+		this.router.navigateByUrl(ROUTE.login);
+		return false;
 	}
 }
 
