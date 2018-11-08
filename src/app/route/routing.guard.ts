@@ -26,7 +26,6 @@ export class AuthGuard implements CanActivate {
 	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 
-		this.dbg('canActivate: %j', auth.token);
 		if (!isUndefined(auth.token) && !isNull(auth.token))
 			return true;
 		

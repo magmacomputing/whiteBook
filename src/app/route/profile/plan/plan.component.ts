@@ -33,7 +33,7 @@ export class PlanComponent implements OnInit {
 				const price = data.client.price                       // get the topUp for this Plan
 					.filter(price => price[FIELD.key] === plan[FIELD.key] && price[FIELD.type] === 'topUp')[0].amount;
 
-				if (price < myTopUp && !isAdmin)                      // Special: dontnoAallow downgrades in price
+				if (price < myTopUp && !isAdmin)                      // Special: dont allow downgrades in price
 					plan[FIELD.disable] = true;
 
 				if (plan[FIELD.key] === 'intro')											// Special: Intro is only available to new Members
