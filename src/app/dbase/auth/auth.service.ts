@@ -94,23 +94,20 @@ export class AuthService {
 		this.store.dispatch(new LoginIdentity(authProvider));
 	}
 
-	private signInEmail(provider: IProvider, email: string, password: string) {
-		this.store.dispatch(new LoginEmail(email, password));
-	}
-
 	private signInOAuth(provider: IProvider) {
 		const urlRequest = 'https://us-central1-whitefire-dev.cloudfunctions.net/authRequest';
-		// const urlQuery = Object.entries(provider)
-		// 	.map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value)).join('&');
 		const urlQuery = `prefix=${provider.prefix}`;
 
-		// this.store.dispatch(new Navigate(['login/oauth']));
-		const popup = window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
+		window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
 	}
 
 	public signInToken(token: string) {
 		window.close();
 		return this.store.dispatch(new LoginOAuth(token));
+	}
+
+	private signInEmail(provider: IProvider, email: string, password: string) {
+		this.store.dispatch(new LoginEmail(email, password));
 	}
 
 	private signInPhone(provider: IProvider) { }
