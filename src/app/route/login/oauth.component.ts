@@ -35,9 +35,12 @@ export class OAuthComponent implements OnInit, OnDestroy {
 
       this.sub = this.http.post<any>(url, {}).pipe(
         tap(res => this.dbg('result: %j', res)),
-        switchMap(res => from(this.auth.signInToken(res.authToken))),
+        switchMap(res => from(this.auth.signInToken(res.token))),
       )
-        .subscribe();
+        .subscribe(
+					token => this.dbg('token: %j', token),
+					error => this.dbg('error: %j', error),
+					);
     }
   }
 
