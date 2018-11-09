@@ -18,7 +18,7 @@
     "@angular/material": "^7.0.3",
     "@angular/platform-browser": "^7.0.3",
     "@angular/platform-browser-dynamic": "^7.0.3",
-    "@angular/pwa": "^0.10.4",
+    "@angular/pwa": "^0.10.5",
     "@angular/router": "^7.0.3",
     "@angular/service-worker": "^7.0.3",
     "@ngxs/storage-plugin": "^3.2.0-dev.master-e5e34c9",
@@ -31,9 +31,9 @@
     "zone.js": "^0.8.26"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^0.10.4",
+    "@angular-devkit/build-angular": "^0.10.5",
     "@angular/cdk": "^7.0.3",
-    "@angular/cli": "^7.0.4",
+    "@angular/cli": "^7.0.5",
     "@angular/compiler-cli": "^7.0.3",
     "@angular/language-service": "^7.0.3",
     "@types/node": "^10.12.3",
