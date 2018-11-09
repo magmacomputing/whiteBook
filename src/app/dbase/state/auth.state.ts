@@ -1,3 +1,4 @@
+import { NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AngularFireAuth } from '@angular/fire/auth';
@@ -30,7 +31,8 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar, private router: Router) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar,
+		private router: Router, private zone: NgZone) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -164,7 +166,7 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
 				// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
-				.then(_ => this.router.navigateByUrl(ROUTE.attend))
+				.then(_ => this.zone.run(() => this.router.navigateByUrl(ROUTE.attend)))
 		}
 	}
 
@@ -188,7 +190,7 @@ export class AuthState implements NgxsOnInit {
 	onLoginRedirect(ctx: StateContext<IAuthState>) {//	/member
 		this.dbg('onLoginRedirect, navigating to /login');
 		// ctx.dispatch(new Navigate([ROUTE.login]));
-		this.router.navigateByUrl(ROUTE.login);
+		this.zone.run(() => this.router.navigateByUrl(ROUTE.login));
 	}
 
 	@Action([LoginFailed, LogoutSuccess])

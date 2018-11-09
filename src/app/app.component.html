@@ -2,8 +2,8 @@
 
 	<button [disabled]="!(auth.isAuth | async)" (click)="data.auth.signOut()">Logout</button>
 	<p></p>
-	<button [disabled]="!(auth.isAuth | async)" (click)="navigate('/profile/plan')">Plan</button>
+	<button [disabled]="!(auth.isAuth | async)" (click)="router.navigateByUrl('/profile/plan')">Plan</button>
 	<p></p>
-	<button [disabled]="!(auth.isAuth | async)" (click)="navigate('/profile/account')">Account</button>
+	<button [disabled]="!(auth.isAuth | async)" (click)="router.navigateByUrl('/profile/account')">Account</button>
 
 </router-outlet>
