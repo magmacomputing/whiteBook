@@ -1,8 +1,8 @@
 <p>
-  Fetching your login information...
+	Fetching your login information...
 </p>
 
-code: {{ code }}
-<p>
-state: {{ state }}
-</p>
+<!-- <div>[hidden]=true> -->
+<div>
+	{{ sub | async | json }}
+</div>

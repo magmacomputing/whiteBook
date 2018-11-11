@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, withLatestFrom, tap } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 // import { Navigate } from '@ngxs/router-plugin';
@@ -91,7 +91,7 @@ export class AuthService {
 		if (provider.params)
 			(authProvider as TParams).setCustomParameters(provider.params);
 
-		this.store.dispatch(new LoginIdentity(authProvider));
+		return this.store.dispatch(new LoginIdentity(authProvider));
 	}
 
 	private signInOAuth(provider: IProvider) {
@@ -102,12 +102,16 @@ export class AuthService {
 	}
 
 	public signInToken(token: string) {
-		window.close();
-		return this.store.dispatch(new LoginOAuth(token));
+		return this.store.dispatch(new LoginOAuth(token))
+			// .pipe(
+			// 	// tap(_ => window.close()),
+			// 	withLatestFrom(this.auth$),
+			// )
+			// .subscribe(_ => this.store.dispatch(new CheckSession))
 	}
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
-		this.store.dispatch(new LoginEmail(email, password));
+		return this.store.dispatch(new LoginEmail(email, password));
 	}
 
 	private signInPhone(provider: IProvider) { }

@@ -2,10 +2,10 @@ import { NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AngularFireAuth } from '@angular/fire/auth';
-import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
-import { take, tap } from 'rxjs/operators';
 
 // import { Navigate } from '@ngxs/router-plugin';
+import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
+import { take, tap } from 'rxjs/operators';
 import { ROUTE } from '@route/route.define';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -32,7 +32,11 @@ export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar,
-		private router: Router, private zone: NgZone) { }
+		private router: Router, private zone: NgZone) {
+		this.afAuth.authState.pipe(
+			tap(authState => this.dbg('authState: %j', authState)),
+		)
+	}
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -114,14 +118,23 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginOAuth)
 	async loginToken(ctx: StateContext<IAuthState>, { token, credential }: LoginOAuth) {
+
 		try {
 			const response = await this.afAuth.auth.signInWithCustomToken(token);
 
-			if (!credential)
-				ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
-			this.authSuccess(ctx, response.user, credential);
+			ctx.dispatch(new LoginSuccess(response.user!));
+			ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
+			window.close();															// TODO: how to communicate to main thread?
+			return ctx.dispatch(new CheckSession());
+
+			// if (!credential)
+			// 	ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
+			// this.authSuccess(ctx, response.user, credential);
+			// return ctx.dispatch(new CheckSession());						// Dispatch CheckSession on start
 		} catch (error) {
-			ctx.dispatch(new LoginFailed(error));
+			this.dbg('failed: %j', error.toString());
+			window.close();															// finished with popup
+			return ctx.dispatch(new LoginFailed(error));
 		}
 	}
 
@@ -165,8 +178,8 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
-				// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
 				.then(_ => this.zone.run(() => this.router.navigateByUrl(ROUTE.attend)))
+				// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
 		}
 	}
 
