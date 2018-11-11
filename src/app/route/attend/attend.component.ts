@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
+import { DataService } from '@dbase/data/data.service';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IPrice } from '@dbase/data/data.schema';
@@ -12,8 +13,6 @@ import { IPrice } from '@dbase/data/data.schema';
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
-import { FireService } from '@dbase/fire/fire.service';
-import { DataService } from '@dbase/data/data.service';
 
 @Component({
 	selector: 'wb-attend',
