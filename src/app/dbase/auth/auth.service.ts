@@ -41,10 +41,6 @@ export class AuthService {
 		this.store.dispatch(new Logout());
 	}
 
-	public check() {
-		this.store.dispatch(new CheckSession());
-	}
-
 	public async signIn(provider: IProvider, opts: IObject<any> = {}) {
 		this.dbg('signIn: %j', provider);
 
