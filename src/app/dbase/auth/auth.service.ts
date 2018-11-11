@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, withLatestFrom, tap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
 // import { Navigate } from '@ngxs/router-plugin';
@@ -94,20 +94,22 @@ export class AuthService {
 		return this.store.dispatch(new LoginIdentity(authProvider));
 	}
 
+	/** This runs in the main thread */
 	private signInOAuth(provider: IProvider) {
 		const urlRequest = 'https://us-central1-whitefire-dev.cloudfunctions.net/authRequest';
 		const urlQuery = `prefix=${provider.prefix}`;
 
-		window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=700,width=800');
+		window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
 	}
 
+	/** This runs in the OAuth popup */
 	public signInToken(token: string) {
 		return this.store.dispatch(new LoginOAuth(token))
-			// .pipe(
-			// 	// tap(_ => window.close()),
-			// 	withLatestFrom(this.auth$),
-			// )
-			// .subscribe(_ => this.store.dispatch(new CheckSession))
+			.pipe(switchMap(_ => this.auth$))			// this *may* fire multiple times
+			.subscribe(auth => {
+				if (auth.user)
+					window.close();										// only close on valid user
+			})
 	}
 
 	private signInEmail(provider: IProvider, email: string, password: string) {

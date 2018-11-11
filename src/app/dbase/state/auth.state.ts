@@ -10,7 +10,7 @@ import { ROUTE } from '@route/route.define';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup } from '@dbase/state/auth.define';
 
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -32,15 +32,12 @@ export class AuthState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar,
-		private router: Router, private zone: NgZone) {
-		this.afAuth.authState.pipe(
-			tap(authState => this.dbg('authState: %j', authState)),
-		)
-	}
+		private router: Router, private zone: NgZone) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
-		ctx.dispatch(new CheckSession());						// Dispatch CheckSession on start
+		this.afAuth.authState
+			.subscribe(_ => ctx.dispatch(new CheckSession(this.router.url)))
 	}
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
@@ -62,20 +59,17 @@ export class AuthState implements NgxsOnInit {
 
 	/** Commands */
 	@Action(CheckSession)													// on first connect, check if still logged-on
-	checkSession(ctx: StateContext<IAuthState>) {
-		const auth = ctx.getState();
-
-		if (!isActive(auth)) {											// check their prior auth-status
-			this.dbg('no longer active');
-			// ctx.dispatch(new LoginRedirect());				// TODO: do not send to /login, if returning from OAuth auth flow
-			return;
-		}
+	checkSession(ctx: StateContext<IAuthState>, { url }: CheckSession) {
+		this.dbg('url: %s', url);
+		if (url.split('?')[0] == ROUTE.oauth)
+			return;																		// intercept the redirect-to-login page
 
 		return this.afAuth.authState								// then check to see if still authenticated
 			.pipe(
 				take(1),
 				tap(async user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
+					this.dbg('')
 					ctx.dispatch(user
 						? new LoginSuccess(user)
 						: new Logout()
@@ -117,24 +111,16 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginOAuth)
-	async loginToken(ctx: StateContext<IAuthState>, { token, credential }: LoginOAuth) {
+	async loginToken(ctx: StateContext<IAuthState>, { token }: LoginOAuth) {
 
 		try {
 			const response = await this.afAuth.auth.signInWithCustomToken(token);
 
-			ctx.dispatch(new LoginSuccess(response.user!));
+			ctx.dispatch(new LoginSetup(response.user!));
 			ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
-			window.close();															// TODO: how to communicate to main thread?
-			return ctx.dispatch(new CheckSession());
 
-			// if (!credential)
-			// 	ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
-			// this.authSuccess(ctx, response.user, credential);
-			// return ctx.dispatch(new CheckSession());						// Dispatch CheckSession on start
 		} catch (error) {
 			this.dbg('failed: %j', error.toString());
-			window.close();															// finished with popup
-			return ctx.dispatch(new LoginFailed(error));
 		}
 	}
 
@@ -179,12 +165,12 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
 				.then(_ => this.zone.run(() => this.router.navigateByUrl(ROUTE.attend)))
-				// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
+			// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
 		}
 	}
 
-	@Action(LoginSuccess)														// on each LoginSuccess, fetch latest UserInfo, IdToken
-	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
+	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
 		this.snack.dismiss();
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
@@ -194,9 +180,11 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginToken)															// fetch latest IdToken
 	setToken(ctx: StateContext<IAuthState>) {
-		(this.afAuth.auth.currentUser as User).getIdTokenResult(true)
-			.then(token => ctx.patchState({ token }))
-			.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
+		if (this.afAuth.auth.currentUser) {
+			this.afAuth.auth.currentUser.getIdTokenResult(true)
+				.then(token => ctx.patchState({ token }))
+				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
+		}
 	}
 
 	@Action(LoginRedirect)
