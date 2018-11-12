@@ -69,7 +69,6 @@ export class AuthState implements NgxsOnInit {
 				take(1),
 				tap(async user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-					this.dbg('')
 					ctx.dispatch(user
 						? new LoginSuccess(user)
 						: new Logout()
