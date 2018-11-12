@@ -1,5 +1,5 @@
 import { AdditionalUserInfo } from '@firebase/auth-types';
-import { IMemberInfo, IProfileInfo } from '@dbase/data/data.schema';
+import { IMemberInfo } from '@dbase/data/data.schema';
 import { isString, isObject, isNumber } from '@lib/type.library';
 import { getStamp, getDateDiff } from '@lib/date.library';
 
@@ -9,15 +9,15 @@ import { getStamp, getDateDiff } from '@lib/date.library';
 export const getMemberInfo = (info: AdditionalUserInfo) => {
 	const profile: { [key: string]: any; } = info.profile || {};
 	return {
-		provider: info.providerId,
-		id: profile.id || profile.login,
+		providerId: info.providerId,
+		providerName: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
 		lastName: profile.family_name || profile.last_name || profile.lastName,
 		displayName: profile.name || profile.login,
 		email: profile.email || profile.emailAddress,
 		gender: profile.gender,
-		picture: profile.pictureUrl
-			|| profile.thumbnail
+		photoURL: profile.pictureUrl
+			|| profile.thumbnail									// linkedin
 			|| profile.avatar_url									// github
 			|| isString(profile.picture) && profile.picture
 			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url
@@ -27,10 +27,10 @@ export const getMemberInfo = (info: AdditionalUserInfo) => {
 }
 
 // each Provider might report a different birthday; take latest
-export const getMemberBirthday = (info: IProfileInfo[] = []) =>
+export const getMemberBirthday = (info: IMemberInfo[] = []) =>
 	Math.max(...info
-		.map(row => row.detail.birthday)
+		.map(row => row.birthday)
 		.filter(isNumber))
 
-export const getMemberAge = (info?: IProfileInfo[]) =>
+export const getMemberAge = (info?: IMemberInfo[]) =>
 	getDateDiff(getMemberBirthday(info));

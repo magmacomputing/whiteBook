@@ -220,17 +220,13 @@ export interface IProfileClaim extends IProfile {
 }
 export interface IProfileInfo extends IProfile {
 	[FIELD.type]: 'info';
-	isNewUser: boolean;
 	providerId: string;
-	username?: string | null;
-	profile: any;
-	detail: IMemberInfo;
 }
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
 
 export interface IMemberInfo {				// Conformed Info across Providers
-	provider: string;
-	id: string;                         // Provider Id
+	providerId: string;
+	providerName: string;               // Provider's Id
 	firstName?: string;
 	lastName?: string;
 	userName?: string;                  // their Provider username

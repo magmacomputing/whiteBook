@@ -158,36 +158,18 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-
 		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
 
-		let authInfo = cloneObj(auth.info);
-		if (authInfo.profile) {
-			const profile: any = authInfo.profile;
-			delete profile.link;						// special: FaceBook changes this field periodically
-			delete profile.updated_at;			// special: Github might report only this field as a change
-
-			if (profile.picture && profile.picture.data && profile.picture.data.url)	// special: FaceBook changes the url-segment periodically
-				profile.picture.data.url = profile.picture.data.url.split('?')[0];
-			if (profile.grantedScopes) {		// special: FaceBook returns different names periodically
-				profile.granted_scopes = profile.grantedScopes;
-				delete profile.grantedScopes;
-			}
-
-			authInfo.profile = profile;			// rebuild authInfo.profile
-		}
-
-		const where: TWhere = { fieldPath: 'providerId', value: authInfo.providerId };
-		const profileUser: Partial<IProfileInfo> = {
-			...authInfo,										// spread the authInfo object
+		const where: TWhere = { fieldPath: 'providerId', value: auth.info.providerId };
+		const profileInfo: Partial<IProfileInfo> = {
+			...getMemberInfo(auth.info),		// spread the conformed member info
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'info',
-			detail: getMemberInfo(authInfo),
 		}
 
-		this.data.insDoc(profileUser as IProfileInfo, where, STORE.profile);
+		this.data.insDoc(profileInfo as IProfileInfo, where, STORE.profile);
 	}
 
 }

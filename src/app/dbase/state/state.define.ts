@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { TTokenClaims } from '@dbase/auth/auth.interface';
-import { IProfilePlan, IPrice, IProfileInfo, IDefault, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor } from '@dbase/data/data.schema';
+import { IProfilePlan, IPrice, IDefault, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IMemberInfo } from '@dbase/data/data.schema';
 
 export interface IState { [slice: string]: Observable<any> };
 
@@ -21,7 +21,7 @@ export interface IMemberState extends IUserState {
 	member: {
 		plan?: IProfilePlan[];              // member's effective plan
 		price?: IPrice[];                   // member's effective prices
-		info?: IProfileInfo[];              // array of AdditionalUserInfo documents
+		info?: IMemberInfo[];              	// array of AdditionalUserInfo documents
 	}
 	defaults?: IDefault[];                // defaults to apply, if missing from Member data
 }
