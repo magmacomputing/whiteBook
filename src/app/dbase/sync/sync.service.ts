@@ -154,7 +154,6 @@ export class SyncService {
 					this.store.dispatch(new delStore(data, debug));
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 						this.router.navigateByUrl(ROUTE.plan);
-					// this.store.dispatch(new Navigate([ROUTE.plan])); // special: current-plan has been deleted
 					break;
 			}
 		})
