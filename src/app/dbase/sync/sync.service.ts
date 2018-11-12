@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 import { SnapshotMetadata } from '@firebase/firestore-types';
 
@@ -116,6 +116,13 @@ export class SyncService {
 		}
 
 		if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
+			const url = this.router.url.split('?')[0];
+			if (url === ROUTE.oauth) {
+				this.dbg('url: %s', url);
+				this.off(collection);
+				return;																				// intercept the redirect-to-login page
+			}
+
 			const localSlice = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
 			const localStore = localSlice[listen.slice] || {};
 			const localList: IStoreDoc[] = [];

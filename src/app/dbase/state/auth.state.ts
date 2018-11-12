@@ -37,7 +37,7 @@ export class AuthState implements NgxsOnInit {
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
 		this.afAuth.authState
-			.subscribe(_ => ctx.dispatch(new CheckSession(this.router.url)))
+			.subscribe(_ => ctx.dispatch(new CheckSession()))
 	}
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
@@ -59,10 +59,12 @@ export class AuthState implements NgxsOnInit {
 
 	/** Commands */
 	@Action(CheckSession)													// on first connect, check if still logged-on
-	checkSession(ctx: StateContext<IAuthState>, { url }: CheckSession) {
-		this.dbg('url: %s', url);
-		if (url.split('?')[0] == ROUTE.oauth)
+	checkSession(ctx: StateContext<IAuthState>) {
+		const url = this.router.url.split('?')[0];
+		if (url === ROUTE.oauth) {
+			this.dbg('url: %s', url);
 			return;																		// intercept the redirect-to-login page
+		}
 
 		return this.afAuth.authState								// then check to see if still authenticated
 			.pipe(

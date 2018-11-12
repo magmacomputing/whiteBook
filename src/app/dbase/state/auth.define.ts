@@ -11,7 +11,7 @@ export interface IAuthState {
 // Actions
 export class CheckSession {
 	static type = '[Auth] CheckSession';
-	constructor(public url: string) { }
+	// constructor(public url: string) { }
 }
 export class LoginLink {
 	static type = '[Auth] LoginLink';
