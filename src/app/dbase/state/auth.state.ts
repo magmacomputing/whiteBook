@@ -1,18 +1,19 @@
 import { NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { auth } from 'firebase';
 import { AngularFireAuth } from '@angular/fire/auth';
 
-// import { Navigate } from '@ngxs/router-plugin';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 import { take, tap } from 'rxjs/operators';
 import { ROUTE } from '@route/route.define';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import { SLICE, TruncMember, TruncAttend } from '@dbase/state/store.define';
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup } from '@dbase/state/auth.define';
+import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
-import { getAuthProvider } from '@dbase/auth/auth.library';
+import { getAuthProvider, getProviderId } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -24,7 +25,7 @@ import { dbg } from '@lib/logger.library';
 	defaults: {
 		user: null,
 		token: null,
-		info: null,
+		info: undefined,
 		credential: null,
 	}
 })
@@ -112,17 +113,17 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginOAuth)
-	async loginToken(ctx: StateContext<IAuthState>, { token }: LoginOAuth) {
-
-		try {
-			const response = await this.afAuth.auth.signInWithCustomToken(token);
-
-			ctx.dispatch(new LoginSetup(response.user!));
-			ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
-
-		} catch (error) {
-			this.dbg('failed: %j', error.toString());
+	async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginOAuth) {
+		const additionalUserInfo: auth.AdditionalUserInfo = {
+			isNewUser: false,
+			providerId: getProviderId(prefix),
+			profile: user,
 		}
+		ctx.patchState({ info: additionalUserInfo });
+
+		this.afAuth.auth.signInWithCustomToken(token)
+			.then(response => ctx.dispatch(new LoginSetup(response.user!)))
+			.catch(error => this.dbg('failed: %j', error.toString()));
 	}
 
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
@@ -166,8 +167,12 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
 				.then(_ => this.zone.run(() => this.router.navigateByUrl(ROUTE.attend)))
-			// .then(_ => ctx.dispatch(new Navigate([ROUTE.attend])))
 		}
+	}
+
+	@Action(LoginAdditionalInfo)
+	async additionalInfo(ctx: StateContext<IAuthState>, { info }: LoginAdditionalInfo) {
+		ctx.patchState(info);
 	}
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
@@ -191,7 +196,6 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginRedirect)
 	onLoginRedirect(ctx: StateContext<IAuthState>) {//	/member
 		this.dbg('onLoginRedirect, navigating to /login');
-		// ctx.dispatch(new Navigate([ROUTE.login]));
 		this.zone.run(() => this.router.navigateByUrl(ROUTE.login));
 	}
 

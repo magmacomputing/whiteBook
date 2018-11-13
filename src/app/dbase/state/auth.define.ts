@@ -23,7 +23,7 @@ export class LoginIdentity {
 }
 export class LoginOAuth {
 	static type = '[Auth] LoginOAuth';
-	constructor(public token: string, public credential?: any) { }
+	constructor(public token: string, public prefix: string, public user: any) { }
 }
 export class LoginEmail {
 	static type = '[Auth] LoginEmail';
@@ -39,6 +39,10 @@ export class LogoutSuccess {
 }
 export class LoginInfo {
 	static type = '[Auth] LoginInfo';
+}
+export class LoginAdditionalInfo {
+	static type = '[Auth] LoginAdditionalInfo';
+	constructor(public info: any) { }
 }
 
 // Events

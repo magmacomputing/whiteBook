@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 
 import { Store } from '@ngxs/store';
-// import { Navigate } from '@ngxs/router-plugin';
 import { IAuthState } from '@dbase/state/auth.define';
 import { AuthState } from '@dbase/state/auth.state';
 import { MemberState } from '@dbase/state/member.state';
@@ -28,8 +27,7 @@ export class AuthGuard implements CanActivate {
 
 		if (!isUndefined(auth.token) && !isNull(auth.token))
 			return true;
-		
-		// this.store.dispatch(new Navigate([ROUTE.login]));
+
 		this.router.navigateByUrl(ROUTE.login);
 		return false;
 	}
@@ -47,9 +45,9 @@ export class ProfileGuard implements CanActivate {
 		const where: TWhere = { fieldPath: FIELD.type, value: 'plan' };
 		const plan = asAt<IProfilePlan>(member[STORE.profile], where);
 
-		if (isArray(plan) && plan.length) return true;      // ok to access Route
+		if (isArray(plan) && plan.length)
+			return true;      												// ok to access Route
 
-		// this.store.dispatch(new Navigate([ROUTE.plan]));
 		this.router.navigateByUrl(ROUTE.plan);
 		return false;
 	}

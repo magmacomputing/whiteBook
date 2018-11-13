@@ -60,11 +60,20 @@ export const getAuthProvider = (providerId: string, token?: (IdTokenResult & IEm
 	return [type, authProvider, authCredential];
 }
 
+export const getProviderId = (prefix: string) => {
+	switch (prefix) {
+		case 'li':
+			return 'linkedin.com';
+
+		default:
+			return 'unknown';
+	}
+}
+
 export const isActive = (auth: IAuthState) => {
 	switch (true) {
 		case isNull(auth.user):
 		case isNull(auth.token):
-			// case !isNull(auth.token) && auth.token.claims[JWT.expires] < getStamp():
 			return false;													// not authenticated
 
 		default:

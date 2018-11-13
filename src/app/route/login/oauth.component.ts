@@ -22,7 +22,7 @@ export class OAuthComponent implements OnInit {
 			const url = `${urlAccess}?prefix=li&code=${code}&state=${state}`;
 
 			this.http.post<any>(url, {})
-				.subscribe(res => this.auth.signInToken(res.token))
+				.subscribe(res => this.auth.signInToken(res))
 		}
 	}
 

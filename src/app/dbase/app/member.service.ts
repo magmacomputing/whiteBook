@@ -22,7 +22,6 @@ import { ROUTE } from '@route/route.define';
 import { getStamp } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
-import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -39,6 +38,7 @@ export class MemberService {
 			ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
 			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
 		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed
+		this.store.dispatch(new LoginInfo());					// and fire an initial LoginInfo check
 	}
 
 	async setPlan(plan: TPlan) {

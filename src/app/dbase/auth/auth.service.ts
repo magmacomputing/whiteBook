@@ -8,7 +8,7 @@ import { SLICE } from '@dbase/state/store.define';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { LoginIdentity, Logout, CheckSession, IAuthState, LoginEmail, LoginOAuth } from '@dbase/state/auth.define';
+import { LoginIdentity, Logout, CheckSession, IAuthState, LoginEmail, LoginOAuth, LoginInfo, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
@@ -96,15 +96,22 @@ export class AuthService {
 		const urlQuery = `prefix=${provider.prefix}`;
 
 		window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
+		new BroadcastChannel('oauth')
+			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
 	}
 
 	/** This runs in the OAuth popup */
-	public signInToken(token: string) {
-		return this.store.dispatch(new LoginOAuth(token))
+	public signInToken(response: any) {
+		return this.store.dispatch(new LoginOAuth(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this *may* fire multiple times
 			.subscribe(auth => {
-				if (auth.user)
+				if (auth.info) {
+					new BroadcastChannel('oauth')			// tell the main thread to update State
+						.postMessage(JSON.stringify(auth.info));
+				}
+				if (auth.user) {
 					window.close();										// only close on valid user
+				}
 			})
 	}
 
