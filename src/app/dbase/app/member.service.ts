@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { timer } from 'rxjs';
 import { debounce } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
-// import { Navigate } from '@ngxs/router-plugin';
 
 import { IUserInfo } from '@dbase/auth/auth.interface';
 import { IAuthState, LoginInfo } from '@dbase/state/auth.define';
@@ -46,7 +45,6 @@ export class MemberService {
 
 		this.dbg('plan: %j', doc);
 		return this.data.insDoc(doc, undefined, 'plan')
-			// .then(_ => this.store.dispatch(new Navigate([ROUTE.attend])))
 			.then(_ => this.router.navigateByUrl(ROUTE.attend))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
@@ -160,7 +158,6 @@ export class MemberService {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
-		this.dbg('profile');
 
 		const where: TWhere = { fieldPath: 'providerId', value: auth.info.providerId };
 		const memberInfo = getMemberInfo(auth.info);

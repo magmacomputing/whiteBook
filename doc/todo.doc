@@ -8,8 +8,9 @@ so no false 'select plan'
 allow payment, hold
 
 *> migrate User
-allow for multiple providers
 test if multiple instances of same source
 
 *> Profile detail
 granted_scopes ?
+
+*> why on initial setPlan, not navigate(ROUTE.attend)?
