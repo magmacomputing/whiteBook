@@ -93,6 +93,7 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param currDocs: IStoreMeta[]  array of documents matched to the Create document
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+	console.log('discards: , nextDoc: , currDoc: ', discards, nextDoc, currDocs);
 	const isMatch = currDocs.map(currDoc =>       // for each current document...
 		asArray(discards)                           // for each of the field-names to match...
 			.every(field => isObject(nextDoc[field])

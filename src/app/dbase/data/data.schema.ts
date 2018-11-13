@@ -226,7 +226,7 @@ export type TProfileInfo = IProfileInfo | IProfileInfo[];
 
 export interface IMemberInfo {				// Conformed Info across Providers
 	providerId: string;
-	providerName: string;               // Provider's Id
+	providerUid: string;               // Provider's Id
 	firstName?: string;
 	lastName?: string;
 	userName?: string;                  // their Provider username

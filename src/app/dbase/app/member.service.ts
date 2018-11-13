@@ -160,16 +160,18 @@ export class MemberService {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
 		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
+		this.dbg('profile');
 
 		const where: TWhere = { fieldPath: 'providerId', value: auth.info.providerId };
+		const memberInfo = getMemberInfo(auth.info);
 		const profileInfo: Partial<IProfileInfo> = {
-			...getMemberInfo(auth.info),		// spread the conformed member info
+			...memberInfo,									// spread the conformed member info
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'info',
 		}
 
-		this.data.insDoc(profileInfo as IProfileInfo, where, STORE.profile);
+		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
 	}
 
 }
