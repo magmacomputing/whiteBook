@@ -5,7 +5,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
-import { IState, IAccountState } from '@dbase/state/state.define';
+import { IState, IAccountState, IConfigState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
@@ -44,7 +44,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string, store: string, filter: TWhere = [], date?: number, callBack?: Function) => {
+export const joinDoc = (states: IState, node: string | undefined, store: string, filter: TWhere = [], date?: number, callBack?: Function) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
@@ -58,8 +58,8 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 			}),
 
 			map(res => {
-				const nodes = node.split('.');
-				let joins: { [key: string]: TStoreBase[] } = parent[nodes[0]] || {};
+				const nodes = node && node.split('.') || [];
+				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {
@@ -74,7 +74,7 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 						})
 					} else {
 						const type = nodes[1] || store;
-						joins[type] = joins[type] || [];								// if there are no documents that match the criteria, return empty array
+						joins[type] = joins[type] || [];									// if there are no documents that match the criteria, return empty array
 					}
 				})
 
@@ -85,13 +85,13 @@ export const joinDoc = (states: IState, node: string, store: string, filter: TWh
 					}
 				})
 
-				return { ...parent, ...{ [nodes[0]]: joins } };
+				return node
+					? { ...parent, ...{ [nodes[0]]: joins } }
+					: { ...parent, ...joins }
+				// return { ...parent, ...{ [nodes[0]]: joins } };
 			}),
-			map(data =>
-				isFunction(callBack)
-					? callBack(data)
-					: data
-			),
+
+			map(data => isFunction(callBack) ? callBack(data) : data),
 		)
 	})
 }
@@ -166,5 +166,34 @@ export const sumAttend = (source: IAccountState) => {
 		}, 0)
 	}
 
-	return { ...source }
-} 
+	return { ...source };
+}
+
+/**
+ * resolve some placeholder variables in IConfig[]
+ */
+export const sumConfig = (source: IConfigState) => {
+	let project = '';
+	let region = '';
+
+	source[STORE.config].forEach((row) => {
+		switch (row[FIELD.type]) {
+			case 'project':
+				project = row.value;
+				break;
+			case 'region':
+				region = row.value;
+				break;
+		}
+	});
+
+	const fixSource = source[STORE.config].map(row => {
+		if (row[FIELD.type] === 'oauth') {
+			Object.keys(row.value)
+				.forEach(itm => row.value[itm] = row.value[itm].replace('${region}', region).replace('${project}', project));
+		}
+		return row;
+	})
+
+	return { [STORE.config]: fixSource };
+}

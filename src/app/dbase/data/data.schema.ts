@@ -74,6 +74,12 @@ export interface IDefault extends IClientBase {
 	[FIELD.type]: TStoreClient;
 	[FIELD.key]: string;
 }
+//	/client/_config_
+export interface IConfig extends IClientBase {
+	[FIELD.store]: '_config_';
+	[FIELD.type]: string;
+	value: any;
+}
 
 //	/client/price
 export interface IPrice extends IClientBase {

@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 import { DataService } from '@dbase/data/data.service';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IPrice } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';

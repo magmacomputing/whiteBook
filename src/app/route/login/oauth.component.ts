@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
+import { StateService } from '@dbase/state/state.service';
 import { AuthService } from '@dbase/auth/auth.service';
+
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -12,17 +14,20 @@ import { dbg } from '@lib/logger.library';
 export class OAuthComponent implements OnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router, private auth: AuthService) { }
+	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService, private state: StateService) { }
 
 	ngOnInit() {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			const urlAccess = 'https://us-central1-whitefire-dev.cloudfunctions.net/authAccess';
-			const url = `${urlAccess}?prefix=li&code=${code}&state=${state}`;
+			this.state.getConfigData('oauth')
+				.subscribe(oauth => {													// TODO: do not hard-code prefix
+					const url = `${oauth.value.access_url}?prefix=li&code=${code}&state=${state}`;
+					this.dbg('oauth: %s', url);
 
-			this.http.post<any>(url, {})
-				.subscribe(res => this.auth.signInToken(res))
+					this.http.post<any>(url, {})
+						.subscribe(res => this.auth.signInToken(res))
+				})
 		}
 	}
 

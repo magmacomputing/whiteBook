@@ -2,15 +2,14 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
-// import { RouterStateModel } from '@ngxs/router-plugin';
 
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { IMemberState, IUserState, IPlanState, ITimetableState, IState, IAccountState } from '@dbase/state/state.define';
-import { getUser, joinDoc, getStore, sumPayment, sumAttend } from '@dbase/state/state.library';
+import { IMemberState, IUserState, IPlanState, ITimetableState, IState, IAccountState, IConfigState } from '@dbase/state/state.define';
+import { getUser, joinDoc, getStore, sumPayment, sumAttend, sumConfig } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
@@ -19,6 +18,7 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { asArray } from '@lib/array.library';
 import { fmtDate, getMoment } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
+import { IConfig } from '@dbase/data/data.schema';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -27,7 +27,6 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
-	// @Select() private route$!: Observable<RouterStateModel>;
 	@Select() private client$!: Observable<IStoreState<any>>;
 	@Select() private member$!: Observable<IStoreState<any>>;
 	@Select() private attend$!: Observable<IStoreState<any>>;
@@ -52,12 +51,11 @@ export class StateService {
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-		return getStore<T>(this.states, store, filters) ;
+		return getStore<T>(this.states, store, filters);
 	}
 
 	/** Router */
 	getRoute() {
-		// return this.route$;
 		return this.router.url;
 	}
 
@@ -73,6 +71,22 @@ export class StateService {
 				return token && token.claims
 					? { auth: { user: getUser(token.claims as IFireClaims), claims: token.claims.claims } }
 					: { auth: { user: null, claims: null } }
+			})
+		)
+	}
+
+	/**
+	 * Configuration parameters
+	 */
+	getConfigData(key?: string, date?: number): Observable<IConfigState & IConfig> {
+		return of({}).pipe(
+			joinDoc(this.states, undefined, STORE.config, undefined, date, sumConfig),
+			joinDoc(this.states, undefined, STORE.default, undefined, date),
+			switchMap(result => {
+				console.log('switchMap: ', result);
+				return key
+					? result[STORE.config].filter((row: IConfig) => row[FIELD.type] === key)
+					: result
 			})
 		)
 	}

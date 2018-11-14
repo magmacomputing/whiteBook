@@ -1,17 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, tap, take } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
-// import { Navigate } from '@ngxs/router-plugin';
-import { SLICE } from '@dbase/state/store.define';
+import { StateService } from '@dbase/state/state.service';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { LoginIdentity, Logout, CheckSession, IAuthState, LoginEmail, LoginOAuth, LoginInfo, LoginAdditionalInfo } from '@dbase/state/auth.define';
+import { LoginIdentity, Logout, IAuthState, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
-import { IProvider } from '@dbase/data/data.schema';
+import { IProvider, IConfig } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { IObject } from '@lib/object.library';
@@ -19,22 +18,24 @@ import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
-export class AuthService {
+export class AuthService implements OnInit {
 	@Select() auth$!: Observable<IAuthState>;
 
 	private dbg: Function = dbg.bind(this);
+	private urlRequest!: IConfig;
 
-	constructor(private readonly store: Store) { this.dbg('new'); }
+	constructor(private readonly store: Store, private state: StateService) { this.dbg('new'); }
+
+	ngOnInit() {
+		this.state.getConfigData('oauth')
+			.pipe(tap(res => this.dbg('res: %j', res)))
+			.subscribe(oauth => this.urlRequest = oauth.value.request_url);
+	}
 
 	get isAuth() {
 		return this.auth$.pipe(
 			map(auth => isActive(auth))
 		)
-	}
-
-	public state() {
-		return this.store
-			.selectSnapshot<IAuthState>(state => state[SLICE.auth]);
 	}
 
 	public signOut() {
@@ -92,24 +93,25 @@ export class AuthService {
 
 	/** This runs in the main thread */
 	private signInOAuth(provider: IProvider) {
-		const urlRequest = 'https://us-central1-whitefire-dev.cloudfunctions.net/authRequest';
 		const urlQuery = `prefix=${provider.prefix}`;
+		this.dbg('urlRequest: %j', this.urlRequest);
+		// window.open(`${this.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
 
-		window.open(`${urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
-		new BroadcastChannel('oauth')
-			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
+		// new BroadcastChannel('oauth')
+		// 	.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
 	}
 
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
 		return this.store.dispatch(new LoginOAuth(response.token, response.prefix, response.user))
-			.pipe(switchMap(_ => this.auth$))			// this *may* fire multiple times
+			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(auth => {
-				if (auth.info) {
-					new BroadcastChannel('oauth')			// tell the main thread to update State
-						.postMessage(JSON.stringify(auth.info));
-				}
+				const channel = new BroadcastChannel('oauth');
+				if (auth.info)											// tell the main thread to update State
+					channel.postMessage(JSON.stringify(auth.info));
+
 				if (auth.user) {
+					channel.close();
 					window.close();										// only close on valid user
 				}
 			})
