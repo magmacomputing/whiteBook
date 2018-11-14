@@ -83,7 +83,6 @@ export class StateService {
 			joinDoc(this.states, undefined, STORE.config, undefined, date, sumConfig),
 			joinDoc(this.states, undefined, STORE.default, undefined, date),
 			switchMap(result => {
-				console.log('switchMap: ', result);
 				return key
 					? result[STORE.config].filter((row: IConfig) => row[FIELD.type] === key)
 					: result

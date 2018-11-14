@@ -1,8 +1,9 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, switchMap, tap, take } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
+import { SLICE } from '@dbase/state/store.define';
 import { StateService } from '@dbase/state/state.service';
 
 import { AuthModule } from '@dbase/auth/auth.module';
@@ -18,17 +19,15 @@ import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
-export class AuthService implements OnInit {
+export class AuthService {
 	@Select() auth$!: Observable<IAuthState>;
 
 	private dbg: Function = dbg.bind(this);
 	private urlRequest!: IConfig;
 
-	constructor(private readonly store: Store, private state: StateService) { this.dbg('new'); }
-
-	ngOnInit() {
+	constructor(private readonly store: Store, private state: StateService) {
+		this.dbg('new');
 		this.state.getConfigData('oauth')
-			.pipe(tap(res => this.dbg('res: %j', res)))
 			.subscribe(oauth => this.urlRequest = oauth.value.request_url);
 	}
 
@@ -36,6 +35,11 @@ export class AuthService implements OnInit {
 		return this.auth$.pipe(
 			map(auth => isActive(auth))
 		)
+	}
+
+	public authState() {
+		return this.store
+			.selectSnapshot<IAuthState>(state => state[SLICE.auth]);
 	}
 
 	public signOut() {
@@ -94,11 +98,11 @@ export class AuthService implements OnInit {
 	/** This runs in the main thread */
 	private signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		this.dbg('urlRequest: %j', this.urlRequest);
-		// window.open(`${this.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
 
-		// new BroadcastChannel('oauth')
-		// 	.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
+		window.open(`${this.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
+
+		new BroadcastChannel('oauth')
+			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
 	}
 
 	/** This runs in the OAuth popup */
