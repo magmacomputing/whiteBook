@@ -30,9 +30,11 @@ export class AuthService {
 			.subscribe(oauth => this.urlRequest = oauth.value.request_url);
 	}
 
-	get isAuth() {
-		return this.auth$
-			.pipe(map(auth => isActive(auth)));
+	get active() {
+		return this.auth$.pipe(
+			take(1),
+			map(state => isActive(state)),
+		)
 	}
 
 	get user() {
