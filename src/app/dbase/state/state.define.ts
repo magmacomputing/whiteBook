@@ -1,21 +1,13 @@
 import { Observable } from 'rxjs';
-import { TTokenClaims } from '@dbase/auth/auth.interface';
+
+import { IAuthState } from './auth.define';
 import { STORE } from '@dbase/data/data.define';
 import { IConfig, IDefault, IProfilePlan, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IMemberInfo } from '@dbase/data/data.schema';
 
 export interface IState { [slice: string]: Observable<any> };
 
 export interface IUserState {
-	auth: {
-		user: {                             // generic information returned from a Provider
-			uid: string;
-			providerId: string;
-			displayName: string | null;
-			email: string | null;
-			photoURL: string | null;
-		} | null;
-		claims: TTokenClaims | null;        // authenticated customClaims
-	}
+	auth: IAuthState;
 }
 
 export interface IConfigState {

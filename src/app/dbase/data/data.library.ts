@@ -1,9 +1,10 @@
-import { IAuthState } from '@dbase/state/auth.define';
 import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { TStoreBase, isClientStore, IStoreMeta } from '@dbase/data/data.schema';
+import { IUserState } from '@dbase/state/state.define';
 import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
+import { TStoreBase, isClientStore, IStoreMeta } from '@dbase/data/data.schema';
+
 import { isObject, TString } from '@lib/type.library';
 import { equalObj } from '@lib/object.library';
 import { asString } from '@lib/string.library';
@@ -37,8 +38,8 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	return where;
 }
 
-export const docPrep = (doc: TStoreBase, auth: IAuthState) => {
-	const uid = auth.user!.uid;										// get the current user's uid
+export const docPrep = async (doc: TStoreBase, state: Promise<IUserState>) => {
+	const uid = (await state).auth.user!.uid;						// get the current user's uid
 
 	if (!isClientStore(doc)) {										// if not a /client document
 		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document

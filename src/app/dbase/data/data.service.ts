@@ -66,7 +66,7 @@ export class DataService {
 	}
 
 	async setDoc(store: string, doc: TStoreBase) {
-		doc = await docPrep(doc, this.auth.authState());// make sure we have a <key> field
+		doc = await docPrep(doc, this.auth.user)				// make sure we have a <key> field
 		return this.fire.setDoc(store, doc);
 	}
 
@@ -85,7 +85,7 @@ export class DataService {
 			let where: TWhere;
 
 			try {
-				nextDoc = await docPrep(nextDoc, this.auth.authState());// make sure we have a <key>
+				nextDoc = await docPrep(nextDoc, this.auth.user)		// make sure we have a <key>
 				where = getWhere(nextDoc as IMeta, filter);
 			} catch (error) {
 				this.snack.open(error.message);                     // show the error to the User

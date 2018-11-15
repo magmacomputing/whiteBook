@@ -2,14 +2,13 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
-import { IFireClaims } from '@dbase/auth/auth.interface';
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { IMemberState, IUserState, IPlanState, ITimetableState, IState, IAccountState, IConfigState } from '@dbase/state/state.define';
-import { getUser, joinDoc, getStore, sumPayment, sumAttend, sumConfig } from '@dbase/state/state.library';
+import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IConfigState, IUserState } from '@dbase/state/state.define';
+import { joinDoc, getStore, sumPayment, sumAttend, sumConfig } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
@@ -60,19 +59,11 @@ export class StateService {
 	}
 
   /**
-  * Assemble a UserState Object describing a User, where:  
-  * auth.user    -> has Firebase details about the User Account  
-  * auth.claims  -> has authenticated customClaims
+  * Assemble a AuthState Object describing a User
   */
-	getUserData(uid?: string): Observable<IUserState> {               // TODO: allow for optional <uid> parameter to resolve in admin$ state
-		return this.auth$.pipe(
-			map(auth => auth.token),
-			map(token => {
-				return token && token.claims
-					? { auth: { user: getUser(token.claims as IFireClaims), claims: token.claims.claims } }
-					: { auth: { user: null, claims: null } }
-			})
-		)
+	getAuthData(uid?: string): Observable<IUserState> {               // TODO: allow for optional <uid> parameter to resolve in admin$ state
+		return this.auth$
+			.pipe(map(auth => ({ auth })))
 	}
 
 	/**
@@ -91,7 +82,7 @@ export class StateService {
 	}
 
   /**
-   * Extend UserState with an Object describing a Member returned as IMemberState, where:  
+   * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
    * member.plan  -> has the asAt ProfilePlan for the user.uid  
    * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
    * member.price -> has an array of IPrice that match the Member's plan-type
@@ -107,7 +98,7 @@ export class StateService {
 		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
 
-		return this.getUserData(uid).pipe(
+		return this.getAuthData(uid).pipe(
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),

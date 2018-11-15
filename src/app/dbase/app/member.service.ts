@@ -156,11 +156,11 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-		if (isNull(auth.info) || isUndefined(auth.info))
+		if (isNull(auth.provider) || isUndefined(auth.provider))
 			return;													// No AdditionalUserInfo available
 
-		const where: TWhere = { fieldPath: 'providerId', value: auth.info.providerId };
-		const memberInfo = getMemberInfo(auth.info);
+		const where: TWhere = { fieldPath: 'providerId', value: auth.provider.providerId };
+		const memberInfo = getMemberInfo(auth.provider);
 		const profileInfo: Partial<IProfileInfo> = {
 			...memberInfo,									// spread the conformed member info
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()

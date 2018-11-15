@@ -1,7 +1,7 @@
 import { auth } from 'firebase/app';
 import { AuthProvider, AuthCredential, IdTokenResult } from '@firebase/auth-types';
 
-import { IAuthState } from '@dbase/state/auth.define';
+import { IUserState } from '@dbase/state/state.define';
 import { TProvider } from '@dbase/data/data.schema';
 
 import { isNull } from '@lib/type.library';
@@ -70,10 +70,10 @@ export const getProviderId = (prefix: string) => {
 	}
 }
 
-export const isActive = (auth: IAuthState) => {
+export const isActive = (state: IUserState) => {
 	switch (true) {
-		case isNull(auth.user):
-		case isNull(auth.token):
+		case isNull(state.auth.user):
+		case isNull(state.auth.token):
 			return false;													// not authenticated
 
 		default:

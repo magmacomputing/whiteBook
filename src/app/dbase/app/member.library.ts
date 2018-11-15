@@ -6,10 +6,10 @@ import { getStamp, getDateDiff } from '@lib/date.library';
 // Library of member-related functions
 
 // assemble a standard Member Info object
-export const getMemberInfo = (info: AdditionalUserInfo) => {
-	const profile: { [key: string]: any; } = info.profile || {};
+export const getMemberInfo = (provider: AdditionalUserInfo) => {
+	const profile: { [key: string]: any; } = provider.profile || {};
 	return {
-		providerId: info.providerId,
+		providerId: provider.providerId,
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
 		lastName: profile.family_name || profile.last_name || profile.lastName,

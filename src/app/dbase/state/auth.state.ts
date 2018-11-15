@@ -25,7 +25,8 @@ import { dbg } from '@lib/logger.library';
 	defaults: {
 		user: null,
 		token: null,
-		info: undefined,
+		info: null,
+		provider: null,
 		credential: null,
 	}
 })
@@ -45,7 +46,7 @@ export class AuthState implements NgxsOnInit {
 		if (user) {
 			if (credential) {													// have we been redirected here, via credential?
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
-				ctx.patchState({ info: response.additionalUserInfo });
+				ctx.patchState({ provider: response.additionalUserInfo });
 			}
 			ctx.dispatch(new LoginSuccess(user));
 		}
@@ -104,7 +105,7 @@ export class AuthState implements NgxsOnInit {
 			const response = await this.afAuth.auth.signInWithPopup(authProvider);
 
 			if (!credential)
-				ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
+				ctx.patchState({ provider: response.additionalUserInfo, credential: response.credential });
 			this.authSuccess(ctx, response.user, credential);
 
 		} catch (error) {
@@ -119,7 +120,7 @@ export class AuthState implements NgxsOnInit {
 			providerId: getProviderId(prefix),
 			profile: user,
 		}
-		ctx.patchState({ info: additionalUserInfo });
+		ctx.patchState({ provider: additionalUserInfo });
 
 		this.afAuth.auth.signInWithCustomToken(token)
 			.then(response => ctx.dispatch(new LoginSetup(response.user!)))
@@ -171,8 +172,8 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginAdditionalInfo)
-	async additionalInfo(ctx: StateContext<IAuthState>, { info }: LoginAdditionalInfo) {
-		ctx.patchState(info);
+	async additionalInfo(ctx: StateContext<IAuthState>, { provider }: LoginAdditionalInfo) {
+		ctx.patchState(provider);
 	}
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
@@ -212,7 +213,7 @@ export class AuthState implements NgxsOnInit {
 			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
-		ctx.setState({ user: null, token: null, info: null, credential: null });
+		ctx.setState({ user: null, token: null, info: null, provider: null, credential: null });
 		ctx.dispatch(new LoginRedirect());
 	}
 }

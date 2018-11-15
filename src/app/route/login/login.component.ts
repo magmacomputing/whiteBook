@@ -6,15 +6,12 @@ import { AuthService } from '@dbase/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
-import { dbg } from '@lib/logger.library';
-
 @Component({
 	selector: 'wb-login',
 	templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
 	public provider$ = this.state.getCurrent<IProvider>(STORE.provider);
-	private dbg: Function = dbg.bind(this);
 
 	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService) { }
 

@@ -1,17 +1,18 @@
 import { User, UserInfo, AuthProvider, IdTokenResult, AdditionalUserInfo, AuthCredential } from '@firebase/auth-types';
 import { ILink } from '@dbase/auth/auth.interface';
+import { IMemberInfo } from '@dbase/data/data.schema';
 
 export interface IAuthState {
 	user: UserInfo | null;
+	info: IMemberInfo | null;
 	token: IdTokenResult | null;
-	info?: AdditionalUserInfo | null;       // additionalUserInfo from provider
 	credential?: AuthCredential | null;
+	provider: AdditionalUserInfo | null;       // additionalUserInfo from provider
 }
 
 // Actions
 export class CheckSession {
 	static type = '[Auth] CheckSession';
-	// constructor(public url: string) { }
 }
 export class LoginLink {
 	static type = '[Auth] LoginLink';
@@ -42,7 +43,7 @@ export class LoginInfo {
 }
 export class LoginAdditionalInfo {
 	static type = '[Auth] LoginAdditionalInfo';
-	constructor(public info: any) { }
+	constructor(public provider: any) { }
 }
 
 // Events

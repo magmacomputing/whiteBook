@@ -21,8 +21,8 @@ export class OAuthComponent implements OnInit {
 
 		if (code) {
 			this.state.getConfigData('oauth')
-				.subscribe(oauth => {													// TODO: do not hard-code prefix
-					const url = `${oauth.value.access_url}?prefix=li&code=${code}&state=${state}`;
+				.subscribe(oauth => {
+					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);
 
 					this.http.post<any>(url, {})
