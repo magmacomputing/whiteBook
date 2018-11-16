@@ -58,9 +58,6 @@ export class FireService {
 	async batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
-		// if (asArray(creates).length) this.dbg('creates: %j', asArray(creates).length);
-		// if (asArray(updates).length) this.dbg('updates: %j', asArray(updates).length);
-		// if (asArray(deletes).length) this.dbg('deletes: %j', asArray(deletes).length);
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remId(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remId(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
@@ -90,9 +87,9 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
-	callToken(data: Object) {
-		return this.callHttps<string>('getToken', data, `getting token`);
-	}
+	// callToken(data: Object) {
+	// 	return this.callHttps<string>('getToken', data, `getting token`);
+	// }
 
 	/**
 	 * Call a server-function

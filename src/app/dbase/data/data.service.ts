@@ -57,9 +57,9 @@ export class DataService {
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
 
-	getToken(data: Object) {
-		return this.fire.callToken(data);
-	}
+	// getToken(data: Object) {
+	// 	return this.fire.callToken(data);
+	// }
 
 	get newId() {
 		return this.fire.newId();                       // get Firebase to generate a new Key

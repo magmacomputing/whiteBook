@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 import { SnapshotMetadata } from '@firebase/firestore-types';
 
 import { Store } from '@ngxs/store';
-// import { Navigate } from '@ngxs/router-plugin';
 import { ROUTE } from '@route/route.define';
 import { SLICE, IStoreDoc } from '@dbase/state/store.define';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
