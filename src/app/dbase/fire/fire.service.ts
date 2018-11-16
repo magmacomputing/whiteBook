@@ -87,10 +87,6 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
-	// callToken(data: Object) {
-	// 	return this.callHttps<string>('getToken', data, `getting token`);
-	// }
-
 	/**
 	 * Call a server-function
 	 */

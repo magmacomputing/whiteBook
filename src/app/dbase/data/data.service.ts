@@ -31,7 +31,7 @@ export class DataService {
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
 		this.dbg('new');
-		this.syncOn(COLLECTION.Client, SLICE.client);   // initialize a listener to /client Collection
+		this.sync.on(COLLECTION.Client, SLICE.client);
 	}
 
 	/** Make Store data available in a Promise */
@@ -43,23 +43,11 @@ export class DataService {
 			.toPromise()
 	}
 
-	syncOn(collection: string, slice: string = SLICE.client) {
-		return this.sync.on(collection, slice);         // init a listener to a collection
-	}
-
-	syncOff() {
-		return this.sync.off(COLLECTION.Client);        // unsubscribe a collection's listener
-	}
-
 	getMeta(store: string, docId: string) {
 		return store
 			? this.fire.callMeta(store, docId)
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
-
-	// getToken(data: Object) {
-	// 	return this.fire.callToken(data);
-	// }
 
 	get newId() {
 		return this.fire.newId();                       // get Firebase to generate a new Key
