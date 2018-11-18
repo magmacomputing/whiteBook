@@ -7,8 +7,8 @@ import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@dbase/app/member.service';
 import { DataService } from '@dbase/data/data.service';
 
-import { FIELD } from '@dbase/data/data.define';
-import { IPrice } from '@dbase/data/data.schema';
+import { FIELD, STORE } from '@dbase/data/data.define';
+import { IPrice, IDefault, IClass } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
@@ -37,12 +37,20 @@ export class AttendComponent implements OnInit {
 				const event = data.client.class || [];        // the classes offered this.date
 				const price = data.member.price || [];        // the prices per member's plan
 				const costs: IPrice[] = [];                   // the price for a schedule item
+				const icon = data.default[STORE.default].find(row => row[FIELD.type] === 'icon') || {} as IDefault;
 
-				sched.forEach((time, idx) => {
-					const span = event.filter(itm => itm[FIELD.key] === time[FIELD.key])[0][FIELD.type];
-					const cost = price.filter(itm => itm[FIELD.type] === span)[0];
+				data.client.schedule = sched.map((time, idx) => {
+					const span = event.find(itm => itm[FIELD.key] === time[FIELD.key]) ||{} as IClass;
+					if (span[FIELD.type]) {
+						const cost = price.find(itm => itm[FIELD.type] === span[FIELD.type]) || {} as IPrice;
+						costs[idx] = cost;                        // stash the IPrice for each scheduled event
+					}
+					else time[FIELD.disable] = true;						// cannot determine the event
 
-					costs[idx] = cost;                          // stash the IPrice for each scheduled event
+					if (!time[FIELD.icon])											// if no schedule-specific icon...
+						time[FIELD.icon] = span.icon || icon[FIELD.key];				//	use class icon
+
+					return time;
 				})
 
 				// this.firstPaint = false;                   // TODO: ok to animate if Observable re-emits

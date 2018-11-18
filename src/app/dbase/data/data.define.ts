@@ -48,6 +48,7 @@ export const enum FIELD {					// common Field names
 	uid = 'uid',
 	store = 'store',
 	type = 'type',
+	icon = 'icon',
 	key = 'key',
 };
 

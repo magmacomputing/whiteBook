@@ -20,8 +20,10 @@ export interface IMemberState extends IUserState {
 		plan?: IProfilePlan[];              // member's effective plan
 		price?: IPrice[];                   // member's effective prices
 		info?: IMemberInfo[];              	// array of AdditionalUserInfo documents
+	},
+	default: {
+		[STORE.default]: IDefault[];                // defaults to apply, if missing from Member data
 	}
-	defaults?: IDefault[];                // defaults to apply, if missing from Member data
 }
 
 export interface IPlanState extends IMemberState {

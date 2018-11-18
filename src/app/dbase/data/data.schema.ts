@@ -5,6 +5,7 @@ export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor';
 export type TStoreMember = 'profile' | 'payment' | 'bonus';
 export type TStoreAttend = 'attend';
+export type TTypeDefault = TStoreClient | 'icon';
 
 export type TMeta = IMeta | IMeta[];
 
@@ -51,6 +52,7 @@ interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreAdmin;
 	[FIELD.type]?: string;
 	[FIELD.key]: string | number;
+	[FIELD.icon]?: string;									// an optional icon for the UI
 }
 interface IMemberBase extends IMeta {
 	[FIELD.store]: TStoreMember;
@@ -71,7 +73,7 @@ export const isClientStore = (store: TStoreBase): store is IClientBase =>
 //	/client/_default_
 export interface IDefault extends IClientBase {
 	[FIELD.store]: '_default_';
-	[FIELD.type]: TStoreClient;
+	[FIELD.type]: TTypeDefault;
 	[FIELD.key]: string;
 }
 //	/client/_config_
