@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store, Select } from '@ngxs/store';
@@ -7,7 +6,7 @@ import { StateService } from '@dbase/state/state.service';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { LoginIdentity, Logout, IAuthState, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.define';
+import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
@@ -103,7 +102,7 @@ export class AuthService {
 		window.open(`${this.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
 
 		new BroadcastChannel('oauth')
-			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ provider: JSON.parse(msg.data) }))
+			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
 	}
 
 	/** This runs in the OAuth popup */
@@ -111,14 +110,12 @@ export class AuthService {
 		return this.store.dispatch(new LoginOAuth(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
-				const channel = new BroadcastChannel('oauth');
-				if (state.auth.provider)											// tell the main thread to update State
-					channel.postMessage(JSON.stringify(state.auth.provider));
+				if (state.auth.info)								// tell the main thread to update State
+					new BroadcastChannel('oauth')
+						.postMessage(JSON.stringify(state.auth.info));
 
-				if (state.auth.user) {
-					channel.close();
+				if (state.auth.user)
 					window.close();										// only close on valid user
-				}
 			})
 	}
 

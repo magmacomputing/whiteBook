@@ -9,8 +9,3 @@ allow payment, hold
 
 *> migrate User
 test if multiple instances of same source
-
-*> Profile detail
-granted_scopes ?
-
-*> why on initial setPlan, not navigate(ROUTE.attend)?

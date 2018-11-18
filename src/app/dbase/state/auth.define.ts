@@ -4,10 +4,9 @@ import { IMemberInfo } from '@dbase/data/data.schema';
 
 export interface IAuthState {
 	user: UserInfo | null;
-	info: IMemberInfo | null;
 	token: IdTokenResult | null;
+	info: AdditionalUserInfo | null;       // additionalUserInfo from provider
 	credential?: AuthCredential | null;
-	provider: AdditionalUserInfo | null;       // additionalUserInfo from provider
 }
 
 // Actions
@@ -43,7 +42,7 @@ export class LoginInfo {
 }
 export class LoginAdditionalInfo {
 	static type = '[Auth] LoginAdditionalInfo';
-	constructor(public provider: any) { }
+	constructor(public info: any) { }
 }
 
 // Events

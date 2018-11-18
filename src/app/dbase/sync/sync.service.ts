@@ -154,6 +154,8 @@ export class SyncService {
 					this.store.dispatch(new setStore(data, debug));
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claims' && !data[FIELD.expire])
 						this.store.dispatch(new LoginToken());    // special: access-level has changed
+					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire] && !data[FIELD.effect])
+						this.router.navigateByUrl(ROUTE.attend);	// special: initial plan is set
 					break;
 
 				case 'removed':

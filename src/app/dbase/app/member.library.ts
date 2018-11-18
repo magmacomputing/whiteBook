@@ -23,15 +23,15 @@ export const getMemberInfo = (provider: AdditionalUserInfo) => {
 			|| isString(profile.picture) && profile.picture
 			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url
 			|| undefined,
-		birthday: profile.birthday && getStamp(profile.birthday),
+		birthDay: profile.birthday && getStamp(profile.birthday),
 	} as IMemberInfo
 }
 
 // each Provider might report a different birthday; take latest
-export const getMemberBirthday = (info: IMemberInfo[] = []) =>
+export const getMemberBirthDay = (info: IMemberInfo[] = []) =>
 	Math.max(...info
-		.map(row => row.birthday)
+		.map(row => row.birthDay)
 		.filter(isNumber))
 
 export const getMemberAge = (info?: IMemberInfo[]) =>
-	getDateDiff(getMemberBirthday(info));
+	getDateDiff(getMemberBirthDay(info));

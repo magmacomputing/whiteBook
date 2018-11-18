@@ -241,8 +241,8 @@ export interface IMemberInfo {				// Conformed Info across Providers
 	displayName?: string;               // their Provider displayname
 	email?: string;
 	gender?: string;
-	picture?: string;
-	birthday?: number;
+	photoURL?: string;
+	birthDay?: number;
 }
 
 //	/member/payment

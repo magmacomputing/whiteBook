@@ -45,7 +45,6 @@ export class MemberService {
 
 		this.dbg('plan: %j', doc);
 		return this.data.insDoc(doc, undefined, 'plan')
-			.then(_ => this.router.navigateByUrl(ROUTE.attend))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
@@ -156,11 +155,13 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
-		if (isNull(auth.provider) || isUndefined(auth.provider))
+		if (isNull(auth.info) || isUndefined(auth.info))
 			return;													// No AdditionalUserInfo available
 
-		const where: TWhere = { fieldPath: 'providerId', value: auth.provider.providerId };
-		const memberInfo = getMemberInfo(auth.provider);
+		const memberInfo = getMemberInfo(auth.info);
+		if (memberInfo.photoURL)					// strip the queryParams
+			memberInfo.photoURL = memberInfo.photoURL.split('?')[0];
+
 		const profileInfo: Partial<IProfileInfo> = {
 			...memberInfo,									// spread the conformed member info
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()
@@ -168,6 +169,7 @@ export class MemberService {
 			[FIELD.type]: 'info',
 		}
 
+		const where: TWhere = { fieldPath: 'providerId', value: auth.info.providerId };
 		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
 	}
 
