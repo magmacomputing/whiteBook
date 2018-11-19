@@ -1,8 +1,10 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 
 import { Store } from '@ngxs/store';
 import { MemberState } from '@dbase/state/member.state';
+import { ROUTE } from '@route/route.define';
+import { NavigateService } from '@route/navigate.service';
 
 import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -11,7 +13,6 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { AuthModule } from '@dbase/auth/auth.module';
 import { AuthService } from '@dbase/auth/auth.service';
 
-import { ROUTE } from '@route/route.define';
 import { isArray } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -19,7 +20,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthGuard implements CanActivate {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private auth: AuthService, private router: Router, private zone: NgZone) { this.dbg('new') }
+	constructor(private auth: AuthService, private router: Router, private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
 		const state = await this.auth.user;
@@ -27,7 +28,7 @@ export class AuthGuard implements CanActivate {
 		if (state.auth.user)
 			return true;
 
-		this.zone.run(() => this.router.navigateByUrl(ROUTE.login));
+		this.navigate.route(ROUTE.login);
 		return false;
 	}
 }
@@ -37,7 +38,7 @@ export class AuthGuard implements CanActivate {
 export class ProfileGuard implements CanActivate {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private store: Store, private router: Router, private zone: NgZone) { this.dbg('new') }
+	constructor(private store: Store, private router: Router, private navigate: NavigateService) { this.dbg('new') }
 
 	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 		const member = this.store.selectSnapshot(MemberState)
@@ -47,7 +48,7 @@ export class ProfileGuard implements CanActivate {
 		if (isArray(plan) && plan.length)
 			return true;      												// ok to access Route
 
-		this.zone.run(() => this.router.navigateByUrl(ROUTE.plan));
+		this.navigate.route(ROUTE.plan);
 		return false;
 	}
 }

@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { RoutingModule } from '@route/routing.module';
@@ -24,7 +23,6 @@ import { environment } from '../environments/environment';
 		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 		BrowserModule,
 		BrowserAnimationsModule,
-		DragDropModule,
 		DBaseModule,
 		AuthModule,
 		RoutingModule,

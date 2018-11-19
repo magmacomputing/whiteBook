@@ -1,3 +1,5 @@
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+
 const SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
 const BASE_VELOCITY = 0.3;
 
@@ -31,4 +33,9 @@ export const swipe = (thisIndex: number, lastIndex: number, event: any) => {
 	}
 
 	return thisIndex;
+}
+
+// allow for UI to drag/drop elements
+export const drag = (event: CdkDragDrop<any[]>) => {
+	console.log('drag');
 }

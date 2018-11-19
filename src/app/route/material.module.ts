@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { MATERIAL_SANITY_CHECKS } from '@angular/material';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,8 +31,14 @@ const modules = [
 ]
 
 @NgModule({
-	imports: [...modules],
-	exports: [...modules],
+	imports: [
+		DragDropModule,
+		...modules,
+	],
+	exports: [
+		DragDropModule,
+		...modules
+	],
 	providers: [{ provide: MATERIAL_SANITY_CHECKS, useValue: false }],
 })
 export class MaterialModule { }

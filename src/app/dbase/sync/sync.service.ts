@@ -5,6 +5,8 @@ import { SnapshotMetadata } from '@firebase/firestore-types';
 
 import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/route.define';
+import { NavigateService } from '@route/navigate.service';
+
 import { SLICE, IStoreDoc } from '@dbase/state/store.define';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
@@ -29,7 +31,7 @@ export class SyncService {
 	private dbg: Function = dbg.bind(this);
 	private listener: IObject<IListen>;
 
-	constructor(private fire: FireService, private store: Store, private router: Router) {
+	constructor(private fire: FireService, private store: Store, private router: Router, private navigate: NavigateService) {
 		this.dbg('new');
 		this.listener = {};
 	}
@@ -118,7 +120,7 @@ export class SyncService {
 			const url = this.router.url.split('?')[0];
 			if (url === ROUTE.oauth) {
 				this.dbg('url: %s', url);
-				this.off(collection);
+				this.off(collection);													// the OAuthComponent does not need to sync Store
 				return;																				// intercept the redirect-to-login page
 			}
 
@@ -155,13 +157,13 @@ export class SyncService {
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claims' && !data[FIELD.expire])
 						this.store.dispatch(new LoginToken());    // special: access-level has changed
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire] && !data[FIELD.effect])
-						this.router.navigateByUrl(ROUTE.attend);	// special: initial plan is set
+						this.navigate.route(ROUTE.attend);				// special: intial plan is set
 					break;
 
 				case 'removed':
 					this.store.dispatch(new delStore(data, debug));
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-						this.router.navigateByUrl(ROUTE.plan);
+						this.navigate.route(ROUTE.plan);					// special: Plan has been deleted
 					break;
 			}
 		})
