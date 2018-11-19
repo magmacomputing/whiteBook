@@ -1,9 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
 
 import { Store } from '@ngxs/store';
-import { IAuthState } from '@dbase/state/auth.define';
-import { AuthState } from '@dbase/state/auth.state';
 import { MemberState } from '@dbase/state/member.state';
 
 import { asAt } from '@dbase/app/app.library';
@@ -21,7 +19,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthGuard implements CanActivate {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private auth: AuthService, private router: Router) { this.dbg('new') }
+	constructor(private auth: AuthService, private router: Router, private zone: NgZone) { this.dbg('new') }
 
 	async canActivate() {
 		const state = await this.auth.user;
@@ -29,7 +27,7 @@ export class AuthGuard implements CanActivate {
 		if (state.auth.user)
 			return true;
 
-		this.router.navigateByUrl(ROUTE.login);
+		this.zone.run(() => this.router.navigateByUrl(ROUTE.login));
 		return false;
 	}
 }
@@ -39,7 +37,7 @@ export class AuthGuard implements CanActivate {
 export class ProfileGuard implements CanActivate {
 	private dbg: Function = dbg.bind(this);
 
-	constructor(private store: Store, private router: Router) { this.dbg('new') }
+	constructor(private store: Store, private router: Router, private zone: NgZone) { this.dbg('new') }
 
 	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
 		const member = this.store.selectSnapshot(MemberState)
@@ -49,7 +47,7 @@ export class ProfileGuard implements CanActivate {
 		if (isArray(plan) && plan.length)
 			return true;      												// ok to access Route
 
-		this.router.navigateByUrl(ROUTE.plan);
+		this.zone.run(() => this.router.navigateByUrl(ROUTE.plan));
 		return false;
 	}
 }

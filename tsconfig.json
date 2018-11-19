@@ -31,7 +31,8 @@
         "src/app/dbase/*"
       ],
       "@route/*": [
-        "src/app/route/*"
+        "src/app/route/*",
+        "src/app/route/router/*"
       ],
     },
   }

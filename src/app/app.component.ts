@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-// import { Navigate } from '@ngxs/router-plugin';
 
 import { DataService } from '@dbase/data/data.service';
 import { AuthService } from '@dbase/auth/auth.service';
