@@ -7,6 +7,7 @@ import { AuthService } from '@dbase/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
+import { drag } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -33,6 +34,6 @@ export class LoginComponent implements OnInit {
 	}
 
 	drop(event: CdkDragDrop<any[]>) {
-		this.dbg('drag');
+		drag(event);
 	}
 }

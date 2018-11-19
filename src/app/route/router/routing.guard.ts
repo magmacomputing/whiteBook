@@ -40,7 +40,7 @@ export class ProfileGuard implements CanActivate {
 
 	constructor(private store: Store, private router: Router, private navigate: NavigateService) { this.dbg('new') }
 
-	canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+	async canActivate() {
 		const member = this.store.selectSnapshot(MemberState)
 		const where: TWhere = { fieldPath: FIELD.type, value: 'plan' };
 		const plan = asAt<IProfilePlan>(member[STORE.profile], where);
