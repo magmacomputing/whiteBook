@@ -161,7 +161,7 @@ export const sumPayment = (source: IAccountState) => {
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
 		source.account.summary.cost = source.account.attend.reduce((cost, attend) => {
-			cost += attend.cost														// add up each Attend's cost
+			cost += attend.amount														// add up each Attend's cost
 			return cost;
 		}, 0)
 	}
