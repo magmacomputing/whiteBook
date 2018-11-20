@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 
 import { IAuthState } from './auth.define';
 import { STORE } from '@dbase/data/data.define';
-import { IConfig, IDefault, IProfilePlan, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IMemberInfo } from '@dbase/data/data.schema';
+import { IConfig, IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IProfileInfo } from '@dbase/data/data.schema';
 
 export interface IState { [slice: string]: Observable<any> };
 
@@ -17,12 +17,13 @@ export interface IConfigState {
 
 export interface IMemberState extends IUserState {
 	member: {
-		plan?: IProfilePlan[];              // member's effective plan
-		price?: IPrice[];                   // member's effective prices
-		info?: IMemberInfo[];              	// array of AdditionalUserInfo documents
+		plan: IProfilePlan[];              	// member's effective plan
+		info: IProfileInfo[];              	// array of AdditionalUserInfo documents
+		pref: IProfilePref[];								// member's preferences
+		price: IPrice[];                   	// member's effective prices
 	},
 	default: {
-		[STORE.default]: IDefault[];                // defaults to apply, if missing from Member data
+		[STORE.default]: IDefault[];        // defaults to apply, if missing from Member data
 	}
 }
 

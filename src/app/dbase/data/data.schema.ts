@@ -12,7 +12,7 @@ export type TMeta = IMeta | IMeta[];
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp';
 type TPayment = 'topUp' | 'hold' | 'credit' | 'close';
-type TProfile = 'plan' | 'claim' | 'info';
+type TProfile = 'plan' | 'claim' | 'info' | 'pref';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
 type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
@@ -135,8 +135,10 @@ export interface ISchedule extends IClientBase {
 	day: number;
 	location: string;
 	start: string;
+	price?: number;
 }
 
+//	/client/location
 export interface ILocation extends IClientBase {
 	[FIELD.store]: 'location';
 	[FIELD.key]: string;
@@ -161,6 +163,7 @@ export interface ILocation extends IClientBase {
 	}
 }
 
+//	/client/instructor
 export interface IInstructor extends IClientBase {
 	[FIELD.store]: 'instructor';
 	name: string;
@@ -230,11 +233,14 @@ export interface IProfileInfo extends IProfile {
 	[FIELD.type]: 'info';
 	providerId: string;
 }
+export interface IProfilePref extends IProfile {
+	[FIELD.type]: 'pref';
+}
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
 
 export interface IMemberInfo {				// Conformed Info across Providers
 	providerId: string;
-	providerUid: string;               // Provider's Id
+	providerUid: string;               	// Provider's Id
 	firstName?: string;
 	lastName?: string;
 	userName?: string;                  // their Provider username
@@ -251,7 +257,7 @@ export interface IPayment extends IMemberBase {
 	[FIELD.type]: TPayment;
 	amount: number;
 	stamp: number;
-	active: boolean;
+	active?: boolean;
 	bank?: number;
 	expiry?: number;
 	approve?: {
@@ -272,8 +278,9 @@ export interface IBonus extends IMemberBase {
 export interface IAttend extends IAttendBase {
 	payment: string;									// the /member/payment _id
 	schedule: string;									// the /client/schedule _id
-	stamp: number;
-	cost: number;											// the amount the member was charged
+	stamp: number;										// the timestamp of the check-in
+	date: number;											// the date of the attend
+	amount: number;										// the amount the member was charged
 	track?: {													// to use in bonus-checking
 		day: number;										// weekDay attended
 		week: number;										// yearWeek attended

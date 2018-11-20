@@ -93,7 +93,7 @@ export class StateService {
    */
 	getMemberData(date?: number, uid?: string): Observable<IMemberState> {
 		const filterProfile: TWhere = [
-			{ fieldPath: FIELD.type, value: ['plan', 'info'] },           // where the <type> is either 'plan' or 'info'
+			{ fieldPath: FIELD.type, value: ['plan', 'info', 'pref'] },   // where the <type> is either 'plan' or 'info'
 			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getUserData()'s 'auth.user.uid'
 		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };

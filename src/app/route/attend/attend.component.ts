@@ -44,6 +44,7 @@ export class AttendComponent implements OnInit {
 					if (span[FIELD.type]) {
 						const cost = price.find(itm => itm[FIELD.type] === span[FIELD.type]) || {} as IPrice;
 						costs[idx] = cost;                        // stash the IPrice for each scheduled event
+						time.price = time.price || cost.amount;		// add-on the member's price for each scheduled event
 					}
 					else time[FIELD.disable] = true;						// cannot determine the event
 

@@ -50,11 +50,11 @@ export class DataService {
 	}
 
 	get newId() {
-		return this.fire.newId();                       // get Firebase to generate a new Key
+		return this.fire.newId();                       				// get Firebase to generate a new Key
 	}
 
 	async setDoc(store: string, doc: TStoreBase) {
-		doc = await docPrep(doc, this.auth.user)				// make sure we have a <key> field
+		doc = await docPrep(doc, this.auth.user)								// make sure we have a <key> field
 		return this.fire.setDoc(store, doc);
 	}
 
