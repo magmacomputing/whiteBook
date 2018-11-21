@@ -261,6 +261,7 @@ export interface IPayment extends IMemberBase {
 	approve?: {
 		uid: string;
 		stamp: number;
+		note?: string;
 	},
 	note?: string;
 }
