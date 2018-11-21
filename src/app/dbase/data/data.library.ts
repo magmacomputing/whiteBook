@@ -13,8 +13,10 @@ import { asArray } from '@lib/array.library';
 export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
 	const slices = Object.keys(STORES)
 		.filter(col => STORES[col].includes(store));
+
 	if (!slices.length)
 		window.alert(`Unexpected store: ${store}`);
+
 	return slices[0];
 }
 
@@ -41,10 +43,10 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 export const docPrep = async (doc: TStoreBase, state: Promise<IUserState>) => {
 	const uid = (await state).auth.user!.uid;			// get the current user's uid
 
-	if (!isClientStore(doc)) {										// if not a /client document
+	if (!isClientStore(doc))											// if not a /client document
 		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
 			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
-	}
+
 	return doc;
 }
 
