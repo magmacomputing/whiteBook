@@ -259,9 +259,10 @@ export interface IPayment extends IMemberBase {
 	bank?: number;
 	expiry?: number;
 	approve?: {
-		key: string;
+		uid: string;
 		stamp: number;
-	}
+	},
+	note?: string;
 }
 
 //	/member/bonus

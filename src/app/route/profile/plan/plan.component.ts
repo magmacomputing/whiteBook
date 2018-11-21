@@ -27,7 +27,7 @@ export class PlanComponent implements OnInit {
 			const isAdmin = claim && claim.claims && claim.claims.roles && claim.claims.roles.includes('admin');
 			const myPlan = data.member.plan && data.member.plan.length && data.member.plan[0].plan;
 			const myTopUp = data.member.price && data.member.price.length && data.member.price.filter(price => price[FIELD.type] === 'topUp')[0].amount || 0;
-			const myAge = getMemberAge(data.member.info);
+			const myAge = getMemberAge(data.member.info);						// use birthDay from provider, if available
 
 			const plans = data.client.plan.map(plan => {            // array of available Plans
 				const price = data.client.price                       // get the topUp for this Plan
@@ -40,7 +40,7 @@ export class PlanComponent implements OnInit {
 					plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
 
 				if (plan[FIELD.key] === 'pension') {									// Special: Pension is only available to senior Member
-					const noAllow = myAge < 60 && !isAdmin;							// if you are younger than 60, and you are not Admin
+					const noAllow = myAge < 60 && !isAdmin;							// check member is younger than 60 and not Admin
 					plan[FIELD.hidden] = noAllow ? true : false;
 					plan[FIELD.disable] = noAllow ? true : false;
 				}
