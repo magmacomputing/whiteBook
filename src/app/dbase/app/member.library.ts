@@ -1,5 +1,5 @@
 import { AdditionalUserInfo } from '@firebase/auth-types';
-import { IMemberInfo } from '@dbase/data/data.schema';
+import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 import { isString, isObject, isNumber } from '@lib/type.library';
 import { getStamp, getDateDiff } from '@lib/date.library';
 
@@ -8,7 +8,8 @@ import { getStamp, getDateDiff } from '@lib/date.library';
 // assemble a standard Member Info object
 export const getMemberInfo = (provider: AdditionalUserInfo) => {
 	const profile: { [key: string]: any; } = provider.profile || {};
-	return {
+
+	const profileInfo: IMemberInfo = {
 		providerId: provider.providerId,
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
@@ -18,20 +19,27 @@ export const getMemberInfo = (provider: AdditionalUserInfo) => {
 		email: profile.email || profile.emailAddress,
 		gender: profile.gender,
 		photoURL: profile.pictureUrl
-			|| profile.thumbnail									// linkedin
-			|| profile.avatar_url									// github
-			|| isString(profile.picture) && profile.picture
-			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url
+			|| profile.thumbnail															// linkedin
+			|| profile.avatar_url															// github
+			|| isString(profile.picture) && profile.pictureUrl// google
+			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url // facebook
 			|| undefined,
-		birthDay: profile.birthday && getStamp(profile.birthday),
-	} as IMemberInfo
+		birthDay: profile.birthday,
+	}
+
+	if (profileInfo.photoURL)															// strip the queryParams
+		profileInfo.photoURL = profileInfo.photoURL.split('?')[0];
+	if (profileInfo.birthDay)															// as number
+		profileInfo.birthDay = getStamp(profileInfo.birthDay);
+
+	return profileInfo;
 }
 
 // each Provider might report a different birthday; take latest
-export const getMemberBirthDay = (info: IMemberInfo[] = []) =>
+export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
 	Math.max(...info
 		.map(row => row.birthDay)
 		.filter(isNumber))
 
-export const getMemberAge = (info?: IMemberInfo[]) =>
+export const getMemberAge = (info?: IProfileInfo[]) =>
 	getDateDiff(getMemberBirthDay(info));

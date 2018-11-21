@@ -14,23 +14,19 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IAttend, IPrice, IProfileInfo, IDefault, ISchedule } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IAttend, IProfileInfo, IDefault, ISchedule } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { getStamp } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg: Function = dbg.bind(this);
-	private default: Promise<IDefault[]>;
 
 	constructor(private readonly data: DataService, private readonly store: Store, private state: StateService, private action: Actions) {
 		this.dbg('new');
-		this.default = this.data.snap<IDefault>(STORE.default)
-			.then(table => asAt(table));								// stash the current defaults
 
 		this.action.pipe(															// special: listen for changes of the auth.info
 			ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
@@ -115,14 +111,6 @@ export class MemberService {
 			.then(summary => summary.member.plan[0])
 	}
 
-	/** Build a default document for a named <type> */
-	getDefault(type: string) {
-		return this.default
-			.then(table => table.filter(row => row.type === type))
-			.then(table => table[0])
-			.then(doc => ({ ...doc, ...{ [type]: doc[FIELD.key] } }))
-	}
-
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
 		const auth = this.store.selectSnapshot<IAuthState>(AuthState.auth);
@@ -130,9 +118,6 @@ export class MemberService {
 			return;													// No AdditionalUserInfo available
 
 		const memberInfo = getMemberInfo(auth.info);
-		if (memberInfo.photoURL)					// strip the queryParams
-			memberInfo.photoURL = memberInfo.photoURL.split('?')[0];
-
 		const profileInfo: Partial<IProfileInfo> = {
 			...memberInfo,									// spread the conformed member info
 			[FIELD.effect]: getStamp(),			// TODO: remove this when API supports local getMeta()

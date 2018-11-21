@@ -229,9 +229,8 @@ export interface IProfileClaim extends IProfile {
 	[FIELD.type]: 'claim';
 	claim: ICustomClaims;
 }
-export interface IProfileInfo extends IProfile {
+export interface IProfileInfo extends IProfile, IMemberInfo {
 	[FIELD.type]: 'info';
-	providerId: string;
 }
 export interface IProfilePref extends IProfile {
 	[FIELD.type]: 'pref';
@@ -240,10 +239,9 @@ export type TProfileInfo = IProfileInfo | IProfileInfo[];
 
 export interface IMemberInfo {				// Conformed Info across Providers
 	providerId: string;
-	providerUid: string;               	// Provider's Id
+	providerUid: string;               	// Provider's UserId
 	firstName?: string;
 	lastName?: string;
-	userName?: string;                  // their Provider username
 	displayName?: string;               // their Provider displayname
 	email?: string;
 	gender?: string;
