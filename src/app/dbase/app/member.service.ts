@@ -100,7 +100,7 @@ export class MemberService {
 			.then(summary => summary.account)
 	}
 
-	getPrice(type: string) {																	// type: 'full' | 'half' | 'topUp'
+	getPrice(type: string) {																	// type: 'full' | 'half' | 'topUp' | 'hold'
 		return this.getAccount()
 			.then(summary => summary.member.price)
 			.then(prices => prices.filter(row => row[FIELD.type] === type)[0])
