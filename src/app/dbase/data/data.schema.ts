@@ -279,7 +279,7 @@ export interface IAttend extends IAttendBase {
 	payment: string;									// the /member/payment _id
 	schedule: string;									// the /client/schedule _id
 	stamp: number;										// the timestamp of the check-in
-	date: number;											// the date of the attend
+	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
 	track?: {													// to use in bonus-checking
 		day: number;										// weekDay attended

@@ -55,6 +55,8 @@ const DATE_FMT: Record<keyof IDate, string> = {
 	elapse: 'mm:ss.SSS'                     // useful for reporting duration
 };
 
+export const DATE_KEY: Record<string, keyof IDate> = {};
+
 /** an array of formats for Moment() to try against a string Date */
 const MOMENT_FMT = [
 	DATE_FMT.dayMonthYear,
