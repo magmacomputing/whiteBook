@@ -17,7 +17,7 @@ import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IAttend, IProfileInfo, IDefault, ISchedule } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { getStamp } from '@lib/date.library';
+import { getStamp, fmtDate, DATE_KEY, IDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -79,7 +79,7 @@ export class MemberService {
 			payment: activeId,																	// <id> of Account's current active document
 			amount: time.price,
 			stamp: getStamp(),
-			date: getStamp(),
+			date: fmtDate<number>(DATE_KEY.yearMonthDay, date)
 		}
 
 		this.dbg('credit: %j', account);

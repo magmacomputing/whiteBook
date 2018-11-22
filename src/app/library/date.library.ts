@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { TString, isString, isNumber } from '@lib/type.library';
 import { toNumeric } from '@lib/string.library';
 
-interface IDate {
+export interface IDate {
 	cell: string;
 	short: string;
 	display: string;
@@ -24,7 +24,7 @@ interface IDate {
 	dayZZ: string;
 	time: string;
 	stamp: number;
-	milliSecond: number;
+	ms: number;
 	log: string;
 	elapse: string;
 }
@@ -50,12 +50,36 @@ const DATE_FMT: Record<keyof IDate, string> = {
 	dayZZ: 'DD',														// Day number, leading zero
 	time: 'HH:mm:ss',                       // useful for showing Time
 	stamp: 'X',                             // Unix timestamp
-	milliSecond: 'x',                       // millisecond timestamp
+	ms: 'x',                       					// millisecond timestamp
 	log: 'HH:mm:ss.SSS',                    // useful for reporting timestamp in Log Spreadsheet
 	elapse: 'mm:ss.SSS'                     // useful for reporting duration
 };
 
-export const DATE_KEY: Record<string, keyof IDate> = {};
+export const DATE_KEY: Record<keyof IDate, keyof IDate> = {
+	cell: 'cell',
+	short: 'short',
+	display: 'display',
+	hourMin: 'hourMin',
+	human: 'human',
+	yearMonth: 'yearMonth',
+	yearMonthDay: 'yearMonthDay',
+	yearMonthSep: 'yearMonthSep',
+	yearMonthDaySep: 'yearMonthDaySep',
+	yearWeek: 'yearWeek',
+	dayMonthSep: 'dayMonthSep',
+	dayMonthSpace: 'dayMonthSpace',
+	dayMonthYearSep: 'dayMonthYearSep',
+	dayMonthYear: 'dayMonthYear',
+	week: 'week',
+	weekDay: 'weekDay',
+	day: 'day',
+	dayZZ: 'dayZZ',
+	time: 'time',
+	stamp: 'stamp',
+	ms: 'ms',
+	log: 'log',
+	elapse: 'elapse',
+};
 
 /** an array of formats for Moment() to try against a string Date */
 const MOMENT_FMT = [
@@ -70,12 +94,12 @@ export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = M
 	dt ? moment(dt, fmt) : moment(moment.now());
 
 /** format a date by a specified 'key' */
-export const fmtDate = (key: keyof IDate, dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
-	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key]));
+export const fmtDate = <T>(key: keyof IDate, dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
+	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key])) as T extends number ? number : string
 
 /** shortcut to fmtDate('stamp', ...) */
 export const getStamp = (dt?: string | number, fmt: TString = MOMENT_FMT) =>
-	fmtDate('stamp', dt, fmt) as number;
+	fmtDate<IDate['stamp']>(DATE_KEY.stamp, dt, fmt)
 
 /** useful when we want an Object with *all* formats available */
 const fmtMoment = (dt?: any, fmt: TString = MOMENT_FMT): IDate => {

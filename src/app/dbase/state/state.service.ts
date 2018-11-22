@@ -15,7 +15,7 @@ import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
-import { fmtDate, getMoment } from '@lib/date.library';
+import { fmtDate, getMoment, DATE_KEY } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
 import { IConfig } from '@dbase/data/data.schema';
 
@@ -144,8 +144,8 @@ export class StateService {
    * instructor -> has the Instructors that are indicated on that schedule
    */
 	getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
-		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate('weekDay', date) };
-		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate('yearMonthDay', date) };
+		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate<number>(DATE_KEY.weekDay, date) };
+		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate<number>(DATE_KEY.yearMonthDay, date) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
@@ -168,8 +168,8 @@ export class StateService {
 	getScheduleData(date?: number): Observable<ITimetableState> {
 		const moment = getMoment(date);
 		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate('yearMonthDay', moment.startOf('week')) },
-			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate('yearMonthDay', moment.endOf('week')) },
+			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate<number>(DATE_KEY.yearMonthDay, moment.startOf('week')) },
+			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate<number>(DATE_KEY.yearMonthDay, moment.endOf('week')) },
 		]
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
