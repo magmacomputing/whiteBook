@@ -1,282 +1,101 @@
-{
-  "auth": {
-    "user": {
-      "displayName": "Michael McRae",
-      "email": "michael@magmacomputing.com.au",
-      "photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-      "providerId": "google.com",
-      "uid": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2"
-    },
-    "claims": {
-      "memberName": "MichaelM"
+ {
+  "schedule": [
+    {
+      "_id": "rB1MumhCIHYjukzRTR0i",
+      "_effect": 1399816800,
+      "day": 5,
+      "key": "Zumba",
+      "location": "snap",
+      "start": "19:30",
+      "store": "schedule",
+      "type": "class",
+      "price": 10,
+      "icon": "data:image/png;base64,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"
     }
-  },
-  "default": {
-    "_default_": [
-      {
-        "_id": "QN96BHvbJrrW3okc8jey",
-        "key": "JEC",
-        "store": "_default_",
-        "type": "instructor"
+  ],
+  "class": [
+    {
+      "_id": "bjrSxOgEmhZneYni5yDE",
+      "color": "#ff1493",
+      "desc": "Dancing",
+      "icon": "data:image/png;base64,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",
+      "key": "Zumba",
+      "store": "class",
+      "type": "full"
+    }
+  ],
+  "calendar": [
+    {
+      "_id": "eHxbtQ9QrMNH10dPpPJC",
+      "desc": "Test",
+      "key": 20181123,
+      "location": "snap",
+      "name": "Testing Event",
+      "start": "15:10",
+      "store": "calendar",
+      "type": "Event*2",
+      "day": 5
+    }
+  ],
+  "event": [
+    {
+      "_id": "ZBc82Ffu2O5m1njG7KGl",
+      "class": [
+        "MultiStep",
+        "Zumba"
+      ],
+      "key": "Event*2",
+      "store": "event"
+    }
+  ],
+  "location": [
+    {
+      "_id": "bq2fshryxsrISIMwJ9be",
+      "address": {
+        "line1": "113-115 Anzac Parade",
+        "postcode": "2033",
+        "state": "NSW",
+        "suburb": "Kensington"
       },
-      {
-        "_id": "GNAHPk6mEEgDIsENspQN",
-        "key": "MultiStep",
-        "store": "_default_",
-        "type": "class"
+      "contact": {
+        "mobile": "0431 492 180"
       },
-      {
-        "_id": "XdyYNqJcE6t0yJI5vXym",
-        "key": "casual",
-        "store": "_default_",
-        "type": "plan"
-      },
-      {
-        "_id": "urtjcWCD1d3CpougKedn",
-        "key": "casual",
-        "store": "_default_",
-        "type": "price"
-      },
-      {
-        "_id": "YdHy2It8c7SbWnxNObgQ",
-        "key": "facebook",
-        "store": "_default_",
-        "type": "provider"
-      },
-      {
-        "_id": "zK7PKAeSUzSt1uvgWnzy",
-        "key": "full",
-        "store": "_default_",
-        "type": "span"
-      },
-      {
-        "_id": "HP4HcwOdspzbGOE3DarJ",
-        "key": "snap",
-        "store": "_default_",
-        "type": "location"
-      }
-    ]
-  },
-  "member": {
-    "info": [
-      {
-        "_id": "Dm1brl1mgwloHNhxrzNw",
-        "_effect": 1535168389,
-        "isNewUser": false,
-        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
-        "profile": {
-          "age_range": {
-            "min": 21
-          },
-          "birthday": "01/01/1957",
-          "email": "michael@magmacomputing.com.au",
-          "first_name": "Michael",
-          "gender": "male",
-          "id": "100000138474102",
-          "last_name": "McRae",
-          "locale": "en_GB",
-          "name": "Michael McRae",
-          "picture": {
-            "data": {
-              "height": 100,
-              "is_silhouette": false,
-              "url": "https://scontent.xx.fbcdn.net/v/t1.0-1/c0.0.100.100/p100x100/25299342_1959170204097576_2174177630211488962_n.jpg?_nc_cat=0&oh=1be826769d60cbff35237153d9b3120e&oe=5BF67A21",
-              "width": 100
-            }
-          },
-          "timezone": 10,
-          "updated_time": "2018-08-19T06:57:14+0000",
-          "verified": true
+      "key": "snap",
+      "map": {
+        "geo": {
+          "_lat": -33.9067795,
+          "_long": 151.2232555
         },
-        "providerId": "facebook.com",
-        "store": "profile",
-        "type": "info"
+        "link": "https://goo.gl/maps/gtMLuJkjSWH2"
       },
-      {
-        "_id": "FuO89a2sEobqKob7YIID",
-        "_effect": 1535168365,
-        "isNewUser": true,
-        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
-        "profile": {
-          "email": "michael@magmacomputing.com.au",
-          "family_name": "McRae",
-          "gender": "male",
-          "given_name": "Michael",
-          "hd": "magmacomputing.com.au",
-          "id": "110021813496510375957",
-          "locale": "en-GB",
-          "name": "Michael McRae",
-          "picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-          "verified_email": true
-        },
-        "providerId": "google.com",
-        "store": "profile",
-        "type": "info"
-      }
-    ],
-    "plan": [
-      {
-        "_id": "B4guWzOEpoxwxTBOhUXl",
-        "key": "wjt8YTUvtSRNWDsEhGRIFLjCEeJ2",
-        "plan": "member",
-        "store": "profile",
-        "type": "plan"
-      }
-    ],
-    "price": [
-      {
-        "_id": "A2ZrHSOEGovIg3FUCjZG",
-        "_effect": 1514725200,
-        "amount": 10,
-        "key": "member",
-        "store": "price",
-        "type": "full"
-      },
-      {
-        "_id": "9s1JVCQnCOcK01KDHIP6",
-        "_effect": 1514725200,
-        "amount": 5,
-        "key": "member",
-        "store": "price",
-        "type": "half"
-      },
-      {
-        "_id": "CzutaKlWSaubY1gRfsIH",
-        "amount": 5,
-        "key": "member",
-        "store": "price",
-        "type": "hold"
-      },
-      {
-        "_id": "YnTyupNiI3eEMCqJkCRi",
-        "_effect": 1514725200,
-        "amount": 100,
-        "key": "member",
-        "store": "price",
-        "type": "topUp"
-      }
-    ]
-  },
-  "client": {
-    "schedule": [
-      {
-        "_id": "cUGa5RNx0qnFWNLTyRTl",
-        "day": 6,
-        "key": "MultiStep",
-        "location": "snap",
-        "start": "11:00",
-        "store": "schedule",
-        "type": "class"
-      },
-      {
-        "_id": "1NkQPKeuSC9OzfoVjThW",
-        "_effect": 1412514000,
-        "day": 6,
-        "key": "HiLo",
-        "location": "snap",
-        "start": "12:15",
-        "store": "schedule",
-        "type": "class"
-      }
-    ],
-    "class": [
-      {
-        "_id": "b0HrAj1OJ7G7r5HJp8km",
-        "color": "#35c42c",
-        "desc": "Aerobic Action",
-        "key": "HiLo",
-        "store": "class",
-        "type": "full"
-      },
-      {
-        "_id": "3M7tI5vN4voSHcdfsEXg",
-        "color": "#0000ff",
-        "desc": "Multi-Platform routines",
-        "key": "MultiStep",
-        "store": "class",
-        "type": "full"
-      },
-      {
-        "_id": "bxZuumthkLpnuNbL1Liv",
-        "_hidden": true,
-        "color": "#00ffff",
-        "desc": "Learn the basics of the Platform",
-        "key": "StepBasic",
-        "store": "class",
-        "type": "half"
-      }
-    ],
-    "location": [
-      {
-        "_id": "bq2fshryxsrISIMwJ9be",
-        "address": {
-          "line1": "113-115 Anzac Parade",
-          "postcode": "2033",
-          "state": "NSW",
-          "suburb": "Kensington"
-        },
-        "contact": {
-          "phone": "0431 492 180"
-        },
-        "key": "snap",
-        "map": {
-          "geo": {
-            "_lat": -33.9067795,
-            "_long": 151.2232555
-          },
-          "link": "https://goo.gl/maps/gtMLuJkjSWH2"
-        },
-        "name": "Snap Fitness Kensington",
-        "sort": 1,
-        "store": "location"
-      },
-      {
-        "_id": "ngMJ73zg9aUhnTxmaCJL",
-        "address": {
-          "line1": "365 Pacific Hwy",
-          "postcode": "2065",
-          "state": "NSW",
-          "suburb": "Crows Nest"
-        },
-        "contact": {
-          "phone": "(02) 9922 6666"
-        },
-        "key": "norths",
-        "map": {
-          "geo": {
-            "_lat": -33.8302819,
-            "_long": 151.203424
-          },
-          "link": "http://web2.northsydgi-h.schools.nsw.edu.au/public/"
-        },
-        "name": "North Sydney Girls High School",
-        "sort": 2,
-        "store": "location"
-      }
-    ],
-    "instructor": [
-      {
-        "_id": "iLMjxmFnKNNpHDzhN8ta",
-        "key": "JEC",
-        "link": [
-          {
-            "type": "facebook",
-            "url": "."
-          }
-        ],
-        "name": "Jorge Erazo Casanova",
-        "sort": 1,
-        "store": "instructor"
-      },
-      {
-        "_id": "jtWUu9sK848s0hgHBWJ9",
-        "_disable": true,
-        "_hidden": true,
-        "key": "MAM",
-        "name": "Michael McRae",
-        "sort": 9,
-        "store": "instructor"
-      }
-    ]
-  }
+      "name": "Snap Fitness Kensington",
+      "sort": 1,
+      "store": "location"
+    }
+  ],
+  "instructor": [
+    {
+      "_id": "iLMjxmFnKNNpHDzhN8ta",
+      "key": "JEC",
+      "link": [
+        {
+          "type": "facebook",
+          "url": "."
+        }
+      ],
+      "name": "Jorge Erazo Casanova",
+      "sort": 1,
+      "store": "instructor"
+    }
+  ],
+  "price": [
+    {
+      "_id": "A2ZrHSOEGovIg3FUCjZG",
+      "_effect": 1514725200,
+      "amount": 10,
+      "key": "member",
+      "store": "price",
+      "type": "full"
+    }
+  ]
 }

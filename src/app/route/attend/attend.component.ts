@@ -59,6 +59,7 @@ export class AttendComponent implements OnInit {
 				this.selectedIndex = 0;                       // start on the first-page
 				data.client.price = costs;
 
+				this.dbg('calendar: %j', data.client);
 				return data;
 			})
 		)

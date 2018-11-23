@@ -84,6 +84,7 @@ export const DATE_KEY: Record<keyof IDate, keyof IDate> = {
 /** an array of formats for Moment() to try against a string Date */
 const MOMENT_FMT = [
 	DATE_FMT.dayMonthYear,
+	DATE_FMT.yearMonthDay,
 	DATE_FMT.yearMonthDaySep,
 	DATE_FMT.dayMonthYearSep,
 	DATE_FMT.stamp,
@@ -95,7 +96,7 @@ export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = M
 
 /** format a date by a specified 'key' */
 export const fmtDate = <T>(key: keyof IDate, dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
-	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key])) as T extends number ? number : string
+	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key])) as T extends string ? string : number
 
 /** shortcut to fmtDate('stamp', ...) */
 export const getStamp = (dt?: string | number, fmt: TString = MOMENT_FMT) =>

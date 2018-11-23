@@ -112,7 +112,7 @@ export interface IEvent extends IClientBase {
 	[FIELD.store]: 'event';
 	[FIELD.key]: string;
 	name: string;
-	desc: string;
+	desc?: string;
 	class: TClass | TClass[];
 }
 
@@ -121,9 +121,10 @@ export interface ICalendar extends IClientBase {
 	[FIELD.store]: 'calendar';
 	[FIELD.type]: TCalendar;
 	[FIELD.key]: number;
-	desc?: string;
-	location?: string;
 	name: string;
+	desc?: string;
+	day: number;
+	location?: string;
 	start: string;
 }
 

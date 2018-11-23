@@ -5,14 +5,15 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
-import { IState, IAccountState, IConfigState } from '@dbase/state/state.define';
+import { IState, IAccountState, IConfigState, ITimetableState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
-import { asArray } from '@lib/array.library';
+import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { isString, isNull, isArray, isUndefined, isFunction } from '@lib/type.library';
+import { fmtDate, DATE_KEY } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
@@ -50,10 +51,10 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 
 		return source.pipe(
 			switchMap(data => {
+				if (store === STORE.class) debugger;
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value[0] : store;	// TODO: dont rely on defined filter
 				parent = data;                                        // stash the original parent data state
-
 				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
 			}),
 
@@ -88,7 +89,6 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 				return node
 					? { ...parent, ...{ [nodes[0]]: joins } }
 					: { ...parent, ...joins }
-				// return { ...parent, ...{ [nodes[0]]: joins } };
 			}),
 
 			map(data => isFunction(callBack) ? callBack(data) : data),
@@ -103,35 +103,39 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 const decodeFilter = (parent: any, filter: TWhere) => {
 	return asArray(filter).map(cond => {                        // loop through each filter
 
-		cond.value = asArray(cond.value).map(value => {           // loop through filter's <value>
+		cond.value = asArray(cond.value).map(value => {     			// loop through filter's <value>
+				const isPath = isString(value) && value.substring(0, 2) === '{{';
+				let defaultValue: string | undefined;
+				let lookup: any;
 
-			const isPath = isString(value) && value.substring(0, 2) === '{{';
-			let defaultValue: string | undefined;
-			let lookup: any;
+				if (isPath) {                                         // check if is it a fieldPath reference on the parent
+					const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
+					const dflt = child.split('.').reverse()[0];         // get the last component of the fieldPath
+					const table = (parent['default'][STORE.default] as IDefault[])
+						.filter(row => row[FIELD.type] === dflt);         // find the default value for the requested fieldPath
 
-			if (isPath) {                                           // check if is it a fieldPath reference on the parent
-				const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
-				const dflt = child.split('.').reverse()[0];           // get the last component of the fieldPath
-				const table = (parent['default'][STORE.default] as IDefault[])
-					.filter(row => row[FIELD.type] === dflt);           // find the default value for the requested fieldPath
+					defaultValue = table.length && table[0][FIELD.key] || undefined;
+					lookup = getPath(parent, child);
 
-				defaultValue = table.length && table[0][FIELD.key] || undefined;
-				lookup = getPath(parent, child);
+					if (isArray(lookup)) {                              // if fieldPath doesnt exist on <parent>, then fallback to default
+						if (isArray(lookup[0]))
+							lookup = lookup[0].flat();
+						lookup = lookup.map((res: any) => isNull(res) || isUndefined(res) ? defaultValue : res);
+					}
 
-				if (isArray(lookup))                                  // if fieldPath doesnt exist on <parent>, then fallback to default
-					lookup = lookup.map(res => isNull(res) || isUndefined(res) ? defaultValue : res);
+				} else
+					lookup = value;                                     // a use-able value with no interpolation needed
 
-			} else
-				lookup = value;                                       // a use-able value with no interpolation needed
-
-			return lookup;                                          // rebuild filter's <value>
-		});
+				return lookup;                                        // rebuild filter's <value>
+			})
 
 		if (cond.value.length === 1)
-			cond.value = cond.value[0];                             // an array of only one value, return as string
+			cond.value = cond.value[0];                            	// an array of only one value, return as string
+		else cond.value = deDup(cond.value.flat())
 
 		return cond;                                              // rebuild each filter
 	})
+
 }
 
 /**
@@ -196,4 +200,15 @@ export const sumConfig = (source: IConfigState) => {
 	})
 
 	return { [STORE.config]: fixSource };
+}
+
+export const calendarDay = (source: ITimetableState) => {
+	if (source.client.calendar) {
+		source.client.calendar = source.client.calendar.map(row => {
+			row.day = fmtDate<number>(DATE_KEY.weekDay, row[FIELD.key])
+			return row;
+		})
+	}
+
+	return { ...source };
 }
