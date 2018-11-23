@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import { map, switchMap, take } from 'rxjs/operators';
 
-import { Store, Select } from '@ngxs/store';
+import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
@@ -19,15 +19,9 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
 	private auth$ = this.state.getAuthData();
-
 	private dbg: Function = dbg.bind(this);
-	private urlRequest!: IConfig;
 
-	constructor(private readonly store: Store, private state: StateService) {
-		this.dbg('new');
-		this.state.getConfigData('oauth')
-			.subscribe(oauth => this.urlRequest = oauth.value.request_url);
-	}
+	constructor(private readonly store: Store, private state: StateService) { this.dbg('new'); }
 
 	get active() {
 		return this.auth$.pipe(
@@ -96,10 +90,12 @@ export class AuthService {
 	}
 
 	/** This runs in the main thread */
-	private signInOAuth(provider: IProvider) {
+	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
+		const config = await this.state.getSingle<IConfig>(STORE.config, 'oauth');
+		const oauth = config.value;
 
-		window.open(`${this.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
+		window.open(`${oauth.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
 
 		new BroadcastChannel('oauth')
 			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))

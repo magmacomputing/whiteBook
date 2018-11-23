@@ -9,3 +9,8 @@ allow payment, hold
 
 *> migrate User
 test if multiple instances of same source
+
+*> account.pend should add all un-approve payments
+*> getPayment should return the last from sorted list
+*> getTimetable should also consider Calendar Events
+*> do not include _default_ in State Observable

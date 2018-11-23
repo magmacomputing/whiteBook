@@ -1,23 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 
 import { Observable, of } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
-import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IConfigState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, getStore, sumPayment, sumAttend, sumConfig, calendarDay } from '@dbase/state/state.library';
+import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
+import { joinDoc, getStore, sumPayment, sumAttend, fixConfig, calendarDay } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 import { STORE, FIELD } from '@dbase/data/data.define';
+import { IConfig, IDefault, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
 
 import { asArray } from '@lib/array.library';
 import { fmtDate, getMoment, DATE_KEY } from '@lib/date.library';
 import { dbg } from '@lib/logger.library';
-import { IConfig } from '@dbase/data/data.schema';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -26,15 +25,18 @@ import { IConfig } from '@dbase/data/data.schema';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
-	@Select() private client$!: Observable<IStoreState<any>>;
-	@Select() private member$!: Observable<IStoreState<any>>;
-	@Select() private attend$!: Observable<IStoreState<any>>;
-	@Select() private admin$!: Observable<IStoreState<any>>;
+	@Select() private client$!: Observable<IStoreState<IStoreMeta>>;
+	@Select() private member$!: Observable<IStoreState<IStoreMeta>>;
+	@Select() private attend$!: Observable<IStoreState<IStoreMeta>>;
+	@Select() private admin$!: Observable<IStoreState<IStoreMeta>>;
+
+	private config$ = this.getCurrent<IConfig>(STORE.config)
+		.pipe(map(fixConfig))
 
 	private dbg: Function = dbg.bind(this);
 	public states: IState;
 
-	constructor(private router: Router) {
+	constructor() {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'auth': this.auth$,
 			'client': this.client$,
@@ -53,63 +55,52 @@ export class StateService {
 		return getStore<T>(this.states, store, filters);
 	}
 
-	/** Router */
-	getRoute() {
-		return this.router.url;
+	/** Fetch a single row from a supplied store in the client$ state */
+	getSingle<T>(store: string, type: string) {
+		return this.client$.pipe(
+			take(1),
+			map(table => table[store].filter(list => list[FIELD.type] === type)[0])
+		)
+			.toPromise() as Promise<T>
 	}
 
-  /**
-  * Assemble a AuthState Object describing a User
-  */
-	getAuthData(uid?: string): Observable<IUserState> {               // TODO: allow for optional <uid> parameter to resolve in admin$ state
+	/**
+	* Assemble a AuthState Object describing a User
+	*/
+	getAuthData(): Observable<IUserState> {
 		return this.auth$
 			.pipe(map(auth => ({ auth })))
 	}
 
 	/**
-	 * Configuration parameters
+	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
+	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
+	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
+	 * member.price -> has an array of IPrice that match the Member's plan-type
+	 * default._default_ -> has an array of IDefault values
+	 * 
+	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
+	 * @param uid:	string	An optional User UID (defaults to current logged-on User)
 	 */
-	getConfigData(key?: string, date?: number): Observable<IConfigState & IConfig> {
-		return of({}).pipe(
-			joinDoc(this.states, undefined, STORE.config, undefined, date, sumConfig),
-			joinDoc(this.states, undefined, STORE.default, undefined, date),
-			switchMap(result => {
-				return key
-					? result[STORE.config].filter((row: IConfig) => row[FIELD.type] === key)
-					: result
-			})
-		)
-	}
-
-  /**
-   * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
-   * member.plan  -> has the asAt ProfilePlan for the user.uid  
-   * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
-   * member.price -> has an array of IPrice that match the Member's plan-type
-   * default._default_ -> has an array of IDefault values
-   * 
-   * @param date:	number	An optional as-at date to determine rows in an effective date-range
-   * @param uid:	string	An optional User UID (defaults to current logged-on User)
-   */
 	getMemberData(date?: number, uid?: string): Observable<IMemberState> {
-		const filterProfile: TWhere = [
-			{ fieldPath: FIELD.type, value: ['plan', 'info', 'pref'] },   // where the <type> is either 'plan' or 'info'
-			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getUserData()'s 'auth.user.uid'
-		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
+		const filterProfile: TWhere = [
+			{ fieldPath: FIELD.type, value: ['plan', 'info', 'pref'] },   // where the <type> is either 'plan', 'info', or 'pref'
+			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getAuthData()'s 'auth.user.uid'
+		]
 
-		return this.getAuthData(uid).pipe(
-			joinDoc(this.states, 'default', STORE.default, undefined, date),
+		return this.getAuthData().pipe(
+			// joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
 		)
 	}
 
-  /**
+	/**
 	 * Add current Plan[] and Price[] to the Member Profile Observable  
-   * client.plan  -> has an array of asAt Plan documents  
-   * client.price -> has an array of asAt Price documents
-   */
+	 * client.plan  -> has an array of asAt Plan documents  
+	 * client.price -> has an array of asAt Price documents
+	 */
 	getPlanData(date?: number, uid?: string): Observable<IPlanState> {
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
@@ -134,15 +125,15 @@ export class StateService {
 		)
 	}
 
-  /**
-   * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
-   * schedule   -> has an array of Schedule info for the weekday of the supplied date  
+	/**
+	 * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
+	 * schedule   -> has an array of Schedule info for the weekday of the supplied date  
 	 * calendar		-> has the Calendar event for that date (to override regular class)  
 	 * event			-> has the Events that are indicated on that calendar
-   * class      -> has the Classes that are available on that schedule or event  
-   * location   -> has the Locations that are indicated on that schedule or calendar
-   * instructor -> has the Instructors that are indicated on that schedule or calendar
-   */
+	 * class      -> has the Classes that are available on that schedule or event  
+	 * location   -> has the Locations that are indicated on that schedule or calendar
+	 * instructor -> has the Instructors that are indicated on that schedule or calendar
+	 */
 	getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate<number>(DATE_KEY.weekDay, date) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate<number>(DATE_KEY.yearMonthDay, date) };
@@ -161,10 +152,10 @@ export class StateService {
 		)
 	}
 
-  /**
-   * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
+	/**
+	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
-   */
+	 */
 	getScheduleData(date?: number): Observable<ITimetableState> {
 		const moment = getMoment(date);
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
@@ -178,7 +169,7 @@ export class StateService {
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 
 		return of({}).pipe(																						// start with an empty Object
-			joinDoc(this.states, 'default', STORE.default, undefined, date),
+			// joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'client', STORE.schedule, undefined, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
