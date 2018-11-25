@@ -23,7 +23,7 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
-
+console.log('store: ', store, sortBy);
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
@@ -39,8 +39,8 @@ export const getSingle = <T>(states: IState, store: string, type: string) => {
 	const state = states[slice];
 
 	return state.pipe(
-		take(1), 
-		map(state => state[store]),	// switch to just the specified store
+		take(1),
+		map(state => state[store]),				// map to just the specified store
 		map(table => (store === STORE.config)
 			? fixConfig(table as IConfig[])	// special: placeholders in _config_
 			: table
@@ -165,6 +165,7 @@ export const sumPayment = (source: IAccountState) => {
 		source.account.summary = source.account.payment.reduce((sum, account) => {
 			if (account.active)
 				source.account.active.push(account[FIELD.id] as string);
+
 			sum.bank += account.bank || 0;
 
 			if (account.approve) sum.pay += account.amount;

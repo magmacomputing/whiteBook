@@ -12,3 +12,6 @@ test if multiple instances of same source
 
 *> getPayment should return the last from sorted list
 *> getTimetable should also consider Calendar Events
+
+*> logon as other User
+set authState.user ?  or authState.delegate

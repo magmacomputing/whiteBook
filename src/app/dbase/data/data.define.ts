@@ -72,6 +72,6 @@ export const SORTBY: IObject<TString> = {
 	[STORE.default]: [FIELD.type, FIELD.key],
 	[STORE.schema]: [FIELD.type, FIELD.key],
 	[STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],
-	[STORE.payment]: [FIELD.uid, FIELD.type, 'stamp'],
-	[STORE.attend]: [FIELD.uid, FIELD.type, 'date'],
+	[STORE.payment]: [FIELD.uid, 'stamp', FIELD.type],
+	[STORE.attend]: [FIELD.uid, 'date', FIELD.type],
 }

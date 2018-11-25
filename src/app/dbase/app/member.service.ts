@@ -71,7 +71,7 @@ export class MemberService {
 	// TODO: determine <date> as the last occurrence of the <time>'s class
 	async setAttend(time: ISchedule, date?: number) {
 		const account = await this.getCredit();
-		this.dbg('active: %j', account.active);
+		this.dbg('active: %j', account.payment);
 		return;
 		const activeId = account.active[account.active.length-1]
 			|| await this.setPayment(undefined, true);

@@ -38,7 +38,7 @@ interface ISummary {
 }
 export interface IAccountState extends IMemberState {
 	account: {
-		payment: IPayment[];								// array of active payment documents
+		payment: IPayment[];								// array of open payment documents
 		attend: IAttend[];
 		summary: ISummary;
 		active: string[];										// the currently 'active' IPayment row
