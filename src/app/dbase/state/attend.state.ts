@@ -32,7 +32,9 @@ export class AttendState implements NgxsOnInit {
 		const state = getState() || {};
 		const payment = this.filterAttend(state, payload);
 
-		state[payload.payment] = payment;
+		if (payment.length === 0)
+			delete state[payload.payment]
+		else state[payload.payment] = payment;
 		if (debug) this.dbg('delAttend: %j', payload);
 		patchState({ ...state });
 	}

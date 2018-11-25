@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { switchMap, map, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, getStore, sumPayment, sumAttend, fixConfig, calendarDay } from '@dbase/state/state.library';
+import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, getSingle } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IConfig, IDefault, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta } from '@dbase/data/data.schema';
+import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { fmtDate, getMoment, DATE_KEY } from '@lib/date.library';
@@ -25,20 +25,16 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
-	@Select() private client$!: Observable<IStoreState<IStoreMeta>>;
-	@Select() private member$!: Observable<IStoreState<IStoreMeta>>;
-	@Select() private attend$!: Observable<IStoreState<IStoreMeta>>;
-	@Select() private admin$!: Observable<IStoreState<IStoreMeta>>;
-
-	private config$ = this.getCurrent<IConfig>(STORE.config)
-		.pipe(map(fixConfig))
+	@Select() private client$!: Observable<IStoreState<IStoreMeta[]>>;
+	@Select() private member$!: Observable<IStoreState<IStoreMeta[]>>;
+	@Select() private attend$!: Observable<IStoreState<IStoreMeta[]>>;
+	@Select() private admin$!: Observable<IStoreState<IStoreMeta[]>>;
 
 	private dbg: Function = dbg.bind(this);
 	public states: IState;
 
 	constructor() {
 		this.states = {                   // a Lookup map for Slice-to-State
-			'auth': this.auth$,
 			'client': this.client$,
 			'member': this.member$,
 			'attend': this.attend$,
@@ -55,13 +51,9 @@ export class StateService {
 		return getStore<T>(this.states, store, filters);
 	}
 
-	/** Fetch a single row from a supplied store in the client$ state */
+	/** Expose a library function */
 	getSingle<T>(store: string, type: string) {
-		return this.client$.pipe(
-			take(1),
-			map(table => table[store].filter(list => list[FIELD.type] === type)[0])
-		)
-			.toPromise() as Promise<T>
+		return getSingle<T>(this.states, store, type);
 	}
 
 	/**
@@ -74,10 +66,11 @@ export class StateService {
 
 	/**
 	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
+	 * default._default -> has the current defaults to be used where join-fields are undefined
 	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
 	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
+	 * member.pref	-> has an array of member preferences  
 	 * member.price -> has an array of IPrice that match the Member's plan-type
-	 * default._default_ -> has an array of IDefault values
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 * @param uid:	string	An optional User UID (defaults to current logged-on User)
@@ -90,7 +83,7 @@ export class StateService {
 		]
 
 		return this.getAuthData().pipe(
-			// joinDoc(this.states, 'default', STORE.default, undefined, date),
+			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
 		)
@@ -119,7 +112,7 @@ export class StateService {
 		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
 		const filterAttend: IWhere = { fieldPath: 'payment', value: '{{account.active}}' };
 
-		return this.getMemberData().pipe(
+		return this.getMemberData(undefined, uid).pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)
@@ -138,7 +131,7 @@ export class StateService {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate<number>(DATE_KEY.weekDay, date) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate<number>(DATE_KEY.yearMonthDay, date) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
-		const filterClass: TWhere = { fieldPath: FIELD.key, value: [`{{client.schedule.${FIELD.key}}`, '{{client.event.class}}',] };
+		const filterClass: TWhere = { fieldPath: FIELD.key, value: [`{{client.schedule.${FIELD.key}}}`, '{{client.event.class}}',] };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
 
@@ -169,7 +162,6 @@ export class StateService {
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 
 		return of({}).pipe(																						// start with an empty Object
-			// joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'client', STORE.schedule, undefined, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),

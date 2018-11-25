@@ -31,7 +31,9 @@ export class ClientState implements NgxsOnInit {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
 
-		state[payload.store] = store;
+		if (store.length === 0)
+			delete state[payload.store]
+		else state[payload.store] = store;
 		if (debug) this.dbg('delClient: %s, %j', payload.store, payload);
 		patchState({ ...state });
 	}

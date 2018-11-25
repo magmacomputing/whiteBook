@@ -1,16 +1,16 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, take, tap } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
-import { IState, IAccountState, IConfigState, ITimetableState } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IConfig } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
-import { asArray } from '@lib/array.library';
+import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { isString, isNull, isArray, isUndefined, isFunction } from '@lib/type.library';
 import { fmtDate, DATE_KEY } from '@lib/date.library';
@@ -33,6 +33,23 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	)
 }
 
+/** Fetch a single-row from a state's store */
+export const getSingle = <T>(states: IState, store: string, type: string) => {
+	const slice = getSlice(store);			// lookup the store to determine which state slice
+	const state = states[slice];
+
+	return state.pipe(
+		take(1), 
+		map(state => state[store]),	// switch to just the specified store
+		map(table => (store === STORE.config)
+			? fixConfig(table as IConfig[])	// special: placeholders in _config_
+			: table
+		),
+		map(table => table.filter(row => row[FIELD.type] === type)[0]),
+	)
+		.toPromise() as Promise<T>
+}
+
 /** extract the required fields from the AuthToken object */
 export const getUser = (token: IFireClaims) =>
 	({ displayName: token.name, email: token.email, photoURL: token.picture, providerId: token.firebase.sign_in_provider, uid: token.user_id });
@@ -53,10 +70,9 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value[0] : store;	// TODO: dont rely on defined filter
+
 				parent = data;                                        // stash the original parent data state
 
-				if (store === STORE.profile)
-					console.log('filters: ', store, filter, filters);
 				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
 			}),
 
@@ -103,27 +119,27 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
  * If <value> isString and matches {{...}}, it refers to the current <parent> data
  */
 const decodeFilter = (parent: any, filter: TWhere) => {
-	return asArray(filter).map(cond => {                        // loop through each filter
+	return asArray(filter).map(cond => {                      // loop through each filter
 
-		cond.value = asArray(cond.value).map(value => {     			// loop through filter's <value>
+		cond.value = asArray(cond.value).map(value => {     		// loop through filter's <value>
 			const isPath = isString(value) && value.substring(0, 2) === '{{';
-			let defaultValue: string | undefined;
 			let lookup: any;
 
 			if (isPath) {                                         // check if is it a fieldPath reference on the parent
 				const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
 				const dflt = child.split('.').reverse()[0];         // get the last component of the fieldPath
+				// const defaultValue = defaults.filter(row => row[FIELD.key] === dflt)[0];
+				// let defaultValue: string | undefined;
+				// const table = await getSingle(states, STORE.default, dflt);
 				const table = (parent['default'][STORE.default] as IDefault[])
 					.filter(row => row[FIELD.type] === dflt);         // find the default value for the requested fieldPath
 
-				defaultValue = table.length && table[0][FIELD.key] || undefined;
+				// defaultValue = defaults.length && defaults[0][FIELD.key] || undefined;
+				const defaultValue = table.length && table[0][FIELD.key] || undefined;
 				lookup = getPath(parent, child);
 
-				if (isArray(lookup)) {                              // if fieldPath doesnt exist on <parent>, then fallback to default
-					// if (isArray(lookup[0]))
-					// 	lookup = lookup[0].flat();
+				if (isArray(lookup))                              	// if fieldPath doesnt exist on <parent>, then fallback to default
 					lookup = lookup.map((res: any) => isNull(res) || isUndefined(res) ? defaultValue : res);
-				}
 
 			} else
 				lookup = value;                                     // a use-able value with no interpolation needed
@@ -132,12 +148,11 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 		})
 
 		if (cond.value.length === 1)
-			cond.value = cond.value[0];                            	// an array of only one value, return as string
-		// else cond.value = deDup(cond.value.flat())
+			cond.value = cond.value[0];                           // an array of only one value, return as string
+		else cond.value = deDup(...cond.value.flat())
 
-		return cond;                                              // rebuild each filter
+		return cond;                                            // rebuild each filter
 	})
-
 }
 
 /**

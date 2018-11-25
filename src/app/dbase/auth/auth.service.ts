@@ -95,10 +95,13 @@ export class AuthService {
 		const config = await this.state.getSingle<IConfig>(STORE.config, 'oauth');
 		const oauth = config.value;
 
-		window.open(`${oauth.urlRequest}?${urlQuery}`, '_blank', 'height=600,width=400');
+		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
 
-		new BroadcastChannel('oauth')
-			.onmessage = (msg) => this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }))
+		const channel = new BroadcastChannel('oauth');
+		channel.onmessage = (msg) => {
+			this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }));
+			channel.close();
+		}
 	}
 
 	/** This runs in the OAuth popup */

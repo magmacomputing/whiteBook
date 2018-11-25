@@ -62,10 +62,19 @@ export class MemberService {
 		return paymentId;
 	}
 
+	/** Mark a Payment as active, and expire previous active */
+	async setActive(paymentId: string) {
+
+	}
+
 	/** Insert an Attendance record, aligned to an <active> Account payment */
+	// TODO: determine <date> as the last occurrence of the <time>'s class
 	async setAttend(time: ISchedule, date?: number) {
 		const account = await this.getCredit();
-		const activeId = account.active[0] || await this.setPayment(undefined, true);
+		this.dbg('active: %j', account.active);
+		return;
+		const activeId = account.active[account.active.length-1]
+			|| await this.setPayment(undefined, true);
 
 		if (isUndefined(time.price))
 			time.price = (await this.getPrice('full')).amount;	// TODO: get the class span, to determine price

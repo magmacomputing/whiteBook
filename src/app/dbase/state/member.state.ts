@@ -33,7 +33,9 @@ export class MemberState implements NgxsOnInit {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
-		state[payload.store] = store;
+		if (store.length === 0)
+			delete state[payload.store]
+		else state[payload.store] = store;
 		if (debug) this.dbg('delMember: %j', payload);
 		patchState({ ...state });
 	}
