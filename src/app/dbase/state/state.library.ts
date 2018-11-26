@@ -23,7 +23,7 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
-console.log('store: ', store, sortBy);
+
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
@@ -156,16 +156,12 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 }
 
 /**
- * Use the Observable on active IPayment[] to determine current account-status (credit, pending, bank, etc.)
+ * Use the Observable on open IPayment[] to determine current account-status (credit, pending, bank, etc.)
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
-		source.account.active = [];
 
 		source.account.summary = source.account.payment.reduce((sum, account) => {
-			if (account.active)
-				source.account.active.push(account[FIELD.id] as string);
-
 			sum.bank += account.bank || 0;
 
 			if (account.approve) sum.pay += account.amount;

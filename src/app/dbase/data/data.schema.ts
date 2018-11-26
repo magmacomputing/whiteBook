@@ -262,9 +262,10 @@ export interface IPayment extends IMemberBase {
 	approve?: {
 		uid: string;
 		stamp: number;
-		note?: string;
+		note?: TString;
 	},
-	note?: string;
+	note?: TString;
+	plan?: string;										// the Plan-type this payment covers
 }
 
 //	/member/bonus
@@ -282,6 +283,7 @@ export interface IAttend extends IAttendBase {
 	stamp: number;										// the timestamp of the check-in
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
+	note: TString;										// any notes recorded
 	track?: {													// to use in bonus-checking
 		day: number;										// weekDay attended
 		week: number;										// yearWeek attended

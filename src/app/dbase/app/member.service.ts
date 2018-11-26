@@ -18,6 +18,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { getStamp, fmtDate, DATE_KEY } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { IAccountState } from '@dbase/state/state.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -62,19 +63,28 @@ export class MemberService {
 		return paymentId;
 	}
 
-	/** Mark a Payment as active, and expire previous active */
-	async setActive(paymentId: string) {
+	/** get (or set a new) active Payment */
+	async getPayment(time?: ISchedule) {
+		const account = await this.getAccount();
+		this.dbg('time: %j', time);
+
+		// if (account.active[0])
+		// 	return account.active[0];														// 
+
+		// const activeId = account.payment[0];
 
 	}
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	// TODO: determine <date> as the last occurrence of the <time>'s class
 	async setAttend(time: ISchedule, date?: number) {
-		const account = await this.getCredit();
-		this.dbg('active: %j', account.payment);
+		// this.dbg('active: %j', account.active);
+		// const activeId = account.active[account.active.length - 1]
+		// 	|| account.payment[0]
+		// // || await this.getPayment(undefined, true);
+		// this.dbg('activeId: %j', activeId);
+		this.getPayment(time);
 		return;
-		const activeId = account.active[account.active.length-1]
-			|| await this.setPayment(undefined, true);
 
 		if (isUndefined(time.price))
 			time.price = (await this.getPrice('full')).amount;	// TODO: get the class span, to determine price
@@ -96,25 +106,25 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	getAccount() {
-		return this.state.getAccountData()
+	getAccount(uid?: string) {
+		return this.state.getAccountData(uid)
 			.pipe(take(1))
 			.toPromise()
 	}
 
-	getCredit() {
-		return this.getAccount()
+	getCredit(uid?: string) {
+		return this.getAccount(uid)
 			.then(summary => summary.account)
 	}
 
-	getPrice(type: string) {																	// type: 'full' | 'half' | 'topUp' | 'hold'
-		return this.getAccount()
+	getPrice(type: string, uid?: string) {																	// type: 'full' | 'half' | 'topUp' | 'hold'
+		return this.getAccount(uid)
 			.then(summary => summary.member.price)
 			.then(prices => prices.filter(row => row[FIELD.type] === type)[0])
 	}
 
-	getPlan() {
-		return this.getAccount()
+	getPlan(uid?: string) {
+		return this.getAccount(uid)
 			.then(summary => summary.member.plan[0])
 	}
 

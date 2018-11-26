@@ -38,10 +38,10 @@ interface ISummary {
 }
 export interface IAccountState extends IMemberState {
 	account: {
-		payment: IPayment[];								// array of open payment documents
+		payment: IPayment[];								// array of open payment documents, sorted by <stamp>
 		attend: IAttend[];
 		summary: ISummary;
-		active: string[];										// the currently 'active' IPayment row
+		// active: string[];										// the currently 'active' IPayment row
 	}
 }
 
