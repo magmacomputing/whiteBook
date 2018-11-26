@@ -86,23 +86,23 @@ export class MemberService {
 		this.getPayment(time);
 		return;
 
-		if (isUndefined(time.price))
-			time.price = (await this.getPrice('full')).amount;	// TODO: get the class span, to determine price
+		// if (isUndefined(time.price))
+		// 	time.price = (await this.getPrice('full')).amount;	// TODO: get the class span, to determine price
 
-		const attendDoc: Partial<IAttend> = {
-			[FIELD.store]: STORE.attend,
-			[FIELD.type]: time[FIELD.key],											// the Attend's class
-			schedule: time[FIELD.id],														// <id> of the Schedule
-			payment: activeId,																	// <id> of Account's current active document
-			amount: time.price,
-			stamp: getStamp(),
-			date: fmtDate<number>(DATE_KEY.yearMonthDay, date)
-		}
+		// const attendDoc: Partial<IAttend> = {
+		// 	[FIELD.store]: STORE.attend,
+		// 	[FIELD.type]: time[FIELD.key],											// the Attend's class
+		// 	schedule: time[FIELD.id],														// <id> of the Schedule
+		// 	payment: activeId,																	// <id> of Account's current active document
+		// 	amount: time.price,
+		// 	stamp: getStamp(),
+		// 	date: fmtDate<number>(DATE_KEY.yearMonthDay, date)
+		// }
 
-		this.dbg('credit: %j', account);
-		this.dbg('time: %j', time);
-		this.dbg('attend: %j', attendDoc);
-		return this.data.setDoc(STORE.attend, attendDoc as IAttend);
+		// this.dbg('credit: %j', account);
+		// this.dbg('time: %j', time);
+		// this.dbg('attend: %j', attendDoc);
+		// return this.data.setDoc(STORE.attend, attendDoc as IAttend);
 	}
 
 	/** Current Account status */

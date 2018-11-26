@@ -103,14 +103,13 @@ export class StateService {
 
 	/**
 	 * Add Account details to the Member Profile Observable  
-	 * account.payment-> has an array of current (not asAt) details about the Member's account payments  
-	 * account.active	-> has an array of payments ids that are <active> (only 1 expected)  
+	 * account.payment-> has an array of open (not asAt) details about the Member's account payments  
 	 * account.attend	-> has an array of attendances against the <active> payment  
-	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $, active: paymentId[] }
+	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $ }
 	 */
 	getAccountData(uid?: string): Observable<IAccountState> {
 		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
-		const filterAttend: IWhere = { fieldPath: 'payment', value: '{{account.active}}' };
+		const filterAttend: IWhere = { fieldPath: 'payment', value: '{{account.payment[0]}}' };
 
 		return this.getMemberData(undefined, uid).pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),

@@ -160,8 +160,12 @@ const decodeFilter = (parent: any, filter: TWhere) => {
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
+		// source.account.active = [];
 
 		source.account.summary = source.account.payment.reduce((sum, account) => {
+			// if (!account[FIELD.expire])
+			// 	source.account.active.push(account[FIELD.id] as string);
+
 			sum.bank += account.bank || 0;
 
 			if (account.approve) sum.pay += account.amount;
