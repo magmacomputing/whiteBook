@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, mergeMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
@@ -11,7 +11,7 @@ import { joinDoc, getStore, sumPayment, sumAttend, calendarDay } from '@dbase/st
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
@@ -48,17 +48,17 @@ export class StateService {
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-		return getStore<T>(this.states, store, filters);
+		return getStore<T & TStoreBase>(this.states, store, filters);
 	}
 
 	/** Expose a library function */
 	getSingle<T>(store: string, filter: TWhere) {
 		return this.getCurrent<T>(store, filter)
 			.pipe(
-				take(1),										// snapshort		
-				map(table => table),				// only the first row
+				take(1),											// only the first snapshot	
+				map(table => table[0]),				// only the first element
 			)
-			.toPromise();
+			.toPromise<T>();
 	}
 
 	/**

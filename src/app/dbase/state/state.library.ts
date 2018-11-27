@@ -6,7 +6,7 @@ import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
 import { IState, IAccountState, ITimetableState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IConfig } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 
@@ -29,7 +29,6 @@ export const getStore = <T extends TStoreBase>(states: IState, store: string, fi
 
 	return state.pipe(
 		map(state => asAt<T>(state[index || store], filter, date)),
-		map(table => store === STORE.config ? fixConfig<T>(table) : table),	// special: placeholders in _config_
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
 }
@@ -187,33 +186,4 @@ export const calendarDay = (source: ITimetableState) => {
 	}
 
 	return { ...source };
-}
-
-/**
- * resolve some placeholder variables in IConfig[]
- */
-export const fixConfig = <T>(config: T[]) => {
-	let project = '';
-	let region = '';
-
-	config.forEach((row: any) => {
-		switch (row[FIELD.type]) {
-			case 'project':
-				project = row.value;
-				break;
-			case 'region':
-				region = row.value;
-				break;
-		}
-	});
-
-	return config.map(row => {
-		if ((row as any)[FIELD.type] === 'oauth') {
-			Object.keys((row as any).value)
-				.forEach(itm => (row as any).value[itm] = (row as any).value[itm]
-					.replace('${region}', region)
-					.replace('${project}', project));
-		}
-		return row;
-	})
 }

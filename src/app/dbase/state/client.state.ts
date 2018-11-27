@@ -2,6 +2,8 @@ import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
+import { cloneObj } from '@lib/object.library';
+import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState<IStoreDoc>>({
@@ -22,6 +24,9 @@ export class ClientState implements NgxsOnInit {
 
 		store.push(payload);										// push the new/changed ClientDoc into the Store
 		state[payload[FIELD.store]] = store;
+
+		if (payload[FIELD.store] === STORE.config)
+			fixConfig(state[payload[FIELD.store]]);	// special: override some _config_ values
 
 		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });
@@ -52,4 +57,50 @@ export class ClientState implements NgxsOnInit {
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
+}
+
+/** resolve some placeholder variables in IConfig[] */
+const fixConfig = (config: IStoreDoc[]) => {
+	let project = '';
+	let region = '';
+	let indexOAuth: number | undefined = undefined;
+	let indexClone: number | undefined = undefined;
+
+	config
+		.filter(row => row[FIELD.store] === STORE.config)
+		.forEach((row, idx) => {
+			switch (row[FIELD.type]) {
+				case 'project':
+					project = row.value;
+					break;
+				case 'region':
+					region = row.value;
+					break;
+				case 'oauth':
+					indexOAuth = idx;
+					break;
+				case '_oauth_':
+					indexClone = idx;
+					break;
+			}
+		});
+
+	if (!isUndefined(indexOAuth) && project && region) {
+		const orig = config[indexOAuth];
+		const clone = !isUndefined(indexClone)
+			? config[indexClone]									// point to previous clone
+			: cloneObj(orig);											// create a new clone
+
+		clone[FIELD.type] = '_oauth_';
+		clone.value = {};
+		Object.keys(orig.value)
+			.forEach(itm => clone.value[itm] = orig.value[itm]
+				.replace('${region}', region)
+				.replace('${project}', project));
+
+		if (isUndefined(indexClone))
+			config.push(clone);
+	}
+
+	return config;
 }

@@ -12,7 +12,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IAttend, IProfileInfo, ISchedule, IClass } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { getStamp } from '@lib/date.library';
@@ -73,8 +73,7 @@ export class MemberService {
 
 		if (isUndefined(time.price)) {											// work out the price for this class
 			const plan = (await this.getPlan(data)).plan;						// the member's plan
-			const event = time[FIELD.key];										// the schedule's class
-			const span = await this.state.getSingle<IClass>(STORE.class, event);
+			const span = await this.state.getSingle<IClass>(STORE.class, { fieldPath: FIELD.key, value: time[FIELD.key] });
 			time.price = data.member.price										// look in member's price plan for a match in 'span' and '
 				.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === plan)[0].amount || 0;
 		}
@@ -129,7 +128,7 @@ export class MemberService {
 		const { bank, pend, pay, cost } = data.account.summary;
 		return bank + pend + pay - cost;
 	}
-	
+
 	async	getPlan(data: IAccountState) {
 		data = data || (await this.getAccount());
 		return data.member.plan[0];
@@ -137,19 +136,12 @@ export class MemberService {
 
 	async getPrice(event: string, data: IAccountState) {
 		data = data || (await this.getAccount());
-		const plan = data.member.plan;						// the member's plan
-		const span = await this.state.getSingle<IClass>(STORE.class, event);
+		const profile = data.member.plan[0];						// the member's plan
+		const span = await this.state.getSingle<IClass>(STORE.class, { fieldPath: FIELD.key, value: event });
 
-		data.member.price										// look in member's price plan for a match in 'span' and '
-		.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === plan)[0].amount || 0;
+		return data.member.price												// look in member's prices for a match in 'span' and 'plan'
+			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
-
-	getPrice1(type: string, uid?: string) {																	// type: 'full' | 'half' | 'topUp' | 'hold'
-		return this.getAccount(uid)
-			.then(summary => summary.member.price)
-			.then(prices => prices.filter(row => row[FIELD.type] === type)[0])
-	}
-
 
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {
