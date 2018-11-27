@@ -31,6 +31,7 @@ export const enum STORE {
 	location = 'location',
 	instructor = 'instructor',
 	diary = 'diary',
+	bonus = 'bonus',
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',

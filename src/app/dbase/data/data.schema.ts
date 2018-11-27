@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
@@ -72,20 +72,20 @@ export const isClientStore = (store: TStoreBase): store is IClientBase =>
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
-	[FIELD.store]: '_default_';
+	[FIELD.store]: STORE.default;
 	[FIELD.type]: TTypeDefault;
 	[FIELD.key]: string;
 }
 //	/client/_config_
 export interface IConfig extends IClientBase {
-	[FIELD.store]: '_config_';
+	[FIELD.store]: STORE.config;
 	[FIELD.type]: string;
 	value: any;
 }
 
 //	/client/price
 export interface IPrice extends IClientBase {
-	[FIELD.store]: 'price';
+	[FIELD.store]: STORE.price;
 	[FIELD.type]: TPrice;
 	[FIELD.key]: TPlan;
 	amount: number;
@@ -93,14 +93,14 @@ export interface IPrice extends IClientBase {
 
 //	/client/plan
 export interface IPlan extends IClientBase {
-	[FIELD.store]: 'plan';
+	[FIELD.store]: STORE.price;
 	[FIELD.key]: string;
 	desc: string;
 	sort: number;
 }
 //	/client/class
 export interface IClass extends IClientBase {
-	[FIELD.store]: 'class';
+	[FIELD.store]: STORE.class;
 	[FIELD.type]: TSpan;
 	[FIELD.key]: TClass;
 	color: string;
@@ -109,7 +109,7 @@ export interface IClass extends IClientBase {
 
 //	/client/event
 export interface IEvent extends IClientBase {
-	[FIELD.store]: 'event';
+	[FIELD.store]: STORE.event;
 	[FIELD.key]: string;
 	name: string;
 	desc?: string;
@@ -118,7 +118,7 @@ export interface IEvent extends IClientBase {
 
 //	/client/calendar
 export interface ICalendar extends IClientBase {
-	[FIELD.store]: 'calendar';
+	[FIELD.store]: STORE.calendar;
 	[FIELD.type]: TCalendar;
 	[FIELD.key]: number;
 	name: string;
@@ -130,7 +130,7 @@ export interface ICalendar extends IClientBase {
 
 //	/client/schedule
 export interface ISchedule extends IClientBase {
-	[FIELD.store]: 'schedule';
+	[FIELD.store]: STORE.schedule;
 	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass | string;
 	day: number;
@@ -141,7 +141,7 @@ export interface ISchedule extends IClientBase {
 
 //	/client/location
 export interface ILocation extends IClientBase {
-	[FIELD.store]: 'location';
+	[FIELD.store]: STORE.location;
 	[FIELD.key]: string;
 	name: string;
 	address?: {
@@ -166,7 +166,7 @@ export interface ILocation extends IClientBase {
 
 //	/client/instructor
 export interface IInstructor extends IClientBase {
-	[FIELD.store]: 'instructor';
+	[FIELD.store]: STORE.instructor;
 	name: string;
 	link?: {
 		type: string;
@@ -176,7 +176,7 @@ export interface IInstructor extends IClientBase {
 
 //	/client/schedule
 export interface IProvider extends IClientBase {
-	[FIELD.store]: 'provider';
+	[FIELD.store]: STORE.provider;
 	[FIELD.type]: TProvider;
 	[FIELD.key]: string;
 	sort: number;										// list-order to display to User
@@ -219,11 +219,11 @@ export interface IProvider extends IClientBase {
 
 //	/member/profile
 export interface IProfile extends IMemberBase {
-	[FIELD.store]: 'profile';
+	[FIELD.store]: STORE.profile;
 	[FIELD.type]: TProfile;
 }
 export interface IProfilePlan extends IProfile {
-	[FIELD.type]: 'plan';
+	[FIELD.type]: STORE.plan;
 	plan: TPlan;
 }
 export interface IProfileClaim extends IProfile {
@@ -252,7 +252,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 
 //	/member/payment
 export interface IPayment extends IMemberBase {
-	[FIELD.store]: 'payment';
+	[FIELD.store]: STORE.payment;
 	[FIELD.type]: TPayment;
 	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
 	stamp: number;										// create-date
@@ -269,7 +269,7 @@ export interface IPayment extends IMemberBase {
 
 //	/member/bonus
 export interface IBonus extends IMemberBase {
-	[FIELD.store]: 'bonus',
+	[FIELD.store]: STORE.bonus,
 	[FIELD.type]: string;
 	stamp: number;
 	expiry?: number;
@@ -277,6 +277,8 @@ export interface IBonus extends IMemberBase {
 
 // /attend
 export interface IAttend extends IAttendBase {
+	[FIELD.store]: STORE.attend;
+	[FIELD.type]: TClass;
 	payment: string;									// the /member/payment _id
 	schedule: string;									// the /client/schedule _id
 	stamp: number;										// the timestamp of the check-in
