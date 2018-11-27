@@ -92,7 +92,7 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const config = await this.state.getSingle<IConfig>(STORE.config, { fieldPath: FIELD.type, value: '_oauth_' });
+		const config = await this.state.getSingle<IConfig>(STORE.config, { fieldPath: FIELD.key, value: '_oauth_' });
 		const oauth = config.value;
 
 		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');

@@ -67,9 +67,9 @@ const fixConfig = (config: IStoreDoc[]) => {
 	let indexClone: number | undefined = undefined;
 
 	config
-		.filter(row => row[FIELD.store] === STORE.config)
+		.filter(row => row[FIELD.store] === STORE.config && !row[FIELD.expire])
 		.forEach((row, idx) => {
-			switch (row[FIELD.type]) {
+			switch (row[FIELD.key]) {
 				case 'project':
 					project = row.value;
 					break;
@@ -91,15 +91,15 @@ const fixConfig = (config: IStoreDoc[]) => {
 			? config[indexClone]									// point to previous clone
 			: cloneObj(orig);											// create a new clone
 
-		clone[FIELD.type] = '_oauth_';
-		clone.value = {};
-		Object.keys(orig.value)
+		clone[FIELD.key] = '_oauth_';					// clone search-key
+		clone.value = {};												// reset values
+		Object.keys(orig.value)									// for each key in original's <value> object
 			.forEach(itm => clone.value[itm] = orig.value[itm]
-				.replace('${region}', region)
-				.replace('${project}', project));
+				.replace('${region}', region)				// set clone's value to be...
+				.replace('${project}', project));		//	orig's value with placeholders replaced
 
 		if (isUndefined(indexClone))
-			config.push(clone);
+			config.push(clone);										// insert a clone row into State
 	}
 
 	return config;
