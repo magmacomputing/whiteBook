@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
 import { IStoreState } from '@dbase/state/store.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, getSingle } from '@dbase/state/state.library';
+import { joinDoc, getStore, sumPayment, sumAttend, calendarDay } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -52,8 +52,13 @@ export class StateService {
 	}
 
 	/** Expose a library function */
-	getSingle<T>(store: string, type: string) {
-		return getSingle<T>(this.states, store, type);
+	getSingle<T>(store: string, filter: TWhere) {
+		return this.getCurrent<T>(store, filter)
+			.pipe(
+				take(1),										// snapshort		
+				map(table => table),				// only the first row
+			)
+			.toPromise();
 	}
 
 	/**
@@ -109,7 +114,7 @@ export class StateService {
 	 */
 	getAccountData(uid?: string): Observable<IAccountState> {
 		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
-		const filterAttend: IWhere = { fieldPath: 'payment', value: '{{account.payment[0]}}' };
+		const filterAttend: IWhere = { fieldPath: 'payment', value: `{{account.payment[0].${FIELD.id}}}` };
 
 		return this.getMemberData(undefined, uid).pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),

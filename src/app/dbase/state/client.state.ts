@@ -1,7 +1,7 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 @State<IStoreState<IStoreDoc>>({
@@ -20,9 +20,10 @@ export class ClientState implements NgxsOnInit {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
-		store.push(payload);										// push the changed ClientDoc into the Store
-		state[payload.store] = store;
-		if (debug) this.dbg('setClient: %s, %j', payload.store, payload);
+		store.push(payload);										// push the new/changed ClientDoc into the Store
+		state[payload[FIELD.store]] = store;
+
+		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });
 	}
 
@@ -32,9 +33,10 @@ export class ClientState implements NgxsOnInit {
 		const store = this.filterClient(getState(), payload);
 
 		if (store.length === 0)
-			delete state[payload.store]
-		else state[payload.store] = store;
-		if (debug) this.dbg('delClient: %s, %j', payload.store, payload);
+			delete state[payload[FIELD.store]]
+		else state[payload[FIELD.store]] = store;
+
+		if (debug) this.dbg('delClient: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });
 	}
 
@@ -46,7 +48,7 @@ export class ClientState implements NgxsOnInit {
 
 	/** remove an item from the Client Store */
 	private filterClient(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
-		const curr = state && state[payload.store] || [];
+		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}

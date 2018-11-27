@@ -19,7 +19,7 @@ import { fmtDate, DATE_KEY } from '@lib/date.library';
  * Generic Slice Observable  
  * Special logic to slice 'attend' store, as it uses non-standard indexing
  */
-export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
+export const getStore = <T extends TStoreBase>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -29,25 +29,9 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 
 	return state.pipe(
 		map(state => asAt<T>(state[index || store], filter, date)),
+		map(table => store === STORE.config ? fixConfig<T>(table) : table),	// special: placeholders in _config_
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
-}
-
-/** Fetch a single-row from a state's store */
-export const getSingle = <T>(states: IState, store: string, type: string) => {
-	const slice = getSlice(store);			// lookup the store to determine which state slice
-	const state = states[slice];
-
-	return state.pipe(
-		take(1),
-		map(state => state[store]),				// map to just the specified store
-		map(table => (store === STORE.config)
-			? fixConfig(table as IConfig[])	// special: placeholders in _config_
-			: table
-		),
-		map(table => table.filter(row => row[FIELD.type] === type)[0]),
-	)
-		.toPromise() as Promise<T>
 }
 
 /** extract the required fields from the AuthToken object */
@@ -70,7 +54,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value[0] : store;	// TODO: dont rely on defined filter
-
+				if (store === STORE.attend) console.log('filter: ', filters);
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
@@ -156,69 +140,39 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 }
 
 /**
- * Use the Observable on open IPayment[] to determine current account-status (credit, pending, bank, etc.)
+ * Use the Observable on open IPayment[] to determine current account-status (credit, pending, bank, etc.).  
+ * The IPayment array is pre-sorted by 'stamp', meaning payment[0] is active.
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
 		// source.account.active = [];
 
-		source.account.summary = source.account.payment.reduce((sum, account) => {
-			// if (!account[FIELD.expire])
-			// 	source.account.active.push(account[FIELD.id] as string);
+		source.account.summary = source.account.payment
+			.reduce((sum, account) => {
+				// if (!account[FIELD.expire])
+				// 	source.account.active.push(account[FIELD.id] as string);
 
-			sum.bank += account.bank || 0;
+				sum.bank += account.bank || 0;
 
-			if (account.approve) sum.pay += account.amount;
-			if (!account.approve) sum.pend += account.amount;
-			return sum;
-		}, { pay: 0, bank: 0, pend: 0, cost: 0 })
-
+				if (account.approve) sum.pay += account.amount;
+				if (!account.approve) sum.pend += account.amount;
+				return sum;
+			}, { pay: 0, bank: 0, pend: 0, cost: 0 })
 	}
 
-	return { ...source }
+	return source;
 }
 
 /**
- * Use the Observable on IAttend[] to determine the cost of the Classes on the active IPayment
+ * Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment
  */
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
-		source.account.summary.cost = source.account.attend.reduce((cost, attend) => {
-			cost += attend.amount														// add up each Attend's cost
-			return cost;
-		}, 0)
+		source.account.summary.cost = source.account.attend
+			.reduce((cost, attend) => cost + attend.amount, 0);
 	}
 
-	return { ...source };
-}
-
-/**
- * resolve some placeholder variables in IConfig[]
- */
-export const fixConfig = (config: IConfig[]) => {
-	let project = '';
-	let region = '';
-
-	config.forEach(row => {
-		switch (row[FIELD.type]) {
-			case 'project':
-				project = row.value;
-				break;
-			case 'region':
-				region = row.value;
-				break;
-		}
-	});
-
-	return config.map(row => {
-		if (row[FIELD.type] === 'oauth') {
-			Object.keys(row.value)
-				.forEach(itm => row.value[itm] = row.value[itm]
-					.replace('${region}', region)
-					.replace('${project}', project));
-		}
-		return row;
-	})
+	return source;
 }
 
 /**
@@ -233,4 +187,33 @@ export const calendarDay = (source: ITimetableState) => {
 	}
 
 	return { ...source };
+}
+
+/**
+ * resolve some placeholder variables in IConfig[]
+ */
+export const fixConfig = <T>(config: T[]) => {
+	let project = '';
+	let region = '';
+
+	config.forEach((row: any) => {
+		switch (row[FIELD.type]) {
+			case 'project':
+				project = row.value;
+				break;
+			case 'region':
+				region = row.value;
+				break;
+		}
+	});
+
+	return config.map(row => {
+		if ((row as any)[FIELD.type] === 'oauth') {
+			Object.keys((row as any).value)
+				.forEach(itm => (row as any).value[itm] = (row as any).value[itm]
+					.replace('${region}', region)
+					.replace('${project}', project));
+		}
+		return row;
+	})
 }

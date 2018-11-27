@@ -12,10 +12,10 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IAttend, IProfileInfo, ISchedule } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IAttend, IProfileInfo, ISchedule, IClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { getStamp, fmtDate, DATE_KEY } from '@lib/date.library';
+import { getStamp } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 import { IAccountState } from '@dbase/state/state.define';
@@ -43,35 +43,47 @@ export class MemberService {
 	}
 
 	/** Insert a new TopUp payment (do not set _effect/_expire) */
-	async setPayment(amount?: number, active?: boolean) {
-		const price = this.getPrice('topUp');
-		const paymentId = this.data.newId;
+	async setPayment(amount?: number) {
+		// amount = !isUndefined(amount) ? amount : (await this.getPrice('topUp')).amount;
 
-		amount = !isUndefined(amount) ? amount : (await price).amount;
-
-		const accountDoc: Partial<IPayment> = {
+		const paymentId = this.data.newId;									// allocate a new pushId
+		const paymentDoc: Partial<IPayment> = {
 			[FIELD.id]: paymentId,
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
 			amount: amount,
-			active: active,
 			stamp: getStamp(),
 		}
 
-		this.dbg('account: %j', accountDoc);
-		this.data.setDoc(STORE.payment, accountDoc as IPayment);
+		this.data.setDoc(STORE.payment, paymentDoc as IPayment);
 		return paymentId;
 	}
 
 	/** get (or set a new) active Payment */
 	async getPayment(time?: ISchedule) {
-		const account = await this.getAccount();
+		const data = await this.getAccount();
 		this.dbg('time: %j', time);
 
+		const activeId = data.account.payment[0] && data.account.payment[0][FIELD.id];
+		const { bank, pend, pay, cost } = data.account.summary;
+		const credit = bank + pend + pay - cost;
+
+		if (isUndefined(time))															// no item selected from schedule
+			return activeId;																	// will return <undefined> if no open payments
+
+		if (isUndefined(time.price)) {											// work out the price for this class
+			const plan = (await this.getPlan(data)).plan;						// the member's plan
+			const event = time[FIELD.key];										// the schedule's class
+			const span = await this.state.getSingle<IClass>(STORE.class, event);
+			time.price = data.member.price										// look in member's price plan for a match in 'span' and '
+				.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === plan)[0].amount || 0;
+		}
+
+		if (time.price > credit) {
+
+		}
 		// if (account.active[0])
 		// 	return account.active[0];														// 
-
-		// const activeId = account.payment[0];
 
 	}
 
@@ -106,27 +118,38 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	getAccount(uid?: string) {
+	async getAccount(uid?: string) {
 		return this.state.getAccountData(uid)
 			.pipe(take(1))
 			.toPromise()
 	}
 
-	getCredit(uid?: string) {
-		return this.getAccount(uid)
-			.then(summary => summary.account)
+	async getCredit(data: IAccountState) {
+		data = data || (await this.getAccount());
+		const { bank, pend, pay, cost } = data.account.summary;
+		return bank + pend + pay - cost;
+	}
+	
+	async	getPlan(data: IAccountState) {
+		data = data || (await this.getAccount());
+		return data.member.plan[0];
 	}
 
-	getPrice(type: string, uid?: string) {																	// type: 'full' | 'half' | 'topUp' | 'hold'
+	async getPrice(event: string, data: IAccountState) {
+		data = data || (await this.getAccount());
+		const plan = data.member.plan;						// the member's plan
+		const span = await this.state.getSingle<IClass>(STORE.class, event);
+
+		data.member.price										// look in member's price plan for a match in 'span' and '
+		.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === plan)[0].amount || 0;
+	}
+
+	getPrice1(type: string, uid?: string) {																	// type: 'full' | 'half' | 'topUp' | 'hold'
 		return this.getAccount(uid)
 			.then(summary => summary.member.price)
 			.then(prices => prices.filter(row => row[FIELD.type] === type)[0])
 	}
 
-	getPlan(uid?: string) {
-		return this.getAccount(uid)
-			.then(summary => summary.member.plan[0])
-	}
 
 	/** check for change of User.additionalInfo */
 	getAuthProfile() {

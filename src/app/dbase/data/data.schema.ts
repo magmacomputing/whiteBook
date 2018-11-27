@@ -136,7 +136,7 @@ export interface ISchedule extends IClientBase {
 	day: number;
 	location: string;
 	start: string;
-	price?: number;
+	price?: number;											// infer the member's price for this class
 }
 
 //	/client/location
@@ -254,12 +254,11 @@ export interface IMemberInfo {				// Conformed Info across Providers
 export interface IPayment extends IMemberBase {
 	[FIELD.store]: 'payment';
 	[FIELD.type]: TPayment;
-	amount: number;
-	stamp: number;
-	active?: boolean;
-	bank?: number;
-	expiry?: number;
-	approve?: {
+	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
+	stamp: number;										// create-date
+	bank?: number;										// un-used credit from previous payment
+	expiry?: number;									// six-months from _effect
+	approve?: {												// acknowledge receipt of payment
 		uid: string;
 		stamp: number;
 		note?: TString;
