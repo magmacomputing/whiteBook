@@ -53,7 +53,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value[0] : store;	// TODO: dont rely on defined filter
-				if (store === STORE.attend) console.log('filter: ', filters);
+
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));

@@ -62,7 +62,6 @@ export class MemberService {
 	/** get (or set a new) active Payment */
 	async getPayment(time?: ISchedule) {
 		const data = await this.getAccount();
-		this.dbg('time: %j', time);
 
 		const activeId = data.account.payment[0] && data.account.payment[0][FIELD.id];
 		const { bank, pend, pay, cost } = data.account.summary;
@@ -74,12 +73,12 @@ export class MemberService {
 		if (isUndefined(time.price)) {											// work out the price for this class
 			const profile = await this.getPlan(data);					// the member's plan
 			const span = await this.state.getSingle<IClass>(STORE.class, { fieldPath: FIELD.key, value: time[FIELD.key] });
-			const match = data.member.price										// look in member's price plan for a match in 'span' and '
+			const match = data.member.price										// look in member's price plan for a match in 'span' and 'plan'
 				.find(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan);
 			time.price = match ? match.amount : 0;
 		}
 
-		if (time.price > credit) {
+		if (time.price > credit) {													// expire the current active payment, start a new
 
 		}
 	}
