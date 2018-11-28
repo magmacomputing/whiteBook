@@ -72,18 +72,16 @@ export class MemberService {
 			return activeId;																	// will return <undefined> if no open payments
 
 		if (isUndefined(time.price)) {											// work out the price for this class
-			const plan = (await this.getPlan(data)).plan;						// the member's plan
+			const profile = await this.getPlan(data);					// the member's plan
 			const span = await this.state.getSingle<IClass>(STORE.class, { fieldPath: FIELD.key, value: time[FIELD.key] });
-			time.price = data.member.price										// look in member's price plan for a match in 'span' and '
-				.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === plan)[0].amount || 0;
+			const match = data.member.price										// look in member's price plan for a match in 'span' and '
+				.find(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan);
+			time.price = match ? match.amount : 0;
 		}
 
 		if (time.price > credit) {
 
 		}
-		// if (account.active[0])
-		// 	return account.active[0];														// 
-
 	}
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
