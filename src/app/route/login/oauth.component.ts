@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { StateService } from '@dbase/state/state.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';
 import { dbg } from '@lib/logger.library';
 
@@ -22,7 +22,7 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.getSingle<IConfig>(STORE.config, { fieldPath: FIELD.key, value: '_oauth_' })
+			this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: '_oauth_' })
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);

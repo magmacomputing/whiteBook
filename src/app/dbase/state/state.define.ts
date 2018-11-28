@@ -41,7 +41,6 @@ export interface IAccountState extends IMemberState {
 		payment: IPayment[];								// array of open payment documents, sorted by <stamp>
 		attend: IAttend[];
 		summary: ISummary;
-		// active: string;											// the currently 'active' IPayment row
 	}
 }
 

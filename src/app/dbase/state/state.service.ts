@@ -29,6 +29,7 @@ export class StateService {
 	@Select() private member$!: Observable<IStoreState<IStoreMeta[]>>;
 	@Select() private attend$!: Observable<IStoreState<IStoreMeta[]>>;
 	@Select() private admin$!: Observable<IStoreState<IStoreMeta[]>>;
+	@Select() private local$!: Observable<IStoreState<IStoreMeta[]>>;
 
 	private dbg: Function = dbg.bind(this);
 	public states: IState;
@@ -39,6 +40,7 @@ export class StateService {
 			'member': this.member$,
 			'attend': this.attend$,
 			'admin': this.admin$,
+			'local': this.local$,
 		}
 	}
 

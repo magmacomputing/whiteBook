@@ -10,7 +10,7 @@ allow payment, hold
 *> migrate User
 test if multiple instances of same source
 
-*> getPayment should return the last from sorted list
+*> getPayment should return the first from sorted list
 *> getTimetable should also consider Calendar Events
 
 *> logon as other User

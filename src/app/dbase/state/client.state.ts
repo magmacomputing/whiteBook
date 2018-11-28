@@ -1,5 +1,5 @@
-import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
-import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
+import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
+import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/store.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { cloneObj } from '@lib/object.library';
@@ -13,7 +13,7 @@ import { dbg } from '@lib/logger.library';
 export class ClientState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor() { }
+	constructor(private readonly store: Store) { }
 
 	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
 
@@ -26,7 +26,7 @@ export class ClientState implements NgxsOnInit {
 		state[payload[FIELD.store]] = store;
 
 		if (payload[FIELD.store] === STORE.config)
-			fixConfig(state[payload[FIELD.store]]);	// special: override some _config_ values
+			this.store.dispatch(new SetLocal(payload));
 
 		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });

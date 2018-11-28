@@ -8,7 +8,7 @@ import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, LOCAL } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
@@ -92,7 +92,7 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const config = await this.state.getSingle<IConfig>(STORE.config, { fieldPath: FIELD.key, value: '_oauth_' });
+		const config = await this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: '_oauth_' });
 		const oauth = config.value;
 
 		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');

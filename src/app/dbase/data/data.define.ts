@@ -15,6 +15,7 @@ export const STORES: { [col: string]: string[] } = {
 	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', '_default_', '_config_', '_schema_'],
 	member: ['payment', 'profile'],
 	attend: ['attend'],
+	local: ['@config@'],
 }
 
 export const enum STORE {
@@ -35,6 +36,10 @@ export const enum STORE {
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
+}
+
+export const enum LOCAL {
+	config = '@config@',
 }
 
 export const enum FIELD {					// common Field names

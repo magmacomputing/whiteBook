@@ -1,5 +1,5 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map, take, tap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@dbase/auth/auth.interface';
@@ -144,17 +144,12 @@ const decodeFilter = (parent: any, filter: TWhere) => {
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
-		// source.account.active = [];
-
 		source.account.summary = source.account.payment
 			.reduce((sum, account) => {
-				// if (!account[FIELD.expire])
-				// 	source.account.active.push(account[FIELD.id] as string);
-
 				sum.bank += account.bank || 0;
-
 				if (account.approve) sum.pay += account.amount;
 				if (!account.approve) sum.pend += account.amount;
+
 				return sum;
 			}, { pay: 0, bank: 0, pend: 0, cost: 0 })
 	}

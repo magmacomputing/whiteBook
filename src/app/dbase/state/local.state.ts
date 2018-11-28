@@ -1,4 +1,4 @@
-import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
+import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SLICE, IStoreState, IStoreDoc, SetLocal, DelLocal, TruncLocal } from '@dbase/state/store.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
@@ -6,24 +6,37 @@ import { cloneObj } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
+/**
+ * LocalState is for items derived from the server.  
+ * Currently this is _config_ with placeholders evaluated, and  
+ * UI preferences for _login_ (which are needed prior to authentication)
+ */
 @State<IStoreState<IStoreDoc>>({
-	name: SLICE.client,
+	name: SLICE.local,
 	defaults: {}
 })
 export class LocalState implements NgxsOnInit {
 	private dbg: Function = dbg.bind(this);
 
-	constructor() { }
+	constructor(private store: Store) { }
 
 	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
 
 	@Action(SetLocal)
 	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetLocal) {
 		const state = getState() || {};
-		const store = this.filterClient(state, payload);
+		const group = '@' + payload[FIELD.store].replace(/_/g, '') + '@';
+		const store = state[group] || [];
 
-		store.push(payload);										// push the new/changed ClientDoc into the Store
-		state[payload[FIELD.store]] = store;
+		if (payload[FIELD.store] === STORE.config) {// Config change detected
+			const fix = this.fixConfig()
+			if (fix) {
+				store.length = 0;												// erase existing Config
+				store.push(fix);												// insert fixed Config
+			}
+		}
+
+		state[group] = store;
 
 		if (debug) this.dbg('setLocal: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });
@@ -32,7 +45,7 @@ export class LocalState implements NgxsOnInit {
 	@Action(DelLocal)
 	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelLocal) {
 		const state = getState() || {};
-		const store = this.filterClient(getState(), payload);
+		const store = this.filterLocal(getState(), payload);
 
 		if (store.length === 0)
 			delete state[payload[FIELD.store]]
@@ -48,56 +61,50 @@ export class LocalState implements NgxsOnInit {
 		setState({});
 	}
 
-	/** remove an item from the Client Store */
-	private filterClient(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
+	/** remove an item from the Local Store */
+	private filterLocal(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
 		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
-}
 
-/** resolve some placeholder variables in IConfig[] */
-const fixConfig = (config: IStoreDoc[]) => {
-	let project = '';
-	let region = '';
-	let indexOAuth: number | undefined = undefined;
-	let indexClone: number | undefined = undefined;
+	/** resolve some placeholder variables in IConfig[] */
+	private fixConfig = () => {
+		let project = '';
+		let region = '';
+		let index: number | undefined = undefined;
+		let clone: IStoreDoc | undefined = undefined;
 
-	config
-		.filter(row => row[FIELD.store] === STORE.config && !row[FIELD.expire])
-		.forEach((row, idx) => {
-			switch (row[FIELD.key]) {
-				case 'project':
-					project = row.value;
-					break;
-				case 'region':
-					region = row.value;
-					break;
-				case 'oauth':
-					indexOAuth = idx;
-					break;
-				case '_oauth_':
-					indexClone = idx;
-					break;
-			}
-		});
+		const state = this.store.selectSnapshot(state => state);	// get existing state
+		const config = state.client[STORE.config] as IStoreDoc[];		// slice it to get Config
+		config
+			.filter(row => !row[FIELD.expire])			// skip expired Configs
+			.forEach((row, idx) => {								// loop through Config...
+				switch (row[FIELD.key]) {							//	evaluating <key>
+					case 'project':
+						project = row.value;							// found a placeholder value
+						break;
+					case 'region':
+						region = row.value;								// found a placeholder value
+						break;
+					case 'oauth':
+						index = idx;											// found a placeholder field
+						break;
+				}
+			});
 
-	if (!isUndefined(indexOAuth) && project && region) {
-		const orig = config[indexOAuth];
-		const clone = !isUndefined(indexClone)
-			? config[indexClone]									// point to previous clone
-			: cloneObj(orig);											// create a new clone
+		if (!isUndefined(index) && project && region) {
+			const orig = config[index];
+			clone = cloneObj(orig);									// create a clone
 
-		clone[FIELD.key] = '_oauth_';					// clone search-key
-		clone.value = {};												// reset values
-		Object.keys(orig.value)									// for each key in original's <value> object
-			.forEach(itm => clone.value[itm] = orig.value[itm]
-				.replace('${region}', region)				// set clone's value to be...
-				.replace('${project}', project));		//	orig's value with placeholders replaced
+			clone[FIELD.key] = '_oauth_';						// clone search-key
+			clone.value = {};												// reset values
+			Object.keys(orig.value)									// for each key in original's <value> object
+				.forEach(itm => clone!.value[itm] = orig.value[itm]
+					.replace('${region}', region)				// set clone's value to be...
+					.replace('${project}', project));		//	orig's value with placeholders replaced
+		}
 
-		if (isUndefined(indexClone))
-			config.push(clone);										// insert a clone row into State
+		return clone;
 	}
-
-	return config;
 }
