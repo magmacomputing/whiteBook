@@ -8,7 +8,7 @@ import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
-import { FIELD, STORE, LOCAL } from '@dbase/data/data.define';
+import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 import { TScopes, TParams } from '@dbase/auth/auth.interface';
 

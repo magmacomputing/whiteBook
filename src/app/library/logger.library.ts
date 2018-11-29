@@ -2,7 +2,7 @@ import { format } from 'util';
 import { isString, isObject } from '@lib/type.library';
 
 /** console.log() formatter */
-export function dbg(fmt?: any, ...msg: any[]): void {
+export function dbg(fmt?: any, ...msg: any[]) {
 	// export const dbg = (fmt?: any, ...msg: any[]): void => {
 	const name = this && this.constructor && this.constructor.name || '';
 	const sep = isString(fmt) && (fmt.includes(':') || msg.length === 0)
@@ -11,7 +11,7 @@ export function dbg(fmt?: any, ...msg: any[]): void {
 	log(name + sep + fmt, ...msg);// prepend the current Module name to aid debugging
 }
 
-export const log = (fmt?: any, ...msg: any[]): void => {
+export const log = (fmt?: any, ...msg: any[]) => {
 	let out = 'log';
 
 	if (isString(fmt)) {
@@ -26,9 +26,9 @@ export const log = (fmt?: any, ...msg: any[]): void => {
  * use sprintf-style formatting on a string.  
  * if the format does not contain a corresponding '%'-char, then de-construct the arguments
  */
-export const sprintf = (fmt: any, ...msg: any[]): string => {
+export const sprintf = (fmt: any, ...msg: any[]) => {
 	if (isString(fmt) && !fmt.includes('%')) {
-		msg.unshift(fmt);           // put the format into the msg array
+		msg.unshift(fmt);						// put the format into the msg array
 		fmt = msg     							// and build a new format string
 			.map(arg => isObject(arg) ? '%j' : '%s')
 			.join(', ')								// reassemble as a comma-separated string

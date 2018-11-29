@@ -47,7 +47,7 @@ export class SyncService {
 			slice: slice,
 			ready: ready,
 			cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-			subscribe: this.fire.colRef(collection, query)
+			subscribe: this.fire.colRef<IStoreDoc>(collection, query)
 				.stateChanges()                               // watch for changes since last snapshot
 				.subscribe(sync)
 		}

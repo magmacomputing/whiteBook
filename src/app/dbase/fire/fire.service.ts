@@ -30,8 +30,8 @@ export class FireService {
 	}
 
 	/** Collection Reference, with option query */
-	colRef(store: string, query?: IQuery) {
-		return this.afs.collection(store, fnQuery(query));
+	colRef<T>(store: string, query?: IQuery) {
+		return this.afs.collection<T>(store, fnQuery(query));
 	}
 
 	/** Document Reference, for existing or new */
