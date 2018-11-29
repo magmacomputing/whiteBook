@@ -31,10 +31,10 @@ export interface IPlanState extends IMemberState {
 }
 
 interface ISummary {
-	pay: number;
+	paid: number;
 	bank: number;
 	pend: number;
-	cost: number;
+	spend: number;
 }
 export interface IAccountState extends IMemberState {
 	account: {

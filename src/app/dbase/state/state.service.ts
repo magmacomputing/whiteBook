@@ -124,6 +124,7 @@ export class StateService {
 		)
 	}
 
+	//TODO: apply bonus-pricing to client.schedule
 	/**
 	 * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
 	 * schedule   -> has an array of Schedule info for the weekday of the supplied date  

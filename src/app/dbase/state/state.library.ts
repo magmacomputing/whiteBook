@@ -52,7 +52,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
-				const index = (store === STORE.attend) ? filters[0].value[0] : store;	// TODO: dont rely on defined filter
+				const index = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
 
 				parent = data;                                        // stash the original parent data state
 
@@ -139,39 +139,40 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 }
 
 /**
- * Use the Observable on open IPayment[] to determine current account-status (credit, pending, bank, etc.).  
- * The IPayment array is pre-sorted by 'stamp', meaning payment[0] is active.
+ * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, etc.).  
+ * The IPayment array is pre-sorted by 'stamp', meaning payment[0] is active.  
+ * paid		: is amount from active payment  
+ * bank		: is any unspent credit on active payment (brought forward from previous payment)  
+ * pend 	: is amount from future payments  
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
 		source.account.summary = source.account.payment
-			.reduce((sum, account) => {
-				sum.bank += account.bank || 0;
-				if (account.approve) sum.pay += account.amount;
-				if (!account.approve) sum.pend += account.amount;
+			.reduce((sum, payment, indx) => {
+				if (indx === 0 && payment[FIELD.effect]) {
+					sum.bank += payment.bank || 0;
+					sum.paid += payment.amount || 0;
+				}
+				else sum.pend += payment.amount
 
 				return sum;
-			}, { pay: 0, bank: 0, pend: 0, cost: 0 })
+			}, { paid: 0, bank: 0, pend: 0, spend: 0 })
 	}
 
 	return source;
 }
 
-/**
- * Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment
- */
+/** Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment */
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
-		source.account.summary.cost = source.account.attend
-			.reduce((cost, attend) => cost + attend.amount, 0);
+		source.account.summary.spend = source.account.attend
+			.reduce((spend, attend) => spend + attend.amount, 0);
 	}
 
 	return source;
 }
 
-/**
- * calc a 'day' field onto any Calendar row
- */
+/** calc a 'day' field onto any Calendar row */
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar.map(row => {
