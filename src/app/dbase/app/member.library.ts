@@ -43,3 +43,13 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
 
 export const getMemberAge = (info?: IProfileInfo[]) =>
 	getDateDiff(getMemberBirthDay(info));
+
+/**
+ * Determine if a new payment is due.  
+ * -> if the price of the intended class is greater than their current credit  
+ * -> if they've exceeded 99 Attends against a Payment  
+ * -> if their intro-pass has expired (auto bump them to 'member' plan)  
+ */
+export const paymentDue = () => {
+	return true;
+}

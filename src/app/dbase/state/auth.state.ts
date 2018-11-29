@@ -30,7 +30,7 @@ import { dbg } from '@lib/logger.library';
 	}
 })
 export class AuthState implements NgxsOnInit {
-	private dbg: Function = dbg.bind(this);
+	private dbg: CallableFunction = dbg.bind(this);
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar,
 		private router: Router, private navigate: NavigateService) { }

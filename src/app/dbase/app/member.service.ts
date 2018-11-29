@@ -6,6 +6,7 @@ import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { StateService } from '@dbase/state/state.service';
 import { IAuthState, LoginInfo } from '@dbase/state/auth.define';
+import { IAccountState } from '@dbase/state/state.define';
 import { AuthState } from '@dbase/state/auth.state';
 
 import { TWhere } from '@dbase/fire/fire.interface';
@@ -18,12 +19,10 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { getStamp, fmtDate, DATE_KEY } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { IAccountState } from '@dbase/state/state.define';
-import { initTransferState } from '@angular/platform-browser/src/browser/transfer_state';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
-	private dbg: Function = dbg.bind(this);
+	private dbg: CallableFunction = dbg.bind(this);
 
 	constructor(private readonly data: DataService, private readonly store: Store, private state: StateService, private action: Actions) {
 		this.dbg('new');
@@ -73,6 +72,7 @@ export class MemberService {
 	async setAttend(schedule: ISchedule, date?: number) {
 		const data = await this.getAccount();
 		const amount = await this.getAmount(data);
+		// const bonus = await this.getBonus(data);
 		if (isUndefined(schedule.price))
 			schedule.price = await this.getEventPrice(schedule[FIELD.key], data);
 
@@ -106,8 +106,7 @@ export class MemberService {
 		} as IAttend
 		creates.push(attendDoc as TStoreBase);
 
-		// this.dbg('creates: %j', creates);
-		// this.dbg('updates: %j', updates);
+		// TODO:  also create a bonusTrack document
 		return this.data.batch(creates, updates);
 	}
 
