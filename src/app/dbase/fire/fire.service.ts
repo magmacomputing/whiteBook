@@ -22,7 +22,7 @@ import { dbg } from '@lib/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: MatSnackBar) {

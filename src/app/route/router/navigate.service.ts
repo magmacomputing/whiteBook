@@ -7,7 +7,7 @@ import { dbg } from '@lib/logger.library';
   providedIn: 'root'
 })
 export class NavigateService {
-  private dbg: CallableFunction = dbg.bind(this);
+  private dbg: Function = dbg.bind(this);
 
   constructor(private router: Router, private zone: NgZone) { this.dbg('new') }
 

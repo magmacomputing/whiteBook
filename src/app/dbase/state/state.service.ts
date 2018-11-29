@@ -31,7 +31,7 @@ export class StateService {
 	@Select() private admin$!: Observable<IStoreState<IStoreMeta[]>>;
 	@Select() private local$!: Observable<IStoreState<IStoreMeta[]>>;
 
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 	public states: IState;
 
 	constructor() {

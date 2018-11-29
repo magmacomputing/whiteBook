@@ -28,7 +28,7 @@ import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 	private listener: IObject<IListen>;
 
 	constructor(private fire: FireService, private store: Store, private router: Router, private navigate: NavigateService) {

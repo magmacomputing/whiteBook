@@ -17,7 +17,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class PlanComponent implements OnInit {
 	public data$!: Observable<IPlanState>;
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
 	constructor(private readonly member: MemberService, private readonly state: StateService) { }
 

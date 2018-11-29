@@ -27,7 +27,7 @@ import { dbg } from '@lib/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
 		this.dbg('new');

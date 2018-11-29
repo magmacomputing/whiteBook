@@ -19,7 +19,7 @@ import { dbg } from '@lib/logger.library';
 	templateUrl: './attend.component.html',
 })
 export class AttendComponent implements OnInit {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 	private date!: number;
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>

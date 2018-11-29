@@ -10,7 +10,7 @@ import { dbg } from '@lib/logger.library';
 	defaults: {}
 })
 export class AttendState implements NgxsOnInit {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
 	constructor() { }
 

@@ -22,7 +22,7 @@ import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
 	constructor(private readonly data: DataService, private readonly store: Store, private state: StateService, private action: Actions) {
 		this.dbg('new');

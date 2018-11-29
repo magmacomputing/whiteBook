@@ -16,7 +16,7 @@ import { dbg } from '@lib/logger.library';
 	defaults: {}
 })
 export class LocalState implements NgxsOnInit {
-	private dbg: CallableFunction = dbg.bind(this);
+	private dbg: Function = dbg.bind(this);
 
 	constructor(private store: Store) { }
 
