@@ -87,9 +87,7 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
-	/**
-	 * Call a server-function
-	 */
+	/** Call a server Cloud Function */
 	private callHttps<T>(fnName: string, args: Object, msg: string) {
 		const fn = this.aff.httpsCallable(fnName);
 		let snack = true;																				// set a snackbar flag
@@ -105,5 +103,4 @@ export class FireService {
 			.pipe(tap(_ => { snack = false; this.snack.dismiss(); }))
 			.toPromise<T>()
 	}
-
 }
