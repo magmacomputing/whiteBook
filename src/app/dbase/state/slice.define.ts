@@ -33,7 +33,7 @@ export interface ISelector<T> {
 	(store: string, filter: TWhere | undefined, keys: TString): T[];
 }
 
-export type IStoreState<T> = { [store: string]: T[] };
+export type IStateSlice<T> = { [store: string]: T[] };
 
 /** Actions */
 export class SetClient {										// Add a Client object into the Store

@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map, take, mergeMap } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
-import { IStoreState } from '@dbase/state/store.define';
+import { IStateSlice } from '@dbase/state/slice.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay } from '@dbase/state/state.library';
 
@@ -25,11 +25,11 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
-	@Select() private client$!: Observable<IStoreState<IStoreMeta[]>>;
-	@Select() private member$!: Observable<IStoreState<IStoreMeta[]>>;
-	@Select() private attend$!: Observable<IStoreState<IStoreMeta[]>>;
-	@Select() private admin$!: Observable<IStoreState<IStoreMeta[]>>;
-	@Select() private local$!: Observable<IStoreState<IStoreMeta[]>>;
+	@Select() private client$!: Observable<IStateSlice<IStoreMeta[]>>;
+	@Select() private member$!: Observable<IStateSlice<IStoreMeta[]>>;
+	@Select() private attend$!: Observable<IStateSlice<IStoreMeta[]>>;
+	@Select() private admin$!: Observable<IStateSlice<IStoreMeta[]>>;
+	@Select() private local$!: Observable<IStateSlice<IStoreMeta[]>>;
 
 	private dbg: Function = dbg.bind(this);
 	public states: IState;

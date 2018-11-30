@@ -44,7 +44,7 @@ export interface IMeta {
 
 /**
  * We have two main types of 'store' documents.  
- * One for 'client', keyed by 'store/type/key',  
+ * One for 'client' & 'local', keyed by 'store/type/key',  
  * the other for 'member' & 'attend', keyed by 'store/type/uid'
  */
 export type TStoreBase = IClientBase | IMemberBase | IAttendBase;

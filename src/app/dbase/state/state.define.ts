@@ -2,10 +2,10 @@ import { Observable } from 'rxjs';
 
 import { IAuthState } from './auth.define';
 import { STORE } from '@dbase/data/data.define';
+import { IStateSlice } from './slice.define';
 import { IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IProfileInfo, IStoreMeta } from '@dbase/data/data.schema';
-import { IStoreState } from './store.define';
 
-export interface IState { [slice: string]: Observable<IStoreState<IStoreMeta>> };
+export interface IState { [slice: string]: Observable<IStateSlice<IStoreMeta>> };
 
 export interface IUserState {
 	auth: IAuthState;

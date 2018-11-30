@@ -3,7 +3,7 @@ import { MatSnackBar } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { Store } from '@ngxs/store';
-import { SLICE } from '@dbase/state/store.define';
+import { SLICE } from '@dbase/state/slice.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IMeta } from '@dbase/data/data.schema';
