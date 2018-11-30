@@ -31,7 +31,7 @@ export class DataService {
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
 		this.dbg('new');
-		this.sync.on(COLLECTION.Client, SLICE.client);
+		this.sync.on(COLLECTION.client, SLICE.client);
 	}
 
 	/** Make Store data available in a Promise */

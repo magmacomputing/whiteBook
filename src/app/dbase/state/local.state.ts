@@ -1,7 +1,9 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SLICE, IStoreState, IStoreDoc, SetLocal, DelLocal, TruncLocal } from '@dbase/state/store.define';
+import { SLICE, IStoreState, SetLocal, DelLocal, TruncLocal } from '@dbase/state/store.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
+import { IStoreMeta } from '@dbase/data/data.schema';
+
 import { cloneObj } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
@@ -11,7 +13,7 @@ import { dbg } from '@lib/logger.library';
  * Currently this is _config_ with placeholders evaluated, and  
  * UI preferences for _login_ (which are needed prior to authentication)
  */
-@State<IStoreState<IStoreDoc>>({
+@State<IStoreState<IStoreMeta>>({
 	name: SLICE.local,
 	defaults: {}
 })
@@ -20,10 +22,10 @@ export class LocalState implements NgxsOnInit {
 
 	constructor(private store: Store) { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreMeta>>) { this.dbg('init:'); }
 
 	@Action(SetLocal)
-	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetLocal) {
+	setStore({ patchState, getState }: StateContext<IStoreState<IStoreMeta>>, { payload, debug }: SetLocal) {
 		const state = getState() || {};
 		const group = '@' + payload[FIELD.store].replace(/_/g, '') + '@';
 		const store = state[group] || [];
@@ -43,7 +45,7 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	@Action(DelLocal)
-	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelLocal) {
+	delStore({ patchState, getState }: StateContext<IStoreState<IStoreMeta>>, { payload, debug }: DelLocal) {
 		const state = getState() || {};
 		const store = this.filterLocal(getState(), payload);
 
@@ -56,13 +58,13 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	@Action(TruncLocal)
-	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>, { debug }: TruncLocal) {
+	truncStore({ setState }: StateContext<IStoreState<IStoreMeta>>, { debug }: TruncLocal) {
 		if (debug) this.dbg('truncLocal');
 		setState({});
 	}
 
 	/** remove an item from the Local Store */
-	private filterLocal(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
+	private filterLocal(state: IStoreState<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -73,10 +75,10 @@ export class LocalState implements NgxsOnInit {
 		let project = '';
 		let region = '';
 		let index: number | undefined = undefined;
-		let clone: IStoreDoc | undefined = undefined;
+		let clone: IStoreMeta | undefined = undefined;
 
 		const state = this.store.selectSnapshot(state => state);	// get existing state
-		const config = state.client[STORE.config] as IStoreDoc[];		// slice it to get Config
+		const config = state.client[STORE.config] as IStoreMeta[];		// slice it to get Config
 		config
 			.filter(row => !row[FIELD.expire])			// skip expired Configs
 			.forEach((row, idx) => {								// loop through Config...

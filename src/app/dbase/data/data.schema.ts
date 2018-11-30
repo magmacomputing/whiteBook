@@ -2,7 +2,7 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
-export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor';
+export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus';
 export type TStoreMember = 'profile' | 'payment' | 'bonus';
 export type TStoreAttend = 'attend';
 export type TTypeDefault = TStoreClient | 'icon';
@@ -89,6 +89,11 @@ export interface IPrice extends IClientBase {
 	[FIELD.type]: TPrice;
 	[FIELD.key]: TPlan;
 	amount: number;
+}
+
+//	/client/bonus
+export interface IBonus extends IClientBase {
+	[FIELD.store]: STORE.bonus;
 }
 
 //	/client/plan

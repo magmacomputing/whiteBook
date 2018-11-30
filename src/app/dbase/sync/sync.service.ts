@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { SLICE, IStoreDoc } from '@dbase/state/store.define';
+import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/store.define';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
@@ -15,7 +15,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase } from '@dbase/data/data.schema';
+import { TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -47,7 +47,8 @@ export class SyncService {
 			slice: slice,
 			ready: ready,
 			cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-			subscribe: this.fire.colRef<IStoreDoc>(collection, query)
+			method: this.getSlice(slice),
+			subscribe: this.fire.colRef<IStoreMeta>(collection, query)
 				.stateChanges()                               // watch for changes since last snapshot
 				.subscribe(sync)
 		}
@@ -62,23 +63,43 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection: string, trunc?: any) {
+	public off(collection: string, trunc?: boolean) {
 		const listen = this.listener[collection];
 
 		if (listen && isFunction(listen.subscribe.unsubscribe)) {
 			listen.subscribe.unsubscribe();
 			this.dbg('off: %s', collection);
 		}
-		delete this.listener[collection];
-
 		if (trunc)
-			this.store.dispatch(new trunc());
+			this.store.dispatch(new listen.method.truncStore());
+
+		delete this.listener[collection];
+	}
+
+	private getSlice(slice: string) {
+		switch (slice) {                           // TODO: can we merge these?
+			case SLICE.client:
+				return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
+
+			case SLICE.member:
+				return { setStore: SetMember, delStore: DelMember, truncStore: TruncMember }
+
+			case SLICE.attend:
+				return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
+
+			case SLICE.local:
+				return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
+
+			default:
+				this.dbg('snap: Unexpected slice: %s', slice);
+				throw (new Error(`snap: Unexpected slice: ${slice}`));
+		}
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
+	private async sync(collection: string, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener[collection];
-		let setStore: any, delStore: any, truncStore: any;
+		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = this.source(snaps);
 		const debug = source !== 'cache' && this.listener[collection].cnt !== -1;
@@ -92,30 +113,6 @@ export class SyncService {
 		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
 			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
-		switch (listen.slice) {                           // TODO: can we merge these?
-			case SLICE.client:
-				setStore = SetClient;
-				delStore = DelClient;
-				truncStore = TruncClient;
-				break;
-
-			case SLICE.member:
-				setStore = SetMember;
-				delStore = DelMember;
-				truncStore = TruncMember;
-				break;
-
-			case SLICE.attend:
-				setStore = SetAttend;
-				delStore = DelAttend;
-				truncStore = TruncAttend;
-				break;
-
-			default:
-				this.dbg('snap: Unexpected slice: %s', listen.slice);
-				return;                                       // Unknown Slice !!
-		}
-
 		if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
 			const url = this.router.url.split('?')[0];
 			if (url === ROUTE.oauth) {
@@ -126,7 +123,7 @@ export class SyncService {
 
 			const localSlice = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
 			const localStore = localSlice[listen.slice] || {};
-			const localList: IStoreDoc[] = [];
+			const localList: IStoreMeta[] = [];
 			const snapList = snaps.map(snap => ({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() }));
 
 			Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
@@ -172,7 +169,7 @@ export class SyncService {
 			listen.ready.resolve(true);
 	}
 
-	private source(snaps: DocumentChangeAction<IStoreDoc>[]) {
+	private source(snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as SnapshotMetadata;
 		return meta.fromCache
 			? 'cache'

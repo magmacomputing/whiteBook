@@ -1,12 +1,14 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/store.define';
+import { SLICE, IStoreState, SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/store.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
+import { IStoreMeta } from '@dbase/data/data.schema';
+
 import { cloneObj } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IStoreState<IStoreDoc>>({
+@State<IStoreState<IStoreMeta>>({
 	name: SLICE.client,
 	defaults: {}
 })
@@ -15,10 +17,10 @@ export class ClientState implements NgxsOnInit {
 
 	constructor(private readonly store: Store) { }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreDoc>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<IStoreState<IStoreMeta>>) { this.dbg('init:'); }
 
 	@Action(SetClient)
-	setStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: SetClient) {
+	setStore({ patchState, getState }: StateContext<IStoreState<IStoreMeta>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
@@ -33,7 +35,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(DelClient)
-	delStore({ patchState, getState }: StateContext<IStoreState<IStoreDoc>>, { payload, debug }: DelClient) {
+	delStore({ patchState, getState }: StateContext<IStoreState<IStoreMeta>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
 
@@ -46,13 +48,13 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(TruncClient)
-	truncStore({ setState }: StateContext<IStoreState<IStoreDoc>>, { debug }: TruncClient) {
+	truncStore({ setState }: StateContext<IStoreState<IStoreMeta>>, { debug }: TruncClient) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}
 
 	/** remove an item from the Client Store */
-	private filterClient(state: IStoreState<IStoreDoc>, payload: IStoreDoc) {
+	private filterClient(state: IStoreState<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -60,7 +62,7 @@ export class ClientState implements NgxsOnInit {
 }
 
 /** resolve some placeholder variables in IConfig[] */
-const fixConfig = (config: IStoreDoc[]) => {
+const fixConfig = (config: IStoreMeta[]) => {
 	let project = '';
 	let region = '';
 	let indexOAuth: number | undefined = undefined;

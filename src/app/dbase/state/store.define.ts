@@ -1,6 +1,6 @@
-import { FIELD } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { TString } from '@lib/type.library';
+import { IStoreMeta } from '@dbase/data/data.schema';
 
 export enum SLICE {
 	root = 'root',
@@ -28,20 +28,6 @@ export enum SLICE {
  *      {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
  *  }
  */
-export interface IStoreDoc {
-	[FIELD.id]: string;
-	[FIELD.store]: string;
-	[FIELD.type]?: string;
-	[FIELD.key]: string;
-	[key: string]: any;
-}
-export interface IMemberDoc {
-	[FIELD.id]: string;
-	[FIELD.store]: string;
-	[FIELD.type]?: string;
-	[FIELD.uid]: string;
-	[key: string]: any;
-}
 
 export interface ISelector<T> {
 	(store: string, filter: TWhere | undefined, keys: TString): T[];
@@ -52,12 +38,12 @@ export type IStoreState<T> = { [store: string]: T[] };
 /** Actions */
 export class SetClient {										// Add a Client object into the Store
 	static type = '[Sync Service] Set Client';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class DelClient {									    // Remove a Client object from the Store
 	static type = '[Sync Service] Delete Client';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class TruncClient {										// Truncate a Client object from the Store
@@ -67,12 +53,12 @@ export class TruncClient {										// Truncate a Client object from the Store
 
 export class SetLocal {											// Add a Client object-clone into the local Store
 	static type = '[Sync Service] Set Local';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class DelLocal {
 	static type = '[Sync Service] Delete Local';
-	constructor(public payload: IStoreDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class TruncLocal {
@@ -82,12 +68,12 @@ export class TruncLocal {
 
 export class SetMember {										// Add a Member object into the Store
 	static type = '[Sync Service] Set Member';
-	constructor(public payload: IMemberDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class DelMember {										// Remove a Member object from the Store
 	static type = '[Sync Service] Delete Member';
-	constructor(public payload: IMemberDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class TruncMember {									// Truncate a Member object from the Store
@@ -97,12 +83,12 @@ export class TruncMember {									// Truncate a Member object from the Store
 
 export class SetAttend {										// Add Attend object into the Store
 	static type = '[Sync Service] Set Attend';
-	constructor(public payload: IMemberDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class DelAttend {										// Remove Attend object from the Store
 	static type = '[Sync Service] Delete Attend';
-	constructor(public payload: IMemberDoc, public debug: boolean = true) { }
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
 }
 
 export class TruncAttend {									// Truncate Attend object from the Store

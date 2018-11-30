@@ -1,18 +1,18 @@
 import { IObject } from '@lib/object.library';
 import { TString } from '@lib/type.library';
 
-export const enum COLLECTION {			// collection starts with upper-case, document with lower-case
-	Log = 'log',
-	Register = 'register',
-	Member = 'member',
-	Attend = 'attend',
-	Client = 'client',
-	Admin = 'admin',
+export const enum COLLECTION {
+	log = 'log',
+	register = 'register',
+	member = 'member',
+	attend = 'attend',
+	client = 'client',
+	admin = 'admin',
 }
 
 export const STORES: { [col: string]: string[] } = {
 	auth: ['userInfo', 'userToken'],
-	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', '_default_', '_config_', '_schema_'],
+	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', 'bonus', '_default_', '_config_', '_schema_'],
 	member: ['payment', 'profile'],
 	attend: ['attend'],
 	local: ['@config@'],
@@ -60,9 +60,9 @@ export const enum FIELD {					// common Field names
 
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
 export const FILTER: IObject<string[]> = {
-	[COLLECTION.Client]: [FIELD.store, FIELD.key],
-	[COLLECTION.Member]: [FIELD.store, FIELD.type, FIELD.uid],
-	[COLLECTION.Attend]: [FIELD.store, FIELD.type, FIELD.uid],
+	[COLLECTION.client]: [FIELD.store, FIELD.key],
+	[COLLECTION.member]: [FIELD.store, FIELD.type, FIELD.uid],
+	[COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],
 }
 
 export const SORTBY: IObject<TString> = {
@@ -75,6 +75,7 @@ export const SORTBY: IObject<TString> = {
 	[STORE.price]: [FIELD.key, FIELD.type],
 	[STORE.location]: ['sort', FIELD.key],
 	[STORE.instructor]: ['sort', FIELD.key],
+	[STORE.bonus]: ['sort', FIELD.key],
 	[STORE.default]: [FIELD.type, FIELD.key],
 	[STORE.schema]: [FIELD.type, FIELD.key],
 	[STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],

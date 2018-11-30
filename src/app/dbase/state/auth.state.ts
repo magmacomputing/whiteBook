@@ -163,8 +163,8 @@ export class AuthState implements NgxsOnInit {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
 
 		if (this.afAuth.auth.currentUser) {
-			this.sync.on(COLLECTION.Attend, SLICE.attend, query);
-			this.sync.on(COLLECTION.Member, SLICE.member, query)	// wait for /member snap0 
+			this.sync.on(COLLECTION.attend, SLICE.attend, query);
+			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
 				.then(_ => this.navigate.route(ROUTE.attend))
 		}
@@ -201,8 +201,8 @@ export class AuthState implements NgxsOnInit {
 
 	@Action([LoginFailed, LogoutSuccess])
 	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
-		this.sync.off(COLLECTION.Member, TruncMember);
-		this.sync.off(COLLECTION.Attend, TruncAttend);
+		this.sync.off(COLLECTION.member, true);
+		this.sync.off(COLLECTION.attend, true);
 		this.snack.dismiss();
 
 		if (error) {
