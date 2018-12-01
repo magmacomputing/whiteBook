@@ -1,12 +1,12 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
-import { SLICE, IStateSlice } from '@dbase/state/slice.define';
+import { SLICE, TStateSlice } from '@dbase/state/slice.define';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/slice.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
-@State<IStateSlice<IStoreMeta>>({
+@State<TStateSlice<IStoreMeta>>({
 	name: SLICE.attend,
 	defaults: {}
 })
@@ -15,10 +15,10 @@ export class AttendState implements NgxsOnInit {
 
 	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStateSlice<IStoreMeta>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.dbg('init:'); }
 
 	@Action(SetAttend)
-	setStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
+	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
 		const state = getState() || {};
 		const payment = this.filterAttend(state, payload);
 
@@ -29,7 +29,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(DelAttend)
-	delStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
+	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
 		const payment = this.filterAttend(state, payload);
 
@@ -41,13 +41,13 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(TruncAttend)
-	truncStore({ setState }: StateContext<IStateSlice<IStoreMeta>>, { debug }: TruncAttend) {
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncAttend) {
 		if (debug) this.dbg('truncAttend');
 		setState({});
 	}
 
 	/** remove an item from the Attend Store */
-	private filterAttend(state: IStateSlice<IStoreMeta>, payload: IStoreMeta) {
+	private filterAttend(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload.payment] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];

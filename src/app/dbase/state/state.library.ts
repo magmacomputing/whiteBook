@@ -38,10 +38,10 @@ export const getUser = (token: IFireClaims) =>
 	({ displayName: token.name, email: token.email, photoURL: token.picture, providerId: token.firebase.sign_in_provider, uid: token.user_id });
 
 /**
- * Join a Parent document to other documents referenced a supplied string of key fields  
+ * Join a document to other documents referenced a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
- * node:   	the name of the node (eg. 'member') under which we place the documents on the State Object  
- * store:   the documents in the State with the supplied <store> field  
+ * node:   	the name of the node (eg. 'member') under which we place the documents on the Observable Object  
+ * store:   the parent documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
@@ -130,9 +130,10 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 			return lookup;                                        // rebuild filter's <value>
 		})
 
+		cond.value = deDup(...cond.value.flat());
 		if (cond.value.length === 1)
 			cond.value = cond.value[0];                           // an array of only one value, return as string
-		else cond.value = deDup(...cond.value.flat())
+		// else cond.value = deDup(...cond.value.flat())
 
 		return cond;                                            // rebuild each filter
 	})

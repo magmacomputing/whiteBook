@@ -1,13 +1,13 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SLICE } from '@dbase/state/slice.define';
-import { IStateSlice } from '@dbase/state/slice.define';
+import { TStateSlice } from '@dbase/state/slice.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/slice.define';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
-@State<IStateSlice<IStoreMeta>>({
+@State<TStateSlice<IStoreMeta>>({
 	name: SLICE.member,
 	defaults: {}
 })
@@ -16,10 +16,10 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { }
 
-	ngxsOnInit(_ctx: StateContext<IStateSlice<IStoreMeta>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.dbg('init:'); }
 
 	@Action(SetMember)
-	setStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
+	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
@@ -30,7 +30,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(DelMember)
-	delStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
+	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
 		const store = this.filterMember(state, payload);
 
@@ -42,13 +42,13 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(TruncMember)
-	truncStore({ setState }: StateContext<IStateSlice<IStoreMeta>>, { debug }: TruncMember) {
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncMember) {
 		if (debug) this.dbg('truncMember');
 		setState({});
 	}
 
 	/** remove an item from the Member Store */
-	private filterMember(state: IStateSlice<IStoreMeta>, payload: IStoreMeta) {
+	private filterMember(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload.store] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];

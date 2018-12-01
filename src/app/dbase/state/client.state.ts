@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SLICE, IStateSlice, SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/slice.define';
+import { SLICE, TStateSlice, SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/slice.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
@@ -8,7 +8,7 @@ import { cloneObj } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IStateSlice<IStoreMeta>>({
+@State<TStateSlice<IStoreMeta>>({
 	name: SLICE.client,
 	defaults: {}
 })
@@ -17,10 +17,10 @@ export class ClientState implements NgxsOnInit {
 
 	constructor(private readonly store: Store) { }
 
-	ngxsOnInit(_ctx: StateContext<IStateSlice<IStoreMeta>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.dbg('init:'); }
 
 	@Action(SetClient)
-	setStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
+	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
 		const store = this.filterClient(state, payload);
 
@@ -35,7 +35,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(DelClient)
-	delStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
+	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
 
@@ -48,13 +48,13 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(TruncClient)
-	truncStore({ setState }: StateContext<IStateSlice<IStoreMeta>>, { debug }: TruncClient) {
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncClient) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}
 
 	/** remove an item from the Client Store */
-	private filterClient(state: IStateSlice<IStoreMeta>, payload: IStoreMeta) {
+	private filterClient(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];

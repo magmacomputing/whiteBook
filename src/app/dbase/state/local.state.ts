@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SLICE, IStateSlice, SetLocal, DelLocal, TruncLocal } from '@dbase/state/slice.define';
+import { SLICE, TStateSlice, SetLocal, DelLocal, TruncLocal } from '@dbase/state/slice.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
@@ -13,7 +13,7 @@ import { dbg } from '@lib/logger.library';
  * Currently this is _config_ with placeholders evaluated, and  
  * UI preferences for _login_ (which are needed prior to authentication)
  */
-@State<IStateSlice<IStoreMeta>>({
+@State<TStateSlice<IStoreMeta>>({
 	name: SLICE.local,
 	defaults: {}
 })
@@ -22,10 +22,10 @@ export class LocalState implements NgxsOnInit {
 
 	constructor(private store: Store) { }
 
-	ngxsOnInit(_ctx: StateContext<IStateSlice<IStoreMeta>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.dbg('init:'); }
 
 	@Action(SetLocal)
-	setStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: SetLocal) {
+	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetLocal) {
 		const state = getState() || {};
 		const group = '@' + payload[FIELD.store].replace(/_/g, '') + '@';
 		const store = state[group] || [];
@@ -45,7 +45,7 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	@Action(DelLocal)
-	delStore({ patchState, getState }: StateContext<IStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
+	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
 		const state = getState() || {};
 		const store = this.filterLocal(getState(), payload);
 
@@ -58,13 +58,13 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	@Action(TruncLocal)
-	truncStore({ setState }: StateContext<IStateSlice<IStoreMeta>>, { debug }: TruncLocal) {
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncLocal) {
 		if (debug) this.dbg('truncLocal');
 		setState({});
 	}
 
 	/** remove an item from the Local Store */
-	private filterLocal(state: IStateSlice<IStoreMeta>, payload: IStoreMeta) {
+	private filterLocal(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];

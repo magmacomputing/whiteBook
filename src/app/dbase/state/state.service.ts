@@ -5,7 +5,7 @@ import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.define';
-import { IStateSlice } from '@dbase/state/slice.define';
+import { TStateSlice } from '@dbase/state/slice.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay } from '@dbase/state/state.library';
 
@@ -25,11 +25,11 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() private auth$!: Observable<IAuthState>;
-	@Select() private client$!: Observable<IStateSlice<IStoreMeta[]>>;
-	@Select() private member$!: Observable<IStateSlice<IStoreMeta[]>>;
-	@Select() private attend$!: Observable<IStateSlice<IStoreMeta[]>>;
-	@Select() private admin$!: Observable<IStateSlice<IStoreMeta[]>>;
-	@Select() private local$!: Observable<IStateSlice<IStoreMeta[]>>;
+	@Select() private client$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private member$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
 
 	private dbg: Function = dbg.bind(this);
 	public states: IState;
@@ -138,7 +138,7 @@ export class StateService {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate<number>(DATE_KEY.weekDay, date) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate<number>(DATE_KEY.yearMonthDay, date) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
-		const filterClass: TWhere = { fieldPath: FIELD.key, value: [`{{client.schedule.${FIELD.key}}}`, '{{client.event.class}}',] };
+		const filterClass: TWhere = { fieldPath: FIELD.key, value: [`{{client.schedule.${FIELD.key}}}`]}//, '{{client.event.class}}',] };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
 
@@ -147,6 +147,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
+			joinDoc(this.states, 'client', STORE.class, {fieldPath: FIELD.key, value: '{{client.event.class}}'}, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
 		)
