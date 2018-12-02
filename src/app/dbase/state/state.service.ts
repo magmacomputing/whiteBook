@@ -138,19 +138,19 @@ export class StateService {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate<number>(DATE_KEY.weekDay, date) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate<number>(DATE_KEY.yearMonthDay, date) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
-		const filterClass: TWhere = { fieldPath: FIELD.key, value: [`{{client.schedule.${FIELD.key}}}`] }//, '{{client.event.class}}',] };
+		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterSpecial: TWhere = { fieldPath: FIELD.key, value: `{{client.event.class}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
 
 		return this.getMemberData(date, uid).pipe(
-			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),
-			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),
-			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
-			joinDoc(this.states, 'client', STORE.class, filterClass, date),
-			joinDoc(this.states, 'client', STORE.class, filterSpecial, date),
-			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
-			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
+			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
+			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
+			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date
+			joinDoc(this.states, 'client', STORE.class, filterClass, date),											// get classes for this weekday
+			joinDoc(this.states, 'client', STORE.class, filterSpecial, date),										// get classes for this calendar-date
+			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
+			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 		)
 	}
 
