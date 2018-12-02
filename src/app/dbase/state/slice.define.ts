@@ -29,11 +29,9 @@ export enum SLICE {
  *  }
  */
 
-export interface ISelector<T> {
-	(store: string, filter: TWhere | undefined, keys: TString): T[];
-}
-
-export type TStateSlice<T> = { [store: string]: T[] };
+// export interface ISelector<T> {
+// 	(store: string, filter: TWhere | undefined, keys: TString): T[];
+// }
 
 /** Actions */
 export class SetClient {										// Add a Client object into the Store
