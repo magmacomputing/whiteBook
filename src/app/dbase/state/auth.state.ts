@@ -10,7 +10,7 @@ import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
-import { SLICE, TruncMember, TruncAttend } from '@dbase/state/slice.define';
+import { SLICE } from '@dbase/state/state.action';
 import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo } from '@dbase/state/auth.define';
 
 import { getAuthProvider, getProviderId } from '@dbase/auth/auth.library';

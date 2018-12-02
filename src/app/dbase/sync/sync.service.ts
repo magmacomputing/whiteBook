@@ -7,10 +7,10 @@ import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/slice.define';
-import { SetClient, DelClient, TruncClient } from '@dbase/state/slice.define';
-import { SetMember, DelMember, TruncMember } from '@dbase/state/slice.define';
-import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/slice.define';
+import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
+import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
+import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
+import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';

@@ -1,5 +1,3 @@
-import { TWhere } from '@dbase/fire/fire.interface';
-import { TString } from '@lib/type.library';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -13,7 +11,7 @@ export enum SLICE {
 }
 
 /**
- * State contains a copy of remote documents, separated into distinct 'store' objects.
+ * State contains a copy of remote documents, sliced into distinct 'store' objects.
  * For example:
  * client: {                                // Client slice, holds public data
  * 		class: [ {class documents} ],       	// Class store, holds documents that describe classes
@@ -28,10 +26,6 @@ export enum SLICE {
  *      {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
  *  }
  */
-
-// export interface ISelector<T> {
-// 	(store: string, filter: TWhere | undefined, keys: TString): T[];
-// }
 
 /** Actions */
 export class SetClient {										// Add a Client object into the Store

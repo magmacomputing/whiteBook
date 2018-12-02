@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/slice.define';
+import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';

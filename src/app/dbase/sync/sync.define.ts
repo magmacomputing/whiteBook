@@ -1,6 +1,6 @@
 import { Subscription } from 'rxjs';
 import { IPromise } from '@lib/utility.library';
-import { TruncAttend, TruncClient, TruncMember, DelMember, DelAttend, DelClient, SetClient, SetMember, SetAttend, SetLocal, DelLocal, TruncLocal } from '@dbase/state/slice.define';
+import { TruncAttend, TruncClient, TruncMember, DelMember, DelAttend, DelClient, SetClient, SetMember, SetAttend, SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
 
 export interface IListen {
 	slice: string;												// slice of ngxs/store

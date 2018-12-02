@@ -104,36 +104,27 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 const decodeFilter = (parent: any, filter: TWhere) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
-		cond.value = asArray(cond.value).map(value => {     		// loop through filter's <value>
+		cond.value = asArray(cond.value).flatMap(value => {    	// loop through filter's <value>, flatten array of arrays
 			const isPath = isString(value) && value.substring(0, 2) === '{{';
-			let lookup: any;
+			let lookup = value;
 
 			if (isPath) {                                         // check if is it a fieldPath reference on the parent
 				const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
 				const dflt = child.split('.').reverse()[0];         // get the last component of the fieldPath
-				// const defaultValue = defaults.filter(row => row[FIELD.key] === dflt)[0];
-				// let defaultValue: string | undefined;
-				// const table = await getSingle(states, STORE.default, dflt);
 				const table = (parent['default'][STORE.default] as IDefault[])
 					.filter(row => row[FIELD.type] === dflt);         // find the default value for the requested fieldPath
-
-				// defaultValue = defaults.length && defaults[0][FIELD.key] || undefined;
 				const defaultValue = table.length && table[0][FIELD.key] || undefined;
-				lookup = getPath(parent, child);
 
+				lookup = getPath(parent, child);
 				if (isArray(lookup))                              	// if fieldPath doesnt exist on <parent>, then fallback to default
 					lookup = lookup.map((res: any) => isNull(res) || isUndefined(res) ? defaultValue : res);
-
-			} else
-				lookup = value;                                     // a use-able value with no interpolation needed
+			}
 
 			return lookup;                                        // rebuild filter's <value>
 		})
 
-		cond.value = deDup(...cond.value.flat());
 		if (cond.value.length === 1)
 			cond.value = cond.value[0];                           // an array of only one value, return as string
-		// else cond.value = deDup(...cond.value.flat())
 
 		return cond;                                            // rebuild each filter
 	})
