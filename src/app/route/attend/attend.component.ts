@@ -8,9 +8,10 @@ import { MemberService } from '@dbase/app/member.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IPrice, IDefault, IClass } from '@dbase/data/data.schema';
+import { IPrice, IDefault, IClass, ISchedule } from '@dbase/data/data.schema';
 
 import { swipe } from '@lib/html.library';
+import { asArray } from '@lib/array.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
 
@@ -34,13 +35,31 @@ export class AttendComponent implements OnInit {
 			map(data => {
 				const locs = (data.client.location || []).length;
 				const sched = data.client.schedule || [];     // the schedule for today
-				const event = data.client.class || [];        // the classes offered this.date
+				const calr = data.client.calendar || [];			// the calendar of special events for today
+				const event = data.client.event || [];				// the classes on the calendar type
+				const Klass = data.client.class || [];        // the classes offered this.date
 				const price = data.member.price || [];        // the prices per member's plan
 				const costs: IPrice[] = [];                   // the price for a schedule item
 				const icon = data.default[STORE.default].find(row => row[FIELD.type] === 'icon') || {} as IDefault;
 
+				calr.forEach(cal => {												// for each calendar, find the event doc...
+					const evnt = event.filter(row => row[FIELD.key] === cal[FIELD.type])[0];
+					asArray(evnt.class).forEach(klass => {				// for each class on the event...
+						const classDoc = data.client.class!.filter(row => row[FIELD.key] === klass)[0] || {} as IClass;
+						const time: Partial<ISchedule> = {
+							[FIELD.key]: klass,
+							day: cal.day,
+							location: cal.location,
+							start: cal.start,
+							instructor: cal.instructor,
+							icon: classDoc.icon,
+						}
+						sched.push(time as ISchedule);
+					})
+				})
+
 				data.client.schedule = sched.map((time, idx) => {
-					const span = event.find(itm => itm[FIELD.key] === time[FIELD.key]) ||{} as IClass;
+					const span = Klass.find(itm => itm[FIELD.key] === time[FIELD.key]) || {} as IClass;
 					if (span[FIELD.type]) {
 						const cost = price.find(itm => itm[FIELD.type] === span[FIELD.type]) || {} as IPrice;
 						costs[idx] = cost;                        // stash the IPrice for each scheduled event
@@ -58,7 +77,7 @@ export class AttendComponent implements OnInit {
 				this.locations = locs;
 				this.selectedIndex = 0;                       // start on the first-page
 				data.client.price = costs;
-this.dbg('table: %j', data.member)
+				// this.dbg('table: %j', data.client.class)
 				return data;
 			})
 		)

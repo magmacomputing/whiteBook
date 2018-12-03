@@ -11,7 +11,7 @@ export const enum COLLECTION {
 }
 
 export const STORES: { [col: string]: string[] } = {
-	auth: ['userInfo', 'userToken'],
+	auth: ['credential', 'info', 'token', 'user'],
 	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', 'bonus', '_default_', '_config_', '_schema_'],
 	member: ['payment', 'profile'],
 	attend: ['attend'],

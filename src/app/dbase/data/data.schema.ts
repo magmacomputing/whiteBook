@@ -130,6 +130,7 @@ export interface ICalendar extends IClientBase {
 	desc?: string;
 	day: number;
 	location?: string;
+	instructor?: string;
 	start: string;
 }
 
@@ -139,7 +140,8 @@ export interface ISchedule extends IClientBase {
 	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass | string;
 	day: number;
-	location: string;
+	location?: string;
+	instructor?: string;
 	start: string;
 	price?: number;											// infer the member's price for this class
 }

@@ -66,18 +66,21 @@ export class SyncService {
 	public off(collection: string, trunc?: boolean) {
 		const listen = this.listener[collection];
 
-		if (listen && isFunction(listen.subscribe.unsubscribe)) {
-			listen.subscribe.unsubscribe();
-			this.dbg('off: %s', collection);
-		}
-		if (trunc)
-			this.store.dispatch(new listen.method.truncStore());
+		if (listen) {																			// are we listening?
+			if (isFunction(listen.subscribe.unsubscribe)) {
+				listen.subscribe.unsubscribe();
+				this.dbg('off: %s', collection);
+			}
 
-		delete this.listener[collection];
+			if (trunc)
+				this.store.dispatch(new listen.method.truncStore());
+
+			delete this.listener[collection];
+		}
 	}
 
 	private getSlice(slice: string) {
-		switch (slice) {                           // TODO: can we merge these?
+		switch (slice) {                           				// TODO: can we merge these?
 			case SLICE.client:
 				return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
 

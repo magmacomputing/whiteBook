@@ -21,7 +21,7 @@ export const getMemberInfo = (provider: AdditionalUserInfo) => {
 		photoURL: profile.pictureUrl
 			|| profile.thumbnail															// linkedin
 			|| profile.avatar_url															// github
-			|| isString(profile.picture) && profile.pictureUrl// google
+			|| isString(profile.picture) && profile.picture 	// google
 			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url // facebook
 			|| undefined,
 		birthDay: profile.birthday,

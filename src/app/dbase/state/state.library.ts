@@ -51,9 +51,10 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 
 		return source.pipe(
 			switchMap(data => {
+				// if (store === STORE.class) debugger;
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
-				if (store === STORE.profile) debugger
+
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
@@ -62,7 +63,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 			map(res => {
 				const nodes = node && node.split('.') || [];
 				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
-if (store === STORE.profile) debugger
+
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
@@ -106,7 +107,7 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
 		cond.value = deDup(asArray(cond.value)
-			.flatMap(value => {    																// loop through filter's <value>, flatten array of arrays
+			.flatMap(value => {    																		// loop through filter's <value>
 				const isPath = isString(value) && value.substring(0, 2) === '{{';
 				let lookup = value;
 
@@ -117,7 +118,9 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 						.filter(row => row[FIELD.type] === dflt);       // find the default value for the requested fieldPath
 					const defaultValue = table.length && table[0][FIELD.key] || undefined;
 
-					lookup = getPath(parent, child, defaultValue);
+					lookup = getPath(parent, child, defaultValue)			// accessor
+					if (isArray(lookup))
+						lookup = lookup.flat();													// flatten array of arrays																				
 				}
 
 				return lookup;                              				// rebuild filter's <value>

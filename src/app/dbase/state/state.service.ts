@@ -16,6 +16,7 @@ import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { fmtDate, getMoment, DATE_KEY } from '@lib/date.library';
+import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -68,7 +69,7 @@ export class StateService {
 	*/
 	getAuthData(): Observable<IUserState> {
 		return this.auth$
-			.pipe(map(auth => ({ auth })))
+			.pipe(map(auth => ({ auth: cloneObj(auth) })))
 	}
 
 	/**
