@@ -60,7 +60,7 @@ export const getPath = (obj: any, path: TString, dflt?: any, indx?: string | num
 
 	obj = isArray(obj)
 		? obj
-			.map(itm => { if (isUndefined(itm[matchWord])) itm[matchWord] = dflt; return itm;})
+			.map(itm => { if (isUndefined(itm[matchWord])) itm[matchWord] = dflt; return itm; })
 			.map(itm => itm[matchWord])
 			.filter((_row, idx) => indx === '*' || indx === idx.toString())
 		: obj[matchWord]
