@@ -12,7 +12,7 @@ import { getSlice } from '@dbase/data/data.library';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
-import { isString, isNull, isArray, isUndefined, isFunction } from '@lib/type.library';
+import { isString, isArray, isFunction } from '@lib/type.library';
 import { fmtDate, DATE_KEY } from '@lib/date.library';
 
 /**
@@ -99,29 +99,28 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 
 /**
  * A helper function to analyze the <value> field of each filter.  
- * If <value> isString and matches {{...}}, it refers to the current <parent> data
+ * If <value> isString and matches {{...}}, it refers to the current data in the <parent>
  */
 const decodeFilter = (parent: any, filter: TWhere) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
-		cond.value = asArray(cond.value).flatMap(value => {    	// loop through filter's <value>, flatten array of arrays
-			const isPath = isString(value) && value.substring(0, 2) === '{{';
-			let lookup = value;
+		cond.value = deDup(asArray(cond.value)
+			.flatMap(value => {    																// loop through filter's <value>, flatten array of arrays
+				const isPath = isString(value) && value.substring(0, 2) === '{{';
+				let lookup = value;
 
-			if (isPath) {                                         // check if is it a fieldPath reference on the parent
-				const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
-				const dflt = child.split('.').reverse()[0];         // get the last component of the fieldPath
-				const table = (parent['default'][STORE.default] as IDefault[])
-					.filter(row => row[FIELD.type] === dflt);         // find the default value for the requested fieldPath
-				const defaultValue = table.length && table[0][FIELD.key] || undefined;
+				if (isPath) {                                       // check if is it a fieldPath reference on the parent
+					const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
+					const dflt = child.split('.').reverse()[0];       // get the last component of the fieldPath
+					const table = (parent['default'][STORE.default] as IDefault[])
+						.filter(row => row[FIELD.type] === dflt);       // find the default value for the requested fieldPath
+					const defaultValue = table.length && table[0][FIELD.key] || undefined;
 
-				lookup = getPath(parent, child);
-				if (isArray(lookup))                              	// if fieldPath doesnt exist on <parent>, then fallback to default
-					lookup = lookup.map((res: any) => isNull(res) || isUndefined(res) ? defaultValue : res);
-			}
+					lookup = getPath(parent, child, defaultValue);
+				}
 
-			return lookup;                                        // rebuild filter's <value>
-		})
+				return lookup;                              				// rebuild filter's <value>
+			}))
 
 		if (cond.value.length === 1)
 			cond.value = cond.value[0];                           // an array of only one value, return as string

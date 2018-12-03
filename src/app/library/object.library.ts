@@ -1,19 +1,20 @@
 import { isNumeric } from '@lib/string.library';
-import { isObject, getType, isArray } from '@lib/type.library';
+import { isObject, getType, isArray, isString, TString, isNull } from '@lib/type.library';
+import { isUndefined } from 'util';
 
 export interface IObject<T> { [key: string]: T; }
 
-/** Get nested value */
-export const getPathX = <T>(obj: object | null | undefined, path: string): T =>
-	path.split('.')
-		.reduce((xs: any, x) => (xs && xs[x]) ? xs[x] : null, obj);
-
 /** Get nested value, allow for array-references in <path> */
-export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
+export const getPathX = <T>(obj: { [key: string]: any }, path: string, dflt?: any) => {
+	if (!isObject(obj))
+		return undefined;
+
 	let res = obj;
+	// let sub = obj;																	// reference to parent object
+
 	path.split('.')
 		.forEach(part => {
-			part = part.replace(' ', '');                   // remove <spaces> (added for readability)
+			part = part.replace(' ', '');               // remove <spaces> (added for readability)
 
 			if (part.substring(part.length - 1) === ']') {
 				const ref = part.split('[');
@@ -21,16 +22,52 @@ export const getPath = <T>(obj: { [key: string]: any }, path: string) => {
 
 				if (res && res[ref[0]]) {
 					res = idx === '*'
-						? res[ref[0]]                               // entire array
-						: res[ref[0]][idx]                          // else single element from array
+						? res[ref[0]]                         // entire array
+						: res[ref[0]][idx]                    // else single element from array
 				}
 			} else {
+				// if (isArray(res)) {
+				// 	res = res.map((item, idx) => {
+				// 		let val = item[part];
+				// 		if (isUndefined(val) && dflt) {
+				// 			val = dflt;
+				// 			sub[idx] = dflt;
+				// 		}
+				// 		else res = res && res[part];
+				// 	})
+				// }
 				res = isArray(res)
 					? res.map(item => item[part])
-					: (res && res[part] || null)
+					: (res && res[part] || undefined)
 			}
 		})
 	return res;
+}
+
+export const getPath = (obj: any, path: TString, dflt?: any, indx?: string | number): any => {
+	if (!isObject(obj) && !isArray(obj))
+		return dflt || undefined;
+	if (isUndefined(obj))
+		return dflt || undefined;
+
+	const [word, ...rest] = isString(path)						// first word in the index-path, and the rest
+		? path.replace(' ', '').split('.')							// remove readability-spaces
+		: path
+
+	const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;		// a pattern to find array-references
+	const match = regex.exec(word);										// eg. does the 'word' end in "*[0]"?
+	const { matchWord, matchIdx } = !isNull(match) && match.groups || { matchWord: word, matchIdx: '*' };
+
+	obj = isArray(obj)
+		? obj
+			.map(itm => { if (isUndefined(itm[matchWord])) itm[matchWord] = dflt; return itm;})
+			.map(itm => itm[matchWord])
+			.filter((_row, idx) => indx === '*' || indx === idx.toString())
+		: obj[matchWord]
+
+	return rest.length
+		? getPath(obj, rest, dflt, matchIdx)						// recurse into object
+		: obj || dflt
 }
 
 /** Sort Object by its keys */
