@@ -53,7 +53,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
-
+				if (store === STORE.profile) debugger
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
@@ -62,7 +62,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 			map(res => {
 				const nodes = node && node.split('.') || [];
 				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
-
+if (store === STORE.profile) debugger
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
@@ -81,8 +81,9 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 				})
 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
-					if (isArray(joins[table])) {
-						const sortBy = SORTBY[table];
+					if (isArray(joins[table]) && joins[table].length) {
+						const store = joins[table][0][FIELD.store];
+						const sortBy = SORTBY[store];
 						joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
 					}
 				})

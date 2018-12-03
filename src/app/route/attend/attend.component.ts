@@ -58,7 +58,7 @@ export class AttendComponent implements OnInit {
 				this.locations = locs;
 				this.selectedIndex = 0;                       // start on the first-page
 				data.client.price = costs;
-
+this.dbg('table: %j', data.member)
 				return data;
 			})
 		)
