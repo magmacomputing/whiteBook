@@ -12,7 +12,7 @@ export const enum COLLECTION {
 
 export const STORES: { [col: string]: string[] } = {
 	auth: ['credential', 'info', 'token', 'user'],
-	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', 'bonus', '_default_', '_config_', '_schema_'],
+	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', 'bonus', 'span', '_default_', '_config_', '_schema_'],
 	member: ['payment', 'profile'],
 	attend: ['attend'],
 	local: ['@config@'],
@@ -33,6 +33,7 @@ export const enum STORE {
 	instructor = 'instructor',
 	diary = 'diary',
 	bonus = 'bonus',
+	span = 'span',
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
@@ -76,6 +77,7 @@ export const SORTBY: IObject<TString> = {
 	[STORE.location]: ['sort', FIELD.key],
 	[STORE.instructor]: ['sort', FIELD.key],
 	[STORE.bonus]: ['sort', FIELD.key],
+	[STORE.span]: [FIELD.key, 'duration'],
 	[STORE.default]: [FIELD.type, FIELD.key],
 	[STORE.schema]: [FIELD.type, FIELD.key],
 	[STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],

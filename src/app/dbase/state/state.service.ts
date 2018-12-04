@@ -7,7 +7,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.define';
 import { TStateSlice } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, getStore, sumPayment, sumAttend, calendarDay } from '@dbase/state/state.library';
+import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -143,6 +143,7 @@ export class StateService {
 		const filterSpecial: TWhere = { fieldPath: FIELD.key, value: `{{client.event.class}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
+		const filterSpan: TWhere = { fieldPath: FIELD.key, value: [`{{client.class.${FIELD.type}}}`] };
 
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -152,6 +153,8 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.class, filterSpecial, date),										// get classes for this calendar-date
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
+			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
+			map(table => buildTimetable(table)),																								// assemble the Timetable
 		)
 	}
 

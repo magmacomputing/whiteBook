@@ -178,3 +178,10 @@ export const calendarDay = (source: ITimetableState) => {
 
 	return { ...source };
 }
+
+
+/** use the collected Schedule / Event items to determine the Timetable to display */
+export const buildTimetable = (source: ITimetableState) => {
+
+	return { ...source };
+}

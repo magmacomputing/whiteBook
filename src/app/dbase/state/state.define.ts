@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 
 import { IAuthState } from './auth.define';
 import { STORE } from '@dbase/data/data.define';
-import { IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IProfileInfo, IStoreMeta } from '@dbase/data/data.schema';
+import { IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar, ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan } from '@dbase/data/data.schema';
 
 export type TStateSlice<T> = { [store: string]: T[] };
 
@@ -54,5 +54,6 @@ export interface ITimetableState extends IMemberState {
 		location?: ILocation[];
 		instructor?: IInstructor[];
 		price?: IPrice[];
+		span?: ISpan[];
 	}
 }

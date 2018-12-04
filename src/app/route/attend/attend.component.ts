@@ -48,6 +48,7 @@ export class AttendComponent implements OnInit {
 						const classDoc = data.client.class!.filter(row => row[FIELD.key] === klass)[0] || {} as IClass;
 						const time: Partial<ISchedule> = {
 							[FIELD.key]: klass,
+							[FIELD.type]: 'event',
 							day: cal.day,
 							location: cal.location,
 							start: cal.start,
@@ -77,7 +78,7 @@ export class AttendComponent implements OnInit {
 				this.locations = locs;
 				this.selectedIndex = 0;                       // start on the first-page
 				data.client.price = costs;
-				// this.dbg('table: %j', data.client.class)
+				this.dbg('table: %j', data.client.span)
 				return data;
 			})
 		)
