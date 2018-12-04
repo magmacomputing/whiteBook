@@ -179,8 +179,10 @@ export const calendarDay = (source: ITimetableState) => {
 	return { ...source };
 }
 
-
-/** use the collected Schedule / Event items to determine the Timetable to display */
+/**
+ * use the collected Schedule items to determine the Timetable to display.  
+ * schedule type 'event' overrides 'class', 'special' appends.  
+ */
 export const buildTimetable = (source: ITimetableState) => {
 
 	return { ...source };

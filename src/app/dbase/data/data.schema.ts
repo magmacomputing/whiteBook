@@ -143,6 +143,7 @@ export interface ISchedule extends IClientBase {
 	location?: string;
 	instructor?: string;
 	start: string;
+	span?: string;
 	price?: number;											// infer the member's price for this class
 }
 

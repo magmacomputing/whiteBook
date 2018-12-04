@@ -53,6 +53,7 @@ export class AttendComponent implements OnInit {
 							location: cal.location,
 							start: cal.start,
 							instructor: cal.instructor,
+							span: classDoc.type,
 							icon: classDoc.icon,
 						}
 						sched.push(time as ISchedule);
@@ -78,7 +79,7 @@ export class AttendComponent implements OnInit {
 				this.locations = locs;
 				this.selectedIndex = 0;                       // start on the first-page
 				data.client.price = costs;
-				this.dbg('table: %j', data.client.span)
+				// this.dbg('table: %j', data.client.schedule);
 				return data;
 			})
 		)
