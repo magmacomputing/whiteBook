@@ -48,18 +48,18 @@ export class FireService {
 		return this.afs.createId();
 	}
 
-	/** Remove the meta-field _id */
-	private remId(doc: IMeta) {
-		delete doc[FIELD.id];
-		return doc;
+	/** Remove the meta-fields */
+	private remMeta(doc: IMeta) {
+		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
+		return rest;
 	}
 
 	/** Batch a set of database-writes */
 	async batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
-		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remId(ins)));
-		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remId(upd)));
+		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
+		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remMeta(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
 		bat.commit();
@@ -68,20 +68,20 @@ export class FireService {
 	async setDoc(store: string, doc: IMeta) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
-		doc = this.remId(doc);											// remove the meta-field from the document
+		doc = this.remMeta(doc);										// remove the meta-field from the document
 		await this.docRef(store, docId).set(doc);
 		return docId;
 	}
 
 	async updDoc(store: string, docId: string, data: IMeta) {
-		data = this.remId(data);
+		data = this.remMeta(data);
 		await this.docRef(store, docId).update(data)
 		return docId;
 	}
 
-	getDoc(store: string, docId: string) {
-		return this.docRef(store, docId).get()
-	}
+	// getDoc(store: string, docId: string) {			// use State instead
+	// 	return this.docRef(store, docId).get()
+	// }
 
 	callMeta(store: string, docId: string) {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);

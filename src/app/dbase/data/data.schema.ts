@@ -36,6 +36,7 @@ export interface IMeta {
 	[FIELD.id]?: string;									// the _id field on the remote database
 	[FIELD.create]?: number;							// the time when originally created
 	[FIELD.update]?: number;							// the time when last updated
+	[FIELD.access]?: number;							// the time when last accessed
 	[FIELD.effect]?: number;							// the time from which (greater-than-or-equal) this row is effective
 	[FIELD.expire]?: number;							// the time before which (less-than) this row is expired, or '0' for un-expired
 	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client

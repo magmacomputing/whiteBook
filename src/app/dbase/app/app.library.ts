@@ -63,8 +63,8 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
 	filterTable<T>(table, filters)[0];
 
 /**
- * Search an array, returning rows that match all the conditions *and* were active on the 'date'
- * where the rows are greater-than-or-equal to the date, or less-than the date
+ * Search an array, returning rows that match all the conditions *and* were in-effect on the 'date'
+ * (where the rows are greater-than-or-equal to the date, or less-than the date)
  * @param table		The table-array to search
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'

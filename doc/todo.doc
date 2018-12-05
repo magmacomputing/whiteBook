@@ -12,3 +12,6 @@ test if multiple instances of same source
 
 *> logon as other User
 set authState.user ?  or authState.delegate
+
+*> add createDate / updateDate to State?
+but remove on fire.write?

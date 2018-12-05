@@ -61,7 +61,7 @@ export const deepClone = (obj: any): any => {
 		return obj;
 
 	return Object.keys(obj)
-		.map(itm => deepClone(obj[itm]));
+		.map(itm => deepClone(obj[itm]));						// recurse into Object
 }
 
 /** deep-compare Objects for equality */
