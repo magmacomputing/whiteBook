@@ -6,14 +6,14 @@ import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt } from '@dbase/app/app.library';
 
 import { IState, IAccountState, ITimetableState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
-import { getSlice } from '@dbase/data/data.library';
+import { getSlice, findDoc } from '@dbase/data/data.library';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
-import { isString, isArray, isFunction } from '@lib/type.library';
-import { fmtDate, DATE_KEY } from '@lib/date.library';
+import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
+import { fmtDate, DATE_KEY, addDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
@@ -171,7 +171,7 @@ export const sumAttend = (source: IAccountState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar.map(row => {
-			row.day = fmtDate<number>(DATE_KEY.weekDay, row[FIELD.key])
+			row.day = fmtDate(row[FIELD.key], DATE_KEY.weekDay)
 			return row;
 		})
 	}
@@ -184,6 +184,75 @@ export const calendarDay = (source: ITimetableState) => {
  * schedule type 'event' overrides 'class', 'special' appends.  
  */
 export const buildTimetable = (source: ITimetableState) => {
+	const {
+		schedule: times = [],												// the schedule for the requested date
+		class: classes = [],    										// the classes offered on that date
+		calendar = [],															// the calendar of special events on the date
+		event: events = [],													// the event-description for the calendar type
+		span: spans = [],														// the duration of classes / events
+	} = source.client;
+	const {
+		price: prices = [],
+	} = source.member;														// the prices as per member's plan
+
+	const icon = findDoc<IDefault>(source.default[STORE.default], FIELD.type, 'icon');
+	const locn = findDoc<IDefault>(source.default[STORE.default], FIELD.type, 'location');
+	const eventLocations: string[] = [];					// the locations at which a Special Event is running
+
+	calendar.forEach(item => {										// merge each calendar item onto the schedule
+		const event = findDoc<IEvent>(events, FIELD.key, item[FIELD.type]);
+		let offset = 0;															// start-time offset
+
+		if (!item.location)
+			item.location = locn[FIELD.key];					// default Location
+		if (!eventLocations.includes(item.location))
+			eventLocations.push(item.location);				// track the Locations at which an Event is running
+
+		asArray(event.classes).forEach(klass => {
+			const doc = findDoc<IClass>(classes, FIELD.key, klass);
+			const filterSpan: TWhere = [
+				{ fieldPath: FIELD.key, value: doc[FIELD.type] },
+				{ fieldPath: FIELD.type, value: STORE.event },
+			]
+			const span = asAt<ISpan>(spans, filterSpan);
+
+			const time: Partial<ISchedule> = {
+				[FIELD.id]: doc[FIELD.id],
+				[FIELD.type]: event[FIELD.store],
+				[FIELD.key]: klass,
+				day: item.day,
+				location: item.location,
+				start: addDate(item.start, DATE_KEY.HHmm, offset),
+				instructor: item.instructor,
+				span: doc[FIELD.type],
+				icon: doc.icon,
+			}
+
+			offset += span[0].duration;								// update offset to next class start-time
+			times.push(time as ISchedule);						// add the Event to the timetable
+		})
+	})
+
+	// for each item on the schedule, poke in 'price' and 'icon'
+	source.client.schedule = times
+		.map(time => {
+			const klass = findDoc<IClass>(classes, FIELD.key, time[FIELD.key]);
+			const price = findDoc<IPrice>(prices, FIELD.type, klass[FIELD.type]);
+
+			if (klass[FIELD.type] && !isUndefined(price.amount)) {
+				time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
+			}
+			else time[FIELD.disable] = true;						// cannot determine the event
+
+			if (!time[FIELD.icon])											// if no schedule-specific icon...
+				time[FIELD.icon] = klass.icon || icon[FIELD.key];				//	use class icon, else default icon
+			
+			if (!time.location)
+				time.location = locn[FIELD.key];					// ensure a default location exists
+
+			return time;
+		})
+		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
 
 	return { ...source };
 }

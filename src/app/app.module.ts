@@ -19,7 +19,7 @@ import { environment } from '../environments/environment';
 		AppComponent,
 	],
 	imports: [
-		NgxsModule.forRoot([]),
+		NgxsModule.forRoot([], { developmentMode: environment.production }),
 		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 		BrowserModule,
 		BrowserAnimationsModule,

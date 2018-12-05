@@ -31,7 +31,8 @@
 
 							<mat-card-content>
 								<button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
-									Check-in: {{ timetable.client.price[idx]?.amount | currency }}
+									<!-- Check-in: {{ timetable.client.price[idx]?.amount | currency }} -->
+									Check-in: {{ item.price | currency }}
 								</button>
 							</mat-card-content>
 						</mat-card-header>

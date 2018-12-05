@@ -33,52 +33,9 @@ export class AttendComponent implements OnInit {
 	ngOnInit() {                                        // wire-up the timetable Observable
 		this.timetable$ = this.state.getTimetableData(this.date).pipe(
 			map(data => {
-				const locs = (data.client.location || []).length;
-				const sched = data.client.schedule || [];     // the schedule for today
-				const calr = data.client.calendar || [];			// the calendar of special events for today
-				const event = data.client.event || [];				// the classes on the calendar type
-				const Klass = data.client.class || [];        // the classes offered this.date
-				const price = data.member.price || [];        // the prices per member's plan
-				const costs: IPrice[] = [];                   // the price for a schedule item
-				const icon = data.default[STORE.default].find(row => row[FIELD.type] === 'icon') || {} as IDefault;
-
-				calr.forEach(cal => {												// for each calendar, find the event doc...
-					const evnt = event.filter(row => row[FIELD.key] === cal[FIELD.type])[0];
-					asArray(evnt.class).forEach(klass => {				// for each class on the event...
-						const classDoc = data.client.class!.filter(row => row[FIELD.key] === klass)[0] || {} as IClass;
-						const time: Partial<ISchedule> = {
-							[FIELD.key]: klass,
-							[FIELD.type]: 'event',
-							day: cal.day,
-							location: cal.location,
-							start: cal.start,
-							instructor: cal.instructor,
-							span: classDoc.type,
-							icon: classDoc.icon,
-						}
-						sched.push(time as ISchedule);
-					})
-				})
-
-				data.client.schedule = sched.map((time, idx) => {
-					const span = Klass.find(itm => itm[FIELD.key] === time[FIELD.key]) || {} as IClass;
-					if (span[FIELD.type]) {
-						const cost = price.find(itm => itm[FIELD.type] === span[FIELD.type]) || {} as IPrice;
-						costs[idx] = cost;                        // stash the IPrice for each scheduled event
-						time.price = time.price || cost.amount;		// add-on the member's price for each scheduled event
-					}
-					else time[FIELD.disable] = true;						// cannot determine the event
-
-					if (!time[FIELD.icon])											// if no schedule-specific icon...
-						time[FIELD.icon] = span.icon || icon[FIELD.key];				//	use class icon
-
-					return time;
-				})
-
 				// this.firstPaint = false;                   // TODO: ok to animate if Observable re-emits
-				this.locations = locs;
+				this.locations = (data.client.location || []).length;
 				this.selectedIndex = 0;                       // start on the first-page
-				data.client.price = costs;
 				// this.dbg('table: %j', data.client.schedule);
 				return data;
 			})

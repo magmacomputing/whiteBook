@@ -136,17 +136,13 @@ export class StateService {
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 */
 	getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
-		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate<number>(DATE_KEY.weekDay, date) };
-		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate<number>(DATE_KEY.yearMonthDay, date) };
+		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date, DATE_KEY.weekDay) };
+		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate(date, DATE_KEY.yearMonthDay) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterTypeClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
-		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.class}}` };
+		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.classes}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
-		const filterSpan: TWhere = [
-			{ fieldPath: FIELD.type, value: `{{client.schedule.${FIELD.store}}}` },
-			{ fieldPath: FIELD.key, value: `{{client.schedule.span}}` },
-		];
 
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -156,7 +152,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get classes for this calendar-date
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
-			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
+			joinDoc(this.states, 'client', STORE.span, undefined, date),												// get class durations
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		)
 	}
@@ -172,8 +168,8 @@ export class StateService {
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
 
 		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate<number>(DATE_KEY.yearMonthDay, moment.startOf('week')) },
-			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate<number>(DATE_KEY.yearMonthDay, moment.endOf('week')) },
+			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate(moment.startOf('week'), DATE_KEY.yearMonthDay ) },
+			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate(moment.endOf('week'), DATE_KEY.yearMonthDay) },
 		]
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 

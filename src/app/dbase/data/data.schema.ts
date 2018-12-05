@@ -118,7 +118,7 @@ export interface IEvent extends IClientBase {
 	[FIELD.key]: string;
 	name: string;
 	desc?: string;
-	class: TClass | TClass[];
+	classes: TClass | TClass[];
 }
 
 //	/client/calendar

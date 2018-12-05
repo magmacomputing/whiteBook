@@ -1,7 +1,7 @@
 import { AdditionalUserInfo } from '@firebase/auth-types';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 import { isString, isObject, isNumber } from '@lib/type.library';
-import { getStamp, getDateDiff } from '@lib/date.library';
+import { getStamp, diffDate } from '@lib/date.library';
 
 // Library of member-related functions
 
@@ -42,7 +42,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
 		.filter(isNumber))
 
 export const getMemberAge = (info?: IProfileInfo[]) =>
-	getDateDiff(getMemberBirthDay(info));
+	diffDate(getMemberBirthDay(info));
 
 /**
  * Determine if a new payment is due.  

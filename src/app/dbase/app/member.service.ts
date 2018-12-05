@@ -102,7 +102,7 @@ export class MemberService {
 			payment: activePay[FIELD.id],									// <id> of Account's current active document
 			amount: schedule.price,
 			stamp: stamp,
-			date: fmtDate<number>(DATE_KEY.yearMonthDay, date)
+			date: fmtDate(date, DATE_KEY.yearMonthDay)
 		} as IAttend
 		creates.push(attendDoc as TStoreBase);
 

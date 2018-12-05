@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
 import { TString, isString, isNumber } from '@lib/type.library';
-import { toNumeric } from '@lib/string.library';
+import { toNumeric, asString } from '@lib/string.library';
 
 export interface IDate {
 	cell: string;
@@ -23,6 +23,7 @@ export interface IDate {
 	day: number;
 	dayZZ: string;
 	time: string;
+	HHmm: string;
 	stamp: number;
 	ms: number;
 	log: string;
@@ -49,6 +50,7 @@ const DATE_FMT: Record<keyof IDate, string> = {
 	day: 'D',                               // return the Day number
 	dayZZ: 'DD',														// Day number, leading zero
 	time: 'HH:mm:ss',                       // useful for showing Time
+	HHmm: 'HH:mm',													// 24Hour-Minute
 	stamp: 'X',                             // Unix timestamp
 	ms: 'x',                       					// millisecond timestamp
 	log: 'HH:mm:ss.SSS',                    // useful for reporting timestamp in Log Spreadsheet
@@ -75,6 +77,7 @@ export const DATE_KEY: Record<keyof IDate, keyof IDate> = {
 	day: 'day',
 	dayZZ: 'dayZZ',
 	time: 'time',
+	HHmm: 'HHmm',
 	stamp: 'stamp',
 	ms: 'ms',
 	log: 'log',
@@ -88,6 +91,7 @@ const MOMENT_FMT = [
 	DATE_FMT.yearMonthDaySep,
 	DATE_FMT.dayMonthYearSep,
 	DATE_FMT.stamp,
+	DATE_FMT.time,
 ];
 
 /** get a moment object */
@@ -95,12 +99,12 @@ export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = M
 	dt ? moment(dt, fmt) : moment(moment.now());
 
 /** format a date by a specified 'key' */
-export const fmtDate = <T>(key: keyof IDate, dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
+export const fmtDate = <T>(dt?: string | number | moment.Moment, key: keyof IDate = 'yearMonthDay', fmt: TString = MOMENT_FMT) =>
 	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key])) as T extends string ? string : number
 
 /** shortcut to fmtDate('stamp', ...) */
 export const getStamp = (dt?: string | number, fmt: TString = MOMENT_FMT) =>
-	fmtDate<IDate['stamp']>(DATE_KEY.stamp, dt, fmt)
+	fmtDate(dt, DATE_KEY.stamp, fmt)
 
 /** useful when we want an Object with *all* formats available */
 const fmtMoment = (dt?: any, fmt: TString = MOMENT_FMT): IDate => {
@@ -113,7 +117,12 @@ const fmtMoment = (dt?: any, fmt: TString = MOMENT_FMT): IDate => {
 }
 
 /** get integer difference between supplied date and now (default unit is 'years') */
-export const getDateDiff = (date?: string | number, unit: moment.unitOfTime.Diff = 'years') =>
+export const diffDate = (date?: string | number, unit: moment.unitOfTime.Diff = 'years') =>
 	isString(date) || isNumber(date)
 		? moment().diff(getMoment(date), unit)
 		: 0
+
+export const addDate = (date: string | number, fmt: keyof IDate, offset: number = 0, unit: moment.unitOfTime.Diff = 'minutes') =>
+	isString(date) || isNumber(date)
+		? getMoment(date, DATE_FMT[fmt]).add(offset, unit).format(DATE_FMT[fmt])
+		: asString(date)
