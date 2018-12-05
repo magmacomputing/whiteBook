@@ -51,7 +51,6 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 
 		return source.pipe(
 			switchMap(data => {
-				// if (store === STORE.class) debugger;
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
 				const index = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
 
@@ -199,33 +198,37 @@ export const buildTimetable = (source: ITimetableState) => {
 	const locn = findDoc<IDefault>(source.default[STORE.default], FIELD.type, 'location');
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
-	calendar.forEach(item => {										// merge each calendar item onto the schedule
-		const event = findDoc<IEvent>(events, FIELD.key, item[FIELD.type]);
+/**
+ * If we found any Calendar events, push them on the Timetable.  
+ * assume a Calendar's location overrides an usual Schedule at the location.
+ */
+	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
+		const event = findDoc<IEvent>(events, FIELD.key, calendarDoc[FIELD.type]);
 		let offset = 0;															// start-time offset
 
-		if (!item.location)
-			item.location = locn[FIELD.key];					// default Location
-		if (!eventLocations.includes(item.location))
-			eventLocations.push(item.location);				// track the Locations at which an Event is running
+		if (!calendarDoc.location)
+		calendarDoc.location = locn[FIELD.key];			// default Location
+		if (!eventLocations.includes(calendarDoc.location))
+			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
-		asArray(event.classes).forEach(klass => {
-			const doc = findDoc<IClass>(classes, FIELD.key, klass);
+		asArray(event.classes).forEach(className => {
+			const classDoc = findDoc<IClass>(classes, FIELD.key, className);
 			const filterSpan: TWhere = [
-				{ fieldPath: FIELD.key, value: doc[FIELD.type] },
+				{ fieldPath: FIELD.key, value: classDoc[FIELD.type] },
 				{ fieldPath: FIELD.type, value: STORE.event },
 			]
-			const span = asAt<ISpan>(spans, filterSpan);
+			const span = asAt<ISpan>(spans, filterSpan);	// use asAt (not findDoc) because multiple match criteria
 
 			const time: Partial<ISchedule> = {
-				[FIELD.id]: doc[FIELD.id],
+				[FIELD.id]: classDoc[FIELD.id],
 				[FIELD.type]: event[FIELD.store],
-				[FIELD.key]: klass,
-				day: item.day,
-				location: item.location,
-				start: addDate(item.start, DATE_KEY.HHmm, offset),
-				instructor: item.instructor,
-				span: doc[FIELD.type],
-				icon: doc.icon,
+				[FIELD.key]: className,
+				day: calendarDoc.day,
+				location: calendarDoc.location,
+				start: addDate(calendarDoc.start, DATE_KEY.HHmm, offset),
+				instructor: calendarDoc.instructor,
+				span: classDoc[FIELD.type],
+				icon: classDoc.icon,
 			}
 
 			offset += span[0].duration;								// update offset to next class start-time
@@ -236,22 +239,22 @@ export const buildTimetable = (source: ITimetableState) => {
 	// for each item on the schedule, poke in 'price' and 'icon'
 	source.client.schedule = times
 		.map(time => {
-			const klass = findDoc<IClass>(classes, FIELD.key, time[FIELD.key]);
-			const price = findDoc<IPrice>(prices, FIELD.type, klass[FIELD.type]);
+			const classDoc = findDoc<IClass>(classes, FIELD.key, time[FIELD.key]);
+			const price = findDoc<IPrice>(prices, FIELD.type, classDoc[FIELD.type]);
 
-			if (klass[FIELD.type] && !isUndefined(price.amount)) {
+			if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
 				time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
 			}
 			else time[FIELD.disable] = true;						// cannot determine the event
 
 			if (!time[FIELD.icon])											// if no schedule-specific icon...
-				time[FIELD.icon] = klass.icon || icon[FIELD.key];				//	use class icon, else default icon
+				time[FIELD.icon] = classDoc.icon || icon[FIELD.key];				//	use class icon, else default icon
 			
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists
 
 			return time;
-		})
+		})																						// remove Classes at Location, if an Event is offered there
 		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
 
 	return { ...source };
