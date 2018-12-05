@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { DocumentChangeAction } from '@angular/fire/firestore';
-import { SnapshotMetadata } from '@firebase/firestore-types';
 
 import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/route.define';
@@ -11,19 +10,19 @@ import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
+import { buildDoc, checkStorage, getSource } from '@dbase/sync/sync.library';
 
-import { IListen, StoreStorage } from '@dbase/sync/sync.define';
+import { IListen } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { sortKeys, IObject } from '@lib/object.library';
+import { IObject } from '@lib/object.library';
 import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
-import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -93,6 +92,10 @@ export class SyncService {
 			case SLICE.local:
 				return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
 
+			// TODO:
+			// case SLICE.admin:
+			// 	return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
+
 			default:
 				this.dbg('snap: Unexpected slice: %s', slice);
 				throw (new Error(`snap: Unexpected slice: ${slice}`));
@@ -104,7 +107,7 @@ export class SyncService {
 		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
 
-		const source = this.source(snaps);
+		const source = getSource(snaps);
 		const debug = source !== 'cache' && this.listener[collection].cnt !== -1;
 		const [snapAdd, snapMod, snapDel] = snaps.reduce((cnts, snap) => {
 			const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
@@ -116,39 +119,24 @@ export class SyncService {
 		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
 			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
-		if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
+		if (listen.cnt === 0) {                           // initial snapshot
 			const url = this.router.url.split('?')[0];
 			if (url === ROUTE.oauth) {
 				this.dbg('url: %s', url);
 				this.off(collection);													// the OAuthComponent does not need to sync Store
-				return;																				// intercept the redirect-to-login page
+				return true;																	// intercept the redirect-to-login page
 			}
 
-			const localSlice = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
-			const localStore = localSlice[listen.slice] || {};
-			const localList: IStoreMeta[] = [];
-			const snapList = snaps.map(snap => ({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() }));
+			if (await checkStorage(listen, snaps))
+				return;																				// storage already sync'd... skip the initial snapshot
 
-			Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
-			const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
-			const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
-			const [localHash, storeHash] = await Promise.all([cryptoHash(localSort), cryptoHash(snapSort),]);
-
-			if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
-				listen.ready.resolve(true);                   // indicate snap0 is ready
-				return;                                       // ok, already sync'd
-			}
-
-			if (debug) {                                    // we suspect tampering?
-				this.dbg('hash: %s / %s', localHash, storeHash);
-				this.dbg('local: %j', localSort);
-				this.dbg('store: %j', snapSort);
-			}
-			this.store.dispatch(new truncStore(debug));     // otherwise, reset Store
+			await this.store
+				.dispatch(new truncStore(debug))							// suspected tampering, reset Store
+				.toPromise();
 		}
 
 		snaps.forEach(snap => {
-			const data = { [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as TStoreBase;
+			const data = buildDoc(snap);
 
 			switch (snap.type) {
 				case 'added':
@@ -170,14 +158,5 @@ export class SyncService {
 
 		if (listen.cnt === 0)
 			listen.ready.resolve(true);
-	}
-
-	private source(snaps: DocumentChangeAction<IStoreMeta>[]) {
-		const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as SnapshotMetadata;
-		return meta.fromCache
-			? 'cache'
-			: meta.hasPendingWrites
-				? 'local'
-				: 'server'
 	}
 }
