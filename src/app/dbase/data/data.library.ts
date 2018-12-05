@@ -40,10 +40,6 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	return where;
 }
 
-/** return first row that matches */
-export const findDoc = <T>(table: IStoreMeta[], key: string, value: string | number | boolean) =>
-	(table.find(row => row[key] === value) || {}) as T;
-
 export const docPrep = async (doc: TStoreBase, state: Promise<IUserState>) => {
 	const uid = (await state).auth.user!.uid;			// get the current user's uid
 

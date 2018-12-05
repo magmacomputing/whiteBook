@@ -2,7 +2,7 @@
 	<p>Paid: {{ data.account?.summary.paid | currency }}</p>
 	<p>Bank: {{ data.account?.summary.bank | currency }}</p>
 	<p>Pend: {{ data.account?.summary.pend | currency }}</p>
-	<p>Cost: {{ data.account?.summary.spend | currency }}</p>
+	<p>Spend: {{ data.account?.summary.spend | currency }}</p>
 
 	<p></p>
 	<button (click)="member.setPayment()">TopUp</button>

@@ -37,7 +37,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 						switch (operand) {												// standard firestore query-operators, and '!='
 							case '==':
 								return isUndefined(field)
-									? !compare													// if field not present, compare to 'falsy'
+									? !compare													// if field not present, compare to 'false-y'
 									: field == compare;									// use '==' to allow for string/number match, instead of '==='
 							case '>':
 								return field > compare;
@@ -58,6 +58,9 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 				})
 		})
 }
+
+export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
+	filterTable<T>(table, filters)[0];
 
 /**
  * Search an array, returning rows that match all the conditions *and* were active on the 'date'

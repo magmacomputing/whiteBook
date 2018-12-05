@@ -10,7 +10,5 @@ allow payment, hold
 *> migrate User
 test if multiple instances of same source
 
-*> getTimetable should also consider Calendar Events
-
 *> logon as other User
 set authState.user ?  or authState.delegate

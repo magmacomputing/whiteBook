@@ -3,12 +3,13 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@dbase/auth/auth.interface';
-import { asAt } from '@dbase/app/app.library';
+import { asAt, firstRow } from '@dbase/app/app.library';
 
-import { IState, IAccountState, ITimetableState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan } from '@dbase/data/data.schema';
+import { IState, IAccountState, ITimetableState, IPlanState } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, ICustomClaims, IPlan, IProfilePlan } from '@dbase/data/data.schema';
+import { getMemberAge } from '@dbase/app/member.library';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
-import { getSlice, findDoc } from '@dbase/data/data.library';
+import { getSlice } from '@dbase/data/data.library';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
@@ -166,18 +167,50 @@ export const sumAttend = (source: IAccountState) => {
 	return source;
 }
 
-/** calc a 'day' field onto any Calendar row */
+/** calc a 'day' field for a Calendar row */
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
-		source.client.calendar = source.client.calendar.map(row => {
-			row.day = fmtDate(row[FIELD.key], DATE_KEY.weekDay)
-			return row;
-		})
+		source.client.calendar = source.client.calendar
+			.map(row => Object.assign({ day: fmtDate(row[FIELD.key], DATE_KEY.weekDay), row }))
 	}
 
 	return { ...source };
 }
 
+/** Assemble a Plan-view */
+export const buildPlan = (source: IPlanState) => {
+	const roles = getPath<string[]>(source.auth, 'token.claims.roles');
+	const isAdmin = roles && roles.includes('admin');
+	const myPlan = firstRow<IProfilePlan>(source.member.plan, { fieldPath: FIELD.type, value: 'plan' });
+	const myTopUp = firstRow<IPrice>(source.member.price, { fieldPath: FIELD.type, value: 'topUp' });
+	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
+
+	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
+		const planPrice = firstRow<IPrice>(source.client.price, [
+			{ fieldPath: FIELD.key, value: plan[FIELD.key] },
+			{ fieldPath: FIELD.type, value: 'topUp' },
+		])
+
+		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
+			plan[FIELD.disable] = true;
+
+		if (plan[FIELD.key] === 'intro')											// Special: Intro is only available to new Members
+			plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
+
+		if (plan[FIELD.key] === 'pension') {									// Special: Pension is only available to senior Member
+			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
+			plan[FIELD.hidden] = notAllow;
+			plan[FIELD.disable] = notAllow;
+		}
+
+		if (plan[FIELD.key] === myPlan.plan)            			// disable their current Plan, so cannot re-select
+			plan[FIELD.disable] = true;
+
+		return plan
+	});
+
+	return { ...source };
+}
 /**
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class', 'special' appends.  
@@ -194,34 +227,33 @@ export const buildTimetable = (source: ITimetableState) => {
 		price: prices = [],
 	} = source.member;														// the prices as per member's plan
 
-	const icon = findDoc<IDefault>(source.default[STORE.default], FIELD.type, 'icon');
-	const locn = findDoc<IDefault>(source.default[STORE.default], FIELD.type, 'location');
+	const icon = firstRow<IDefault>(source.default[STORE.default], { fieldPath: FIELD.type, value: 'icon' });
+	const locn = firstRow<IDefault>(source.default[STORE.default], { fieldPath: FIELD.type, value: 'location' });
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
-/**
- * If we found any Calendar events, push them on the Timetable.  
- * assume a Calendar's location overrides an usual Schedule at the location.
- */
+	/**
+	 * If we found any Calendar events, push them on the Timetable.  
+	 * assume a Calendar's location overrides an usual Schedule at the location.
+	 */
 	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
-		const event = findDoc<IEvent>(events, FIELD.key, calendarDoc[FIELD.type]);
+		const eventList = firstRow<IEvent>(events, { fieldPath: FIELD.key, value: calendarDoc[FIELD.type] });
 		let offset = 0;															// start-time offset
 
 		if (!calendarDoc.location)
-		calendarDoc.location = locn[FIELD.key];			// default Location
+			calendarDoc.location = locn[FIELD.key];		// default Location
 		if (!eventLocations.includes(calendarDoc.location))
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
-		asArray(event.classes).forEach(className => {
-			const classDoc = findDoc<IClass>(classes, FIELD.key, className);
-			const filterSpan: TWhere = [
+		asArray(eventList.classes).forEach(className => {
+			const classDoc = firstRow<IClass>(classes, { fieldPath: FIELD.key, value: className });
+			const span = firstRow<ISpan>(spans, [
 				{ fieldPath: FIELD.key, value: classDoc[FIELD.type] },
 				{ fieldPath: FIELD.type, value: STORE.event },
-			]
-			const span = asAt<ISpan>(spans, filterSpan);	// use asAt (not findDoc) because multiple match criteria
+			])
 
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
-				[FIELD.type]: event[FIELD.store],
+				[FIELD.type]: eventList[FIELD.store],
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
@@ -231,16 +263,17 @@ export const buildTimetable = (source: ITimetableState) => {
 				icon: classDoc.icon,
 			}
 
-			offset += span[0].duration;								// update offset to next class start-time
+			offset += span.duration;									// update offset to next class start-time
 			times.push(time as ISchedule);						// add the Event to the timetable
 		})
 	})
 
 	// for each item on the schedule, poke in 'price' and 'icon'
+	// TODO: determine bonus-pricing
 	source.client.schedule = times
 		.map(time => {
-			const classDoc = findDoc<IClass>(classes, FIELD.key, time[FIELD.key]);
-			const price = findDoc<IPrice>(prices, FIELD.type, classDoc[FIELD.type]);
+			const classDoc = firstRow<IClass>(classes, { fieldPath: FIELD.key, value: time[FIELD.key] });
+			const price = firstRow<IPrice>(prices, { fieldPath: FIELD.type, value: classDoc[FIELD.type] });
 
 			if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
 				time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
@@ -249,12 +282,17 @@ export const buildTimetable = (source: ITimetableState) => {
 
 			if (!time[FIELD.icon])											// if no schedule-specific icon...
 				time[FIELD.icon] = classDoc.icon || icon[FIELD.key];				//	use class icon, else default icon
-			
+
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists
 
 			return time;
-		})																						// remove Classes at Location, if an Event is offered there
+		})
+
+		/**
+		 * Special Events take priority over Classes.  
+		 * remove Classes at Location, if an Event is offered there
+		 */
 		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
 
 	return { ...source };

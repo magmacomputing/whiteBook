@@ -21,14 +21,14 @@ export type TProvider = 'identity' | 'oauth' | 'email' | 'play' | 'phone' | 'ano
 
 //	/register
 type TRole = 'admin' | 'member' | 'guest';
-export interface ICustomClaims {	// a special sub-set of fields from the User Token
-	claims: {
-		roles?: TRole[];
-		plan?: TPlan;												// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
-		memberName?: string;
-		memberAllow?: string[];
-		memberDeny?: string[];
-	}
+export interface ICustomClaims {				// a special sub-set of fields from the User Token
+	// claims: {
+	roles?: TRole[];
+	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
+	memberName?: string;
+	memberAllow?: string[];
+	memberDeny?: string[];
+	// }
 }
 
 // These are the meta- and common-fields for a standard collection document

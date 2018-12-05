@@ -4,7 +4,7 @@ export interface IObject<T> { [key: string]: T; }
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 
 /** Get nested value; allow for array-references in <path> */
-export const getPath = (obj: any, path: TString, dflt?: any, indx?: string | number): any => {
+export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | number): T | undefined => {
 	if (!isObject(obj) && !isArray(obj))
 		return dflt || undefined;
 	if (isUndefined(obj))
