@@ -15,3 +15,4 @@ set authState.user ?  or authState.delegate
 
 *> add createDate / updateDate to State?
 but remove on fire.write?
+(cannot do until client Firestore api supports)

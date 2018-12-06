@@ -203,7 +203,7 @@ export const buildPlan = (source: IPlanState) => {
 			plan[FIELD.disable] = notAllow;
 		}
 
-		if (plan[FIELD.key] === myPlan.plan)            			// disable their current Plan, so cannot re-select
+		if (myPlan && myPlan.plan === plan[FIELD.key])	 			// disable their current Plan, so cannot re-select
 			plan[FIELD.disable] = true;
 
 		return plan

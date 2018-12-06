@@ -6,11 +6,11 @@ import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { SLICE, SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
+import { SLICE, SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
-import { buildDoc, checkStorage, getSource } from '@dbase/sync/sync.library';
+import { buildDoc, checkStorage, getSource, addMeta } from '@dbase/sync/sync.library';
 
 import { IListen } from '@dbase/sync/sync.define';
 import { LoginToken } from '@dbase/state/auth.define';
@@ -37,7 +37,7 @@ export class SyncService {
 
 	/** establish a listener to a remote Collection, and sync to an NGXS Slice */
 	public async on(collection: string, slice?: string, query?: IQuery) {
-		const sync = this.sync.bind(this, collection);
+		const sync = this.sync.bind(this, collection, this.fire);
 		const ready = createPromise<boolean>();
 		slice = slice || collection;                      // default to same-name as collection
 
@@ -92,9 +92,8 @@ export class SyncService {
 			case SLICE.local:
 				return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
 
-			// TODO:
-			// case SLICE.admin:
-			// 	return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
+			case SLICE.admin:
+				return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
 
 			default:
 				this.dbg('snap: Unexpected slice: %s', slice);
@@ -103,7 +102,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: string, snaps: DocumentChangeAction<IStoreMeta>[]) {
+	private async sync(collection: string, fire: FireService, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
 
@@ -127,7 +126,7 @@ export class SyncService {
 				return true;																	// intercept the redirect-to-login page
 			}
 
-			if (await checkStorage(listen, snaps))
+			if (await checkStorage(listen, snaps, debug))
 				return;																				// storage already sync'd... skip the initial snapshot
 
 			await this.store
@@ -135,8 +134,10 @@ export class SyncService {
 				.toPromise();
 		}
 
-		snaps.forEach(snap => {
-			const data = buildDoc(snap);
+		snaps.forEach(async snap => {
+			const data = snap.type === 'removed'
+				? addMeta(snap)																// no need to fetch meta from server for 'removed' documents
+				: await buildDoc(snap, fire);
 
 			switch (snap.type) {
 				case 'added':

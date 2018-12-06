@@ -87,3 +87,18 @@ export class TruncAttend {									// Truncate Attend object from the Store
 	static type = '[Sync Service] Truncate Attend';
 	constructor(public debug: boolean = true) { }
 }
+
+export class SetAdmin {										// Add Admin object into the Store
+	static type = '[Sync Service] Set Admin';
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
+}
+
+export class DelAdmin {										// Remove Admin object from the Store
+	static type = '[Sync Service] Delete Admin';
+	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
+}
+
+export class TruncAdmin {									// Truncate Admin object from the Store
+	static type = '[Sync Service] Truncate Admin';
+	constructor(public debug: boolean = true) { }
+}

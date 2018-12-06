@@ -79,10 +79,6 @@ export class FireService {
 		return docId;
 	}
 
-	// getDoc(store: string, docId: string) {			// use State instead
-	// 	return this.docRef(store, docId).get()
-	// }
-
 	callMeta(store: string, docId: string) {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
