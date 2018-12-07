@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
-import { IAuthState } from '@dbase/state/auth.define';
+import { IAuthState } from '@dbase/state/auth.action';
 import { TStateSlice } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan } from '@dbase/state/state.library';

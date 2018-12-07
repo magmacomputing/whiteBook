@@ -6,7 +6,7 @@ import { IFireClaims } from '@dbase/auth/auth.interface';
 import { asAt, firstRow } from '@dbase/app/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, ICustomClaims, IPlan, IProfilePlan } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
 import { getMemberAge } from '@dbase/app/member.library';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';

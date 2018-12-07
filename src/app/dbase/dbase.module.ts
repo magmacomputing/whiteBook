@@ -10,14 +10,15 @@ import { NgxsModule } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 import { MemberState } from '@dbase/state/member.state';
 import { AttendState } from '@dbase/state/attend.state';
-import { LocalState } from './state/local.state';
+import { LocalState } from '@dbase/state/local.state';
+import { AdminState } from '@dbase/state/admin.state';
 
 const fb = environment.firebase || {};
 
 @NgModule({
 	imports: [
 		CommonModule,
-		NgxsModule.forFeature([ClientState, MemberState, AttendState, LocalState]),
+		NgxsModule.forFeature([ClientState, MemberState, AttendState, LocalState, AdminState]),
 		AngularFireModule.initializeApp(fb.app, fb.config),
 		AngularFirestoreModule.enablePersistence({ experimentalTabSynchronization: true }),
 		AngularFireFunctionsModule,

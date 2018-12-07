@@ -10,8 +10,11 @@ import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
-import { SLICE } from '@dbase/state/state.action';
-import { IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken, LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo } from '@dbase/state/auth.define';
+import {
+	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
+	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo
+} from '@dbase/state/auth.action';
+import { SLICE } from '@dbase/state/state.define';
 
 import { getAuthProvider, getProviderId } from '@dbase/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';

@@ -6,14 +6,15 @@ import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { SLICE, SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { SLICE } from '@dbase/state/state.define';
+import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 import { buildDoc, checkStorage, getSource, addMeta } from '@dbase/sync/sync.library';
 
 import { IListen } from '@dbase/sync/sync.define';
-import { LoginToken } from '@dbase/state/auth.define';
+import { LoginToken } from '@dbase/state/auth.action';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';

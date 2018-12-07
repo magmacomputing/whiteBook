@@ -1,6 +1,6 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
-import { TStateSlice } from '@dbase/state/state.define';
-import { SLICE, SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
+import { TStateSlice, SLICE } from '@dbase/state/state.define';
+import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';

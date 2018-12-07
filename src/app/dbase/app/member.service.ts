@@ -5,7 +5,7 @@ import { debounce, take } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { StateService } from '@dbase/state/state.service';
-import { IAuthState, LoginInfo } from '@dbase/state/auth.define';
+import { IAuthState, LoginInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
 import { AuthState } from '@dbase/state/auth.state';
 

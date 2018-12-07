@@ -1,18 +1,14 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SLICE, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
-import { TStateSlice } from '@dbase/state/state.define';
+import { SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
-import { cloneObj } from '@lib/object.library';
-import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * AdminState is for items derived from the server.  
- * Currently this is _config_ with placeholders evaluated, and  
- * UI preferences for _login_ (which are needed prior to authentication)
+ * AdminState is for items only Users with roles['isAdmin'] in their customClaims can see
  */
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.admin,

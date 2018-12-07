@@ -6,7 +6,6 @@ import { TProvider } from '@dbase/data/data.schema';
 
 import { isNull } from '@lib/type.library';
 
-// TODO: derive token requirements from authState.token
 interface IEmailToken {
 	email: string;
 	password: string;
@@ -35,7 +34,7 @@ export const getAuthProvider = (providerId: string, token?: (IdTokenResult & IEm
 		case 'twitter.com':
 			authProvider = new auth.TwitterAuthProvider();
 			if (token)
-				authCredential = auth.TwitterAuthProvider.credential(token.token, '')//, token.secret);
+				authCredential = auth.TwitterAuthProvider.credential(token.token, '');
 			break;
 
 		case 'github':
