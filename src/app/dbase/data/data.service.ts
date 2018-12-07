@@ -3,7 +3,7 @@ import { MatSnackBar } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { Store } from '@ngxs/store';
-import { SLICE } from '@dbase/state/state.action';
+import { SLICE } from '@dbase/state/state.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IMeta } from '@dbase/data/data.schema';
@@ -70,7 +70,7 @@ export class DataService {
 	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
 		const creates: TStoreBase[] = [];
 		const updates: TStoreBase[] = [];
-		const stamp = getStamp();                               // the <effect> of the document-create
+		const stamp = getStamp();                               // the <effect> date of the document-create
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Create

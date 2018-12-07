@@ -46,7 +46,7 @@ export interface IJwtClaims {			// industry-standard json-web-token format
 	sub?: string;						// subject
 }
 export type TTokenClaims = IFireClaims & ICustomClaims & IJwtClaims;
-export const enum JWT {
+export enum JWT {
 	expires = 'exp',
 	not_before = 'nbf',
 	issuer = 'iss',
@@ -54,7 +54,7 @@ export const enum JWT {
 	subject = 'sub',
 }
 
-export const enum ROLES {
+export enum ROLES {
 	member = 'member',
 	admin = 'admin',
 	guest = 'guest',

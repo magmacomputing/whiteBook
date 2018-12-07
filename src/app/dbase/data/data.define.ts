@@ -1,7 +1,7 @@
 import { IObject } from '@lib/object.library';
 import { TString } from '@lib/type.library';
 
-export const enum COLLECTION {
+export enum COLLECTION {
 	log = 'log',
 	register = 'register',
 	member = 'member',
@@ -18,7 +18,7 @@ export const STORES: { [col: string]: string[] } = {
 	local: ['@config@'],
 }
 
-export const enum STORE {
+export enum STORE {
 	profile = 'profile',
 	payment = 'payment',
 	attend = 'attend',
@@ -40,11 +40,11 @@ export const enum STORE {
 	log = 'log',
 }
 
-export const enum LOCAL {
+export enum LOCAL {
 	config = '@config@',
 }
 
-export const enum FIELD {					// common Field names
+export enum FIELD {					// common Field names
 	effect = '_effect',							// valid when greater-than-or-equal-to
 	expire = '_expire',							// valid when less-than
 	update = '_update',							// date-time modified
