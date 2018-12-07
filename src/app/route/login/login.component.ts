@@ -16,7 +16,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class LoginComponent implements OnInit {
 	public provider$ = this.state.getCurrent<IProvider>(STORE.provider);
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService) { }
 

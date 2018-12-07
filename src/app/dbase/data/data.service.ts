@@ -27,7 +27,7 @@ import { dbg } from '@lib/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
 		this.dbg('new');
@@ -62,6 +62,10 @@ export class DataService {
 		return this.fire.updDoc(store, docId, data);
 	}
 
+	log(output: any) {																				// write a /log entry
+
+	}
+
 	/** Expire any current matching docs, and Create new doc */
 	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
 		const creates: TStoreBase[] = [];
@@ -85,12 +89,12 @@ export class DataService {
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
 			if (currDocs.updates.length) {
-				if (currDocs.stamp > 0)
-					nextDoc[FIELD.effect] = currDocs.stamp;           // if updPrep changed the <effect>,
-				else nextDoc[FIELD.expire] = -currDocs.stamp;       // back-date the nextDoc's <expire>
+				if (currDocs.stamp > 0)															// if the stamp is positive,
+					nextDoc[FIELD.effect] = currDocs.stamp;           // updPrep has changed the <effect>,
+				else nextDoc[FIELD.expire] = -currDocs.stamp;       // otherwise back-date the nextDoc's <expire>
 			}
 
-			if (!checkDiscard(discards, nextDoc, currDocs.data)) {
+			if (!checkDiscard(discards, nextDoc, currDocs.data)) {// only if currDoc is different from nextDoc...
 				creates.push(nextDoc);                              // push the prepared document-create
 				updates.push(...currDocs.updates);                  // push the associated document-updates
 			}

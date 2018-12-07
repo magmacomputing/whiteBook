@@ -18,7 +18,7 @@ import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor(private auth: AuthService, private router: Router, private navigate: NavigateService) { this.dbg('new') }
 
@@ -36,7 +36,7 @@ export class AuthGuard implements CanActivate {
 /** ensure Member Profile has a current 'plan' */
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor(private store: Store, private router: Router, private navigate: NavigateService) { this.dbg('new') }
 

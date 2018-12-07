@@ -32,7 +32,7 @@ export class StateService {
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
 
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 	public states: IState;
 
 	constructor() {

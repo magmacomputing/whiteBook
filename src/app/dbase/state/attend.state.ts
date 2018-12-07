@@ -11,7 +11,7 @@ import { IStoreMeta } from '@dbase/data/data.schema';
 	defaults: {}
 })
 export class AttendState implements NgxsOnInit {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor() { }
 

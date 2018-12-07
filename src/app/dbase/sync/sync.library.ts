@@ -10,8 +10,7 @@ import { sortKeys } from '@lib/object.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { FireService } from '@dbase/fire/fire.service';
 
-import { dbg } from '@lib/logger.library';
-import { FirebaseApp } from '@firebase/app-types';
+import { fmtLog } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as SnapshotMetadata;
@@ -40,14 +39,14 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	}
 
 	if (debug) {
-		dbg('hash: %s / %s', localHash, storeHash);
-		dbg('local: %j', localSort);
-		dbg('store: %j', snapSort);
+		fmtLog('SyncLibrary', 'hash: %s / %s', localHash, storeHash);
+		fmtLog('local: %j', localSort);
+		fmtLog('store: %j', snapSort);
 	}
 	return false;
 }
 
-// TODO: call to meta introduces an unacceptable delay (for very little payback)
+// TODO: call to meta introduces an unacceptable delay (for payback at this time)
 export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: FireService) => {
 	// const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {

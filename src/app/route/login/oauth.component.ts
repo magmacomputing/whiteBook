@@ -14,7 +14,7 @@ import { dbg } from '@lib/logger.library';
 	templateUrl: './oauth.component.html',
 })
 export class OAuthComponent implements OnInit {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService, private state: StateService) { }
 

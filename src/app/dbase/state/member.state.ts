@@ -11,7 +11,7 @@ import { dbg } from '@lib/logger.library';
 	defaults: {}
 })
 export class MemberState implements NgxsOnInit {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor() { }
 

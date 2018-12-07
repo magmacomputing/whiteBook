@@ -19,7 +19,7 @@ import { dbg } from '@lib/logger.library';
 	defaults: {}
 })
 export class AdminState implements NgxsOnInit {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
 	constructor(private store: Store) { }
 
