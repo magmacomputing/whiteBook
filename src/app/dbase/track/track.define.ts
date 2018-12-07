@@ -12,7 +12,12 @@ export interface ITrack {
 	event?: object;
 	uid?: string;
 	memberId?: string;
-	stamp?: number;
+	stamp: number;
+	date: {										// useful for indexing
+		year: number;
+		month: number;
+		day: number;
+	}
 }
 
 export enum ETrack {
