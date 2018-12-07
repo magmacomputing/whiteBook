@@ -37,6 +37,7 @@ export const enum STORE {
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
+	log = 'log',
 }
 
 export const enum LOCAL {
