@@ -99,7 +99,7 @@ export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = M
 	dt ? moment(dt, fmt) : moment(moment.now());
 
 /** format a date by a specified 'key' */
-export const fmtDate = <K extends keyof IDate>(dt?: string | number | moment.Moment, key?: K extends keyof IDate, fmt: TString = MOMENT_FMT) =>
+export const fmtDate = <K extends keyof IDate>(dt?: string | number | moment.Moment, key?: K, fmt: TString = MOMENT_FMT) =>
 	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key || 'yearMonthDay'])) as IDate[K];
 
 /** shortcut to fmtDate(dt, 'stamp', ...) */
