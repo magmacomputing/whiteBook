@@ -70,10 +70,9 @@ export class DataService {
 	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
 		const creates: TStoreBase[] = [];
 		const updates: TStoreBase[] = [];
-		const stamp = getStamp();                               // the <effect> date of the document-create
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
-			let tstamp = nextDoc[FIELD.effect] || stamp;          // the position in the date-range to Create
+			let tstamp = nextDoc[FIELD.effect] || getStamp();	    // the position in the date-range to Create
 			let where: TWhere;
 
 			try {
