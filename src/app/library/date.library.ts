@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { TString, isString, isNumber } from '@lib/type.library';
 import { toNumeric, asString } from '@lib/string.library';
 
-export interface IDate {
+interface IDate {
 	cell: string;
 	short: string;
 	display: string;

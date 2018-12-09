@@ -22,7 +22,7 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: '_oauth_' })
+			this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: 'oauth' })
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);

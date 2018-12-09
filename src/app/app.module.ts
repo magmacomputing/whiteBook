@@ -24,9 +24,9 @@ import { environment } from '../environments/environment';
 		AuthModule,
 		RoutingModule,
 		BrowserAnimationsModule,
-		NgxsModule.forRoot([], { developmentMode: !environment.production }),
-		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 		ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
+		NgxsModule.forRoot([], { developmentMode: environment.production }),
+		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 	],
 	providers: [],
 	bootstrap: [AppComponent]

@@ -181,6 +181,7 @@ export class AuthState implements NgxsOnInit {
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
 		this.snack.dismiss();
+
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => ctx.patchState({ user, token }))

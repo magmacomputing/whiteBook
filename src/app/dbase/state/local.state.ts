@@ -2,11 +2,11 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, LOCAL } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
 import { cloneObj } from '@lib/object.library';
-import { isUndefined } from '@lib/type.library';
+import { isString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -35,13 +35,13 @@ export class LocalState implements NgxsOnInit {
 			const fix = this.fixConfig()
 			if (fix) {
 				store.length = 0;												// erase existing Config
-				store.push(fix);												// insert fixed Config
+				store.push(...fix);											// insert fixed Config
 			}
 		}
 
 		state[group] = store;
 
-		if (debug) this.dbg('setLocal: %s, %j', payload[FIELD.store], payload);
+		// if (debug) this.dbg('setLocal: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });
 	}
 
@@ -73,41 +73,30 @@ export class LocalState implements NgxsOnInit {
 
 	/** resolve some placeholder variables in IConfig[] */
 	private fixConfig = () => {
-		let project = '';
-		let region = '';
-		let index: number | undefined = undefined;
-		let clone: IStoreMeta | undefined = undefined;
-
+		const placeholder: { [key: string]: string; } = {};
 		const state = this.store.selectSnapshot(state => state);	// get existing state
-		const config = state.client[STORE.config] as IStoreMeta[];		// slice it to get Config
+		const config = (state.client[STORE.config] as IStoreMeta[])
+			.filter(row => !row[FIELD.expire]);							// slice it to get Config, skip expired
+
 		config
-			.filter(row => !row[FIELD.expire])			// skip expired Configs
-			.forEach((row, idx) => {								// loop through Config...
-				switch (row[FIELD.key]) {							//	evaluating <key>
-					case 'project':
-						project = row.value;							// found a placeholder value
-						break;
-					case 'region':
-						region = row.value;								// found a placeholder value
-						break;
-					case 'oauth':
-						index = idx;											// found a placeholder field
-						break;
-				}
-			});
+			.filter(row => row[FIELD.type] === 'default')		// get the placeholder values on first pass
+			.filter(row => isString(row.value))
+			.forEach(row => placeholder[row[FIELD.key]] = row.value);
 
-		if (!isUndefined(index) && project && region) {
-			const orig = config[index];
-			clone = cloneObj(orig);									// create a clone
+		return cloneObj(config)
+			.filter(row => row[FIELD.type] !== 'default')		// skip Config 'defaults'
+			.map(row => {
+				const subst: { [key: string]: string; } = {}
+				Object.entries(row.value).forEach(item => {		// for each item in the 'value' field
+					const tpl = this.makeTemplate(item[1]);			// turn it into a template literal
+					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
+				})
+				return Object.assign(row, { [FIELD.store]: LOCAL.config, value: subst });
+			})
+	}
 
-			clone[FIELD.key] = '_oauth_';						// clone search-key
-			clone.value = {};												// reset values
-			Object.keys(orig.value)									// for each key in original's <value> object
-				.forEach(itm => clone!.value[itm] = orig.value[itm]
-					.replace('${region}', region)				// set clone's value to be...
-					.replace('${project}', project));		//	orig's value with placeholders replaced
-		}
-
-		return clone;
+	private makeTemplate = (templateString: any) => {
+		return (templateData: Object) =>
+			new Function(`{${Object.keys(templateData).join(',')}}`, 'return `' + templateString + '`')(templateData);
 	}
 }
