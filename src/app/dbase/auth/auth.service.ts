@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { map, switchMap, take } from 'rxjs/operators';
-import { User } from '@firebase/auth-types';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';

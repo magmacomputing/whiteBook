@@ -69,10 +69,10 @@ export class MemberService {
 
 	// TODO: determine <date> as the last occurrence of the <time>'s class
 	/** Insert an Attendance record, aligned to an <active> Account payment */
-	async setAttend(schedule: ISchedule, date?: number) {
+	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.getAccount();
 		const amount = await this.getAmount(data);
-		// const bonus = await this.getBonus(data);
+
 		if (isUndefined(schedule.price))
 			schedule.price = await this.getEventPrice(schedule[FIELD.key], data);
 
@@ -94,16 +94,17 @@ export class MemberService {
 			}
 		}
 
-		const attendDoc = {
+		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.key] as TClass,	// the Attend's class
-			[FIELD.uid]: data.auth.user!.uid,
+			[FIELD.uid]: data.auth.user!.uid,							// the current User
 			schedule: schedule[FIELD.id],									// <id> of the Schedule
 			payment: activePay[FIELD.id],									// <id> of Account's current active document
 			amount: schedule.price,
 			stamp: stamp,
+			note: note,
 			date: fmtDate(date, DATE_KEY.yearMonthDay)
-		} as IAttend
+		}
 		creates.push(attendDoc as TStoreBase);
 
 		// TODO:  also create a bonusTrack document

@@ -5,7 +5,6 @@ import { FireService } from '@dbase/fire/fire.service';
 import { AuthService } from '@dbase/auth/auth.service';
 
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IMeta } from '@dbase/data/data.schema';
 import { ETrack, ITrack } from '@dbase/track/track.define';
 
 import { getStamp, fmtDate, DATE_KEY } from '@lib/date.library';
@@ -37,7 +36,7 @@ export class TrackService {
       msg: sprintf(data),
     }
 
-    this.fire.setDoc(STORE.log, trackDoc as IMeta);
+    this.fire.setDoc(STORE.log, trackDoc);
     console.log(JSON.stringify(trackDoc));
   }
 

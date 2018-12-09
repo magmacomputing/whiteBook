@@ -8,7 +8,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { IMeta, TStoreBase } from '@dbase/data/data.schema';
+import { TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/data/data.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -49,7 +49,7 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields */
-	private remMeta(doc: IMeta) {
+	private remMeta(doc: Partial<IStoreMeta>) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		return rest;
 	}
@@ -65,7 +65,7 @@ export class FireService {
 		bat.commit();
 	}
 
-	async setDoc(store: string, doc: IMeta) {
+	async setDoc(store: string, doc: Partial<IStoreMeta>) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
 		doc = this.remMeta(doc);										// remove the meta-field from the document
@@ -73,7 +73,7 @@ export class FireService {
 		return docId;
 	}
 
-	async updDoc(store: string, docId: string, data: IMeta) {
+	async updDoc(store: string, docId: string, data: Partial<IStoreMeta>) {
 		data = this.remMeta(data);
 		await this.docRef(store, docId).update(data)
 		return docId;

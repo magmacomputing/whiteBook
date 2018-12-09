@@ -16,6 +16,11 @@ export const toNumeric = (str: string | number, stripZero: boolean = false) =>
 		? parseInt(str.toString(), 10)
 		: str;
 
+/** make a String into a Template Literal, and evaluate */
+export const makeTemplate = (templateString: Object) =>
+	(templateData: Object) =>
+		new Function(`{${Object.keys(templateData).join(',')}}`, 'return `' + templateString + '`')(templateData);
+
 export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);
 export const toLower = (str: string) => isString(str) ? str.toLowerCase() : str;
 export const toUpper = (str: string) => isString(str) ? str.toUpperCase() : str;
