@@ -198,7 +198,7 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginRedirect)
-	onLoginRedirect(ctx: StateContext<IAuthState>) {//	/member
+	onLoginRedirect(ctx: StateContext<IAuthState>) {
 		this.dbg('onLoginRedirect, navigating to /login');
 		this.navigate.route(ROUTE.login);
 	}
