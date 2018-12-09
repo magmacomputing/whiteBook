@@ -7,7 +7,7 @@ import { StateService } from '@dbase/state/state.service';
 
 import { AuthModule } from '@dbase/auth/auth.module';
 import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
-import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginSetup } from '@dbase/state/auth.action';
+import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.action';
 
 import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
@@ -101,9 +101,7 @@ export class AuthService {
 		const channel = new BroadcastChannel('oauth');
 		channel.onmessage = (msg) => {
 			channel.close();
-			// this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }));
-			this.dbg('msg: %j', JSON.parse(msg.data));
-			this.store.dispatch(new LoginSetup(JSON.parse(msg.data) as User));
+			this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }));
 		}
 	}
 
@@ -112,16 +110,12 @@ export class AuthService {
 		return this.store.dispatch(new LoginOAuth(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
-				// if (state.auth.info) 								// tell the main thread to update State
-				// 	new BroadcastChannel('oauth')
-				// 		.postMessage(JSON.stringify(state.auth.info));
-				if (state.auth.user) {
+				if (state.auth.info) 								// tell the main thread to update State
 					new BroadcastChannel('oauth')
-						.postMessage(JSON.stringify(state.auth.user))
+						.postMessage(JSON.stringify(state.auth.info));
 
-					// if (state.auth.user)
+				if (state.auth.user)
 					window.close();										// only close on valid user
-				}
 			})
 	}
 
