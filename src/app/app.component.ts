@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DataService } from '@dbase/data/data.service';
-import { AuthService } from '@dbase/auth/auth.service';
+import { AuthService } from '@service/auth/auth.service';
 
 @Component({
 	selector: 'wb-root',

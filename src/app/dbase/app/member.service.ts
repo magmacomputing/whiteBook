@@ -70,27 +70,26 @@ export class MemberService {
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
-		const data = await this.getAccount();
-		const amount = await this.getAmount(data);
+		const data = await this.getAccount();						// get Member's current account details
 
+		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
 			schedule.price = await this.getEventPrice(schedule[FIELD.key], data);
-		const activePay = await this.getPayment(schedule.price, data);
 
+		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await lkpDate(schedule[FIELD.key], this.state, date)
 		const when = fmtDate(date, DATE_KEY.yearMonthDay);
 
+		// check we are not re-booking same Class on same Day
 		const attendFilter: TWhere = [
 			{ fieldPath: FIELD.type, value: schedule[FIELD.key] },
 			{ fieldPath: FIELD.uid, value: data.auth.user!.uid },
 			{ fieldPath: 'date', value: when },
+			{ fieldPath: 'note', value: note  },
 		]
-		if (note)
-			attendFilter.push({ fieldPath: 'note', value: note });
-		debugger;
-		const already = await this.data.getDirect<IAttend>(STORE.attend, { where: attendFilter });
-		if (already) {
+		const booked = await this.data.getDirect<IAttend>(STORE.attend, { where: attendFilter });
+		if (booked.length) {
 			this.snack.show('Already attended this class');
 			return;
 		}
@@ -98,20 +97,25 @@ export class MemberService {
 		const creates: TStoreBase[] = [];
 		const updates: TStoreBase[] = [];
 		const stamp = getStamp();
-		const payments = data.account.payment;
+		const payments = data.account.payment;					// the list of current and prepaid payments
+
+		// determine which Payment record is active
+		const activePay = await this.getPayment(schedule.price, data);
+		const amount = await this.getAmount(data);			// Account balance
 
 		if (payments[0]) {
 			if (payments[0][FIELD.id] !== activePay[FIELD.id]) {
 				if (amount.credit)
-					activePay.bank = amount.credit;					// un-used creditit
+					activePay.bank = amount.credit;						// rollover unused credit to new Payment
 				creates.push(Object.assign({ [FIELD.effect]: stamp }, activePay));
 				updates.push(Object.assign(payments[0], { [FIELD.expire]: stamp }));
 			} else {
-				if (!activePay[FIELD.effect])
+				if (!activePay[FIELD.effect])								// add effective date to Active Payment on first use
 					updates.push(Object.assign(activePay, { [FIELD.effect]: stamp }));
 			}
 		}
 
+		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.key] as TClass,	// the Attend's class
@@ -138,7 +142,7 @@ export class MemberService {
 
 	async getAmount(data?: IAccountState) {
 		data = data || await this.getAccount();
-		const { bank, pend, paid, spend } = data.account.summary;
+		const { bank = 0, pend = 0, paid = 0, spend = 0 } = data.account.summary;
 		return { bank, pend, paid, spend, credit: bank + pend + paid - spend };
 	}
 

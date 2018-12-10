@@ -12,7 +12,7 @@ export type TWhere = IWhere | IWhere[];
 /** Query.orderBy */
 export interface IOrderBy {
 	fieldPath: string | FieldPath;
-	directionStr?: 'desc' | 'asc' | undefined;
+	directionStr?: 'desc' | 'asc';
 }
 /** Collection.Query */
 export interface IQuery {
@@ -25,9 +25,9 @@ export interface IQuery {
 export interface IDocMeta {
 	exists: boolean;
 	[FIELD.id]: string;
-	[FIELD.create]: number | undefined;
-	[FIELD.update]: number | undefined;
-	[FIELD.access]: number | undefined;
+	[FIELD.create]?: number;
+	[FIELD.update]?: number;
+	[FIELD.access]?: number;
 	subcollections: string[];
 	path: string;
 }

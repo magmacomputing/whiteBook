@@ -5,7 +5,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { RoutingModule } from '@route/routing.module';
 import { DBaseModule } from '@dbase/dbase.module';
-import { AuthModule } from '@dbase/auth/auth.module';
+import { AuthModule } from '@service/auth/auth.module';
 import { AppComponent } from './app.component';
 
 import { NgxsModule } from '@ngxs/store';

@@ -3,7 +3,7 @@ import { MatSnackBar, MatSnackBarRef } from '@angular/material';
 
 @Injectable({ providedIn: 'root' })
 export class SnackService {
-  private ref: MatSnackBarRef<{}> | undefined;
+  private ref?: MatSnackBarRef<{}>;
 
   constructor(private snack: MatSnackBar) { }
 

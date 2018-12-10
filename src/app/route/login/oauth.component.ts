@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
 import { StateService } from '@dbase/state/state.service';
-import { AuthService } from '@dbase/auth/auth.service';
+import { AuthService } from '@service/auth/auth.service';
 
 import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';

@@ -3,14 +3,14 @@ import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
-
-import { AuthModule } from '@dbase/auth/auth.module';
-import { getAuthProvider, isActive } from '@dbase/auth/auth.library';
 import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.action';
+
+import { AuthModule } from '@service/auth/auth.module';
+import { getAuthProvider, isActive } from '@service/auth/auth.library';
+import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
-import { TScopes, TParams } from '@dbase/auth/auth.interface';
 
 import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';

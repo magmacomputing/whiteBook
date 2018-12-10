@@ -10,8 +10,8 @@ import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { TWhere } from '@dbase/fire/fire.interface';
-import { AuthModule } from '@dbase/auth/auth.module';
-import { AuthService } from '@dbase/auth/auth.service';
+import { AuthModule } from '@service/auth/auth.module';
+import { AuthService } from '@service/auth/auth.service';
 
 import { isArray } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';

@@ -16,7 +16,7 @@ import {
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
-import { getAuthProvider, getProviderId } from '@dbase/auth/auth.library';
+import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
-import { AuthService } from '@dbase/auth/auth.service';
+import { AuthService } from '@service/auth/auth.service';
 
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { ETrack, ITrack } from '@service/track/track.define';

@@ -2,7 +2,7 @@ import { Observable, defer, combineLatest } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
-import { IFireClaims } from '@dbase/auth/auth.interface';
+import { IFireClaims } from '@service/auth/auth.interface';
 import { asAt, firstRow } from '@dbase/app/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState } from '@dbase/state/state.define';
