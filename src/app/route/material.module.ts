@@ -12,7 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 
 const modules = [
@@ -39,6 +39,10 @@ const modules = [
 		DragDropModule,
 		...modules
 	],
-	providers: [{ provide: MATERIAL_SANITY_CHECKS, useValue: false }],
+	providers: [
+		{ provide: MATERIAL_SANITY_CHECKS, useValue: false },
+		{ provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 5000 } },
+	],
+	entryComponents: [],
 })
 export class MaterialModule { }

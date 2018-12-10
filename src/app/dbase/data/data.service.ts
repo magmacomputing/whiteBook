@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/state.define';
 
+import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
@@ -30,7 +30,7 @@ import { dbg } from '@lib/logger.library';
 export class DataService {
 	private dbg = dbg(this);
 
-	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: MatSnackBar) {
+	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: SnackService) {
 		this.dbg('new');
 		this.sync.on(COLLECTION.client, SLICE.client);
 	}

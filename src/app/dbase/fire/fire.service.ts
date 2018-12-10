@@ -1,9 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
-import { MatSnackBar } from '@angular/material';
 import { tap } from 'rxjs/operators';
 
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
+import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD } from '@dbase/data/data.define';
@@ -25,7 +25,7 @@ export class FireService {
 	private dbg = dbg(this);
 
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
-		private zone: NgZone, private snack: MatSnackBar) {
+		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
 	}
 

@@ -13,6 +13,7 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
 import { StoreStorage } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
+import { WarnSnackbarComponent } from '@service/snack/snack.service';
 
 @NgModule({
 	declarations: [
@@ -29,6 +30,7 @@ import { environment } from '../environments/environment';
 		ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 	],
 	providers: [],
-	bootstrap: [AppComponent]
+	bootstrap: [AppComponent],
+	entryComponents: [WarnSnackbarComponent],
 })
 export class AppModule { }

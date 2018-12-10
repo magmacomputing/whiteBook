@@ -13,6 +13,8 @@ import { AttendState } from '@dbase/state/attend.state';
 import { LocalState } from '@dbase/state/local.state';
 import { AdminState } from '@dbase/state/admin.state';
 
+import { WarnSnackbarComponent, SnackService } from '@service/snack/snack.service';
+
 const fb = environment.firebase || {};
 
 @NgModule({
@@ -26,6 +28,7 @@ const fb = environment.firebase || {};
 	providers: [
 		{ provide: FunctionsRegionToken, useValue: 'us-central1' },
 	],
-	declarations: []
+	declarations: [WarnSnackbarComponent],
+	// entryComponents: [WarnSnackbarComponent],
 })
 export class DBaseModule { }

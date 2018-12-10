@@ -90,7 +90,7 @@ export class MemberService {
 		]
 		const booked = await this.data.getDirect<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
-			this.snack.show('Already attended this class');
+			this.snack.warn('Already attended this class');
 			return;
 		}
 

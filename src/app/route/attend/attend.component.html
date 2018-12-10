@@ -1,8 +1,6 @@
 <div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],price:[],location:[],instructor:[]}}; let timetable">
-	<div>
-		<div *ngIf="timetable.client?.schedule?.length; else noSchedule">
-			<p>Please select an Event from the list below...</p>
-		</div>
+	<div *ngIf="timetable.client?.schedule?.length; else noSchedule">
+		<p>Please select an Event from the list below...</p>
 	</div>
 
 	<div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
@@ -31,7 +29,6 @@
 
 							<mat-card-content>
 								<button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
-									<!-- Check-in: {{ timetable.client.price[idx]?.amount | currency }} -->
 									Check-in: {{ item.price | currency }}
 								</button>
 							</mat-card-content>

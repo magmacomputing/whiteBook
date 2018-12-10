@@ -1,14 +1,10 @@
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { auth } from 'firebase';
 import { AngularFireAuth } from '@angular/fire/auth';
 
+import { auth } from 'firebase';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
-import { take, tap } from 'rxjs/operators';
-import { ROUTE } from '@route/route.define';
-import { NavigateService } from '@route/navigate.service';
 
+import { take, tap } from 'rxjs/operators';
 import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
@@ -16,7 +12,12 @@ import {
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
+import { SnackService } from '@service/snack/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
+
+import { ROUTE } from '@route/route.define';
+import { NavigateService } from '@route/navigate.service';
+
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -35,7 +36,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: MatSnackBar,
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService,
 		private router: Router, private navigate: NavigateService) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
