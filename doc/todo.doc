@@ -18,3 +18,5 @@ set authState.user ?  or authState.delegate
 *> logging to FireStore
 
 *> add 'note' to /attend
+
+*> add <mat-icon> to SnackBar
