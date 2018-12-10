@@ -29,6 +29,5 @@ const fb = environment.firebase || {};
 		{ provide: FunctionsRegionToken, useValue: 'us-central1' },
 	],
 	declarations: [WarnSnackbarComponent],
-	// entryComponents: [WarnSnackbarComponent],
 })
 export class DBaseModule { }
