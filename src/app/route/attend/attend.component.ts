@@ -27,7 +27,7 @@ export class AttendComponent implements OnInit {
 	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) { }
 
 	ngOnInit() {                                        // wire-up the timetable Observable
-		this.timetable$ = this.state.getTimetableData(this.date).pipe(
+		this.timetable$ = this.state.getScheduleData(this.date).pipe(
 			map(data => {
 				// this.firstPaint = false;                   // TODO: ok to animate if Observable re-emits
 				this.locations = (data.client.location || []).length;

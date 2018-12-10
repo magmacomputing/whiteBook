@@ -30,6 +30,9 @@
       "@dbase/*": [
         "src/app/dbase/*"
       ],
+      "@service/*": [
+        "src/app/service/*"
+      ],
       "@route/*": [
         "src/app/route/*",
         "src/app/route/router/*"

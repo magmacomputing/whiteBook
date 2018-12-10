@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material';
 import { DBaseModule } from '@dbase/dbase.module';
 
+import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/state.define';
 
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@dbase/auth/auth.service';
@@ -47,6 +48,13 @@ export class DataService {
 		return store
 			? this.fire.callMeta(store, docId)
 			: Promise.reject(`Cannot determine slice: ${store}`)
+	}
+	
+	getDirect<T>(collection: string, query?: IQuery) {				// special: direct access to collection, rather than via state
+		return this.fire.colRef<T>(collection, query)
+			.valueChanges()
+			.pipe(take(1))
+			.toPromise()
 	}
 
 	get newId() {

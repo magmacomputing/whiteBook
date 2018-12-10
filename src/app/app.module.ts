@@ -19,14 +19,14 @@ import { environment } from '../environments/environment';
 		AppComponent,
 	],
 	imports: [
+		NgxsModule.forRoot([], { developmentMode: environment.production }),
+		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 		BrowserModule,
 		DBaseModule,
 		AuthModule,
 		RoutingModule,
 		BrowserAnimationsModule,
 		ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
-		NgxsModule.forRoot([], { developmentMode: environment.production }),
-		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 	],
 	providers: [],
 	bootstrap: [AppComponent]

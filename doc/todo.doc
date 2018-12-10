@@ -20,3 +20,6 @@ set authState.user ?  or authState.delegate
 *> add 'note' to /attend
 
 *> block multiple check-in for same day (unless 'note') in /attend
+
+*> SnackService
+re-write AuthState to use

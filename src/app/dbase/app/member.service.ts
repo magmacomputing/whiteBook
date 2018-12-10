@@ -4,13 +4,14 @@ import { timer } from 'rxjs';
 import { debounce, take } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 
+import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { IAuthState, LoginInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
 import { AuthState } from '@dbase/state/auth.state';
 
 import { TWhere } from '@dbase/fire/fire.interface';
-import { getMemberInfo } from '@dbase/app/member.library';
+import { getMemberInfo, lkpDate } from '@dbase/app/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
@@ -24,7 +25,7 @@ import { dbg } from '@lib/logger.library';
 export class MemberService {
 	private dbg = dbg(this);
 
-	constructor(private readonly data: DataService, private readonly store: Store, private state: StateService, private action: Actions) {
+	constructor(private readonly data: DataService, private readonly store: Store, private state: StateService, private action: Actions, private snack: SnackService) {
 		this.dbg('new');
 
 		this.action.pipe(															// special: listen for changes of the auth.info
@@ -67,7 +68,6 @@ export class MemberService {
 			: data.account.payment[0]											// else return the current Payment doc
 	}
 
-	// TODO: determine <date> as the last occurrence of the <time>'s class
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.getAccount();
@@ -75,11 +75,29 @@ export class MemberService {
 
 		if (isUndefined(schedule.price))
 			schedule.price = await this.getEventPrice(schedule[FIELD.key], data);
+		const activePay = await this.getPayment(schedule.price, data);
+
+		if (isUndefined(date))
+			date = await lkpDate(schedule[FIELD.key], this.state, date)
+		const when = fmtDate(date, DATE_KEY.yearMonthDay);
+
+		const attendFilter: TWhere = [
+			{ fieldPath: FIELD.type, value: schedule[FIELD.key] },
+			{ fieldPath: FIELD.uid, value: data.auth.user!.uid },
+			{ fieldPath: 'date', value: when },
+		]
+		if (note)
+			attendFilter.push({ fieldPath: 'note', value: note });
+		debugger;
+		const already = await this.data.getDirect<IAttend>(STORE.attend, { where: attendFilter });
+		if (already) {
+			this.snack.show('Already attended this class');
+			return;
+		}
 
 		const creates: TStoreBase[] = [];
 		const updates: TStoreBase[] = [];
 		const stamp = getStamp();
-		const activePay = await this.getPayment(schedule.price, data);
 		const payments = data.account.payment;
 
 		if (payments[0]) {
@@ -100,10 +118,10 @@ export class MemberService {
 			[FIELD.uid]: data.auth.user!.uid,							// the current User
 			schedule: schedule[FIELD.id],									// <id> of the Schedule
 			payment: activePay[FIELD.id],									// <id> of Account's current active document
-			amount: schedule.price,
-			stamp: stamp,
+			amount: schedule.price,												// calculated price of the Attend
+			stamp: stamp,																	// createDate
+			date: when,																		// yyyymmdd of the Attend
 			note: note,
-			date: fmtDate(date, DATE_KEY.yearMonthDay)
 		}
 		creates.push(attendDoc as TStoreBase);
 

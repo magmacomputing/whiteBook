@@ -1,7 +1,8 @@
 import * as moment from 'moment';
 
 import { TString, isString, isNumber } from '@lib/type.library';
-import { toNumeric, asString } from '@lib/string.library';
+import { toNumeric } from '@lib/string.library';
+import { isUndefined } from 'util';
 
 interface IDate {
 	cell: string;
@@ -103,11 +104,11 @@ export const fmtDate = <K extends keyof IDate>(dt?: string | number | moment.Mom
 	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key || 'yearMonthDay'])) as IDate[K];
 
 /** shortcut to fmtDate(dt, 'stamp', ...) */
-export const getStamp = (dt?: string | number, fmt: TString = MOMENT_FMT) =>
+export const getStamp = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
 	fmtDate<DATE_KEY.stamp>(dt, DATE_KEY.stamp, fmt);
 
 /** useful when we want an Object with *all* formats available */
-const fmtMoment = (dt?: any, fmt: TString = MOMENT_FMT): IDate => {
+export const fmtMoment = (dt?: any, fmt: TString = MOMENT_FMT): IDate => {
 	const mmt = moment.isMoment(dt) ? dt : getMoment(dt, fmt);
 	const obj = {} as IDate;
 
@@ -122,7 +123,7 @@ export const diffDate = (date?: string | number, unit: moment.unitOfTime.Diff = 
 		? moment().diff(getMoment(date), unit)
 		: 0
 
-export const addDate = (date: string | number, fmt: keyof IDate, offset: number = 0, unit: moment.unitOfTime.Diff = 'minutes') =>
-	isString(date) || isNumber(date)
-		? getMoment(date, DATE_FMT[fmt]).add(offset, unit).format(DATE_FMT[fmt])
-		: asString(date)
+export const addDate = <K extends keyof IDate>(fmt: K, offset: number = 0, date?: string | number | moment.Moment, unit: moment.unitOfTime.Diff = 'minutes') =>
+	isString(date) || isNumber(date) || moment.isMoment(date) || isUndefined(date)
+		? getMoment(date, DATE_FMT[fmt]).add(offset, unit).format(DATE_FMT[fmt]) as IDate[K]
+		: date as IDate[K]

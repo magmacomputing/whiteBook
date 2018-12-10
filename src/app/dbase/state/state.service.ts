@@ -136,7 +136,7 @@ export class StateService {
 	 * location   -> has the Locations that are indicated on that schedule or calendar
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 */
-	getTimetableData(date?: number, uid?: string): Observable<ITimetableState> {
+	getScheduleData(date?: number, uid?: string): Observable<ITimetableState> {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date, DATE_KEY.weekDay) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate(date, DATE_KEY.yearMonthDay) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
@@ -162,7 +162,7 @@ export class StateService {
 	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
-	getScheduleData(date?: number): Observable<ITimetableState> {
+	getTimetableData(date?: number): Observable<ITimetableState> {
 		const moment = getMoment(date);
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
@@ -175,12 +175,14 @@ export class StateService {
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 
 		return of({}).pipe(																						// start with an empty Object
+			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'client', STORE.schedule, undefined, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
+			take(1),
 		)
 	}
 }
