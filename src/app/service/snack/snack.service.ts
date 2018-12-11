@@ -25,12 +25,11 @@ export class SnackService {
 
   public warn(msg: string, action?: string, config: MatSnackBarConfig = {}) {
     this.dismiss();
-    console.log('warn: ', msg);
 
     this.ref = this.snack.openFromComponent(WarnSnackbarComponent, { ...config, data: msg });
   }
 
-  public dismiss() {
+  public dismiss() {                    // dismiss any snackbar, if present
     if (this.ref) {
       this.ref.dismiss();
       this.ref = undefined;

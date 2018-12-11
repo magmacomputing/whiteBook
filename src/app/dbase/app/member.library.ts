@@ -60,13 +60,14 @@ export const paymentDue = () => {
 }
 
 /** loop back over up-to-seven days to find when className was last scheduled */
-export const lkpDate = async (className: string, state: StateService, date?: number) => {
+export const lkpDate =
+	async (className: string, state: StateService, date?: number) => {
 	const timetable = await state.getTimetableData().toPromise();
 	let mmt = getMoment(date);												// start with today's date
 	let ctr = 0;
 
 	for (ctr = 0; ctr <= 7; ctr++) {
-		const now = fmtDate(mmt, DATE_KEY.day);					// get the offset 'day'
+		const now = fmtDate(mmt, DATE_KEY.weekDay);			// get the offset 'day'
 		const classes = timetable.client.schedule!			// loop through schedule
 			.filter(row => row.day === now)								// finding a match in 'day'
 			.filter(row => row[FIELD.key] === className)
