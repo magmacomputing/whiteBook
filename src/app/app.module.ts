@@ -13,7 +13,7 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
 import { StoreStorage } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
-import { WarnSnackbarComponent } from '@service/snack/snack.service';
+import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/snack/snack.service';
 
 @NgModule({
 	declarations: [
@@ -31,6 +31,6 @@ import { WarnSnackbarComponent } from '@service/snack/snack.service';
 	],
 	providers: [],
 	bootstrap: [AppComponent],
-	entryComponents: [WarnSnackbarComponent],
+	entryComponents: [InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent],
 })
 export class AppModule { }

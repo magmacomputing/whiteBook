@@ -13,7 +13,7 @@ import { AttendState } from '@dbase/state/attend.state';
 import { LocalState } from '@dbase/state/local.state';
 import { AdminState } from '@dbase/state/admin.state';
 
-import { WarnSnackbarComponent, SnackService } from '@service/snack/snack.service';
+import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/snack/snack.service';
 
 const fb = environment.firebase || {};
 
@@ -28,6 +28,6 @@ const fb = environment.firebase || {};
 	providers: [
 		{ provide: FunctionsRegionToken, useValue: 'us-central1' },
 	],
-	declarations: [WarnSnackbarComponent],
+	declarations: [InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent],
 })
 export class DBaseModule { }
