@@ -75,10 +75,10 @@ export class AuthService {
 		}
 	}
 
-	/** prepare the AuthProvider object before dispatching the SignIn flow */
+	/** prepare an AuthProvider object before dispatching the SignIn flow */
 	private signInIdentity(provider: IProvider) {
 		const [, authProvider] = getAuthProvider(provider[FIELD.key]);
-		if (!authProvider) return;                      // misconfigured providerId
+		if (!authProvider) return;                      // unsupported providerId
 
 		asArray(provider.scope)
 			.forEach(scope => (authProvider as TScopes).addScope(scope));

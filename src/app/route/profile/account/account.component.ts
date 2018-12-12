@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
-import { MemberService } from '@dbase/app/member.service';
+import { MemberService } from '@service/member/member.service';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 

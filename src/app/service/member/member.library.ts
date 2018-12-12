@@ -6,7 +6,6 @@ import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 import { isString, isObject, isNumber } from '@lib/type.library';
 import { getStamp, diffDate, getMoment, fmtDate, DATE_KEY } from '@lib/date.library';
 import { FIELD } from '@dbase/data/data.define';
-import { getLocaleDateFormat } from '@angular/common';
 
 // Library of member-related functions
 
@@ -25,6 +24,7 @@ export const getMemberInfo = (provider: AdditionalUserInfo) => {
 		gender: profile.gender,
 		photoURL: profile.pictureUrl
 			|| profile.thumbnail															// linkedin
+			|| profile.profile_image_url_https								// twitter
 			|| profile.avatar_url															// github
 			|| isString(profile.picture) && profile.picture 	// google
 			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url // facebook

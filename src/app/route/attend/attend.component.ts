@@ -4,8 +4,8 @@ import { map } from 'rxjs/operators';
 
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { MemberService } from '@dbase/app/member.service';
 import { DataService } from '@dbase/data/data.service';
+import { MemberService } from '@service/member/member.service';
 
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';

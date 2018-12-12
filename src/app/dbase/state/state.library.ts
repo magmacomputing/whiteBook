@@ -3,11 +3,11 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@service/auth/auth.interface';
+import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow } from '@dbase/app/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
-import { getMemberAge } from '@dbase/app/member.library';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
 

@@ -4,7 +4,7 @@ import { map } from 'rxjs/operators';
 
 import { IPlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { MemberService } from '@dbase/app/member.service';
+import { MemberService } from '@service/member/member.service';
 
 import { IPrice } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';

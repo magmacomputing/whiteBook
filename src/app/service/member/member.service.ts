@@ -11,7 +11,7 @@ import { IAccountState } from '@dbase/state/state.define';
 import { AuthState } from '@dbase/state/auth.state';
 
 import { TWhere } from '@dbase/fire/fire.interface';
-import { getMemberInfo, lkpDate } from '@dbase/app/member.library';
+import { getMemberInfo, lkpDate } from '@service/member/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
