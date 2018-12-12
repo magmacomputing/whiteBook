@@ -208,7 +208,6 @@ export class AuthState implements NgxsOnInit {
 	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.member, true);
 		this.sync.off(COLLECTION.attend, true);
-		this.snack.dismiss();
 
 		if (error) {
 			this.dbg('logout: %j', error);
@@ -217,6 +216,7 @@ export class AuthState implements NgxsOnInit {
 			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
+		
 		ctx.setState({ user: null, token: null, info: null, credential: null });
 		ctx.dispatch(new LoginRedirect());
 	}

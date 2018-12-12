@@ -13,7 +13,7 @@ import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { AuthService } from '@service/auth/auth.service';
-import { asAt } from '@dbase/app/app.library';
+import { asAt } from '@dbase/library/app.library';
 
 import { TString } from '@lib/type.library';
 import { getStamp } from '@lib/date.library';

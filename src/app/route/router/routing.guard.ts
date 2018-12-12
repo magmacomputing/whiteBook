@@ -1,31 +1,29 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
+import { CanActivate } from '@angular/router';
 
-import { Store } from '@ngxs/store';
-import { MemberState } from '@dbase/state/member.state';
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { asAt } from '@dbase/app/app.library';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { AuthModule } from '@service/auth/auth.module';
 import { AuthService } from '@service/auth/auth.service';
+import { StateService } from '@dbase/state/state.service';
 
-import { isArray } from '@lib/type.library';
+import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {
 	private dbg = dbg(this);
 
-	constructor(private auth: AuthService, private router: Router, private navigate: NavigateService) { this.dbg('new') }
+	constructor(private auth: AuthService, private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
 		const state = await this.auth.user;
 
-		if (state.auth.user)
+		if (state.auth.user)												// is logged-on
 			return true;
 
 		this.navigate.route(ROUTE.login);
@@ -38,14 +36,13 @@ export class AuthGuard implements CanActivate {
 export class ProfileGuard implements CanActivate {
 	private dbg = dbg(this);
 
-	constructor(private store: Store, private router: Router, private navigate: NavigateService) { this.dbg('new') }
+	constructor(private state: StateService, private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const member = this.store.selectSnapshot(MemberState)
 		const where: TWhere = { fieldPath: FIELD.type, value: 'plan' };
-		const plan = asAt<IProfilePlan>(member[STORE.profile], where);
+		const plan = await this.state.getSingle<IProfilePlan>(STORE.profile, where);
 
-		if (isArray(plan) && plan.length)
+		if (!isUndefined(plan))
 			return true;      												// ok to access Route
 
 		this.navigate.route(ROUTE.plan);

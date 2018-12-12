@@ -3,9 +3,7 @@ import { Router } from '@angular/router';
 
 import { dbg } from '@lib/logger.library';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class NavigateService {
   private dbg = dbg(this);
 

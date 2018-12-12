@@ -40,6 +40,11 @@ export enum STORE {
 	log = 'log',
 }
 
+export enum MEMBER {
+	profile = 'profile',
+	payment = 'payment',
+}
+
 export enum LOCAL {
 	config = '@config@',
 }

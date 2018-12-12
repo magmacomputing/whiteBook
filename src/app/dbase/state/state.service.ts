@@ -54,7 +54,6 @@ export class StateService {
 		return getStore<T & TStoreBase>(this.states, store, filters);
 	}
 
-	/** Expose a library function */
 	getSingle<T>(store: string, filter: TWhere) {
 		return this.getCurrent<T>(store, filter)
 			.pipe(
