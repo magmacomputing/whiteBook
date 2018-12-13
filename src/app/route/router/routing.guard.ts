@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate } from '@angular/router';
+import { CanActivate, CanDeactivate, Router } from '@angular/router';
 
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
@@ -47,5 +47,23 @@ export class ProfileGuard implements CanActivate {
 
 		this.navigate.route(ROUTE.plan);
 		return false;
+	}
+}
+
+/** check if we are returning from an OAuth provider */
+@Injectable({ providedIn: AuthModule })
+export class OAuthGuard implements CanActivate {
+	private dbg = dbg(this);
+
+	constructor(private router: Router) { this.dbg('new') }
+
+	canActivate() {
+		return true;
+}
+
+	canDeactivate() {
+		const url = this.router.url.split('?')[0];
+
+		return url !== ROUTE.oauth;
 	}
 }

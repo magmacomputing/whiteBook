@@ -4,7 +4,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { auth } from 'firebase';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 
-import { take, tap } from 'rxjs/operators';
+import { take, tap, map } from 'rxjs/operators';
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
@@ -48,7 +48,7 @@ export class AuthState implements NgxsOnInit {
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
 		if (user) {
-			if (credential) {													// have we been redirected here, via credential?
+			if (credential) {														// have we been redirected here, via credential?
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
 				ctx.patchState({ info: response.additionalUserInfo });
 			}
@@ -58,28 +58,23 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	/** Commands */
-	@Action(CheckSession)													// on first connect, check if still logged-on
-	checkSession(ctx: StateContext<IAuthState>, { initial }: CheckSession) {
-		const url = this.router.url.split('?')[0];
-		if (url === ROUTE.oauth) {
-			this.dbg('url: %s', url);
-			return;																		// intercept the redirect-to-login page
+	@Action(CheckSession)														// check Authentication status
+	async checkSession(ctx: StateContext<IAuthState>, { initial }: CheckSession) {
+		const user = await this.afAuth.authState.pipe(take(1)).toPromise();
+		this.dbg('%s (initial=>%s)', user ? `${user.displayName} is logged in` : 'not logged in', this.initial);
+		if (initial) {
+			this.initial = false;												// subsequent callback
+			ctx.dispatch(user
+				? new LoginSuccess(user)
+				: new Logout()
+			)
 		}
-		this.initial = false;												// subsequent callback
 
-		return this.afAuth.authState								// then check to see if still authenticated
-			.pipe(
-				take(1),
-				tap(async user => {
-					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-					if (initial) {
-						ctx.dispatch(user
-							? new LoginSuccess(user)
-							: new Logout()
-						)
-					}
-				})
-			);
+		// const url = this.router.url.split('?')[0];
+		// if (url === ROUTE.oauth) {
+		// 	this.dbg('url: %s', url);
+		// 	return;																			// intercept the redirect-to-login page
+		// }
 	}
 
 	@Action(LoginLink)														// attempt to link multiple providers
@@ -123,6 +118,7 @@ export class AuthState implements NgxsOnInit {
 		}
 		ctx.patchState({ info: additionalUserInfo });
 
+		this.initial = true;
 		this.afAuth.auth.signInWithCustomToken(token)
 			.then(response => ctx.dispatch(new LoginSetup(response.user!)))
 			.catch(error => this.dbg('failed: %j', error.toString()));
@@ -162,12 +158,18 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+		const url = this.router.url.split('?')[0];
+		// if (url === ROUTE.oauth) {
+		// 	this.dbg('url: %s', url);
+		// 	return;																			// intercept the redirect-to-login page
+		// }
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
+				// .then(_ => { if (url !== ROUTE.oauth) this.navigate.route(ROUTE.attend) })
 				.then(_ => this.navigate.route(ROUTE.attend))
 		}
 	}
@@ -179,8 +181,6 @@ export class AuthState implements NgxsOnInit {
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
-		this.snack.dismiss();
-
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => ctx.patchState({ user, token }))
@@ -198,7 +198,7 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginRedirect)
 	onLoginRedirect(ctx: StateContext<IAuthState>) {
-		this.dbg('onLoginRedirect, navigating to /login');
+		this.dbg('loginRedirect: navigating to /login');
 		this.navigate.route(ROUTE.login);
 	}
 
