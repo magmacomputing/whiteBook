@@ -34,6 +34,7 @@ export class OAuthComponent implements OnInit {
 	}
 
 	canDeactivate() {
+		this.dbg('deactivate: %s', false);
 		return false;											// once on this page, cannot move away
 	}
 
