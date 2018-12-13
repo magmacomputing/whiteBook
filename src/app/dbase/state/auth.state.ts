@@ -1,10 +1,9 @@
-import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { auth } from 'firebase';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 
-import { take, tap, map } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
@@ -37,8 +36,7 @@ export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
 	private initial = true;
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService,
-		private router: Router, private navigate: NavigateService) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -61,20 +59,12 @@ export class AuthState implements NgxsOnInit {
 	@Action(CheckSession)														// check Authentication status
 	async checkSession(ctx: StateContext<IAuthState>, { initial }: CheckSession) {
 		const user = await this.afAuth.authState.pipe(take(1)).toPromise();
-		this.dbg('%s (initial=>%s)', user ? `${user.displayName} is logged in` : 'not logged in', this.initial);
-		if (initial) {
-			this.initial = false;												// subsequent callback
-			ctx.dispatch(user
-				? new LoginSuccess(user)
-				: new Logout()
-			)
-		}
+		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
-		// const url = this.router.url.split('?')[0];
-		// if (url === ROUTE.oauth) {
-		// 	this.dbg('url: %s', url);
-		// 	return;																			// intercept the redirect-to-login page
-		// }
+		ctx.dispatch(user
+			? new LoginSuccess(user)
+			: new Logout()
+		)
 	}
 
 	@Action(LoginLink)														// attempt to link multiple providers
@@ -158,18 +148,12 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		const url = this.router.url.split('?')[0];
-		// if (url === ROUTE.oauth) {
-		// 	this.dbg('url: %s', url);
-		// 	return;																			// intercept the redirect-to-login page
-		// }
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
-				// .then(_ => { if (url !== ROUTE.oauth) this.navigate.route(ROUTE.attend) })
 				.then(_ => this.navigate.route(ROUTE.attend))
 		}
 	}

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, CanDeactivate, Router } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
@@ -50,20 +51,17 @@ export class ProfileGuard implements CanActivate {
 	}
 }
 
-/** check if we are returning from an OAuth provider */
+/** check if Component allows navigation away */
+interface IDeactivateComponent {
+	canDeactivate: () => Observable<boolean> | Promise<boolean> | boolean;
+}
 @Injectable({ providedIn: AuthModule })
-export class OAuthGuard implements CanActivate {
+export class DeactivateGuard implements CanDeactivate<IDeactivateComponent> {
 	private dbg = dbg(this);
 
-	constructor(private router: Router) { this.dbg('new') }
+	constructor() { this.dbg('new') }
 
-	canActivate() {
-		return true;
-}
-
-	canDeactivate() {
-		const url = this.router.url.split('?')[0];
-
-		return url !== ROUTE.oauth;
+	canDeactivate(component: IDeactivateComponent) {
+		return component.canDeactivate ? component.canDeactivate() : true;
 	}
 }

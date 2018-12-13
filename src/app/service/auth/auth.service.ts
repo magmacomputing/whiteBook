@@ -113,8 +113,8 @@ export class AuthService {
 					new BroadcastChannel('oauth')
 						.postMessage(JSON.stringify(state.auth.info));
 
-				// if (state.auth.user)
-				// 	window.close();										// only close on valid user
+				if (state.auth.user)
+					window.close();										// only close on valid user
 			})
 	}
 
