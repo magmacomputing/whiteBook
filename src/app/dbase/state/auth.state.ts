@@ -3,7 +3,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
-	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
+	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
 	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
@@ -55,7 +55,7 @@ export class AuthState implements NgxsOnInit {
 	/** Commands */
 	@Action(CheckSession)														// check Authentication status
 	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
-		this.dbg('%s (%s=%s)', user ? `${user.displayName} is logged in` : 'not logged in', isNull(user), isNull(this.user));
+		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && !isNull(this.user)) {
 			ctx.dispatch(new Logout());									// User has logged-out remotely
@@ -149,13 +149,12 @@ export class AuthState implements NgxsOnInit {
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
-		this.dbg('signOut');
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
-				.then(_ => this.navigate.route(ROUTE.attend))
+				// .then(_ => this.navigate.route(ROUTE.attend))
 		}
 	}
 
@@ -181,12 +180,6 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
-	@Action(LoginRedirect)
-	redirectLogin(ctx: StateContext<IAuthState>) {
-		this.dbg('loginRedirect: navigating to /login');
-		this.navigate.route(ROUTE.login);
-	}
-
 	@Action([LoginFailed, LogoutSuccess])
 	notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.member, true);
@@ -201,6 +194,6 @@ export class AuthState implements NgxsOnInit {
 		}
 
 		ctx.setState({ user: null, token: null, info: null, credential: null });
-		ctx.dispatch(new LoginRedirect());
+		this.navigate.route(ROUTE.login);
 	}
 }

@@ -10,6 +10,7 @@ export class NavigateService {
   constructor(private router: Router, private zone: NgZone) { this.dbg('new') }
 
   route(url: string) {
+    this.dbg('route: %s', url);
     this.zone.run(() => this.router.navigateByUrl(url));
   }
 }
