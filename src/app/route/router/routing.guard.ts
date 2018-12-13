@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, CanDeactivate, Router } from '@angular/router';
+import { CanActivate, CanDeactivate } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { ROUTE } from '@route/route.define';
@@ -8,6 +8,7 @@ import { NavigateService } from '@route/navigate.service';
 import { AuthModule } from '@service/auth/auth.module';
 import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
+import { OAuthModule } from '@route/login/oauth.module';
 
 import { isUndefined } from '@lib/type.library';
 import { getPath } from '@lib/object.library';
@@ -55,7 +56,7 @@ export class ProfileGuard implements CanActivate {
 interface IDeactivateComponent {
 	canDeactivate: () => Observable<boolean> | Promise<boolean> | boolean;
 }
-@Injectable({ providedIn: AuthModule })
+@Injectable({ providedIn: OAuthModule })
 export class DeactivateGuard implements CanDeactivate<IDeactivateComponent> {
 	private dbg = dbg(this);
 

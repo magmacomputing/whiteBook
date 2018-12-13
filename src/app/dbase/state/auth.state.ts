@@ -1,9 +1,6 @@
+import { IdTokenResult, AuthProvider, AuthCredential } from '@firebase/auth-types';
 import { AngularFireAuth } from '@angular/fire/auth';
 
-import { auth } from 'firebase';
-import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
-
-import { take } from 'rxjs/operators';
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
@@ -21,6 +18,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
+import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -34,17 +32,17 @@ import { dbg } from '@lib/logger.library';
 })
 export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
-	private initial = true;
+	private user: firebase.User | null = null;
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
 		this.afAuth.authState
-			.subscribe(_ => ctx.dispatch(new CheckSession(this.initial)))
+			.subscribe(user => ctx.dispatch(new CheckSession(user)))
 	}
 
-	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
+	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: AuthCredential) {
 		if (user) {
 			if (credential) {														// have we been redirected here, via credential?
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
@@ -57,19 +55,18 @@ export class AuthState implements NgxsOnInit {
 
 	/** Commands */
 	@Action(CheckSession)														// check Authentication status
-	async checkSession(ctx: StateContext<IAuthState>, { initial }: CheckSession) {
-		const user = await this.afAuth.authState.pipe(take(1)).toPromise();
-		this.dbg('%s (%s)', user ? `${user.displayName} is logged in` : 'not logged in', this.initial);
+	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
+		this.dbg('%s (%s=%s)', user ? `${user.displayName} is logged in` : 'not logged in', isNull(user), isNull(this.user));
 
-		// if (this.initial) {			// TODO: debounce
-		// 	this.initial = false;
-		this.afAuth.idTokenResult.subscribe(res => this.dbg('res: %j', res));
-		// this.dbg('providerId: %j', this.afAuth.user.);
-			ctx.dispatch(user
-				? new LoginSuccess(user)
-				: new Logout()
-			)
-		// }
+		if (isNull(user) && !isNull(this.user)) {
+			this.user = null;
+			ctx.dispatch(new Logout());
+		}
+
+		if (!isNull(user) && isNull(this.user)) {
+			this.user = user;
+			ctx.dispatch(new LoginSuccess(user));
+		}
 	}
 
 	@Action(LoginLink)														// attempt to link multiple providers
@@ -106,14 +103,13 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(LoginOAuth)
 	async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginOAuth) {
-		const additionalUserInfo: auth.AdditionalUserInfo = {
+		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),
 			profile: user,
 		}
 		ctx.patchState({ info: additionalUserInfo });
 
-		this.initial = true;
 		this.afAuth.auth.signInWithCustomToken(token)
 			.then(response => ctx.dispatch(new LoginSetup(response.user!)))
 			.catch(error => this.dbg('failed: %j', error.toString()));
@@ -144,6 +140,8 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(Logout)																	// process signOut()
 	async logout(ctx: StateContext<IAuthState>) {
+		this.dbg('signOut');
+		this.user = null;
 		await this.afAuth.auth.signOut();
 
 		ctx.dispatch(new LogoutSuccess());
@@ -186,13 +184,13 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(LoginRedirect)
-	onLoginRedirect(ctx: StateContext<IAuthState>) {
+	redirectLogin(ctx: StateContext<IAuthState>) {
 		this.dbg('loginRedirect: navigating to /login');
 		this.navigate.route(ROUTE.login);
 	}
 
 	@Action([LoginFailed, LogoutSuccess])
-	setUserStateOnFailure(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
+	notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.member, true);
 		this.sync.off(COLLECTION.attend, true);
 

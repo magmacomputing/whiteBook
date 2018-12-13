@@ -7,13 +7,12 @@ import { AuthGuard, ProfileGuard, DeactivateGuard } from '@route/routing.guard';
 import { MaterialModule } from '@route/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
-import { OAuthComponent } from '@route/login/oauth.component';
 
 const routes: Routes = [
-	{ path: 'login/oauth', component: OAuthComponent , canDeactivate: [DeactivateGuard]},
 	{ path: 'login', component: LoginComponent },
 	{ path: 'attend', component: AttendComponent, canActivate: [AuthGuard, ProfileGuard] },
 	{ path: 'profile', loadChildren: '@route/profile/profile.module#ProfileModule', canActivate: [AuthGuard] },
+	{ path: 'login/oauth', loadChildren: '@route/login/oauth.module#OAuthModule' , canDeactivate: [DeactivateGuard]},
 	{ path: 'admin', loadChildren: '@route/admin/admin.module#AdminModule', canActivate: [AuthGuard] },
 	{ path: '**', redirectTo: '/attend', pathMatch: 'full' },
 ];
@@ -21,6 +20,6 @@ const routes: Routes = [
 @NgModule({
 	imports: [CommonModule, MaterialModule, HttpClientModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule],
-	declarations: [LoginComponent, AttendComponent, OAuthComponent],
+	declarations: [LoginComponent, AttendComponent],
 })
 export class RoutingModule { }

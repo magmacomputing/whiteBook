@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
-import { ROUTE } from '@route/router/route.define';
 import { StateService } from '@dbase/state/state.service';
 import { AuthService } from '@service/auth/auth.service';
 
@@ -35,10 +34,6 @@ export class OAuthComponent implements OnInit {
 	}
 
 	canDeactivate() {
-		const url = this.route.snapshot.url[0];
-		this.dbg('deactivate: %j', url);
-
-		// return url !== ROUTE.oauth;
 		return false;											// once on this page, cannot move away
 	}
 
