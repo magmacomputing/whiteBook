@@ -5,7 +5,7 @@ import { auth } from 'firebase';
 import { User, IdTokenResult, AuthCredential, AuthProvider } from '@firebase/auth-types';
 
 import { take, tap } from 'rxjs/operators';
-import { State, Selector, StateContext, Action, NgxsOnInit } from '@ngxs/store';
+import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginRedirect, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
 	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo
@@ -35,6 +35,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
+	private initial = true;
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService,
 		private router: Router, private navigate: NavigateService) { }
@@ -42,7 +43,7 @@ export class AuthState implements NgxsOnInit {
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
 		this.afAuth.authState
-			.subscribe(_ => ctx.dispatch(new CheckSession()))
+			.subscribe(_ => ctx.dispatch(new CheckSession(this.initial)))
 	}
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: User | null, credential: AuthCredential) {
@@ -56,30 +57,27 @@ export class AuthState implements NgxsOnInit {
 		else ctx.dispatch(new LoginFailed(new Error('No User information available')))
 	}
 
-	/** Selectors */
-	@Selector()
-	static auth(state: IAuthState) {
-		return state;
-	}
-
 	/** Commands */
 	@Action(CheckSession)													// on first connect, check if still logged-on
-	checkSession(ctx: StateContext<IAuthState>) {
+	checkSession(ctx: StateContext<IAuthState>, { initial }: CheckSession) {
 		const url = this.router.url.split('?')[0];
 		if (url === ROUTE.oauth) {
 			this.dbg('url: %s', url);
 			return;																		// intercept the redirect-to-login page
 		}
+		this.initial = false;												// subsequent callback
 
 		return this.afAuth.authState								// then check to see if still authenticated
 			.pipe(
 				take(1),
 				tap(async user => {
 					this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
-					ctx.dispatch(user
-						? new LoginSuccess(user)
-						: new Logout()
-					)
+					if (initial) {
+						ctx.dispatch(user
+							? new LoginSuccess(user)
+							: new Logout()
+						)
+					}
 				})
 			);
 	}
@@ -216,7 +214,7 @@ export class AuthState implements NgxsOnInit {
 			if (error.code === 'auth/account-exists-with-different-credential')
 				return ctx.dispatch(new LoginLink(error));
 		}
-		
+
 		ctx.setState({ user: null, token: null, info: null, credential: null });
 		ctx.dispatch(new LoginRedirect());
 	}

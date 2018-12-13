@@ -144,7 +144,7 @@ export class SyncService {
 				case 'added':
 				case 'modified':
 					this.store.dispatch(new setStore(data, debug));
-					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claims' && !data[FIELD.expire])
+					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
 						this.store.dispatch(new LoginToken());    // special: access-level has changed
 					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire] && !data[FIELD.effect])
 						this.navigate.route(ROUTE.attend);				// special: intial plan is set

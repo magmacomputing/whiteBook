@@ -40,6 +40,7 @@ export interface IState { [slice: string]: Observable<TStateSlice<IStoreMeta>> }
 
 export interface IUserState {
 	auth: IAuthState;
+	// asPromise: () => IUserState | IMemberState | IAccountState;
 }
 
 export interface IMemberState extends IUserState {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
@@ -55,12 +55,14 @@ export class StateService {
 	}
 
 	getSingle<T>(store: string, filter: TWhere) {
-		return this.getCurrent<T>(store, filter)
-			.pipe(
-				take(1),											// only the first snapshot	
-				map(table => table[0]),				// only the first element
-			)
-			.toPromise<T>();
+		return this.asPromise(this.getCurrent<T>(store, filter))
+			.then(table => table[0]);				// only the first document
+	}
+
+	asPromise<T>(obs: Observable<T>) {
+		return obs
+			.pipe(take(1))									// only the first snapshot
+			.toPromise();
 	}
 
 	/**
@@ -68,7 +70,9 @@ export class StateService {
 	*/
 	getAuthData(): Observable<IUserState> {
 		return this.auth$
-			.pipe(map(auth => ({ auth: cloneObj(auth) })))
+			.pipe(
+				map(auth => ({ auth: cloneObj(auth) })),
+			)
 	}
 
 	/**
@@ -168,7 +172,7 @@ export class StateService {
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
 
 		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate(moment.startOf('week'), DATE_KEY.yearMonthDay ) },
+			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate(moment.startOf('week'), DATE_KEY.yearMonthDay) },
 			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate(moment.endOf('week'), DATE_KEY.yearMonthDay) },
 		]
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };

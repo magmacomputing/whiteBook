@@ -1,4 +1,5 @@
 import { getType, isObject, isArray, isString, TString, isNull, isUndefined } from '@lib/type.library';
+import { isNumber } from 'util';
 
 export interface IObject<T> { [key: string]: T; }
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
@@ -23,6 +24,8 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 			.map(itm => itm[matchWord])
 			.filter((_row, idx) => indx === '*' || indx === idx.toString())
 		: obj[matchWord]
+	if (isArray(obj) && matchIdx !== '*')
+		obj = obj[0];																		// limit to the first filtered element
 
 	return rest.length
 		? getPath(obj, rest, dflt, matchIdx)						// recurse into object
