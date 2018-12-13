@@ -48,7 +48,7 @@ export class AuthState implements NgxsOnInit {
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
 				ctx.patchState({ info: response.additionalUserInfo });
 			}
-			ctx.dispatch(new LoginSuccess(user));
+			// ctx.dispatch(new LoginSuccess(user));
 		}
 		else ctx.dispatch(new LoginFailed(new Error('No User information available')))
 	}
@@ -59,7 +59,6 @@ export class AuthState implements NgxsOnInit {
 		this.dbg('%s (%s=%s)', user ? `${user.displayName} is logged in` : 'not logged in', isNull(user), isNull(this.user));
 
 		if (isNull(user) && !isNull(this.user)) {
-			this.user = null;
 			ctx.dispatch(new Logout());
 		}
 
@@ -140,18 +139,18 @@ export class AuthState implements NgxsOnInit {
 
 	@Action(Logout)																	// process signOut()
 	async logout(ctx: StateContext<IAuthState>) {
-		this.dbg('signOut');
 		this.user = null;
 		await this.afAuth.auth.signOut();
-
+		
 		ctx.dispatch(new LogoutSuccess());
 		return;
 	}
-
+	
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
+		this.dbg('signOut');
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, SLICE.attend, query);
