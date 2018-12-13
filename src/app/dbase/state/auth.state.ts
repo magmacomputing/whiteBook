@@ -59,12 +59,17 @@ export class AuthState implements NgxsOnInit {
 	@Action(CheckSession)														// check Authentication status
 	async checkSession(ctx: StateContext<IAuthState>, { initial }: CheckSession) {
 		const user = await this.afAuth.authState.pipe(take(1)).toPromise();
-		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
+		this.dbg('%s (%s)', user ? `${user.displayName} is logged in` : 'not logged in', this.initial);
 
-		ctx.dispatch(user
-			? new LoginSuccess(user)
-			: new Logout()
-		)
+		// if (this.initial) {			// TODO: debounce
+		// 	this.initial = false;
+		this.afAuth.idTokenResult.subscribe(res => this.dbg('res: %j', res));
+		// this.dbg('providerId: %j', this.afAuth.user.);
+			ctx.dispatch(user
+				? new LoginSuccess(user)
+				: new Logout()
+			)
+		// }
 	}
 
 	@Action(LoginLink)														// attempt to link multiple providers
