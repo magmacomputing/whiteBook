@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { Store } from '@ngxs/store';
@@ -31,7 +30,7 @@ export class SyncService {
 	private dbg = dbg(this);
 	private listener: IObject<IListen>;
 
-	constructor(private fire: FireService, private store: Store, private router: Router, private navigate: NavigateService) {
+	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) {
 		this.dbg('new');
 		this.listener = {};
 	}
@@ -109,24 +108,18 @@ export class SyncService {
 
 		const source = getSource(snaps);
 		const debug = source !== 'cache' && this.listener[collection].cnt !== -1;
-		const [snapAdd, snapMod, snapDel] = snaps.reduce((cnts, snap) => {
-			const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
-			cnts[idx] += 1;
-			return cnts;
-		}, [0, 0, 0]);
+		const [snapAdd, snapMod, snapDel] = snaps
+			.reduce((cnts, snap) => {
+				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
+				cnts[idx] += 1;
+				return cnts;
+			}, [0, 0, 0]);
 
 		this.listener[collection].cnt += 1;
 		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
 			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
 		if (listen.cnt === 0) {                           // initial snapshot
-			const url = this.router.url.split('?')[0];
-			if (url === ROUTE.oauth) {
-				this.dbg('url: %s', url);
-				this.off(collection);													// the OAuthComponent does not need to sync Store
-				return true;																	// intercept the redirect-to-login page
-			}
-
 			if (await checkStorage(listen, snaps, debug))
 				return;																				// storage already sync'd... skip the initial snapshot
 

@@ -154,7 +154,7 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
-				// .then(_ => this.navigate.route(ROUTE.attend))
+				.then(_ => this.navigate.route(ROUTE.attend))
 		}
 	}
 
