@@ -12,7 +12,7 @@ import { AuthState } from '@dbase/state/auth.state';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -32,14 +32,16 @@ export class MemberService {
 			ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
 			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
 		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed.
-		this.store.dispatch(new LoginInfo());					// now fire an initial LoginInfo check
+		this.store.dispatch(new LoginInfo());					// now fire the initial LoginInfo check
 	}
 
 	async setPlan(plan: TPlan) {
+		const user = await this.state.asPromise(this.state.getAuthData());
 		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
 		return this.data.insDoc(doc, undefined, 'plan')
+			// .then(_ => this.data.updDoc(COLLECTION.register, user.auth.user!.uid, { user: { customClaims: { plan: plan } } }))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
@@ -171,7 +173,7 @@ export class MemberService {
 
 	/** check for change of User.additionalInfo */
 	async getAuthProfile() {
-		const user = await this.state.asPromise(this.state.getAuthData())
+		const user = await this.state.asPromise(this.state.getAuthData());
 		if (isNull(user.auth.info) || isUndefined(user.auth.info))
 			return;													// No AdditionalUserInfo available
 

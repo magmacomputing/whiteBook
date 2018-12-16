@@ -12,7 +12,7 @@ export class EMailComponent implements OnInit {
   constructor(private store: Store) { }
 
   ngOnInit() { 
-    this.store.dispatch(new LoginLink());
+    this.store.dispatch(new LoginLink(window.location.href));
    }
 
 }

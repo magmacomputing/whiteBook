@@ -8,7 +8,7 @@ import { NavigateService } from '@route/navigate.service';
 import { AuthModule } from '@service/auth/auth.module';
 import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
-import { OAuthModule } from '@route/login/oauth.module';
+import { LoginModule } from '@route/login/login.module';
 
 import { isUndefined } from '@lib/type.library';
 import { getPath } from '@lib/object.library';
@@ -56,7 +56,7 @@ export class ProfileGuard implements CanActivate {
 interface IDeactivateComponent {
 	canDeactivate: () => Observable<boolean> | Promise<boolean> | boolean;
 }
-@Injectable({ providedIn: OAuthModule })
+@Injectable({ providedIn: LoginModule })
 export class DeactivateGuard implements CanDeactivate<IDeactivateComponent> {
 	private dbg = dbg(this);
 
