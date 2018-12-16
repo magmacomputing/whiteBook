@@ -19,8 +19,11 @@ export const getSessionStore = <T>(key: string) =>
 export const delSessionStore = (key: string) =>
 	delStore(key, window.sessionStorage);
 
+export const alert = (msg: any) =>
+	window.alert(msg);
 
-
+export const prompt = (msg: any, dflt?: any) =>
+	window.prompt(msg, dflt);
 
 /** Private routines to perform actions on window storage */
 const setStore = (key: string, obj: any, target: Storage) => {

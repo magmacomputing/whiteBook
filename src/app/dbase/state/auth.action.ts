@@ -33,7 +33,7 @@ export class LoginEmail {
 }
 export class LoginLink {
 	static type = '[Auth] LoginLink';
-	constructor(public link: string) { }
+	constructor(public link: string, public credential?: any) { }
 }
 export class Logout {
 	static type = '[Auth] Logout';

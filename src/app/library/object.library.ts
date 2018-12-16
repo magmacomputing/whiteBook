@@ -48,20 +48,21 @@ export const sortKeys = (...keys: any[]): any => (a: any, b: any) => {
 
 /** deep-clone Object */
 export const cloneObj = <T>(obj: T) => {
-	const clone = parseObj<T>(JSON.stringify(obj))
-	return isString(clone)
+	const clone = parseObj<T>(JSON.stringify(obj));
+
+	return isNull(clone)
 		? obj																					// return original object, if cannot parse
 		: clone
 }
 
 export const parseObj = <T>(str: string | null) => {
 	if (!isString(str))
-		return str;
+		return {} as T;
 
 	try {
 		return JSON.parse(str) as T
 	} catch {
-		return str;
+		return null;
 	}
 }
 

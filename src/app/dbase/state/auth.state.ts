@@ -18,9 +18,10 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { getLocalStore, delLocalStore } from '@lib/window.library';
+import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { auth } from 'firebase';
 
 @State<IAuthState>({
 	name: SLICE.auth,
@@ -78,16 +79,23 @@ export class AuthState implements NgxsOnInit {
 	async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginCredential) {
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
 
-		if (methods[0] === 'password') {
-			let password = window.prompt('Please enter the password') || '';
-			ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
-		} else {
-			const [type, authProvider] = getAuthProvider(methods[0]);
-			switch (type) {
-				case 'identity':
-					ctx.dispatch(new LoginIdentity(authProvider as AuthProvider, link.credential));
-					break;
-			}
+		switch (methods[0]) {														// check the first-method
+			case auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+				let password = prompt('Please enter the password') || '';
+				ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
+				break;
+
+			case auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+				ctx.dispatch(new LoginLink(link.emailLink!));
+				break;
+
+			default:
+				const [type, authProvider] = getAuthProvider(methods[0]);
+				switch (type) {
+					case 'identity':
+						ctx.dispatch(new LoginIdentity(authProvider as AuthProvider, link.credential));
+						break;
+				}
 		}
 	}
 
@@ -147,17 +155,20 @@ export class AuthState implements NgxsOnInit {
 
 	/** Attempt to sign in a User via a link sent to their emailAddress */
 	@Action(LoginLink)
-	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
+	async loginLink(ctx: StateContext<IAuthState>, { link, credential }: LoginLink) {
 		const localItem = 'emailForSignIn';
 
 		if (this.afAuth.auth.isSignInWithEmailLink(link)) {
 			const email = getLocalStore<string>(localItem) ||
-				window.prompt('Please provide your email for confirmation') ||
+				prompt('Please provide your email for confirmation') ||
 				'';
 
-			this.afAuth.auth.signInWithEmailLink(email, link)
-				.then(response => ctx.dispatch(new LoginSuccess(response.user!)))
-				.then(_ => delLocalStore(localItem))
+			const response = await this.afAuth.auth.signInWithEmailLink(email, link);
+			delLocalStore(localItem);
+
+			if (credential)
+				this.authSuccess(ctx, response.user, response.credential);
+			ctx.dispatch(new LoginSuccess(response.user!));
 		}
 		else this.snack.error('Not a valid link-address');
 	}

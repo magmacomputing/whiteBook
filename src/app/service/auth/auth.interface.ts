@@ -12,6 +12,7 @@ export interface ICredential {
 	signInMethod: string;
 	credential: AuthCredential;
 	oauthAccessToken?: string;
+	emailLink?: string;
 }
 
 export interface IUserInfo {			// borrowed from firebase-admin/auth

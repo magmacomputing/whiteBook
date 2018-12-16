@@ -6,11 +6,12 @@ import { FIELD } from '@dbase/data/data.define';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 
-import { sortKeys } from '@lib/object.library';
+import { sortKeys, parseObj } from '@lib/object.library';
 import { cryptoHash } from '@lib/crypto.library';
 import { FireService } from '@dbase/fire/fire.service';
 
 import { fmtLog } from '@lib/logger.library';
+import { getLocalStore } from '@lib/window.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as SnapshotMetadata;
@@ -23,7 +24,7 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[], debug: boolean) => {
-	const localState = JSON.parse(window.localStorage.getItem(StoreStorage) || '{}');
+	const localState = parseObj<any>(getLocalStore(StoreStorage) );
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);

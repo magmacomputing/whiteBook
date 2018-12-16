@@ -6,6 +6,7 @@ import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
 import { TStoreBase, isClientStore, IStoreMeta } from '@dbase/data/data.schema';
 
 import { isObject, TString } from '@lib/type.library';
+import { alert } from '@lib/window.library';
 import { equalObj } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
@@ -15,7 +16,7 @@ export const getSlice = (store: string) => {    // determine the state-slice (co
 		.filter(col => STORES[col].includes(store));
 
 	if (!slices.length)
-		window.alert(`Unexpected store: ${store}`);
+		alert(`Unexpected store: ${store}`);
 
 	return slices[0];
 }
