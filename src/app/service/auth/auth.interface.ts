@@ -4,7 +4,7 @@ import { ICustomClaims } from '@dbase/data/data.schema';
 export type TParams = GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider | GithubAuthProvider;
 export type TScopes = GoogleAuthProvider | FacebookAuthProvider | GithubAuthProvider;
 
-export interface ILink {
+export interface ICredential {
 	code: string;
 	message: string;
 	email: string;

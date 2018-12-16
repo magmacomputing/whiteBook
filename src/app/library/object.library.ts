@@ -1,5 +1,4 @@
 import { getType, isObject, isArray, isString, TString, isNull, isUndefined } from '@lib/type.library';
-import { isNumber } from 'util';
 
 export interface IObject<T> { [key: string]: T; }
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
@@ -48,13 +47,23 @@ export const sortKeys = (...keys: any[]): any => (a: any, b: any) => {
 }
 
 /** deep-clone Object */
-export const cloneObj = <T>(obj: T): T => {
+export const cloneObj = <T>(obj: T) => {
+	const clone = parseObj<T>(JSON.stringify(obj))
+	return isString(clone)
+		? obj																					// return original object, if cannot parse
+		: clone
+}
+
+export const parseObj = <T>(str: string | null) => {
+	if (!isString(str))
+		return str;
+
 	try {
-		return JSON.parse(JSON.stringify(obj))
-	} catch (e) {
-		return obj;
+		return JSON.parse(str) as T
+	} catch {
+		return str;
 	}
-};
+}
 
 export const deepClone = (obj: any): any => {
 	if (isArray(obj))

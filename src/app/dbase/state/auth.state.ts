@@ -4,7 +4,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
-	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo
+	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo, LoginCredential
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
@@ -18,6 +18,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IQuery } from '@dbase/fire/fire.interface';
 
+import { getLocalStore, delLocalStore } from '@lib/window.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -42,7 +43,7 @@ export class AuthState implements NgxsOnInit {
 			.subscribe(user => ctx.dispatch(new CheckSession(user)))
 	}
 
-	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: AuthCredential) {
+	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: AuthCredential | null) {
 		if (user) {
 			if (credential) {														// have we been redirected here, via credential?
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
@@ -58,7 +59,7 @@ export class AuthState implements NgxsOnInit {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && !isNull(this.user)) {
-			ctx.dispatch(new Logout());									// User has logged-out remotely
+			ctx.dispatch(new Logout());									// User logged-out
 		}
 
 		if (!isNull(user) && isNull(this.user)) {
@@ -67,10 +68,15 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
-	@Action(LoginLink)														// attempt to link multiple providers
-	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
+	/**
+	 * We allow Users to sign in using multiple authentication providers by linking auth provider credentials to an existing user account.  
+	 * Users are identifiable by the same Firebase user ID regardless of the authentication provider they used to sign in.  
+	 * For example, a user who signed in with a password can link a Google account and sign in with either method in the future.  
+	 * Or, an anonymous user can link a Facebook account and then, later, sign in with Facebook to continue using our App.
+	 */
+	@Action(LoginCredential)													// attempt to link multiple providers
+	async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginCredential) {
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
-		this.dbg('methods: %j', methods);
 
 		if (methods[0] === 'password') {
 			let password = window.prompt('Please enter the password') || '';
@@ -85,6 +91,7 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
+	/** Attempt to sign in a User via authentication by a federated identity provider */
 	@Action(LoginIdentity)														// process signInWithPopup()
 	async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
 		try {
@@ -99,8 +106,9 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
+	/** Attempt to sign in a User via authentication by an OAuth provider we have configured. (eg. LinkedIn) */
 	@Action(LoginOAuth)
-	async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginOAuth) {
+	async loginOAuth(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginOAuth) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),
@@ -113,6 +121,7 @@ export class AuthState implements NgxsOnInit {
 			.catch(error => this.dbg('failed: %j', error.toString()));
 	}
 
+	/** Attempt to sign in a User via an emailAddress / Password combination. */
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
 	loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
@@ -134,6 +143,23 @@ export class AuthState implements NgxsOnInit {
 		} catch (error) {
 			return ctx.dispatch(new LoginFailed(error));
 		}
+	}
+
+	/** Attempt to sign in a User via a link sent to their emailAddress */
+	@Action(LoginLink)
+	async loginLink(ctx: StateContext<IAuthState>, { link }: LoginLink) {
+		const localItem = 'emailForSignIn';
+
+		if (this.afAuth.auth.isSignInWithEmailLink(link)) {
+			const email = getLocalStore<string>(localItem) ||
+				window.prompt('Please provide your email for confirmation') ||
+				'';
+
+			this.afAuth.auth.signInWithEmailLink(email, link)
+				.then(response => ctx.dispatch(new LoginSuccess(response.user!)))
+				.then(_ => delLocalStore(localItem))
+		}
+		else this.snack.error('Not a valid link-address');
 	}
 
 	@Action(Logout)																	// process signOut()
@@ -190,7 +216,7 @@ export class AuthState implements NgxsOnInit {
 			this.snack.open(error.message);
 
 			if (error.code === 'auth/account-exists-with-different-credential')
-				return ctx.dispatch(new LoginLink(error));
+				return ctx.dispatch(new LoginCredential(error));
 		}
 
 		ctx.setState({ user: null, token: null, info: null, credential: null });
