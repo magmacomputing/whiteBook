@@ -43,6 +43,7 @@ export class StateService {
 			'admin': this.admin$,
 			'local': this.local$,
 		}
+
 	}
 
 	/** Fetch the current, useable values for a supplied store */
@@ -66,13 +67,12 @@ export class StateService {
 	}
 
 	/**
-	* Assemble a AuthState Object describing a User
+	* Assemble a UserState Object describing an authenticated User
 	*/
 	getAuthData(): Observable<IUserState> {
-		return this.auth$
-			.pipe(
-				map(auth => ({ auth: cloneObj(auth) })),
-			)
+		return this.auth$.pipe(
+			map(auth => ({ auth: cloneObj(auth) })),
+		)
 	}
 
 	/**
