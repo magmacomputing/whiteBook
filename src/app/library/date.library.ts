@@ -1,8 +1,33 @@
 import * as moment from 'moment';
 
-import { TString, isString, isNumber } from '@lib/type.library';
+import { TString, isString, isNumber, isUndefined, isDate, getType } from '@lib/type.library';
 import { toNumeric } from '@lib/string.library';
-import { isUndefined } from 'util';
+
+const locale = 'en-AU';										// TODO: Observe from state?
+
+export const getDate = (dt?: string | number | Date) => {
+	switch (getType(dt)) {
+		case 'Undefined':
+			return new Date();
+
+		case 'Date':
+			return dt as Date;
+
+		case 'String':
+			return new Date(dt as string);
+
+		default:
+			return new Date(dt as number * 1000);
+	}
+}
+
+/** shortcut to fmtDate(dt, 'stamp', ...) */
+export const getStamp1 = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
+	fmtDate<DATE_KEY.stamp>(dt, DATE_KEY.stamp, fmt);
+
+export const fmtDate1 = <K extends keyof IDate>(fmt?: Intl.DateTimeFormatOptions, dt?: string | number | Date ) =>
+	new Intl.DateTimeFormat(locale, fmt)
+		.format(getDate(dt)) as IDate[K];
 
 interface IDate {
 	cell: string;
