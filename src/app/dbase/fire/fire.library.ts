@@ -1,4 +1,5 @@
-import { WhereFilterOp, Query } from '@firebase/firestore-types';
+import { Query } from '@angular/fire/firestore';
+import { WhereFilterOp } from '@firebase/firestore-types';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';

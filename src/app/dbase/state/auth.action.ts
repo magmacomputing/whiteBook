@@ -1,4 +1,4 @@
-import { User, UserInfo, AuthProvider, IdTokenResult, AdditionalUserInfo, AuthCredential } from '@firebase/auth-types';
+import { UserInfo, IdTokenResult, AdditionalUserInfo, AuthCredential, AuthProvider, User } from '@firebase/auth-types';
 import { ICredential } from '@service/auth/auth.interface';
 
 export interface IAuthState {

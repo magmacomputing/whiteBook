@@ -1,4 +1,6 @@
-import { WhereFilterOp, FieldPath } from '@firebase/firestore-types';
+import { FieldPath } from '@angular/fire/firestore';
+import { WhereFilterOp } from '@firebase/firestore-types';
+
 import { FIELD } from '@dbase/data/data.define';
 
 /** Query.where */

@@ -1,5 +1,5 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, tap } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@service/auth/auth.interface';
@@ -13,7 +13,7 @@ import { getSlice } from '@dbase/data/data.library';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
-import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
+import { isString, isArray, isFunction, isUndefined , isObject} from '@lib/type.library';
 import { fmtDate, DATE_KEY, addDate } from '@lib/date.library';
 
 /**
