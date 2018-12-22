@@ -1,5 +1,5 @@
+import * as firebase from 'firebase/app';
 import { Query } from '@angular/fire/firestore';
-import { WhereFilterOp } from '@firebase/firestore-types';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
@@ -12,7 +12,7 @@ export const fnQuery = (query: IQuery = {}) => {
 		if (query.where)
 			asArray(query.where)
 				.filter(qry => !isUndefined(qry.value))
-				.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as WhereFilterOp, qry.value));
+				.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as firebase.firestore.WhereFilterOp, qry.value));
 
 		if (query.orderBy)
 			asArray(query.orderBy)

@@ -1,8 +1,9 @@
-import { AuthCredential, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, GithubAuthProvider } from '@firebase/auth-types';
+import * as firebase from 'firebase/app';
+
 import { ICustomClaims } from '@dbase/data/data.schema';
 
-export type TParams = GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider | GithubAuthProvider;
-export type TScopes = GoogleAuthProvider | FacebookAuthProvider | GithubAuthProvider;
+export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider;
+export type TScopes = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.GithubAuthProvider;
 
 export interface ICredential {
 	code: string;
@@ -10,7 +11,7 @@ export interface ICredential {
 	email: string;
 	providerId: string;
 	signInMethod: string;
-	credential: AuthCredential;
+	credential: firebase.auth.AuthCredential;
 	oauthAccessToken?: string;
 	emailLink?: string;
 }

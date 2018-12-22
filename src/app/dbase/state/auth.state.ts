@@ -1,4 +1,4 @@
-import { IdTokenResult, AuthProvider, AuthCredential } from '@firebase/auth-types';
+import * as firebase from 'firebase/app';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
@@ -21,7 +21,6 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { auth } from 'firebase';
 
 @State<IAuthState>({
 	name: SLICE.auth,
@@ -44,7 +43,7 @@ export class AuthState implements NgxsOnInit {
 			.subscribe(user => ctx.dispatch(new CheckSession(user)))
 	}
 
-	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: AuthCredential | null) {
+	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
 		if (user) {
 			if (credential) {														// have we been redirected here, via credential?
 				const response = await user.linkAndRetrieveDataWithCredential(credential);
@@ -80,12 +79,12 @@ export class AuthState implements NgxsOnInit {
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
 
 		switch (methods[0]) {														// check the first-method
-			case auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+			case firebase.auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
 				let password = prompt('Please enter the password') || '';
 				ctx.dispatch(new LoginEmail(link.email, password, 'signIn', link.credential))
 				break;
 
-			case auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+			case firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
 				ctx.dispatch(new LoginLink(link.emailLink!));
 				break;
 
@@ -93,7 +92,7 @@ export class AuthState implements NgxsOnInit {
 				const [type, authProvider] = getAuthProvider(methods[0]);
 				switch (type) {
 					case 'identity':
-						ctx.dispatch(new LoginIdentity(authProvider as AuthProvider, link.credential));
+						ctx.dispatch(new LoginIdentity(authProvider as firebase.auth.AuthProvider, link.credential));
 						break;
 				}
 		}
@@ -213,7 +212,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
 				.then(token => ctx.patchState({ token }))
-				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as IdTokenResult).claims.claims))
+				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
 		}
 	}
 

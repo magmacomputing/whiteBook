@@ -1,11 +1,12 @@
-import { UserInfo, IdTokenResult, AdditionalUserInfo, AuthCredential, AuthProvider, User } from '@firebase/auth-types';
+import * as firebase from 'firebase/app';
+
 import { ICredential } from '@service/auth/auth.interface';
 
 export interface IAuthState {
-	user: UserInfo | null;
-	token: IdTokenResult | null;
-	info: AdditionalUserInfo | null;       // additionalUserInfo from provider
-	credential?: AuthCredential | null;
+	user: firebase.UserInfo | null;
+	token: firebase.auth.IdTokenResult | null;
+	info: firebase.auth.AdditionalUserInfo | null;       // additionalUserInfo from provider
+	credential?: firebase.auth.AuthCredential | null;
 }
 
 // Actions
@@ -19,7 +20,7 @@ export class LoginCredential {
 }
 export class LoginIdentity {
 	static type = '[Auth] LoginIdentity';
-	constructor(public authProvider: AuthProvider, public credential?: any) { }
+	constructor(public authProvider: firebase.auth.AuthProvider, public credential?: any) { }
 }
 export class LoginOAuth {
 	static type = '[Auth] LoginOAuth';
@@ -55,11 +56,11 @@ export class LoginRedirect {
 }
 export class LoginSuccess {
 	static type = '[Auth] LoginSuccess';
-	constructor(public user: User) { }
+	constructor(public user: firebase.User) { }
 }
 export class LoginSetup {
 	static type = '[Auth] LoginSetup';
-	constructor(public user: User) { }
+	constructor(public user: firebase.User) { }
 }
 export class LoginToken {
 	static type = '[Auth] LoginToken';

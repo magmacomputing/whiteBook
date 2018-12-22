@@ -1,4 +1,4 @@
-import { AdditionalUserInfo } from '@firebase/auth-types';
+import * as firebase from 'firebase/app';
 
 import { StateService } from '@dbase/state/state.service';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
@@ -10,7 +10,7 @@ import { FIELD } from '@dbase/data/data.define';
 // Library of member-related functions
 
 // assemble a standard Member Info object
-export const getMemberInfo = (provider: AdditionalUserInfo) => {
+export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 	const profile: { [key: string]: any; } = provider.profile || {};
 
 	const profileInfo: IMemberInfo = {
