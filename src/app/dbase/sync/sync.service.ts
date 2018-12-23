@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { Store } from '@ngxs/store';
-import { ROUTE } from '@route/route.define';
+import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { SLICE } from '@dbase/state/state.define';
@@ -11,9 +11,9 @@ import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 import { buildDoc, checkStorage, getSource, addMeta } from '@dbase/sync/sync.library';
+import { LoginToken } from '@dbase/state/auth.action';
 
 import { IListen } from '@dbase/sync/sync.define';
-import { LoginToken } from '@dbase/state/auth.action';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -37,7 +37,7 @@ export class SyncService {
 
 	/** establish a listener to a remote Collection, and sync to an NGXS Slice */
 	public async on(collection: string, slice?: string, query?: IQuery) {
-		const sync = this.sync.bind(this, collection, this.fire);
+		const sync = this.sync.bind(this, collection);//, this.fire);
 		const ready = createPromise<boolean>();
 		slice = slice || collection;                      // default to same-name as collection
 
@@ -102,7 +102,8 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: string, fire: FireService, snaps: DocumentChangeAction<IStoreMeta>[]) {
+	// private async sync(collection: string, fire: FireService, snaps: DocumentChangeAction<IStoreMeta>[]) {
+	private async sync(collection: string, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
 
@@ -131,23 +132,27 @@ export class SyncService {
 		snaps.forEach(async snap => {
 			const data = snap.type === 'removed'
 				? addMeta(snap)																// no need to fetch meta from server for 'removed' documents
-				: await buildDoc(snap, fire);
+				: await buildDoc(snap, this.fire);
 
 			switch (snap.type) {
 				case 'added':
 				case 'modified':
 					this.store.dispatch(new setStore(data, debug));
-					if (listen.cnt !== 0 && data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-						this.store.dispatch(new LoginToken());    // special: access-level has changed
-					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire] && !data[FIELD.effect])
-						this.navigate.route(ROUTE.attend);				// special: intial plan is set
+					if (listen.cnt !== 0) {
+						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
+							this.store.dispatch(new LoginToken());    // special: access-level has changed
 
+						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+							this.navigate.route(ROUTE.attend);				// special: initial Plan is set
+					}
 					break;
 
 				case 'removed':
 					this.store.dispatch(new delStore(data, debug));
-					if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-						this.navigate.route(ROUTE.plan);					// special: Plan has been deleted
+					if (listen.cnt !== 0) {
+						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+							this.navigate.route(ROUTE.plan);					// special: Plan has been deleted
+					}
 					break;
 			}
 		})

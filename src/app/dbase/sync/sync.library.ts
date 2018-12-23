@@ -2,16 +2,14 @@ import * as firebase from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FIELD } from '@dbase/data/data.define';
-
-import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
+// import { FireService } from '@dbase/fire/fire.service';
+import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
-import { sortKeys, parseObj } from '@lib/object.library';
 import { cryptoHash } from '@lib/crypto.library';
-import { FireService } from '@dbase/fire/fire.service';
-
-import { fmtLog } from '@lib/logger.library';
+import { sortKeys, parseObj } from '@lib/object.library';
 import { getLocalStore } from '@lib/window.library';
+import { fmtLog } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firebase.firestore.SnapshotMetadata;
@@ -24,7 +22,7 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[], debug: boolean) => {
-	const localState = parseObj<any>(getLocalStore(StoreStorage) );
+	const localState = parseObj<any>(getLocalStore(StoreStorage));
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);
@@ -48,7 +46,7 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback at this time)
-export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: FireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: any) => {//ireService) => {
 	// const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		[FIELD.id]: snap.payload.doc.id,

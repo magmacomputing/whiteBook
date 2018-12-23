@@ -6,13 +6,12 @@ import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
-import { IAuthState, LoginInfo } from '@dbase/state/auth.action';
+import { LoginInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
-import { AuthState } from '@dbase/state/auth.state';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -88,7 +87,7 @@ export class MemberService {
 			{ fieldPath: FIELD.type, value: schedule[FIELD.key] },
 			{ fieldPath: FIELD.uid, value: data.auth.user!.uid },
 			{ fieldPath: 'date', value: when },
-			{ fieldPath: 'note', value: note  },
+			{ fieldPath: 'note', value: note },
 		]
 		const booked = await this.data.getDirect<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {

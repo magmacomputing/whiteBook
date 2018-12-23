@@ -94,16 +94,22 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * In other words, dont Create needlessly.
  * @param discards: string[]      array of field-names to use in the compare
  * @param nextDoc:  IStoreMeta    document about to be Created
- * @param currDocs: IStoreMeta[]  array of documents matched to the Create document
+ * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
-	const isMatch = currDocs.map(currDoc =>       // for each current document...
-		asArray(discards)                           // for each of the field-names to match...
-			.every(field => isObject(nextDoc[field])
-				? equalObj(nextDoc[field], currDoc[field])
-				: asString(nextDoc[field]) == asString(currDoc[field])
-			)
-	)
+	const isMatch = currDocs
+		.map(currDoc => 															// for each current document
+			asArray(discards)														// for each of the field-names to match...
+				.map(field => {
+					const bool = isObject(nextDoc[field])		// compare field-by-field
+						? equalObj(nextDoc[field], currDoc[field])
+						: asString(nextDoc[field]) == asString(currDoc[field])
+					if (!bool)
+						console.log('change: ', currDoc[field], ' => ', nextDoc[field]);
+					return bool;														// <true> if fields are equal
+				})
+				.every(bool => bool === true)							// is a match if *all* fields are equal
+		)
 
 	return isMatch.includes(true)                 // at least one currDoc matches every field
 }

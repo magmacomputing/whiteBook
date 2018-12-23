@@ -9,6 +9,7 @@ import { AuthModule } from '@service/auth/auth.module';
 import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
 import { LoginModule } from '@route/login/login.module';
+import { IProfilePlan } from '@dbase/data/data.schema';
 
 import { isUndefined } from '@lib/type.library';
 import { getPath } from '@lib/object.library';
@@ -35,14 +36,21 @@ export class AuthGuard implements CanActivate {
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
 	private dbg = dbg(this);
-	private member$ = this.state.getMemberData();
+	// private member$ = this.state.getMemberData();
 
 	constructor(private state: StateService, private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const state = await this.state.asPromise(this.member$);
+		const user = await this.state.asPromise(this.state.getAuthData());
+		// this.dbg('auth: %j', user);
+		const state = await this.state.asPromise(this.state.getMemberData());
 		const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
-		const planProfile = getPath(state.member, 'plan[0].plan');
+		const planProfile = getPath<IProfilePlan>(state.member, 'plan[0].plan');
+
+		this.dbg('planClaim: %j', planClaim);
+		this.dbg('planProfile: %j', planProfile);
+		this.dbg('state: %j', state.member['profile']);
+		this.dbg('claims: %j', state.auth.token!.claims.claims);
 
 		if (!isUndefined(planClaim) || !isUndefined(planProfile))
 			return true;      												// ok to access Route

@@ -60,8 +60,7 @@ export const paymentDue = () => {
 }
 
 /** loop back over up-to-seven days to find when className was last scheduled */
-export const lkpDate =
-	async (className: string, state: StateService, date?: number) => {
+export const lkpDate = async (className: string, state: StateService, date?: number) => {
 	const timetable = await state.getTimetableData().toPromise();
 	let mmt = getMoment(date);												// start with today's date
 	let ctr = 0;
@@ -76,7 +75,7 @@ export const lkpDate =
 			break;
 		mmt = mmt.add(-1, 'days');											// move pointer to previous day
 	}
-	
+
 	if (ctr > 7)																			// cannot find className on timetable
 		mmt = getMoment(date);													// so default back to today's date	
 
