@@ -41,6 +41,7 @@ export class ProfileGuard implements CanActivate {
 
 	async canActivate() {
 		const state = await this.auth.user;
+		this.dbg('state: %j', state.auth!.token!.claims.claims);
 		const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
 
 		if (!isUndefined(planClaim))

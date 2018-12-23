@@ -49,7 +49,7 @@ export class DataService {
 			? this.fire.callMeta(store, docId)
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
-	
+
 	getDirect<T>(collection: string, query?: IQuery) {				// special: direct access to collection, rather than via state
 		return this.fire.colRef<T>(collection, query)
 			.valueChanges()
@@ -68,6 +68,10 @@ export class DataService {
 
 	updDoc(store: string, docId: string, data: TStoreBase) {
 		return this.fire.updDoc(store, docId, data);
+	}
+	async	updPlan(plan: string) {
+		const state = await this.auth.user
+		return this.fire.updDoc(COLLECTION.register, state.auth.user!.uid, { user: { customClaims: { plan } } })
 	}
 
 	log(output: any) {																				// write a /log entry

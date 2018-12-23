@@ -11,7 +11,7 @@ import { IAccountState } from '@dbase/state/state.define';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -39,8 +39,9 @@ export class MemberService {
 		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
+
 		return this.data.insDoc(doc, undefined, 'plan')
-			// .then(_ => this.data.updDoc(COLLECTION.register, user.auth.user!.uid, { user: { customClaims: { plan: plan } } }))
+			.then(_ => this.data.updPlan(plan))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
