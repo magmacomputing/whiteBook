@@ -36,23 +36,14 @@ export class AuthGuard implements CanActivate {
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
 	private dbg = dbg(this);
-	// private member$ = this.state.getMemberData();
 
-	constructor(private state: StateService, private navigate: NavigateService) { this.dbg('new') }
+	constructor(private auth: AuthService, private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const user = await this.state.asPromise(this.state.getAuthData());
-		// this.dbg('auth: %j', user);
-		const state = await this.state.asPromise(this.state.getMemberData());
+		const state = await this.auth.user;
 		const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
-		const planProfile = getPath<IProfilePlan>(state.member, 'plan[0].plan');
 
-		this.dbg('planClaim: %j', planClaim);
-		this.dbg('planProfile: %j', planProfile);
-		this.dbg('state: %j', state.member['profile']);
-		this.dbg('claims: %j', state.auth.token!.claims.claims);
-
-		if (!isUndefined(planClaim) || !isUndefined(planProfile))
+		if (!isUndefined(planClaim))
 			return true;      												// ok to access Route
 
 		this.navigate.route(ROUTE.plan);
