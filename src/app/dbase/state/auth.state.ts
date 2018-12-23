@@ -92,6 +92,7 @@ export class AuthState implements NgxsOnInit {
 				const [type, authProvider] = getAuthProvider(methods[0]);
 				switch (type) {
 					case 'identity':
+					case 'oauth':
 						ctx.dispatch(new LoginIdentity(authProvider as firebase.auth.AuthProvider, link.credential));
 						break;
 				}

@@ -51,6 +51,13 @@ export const getAuthProvider = (providerId: string,
 				authCredential = firebase.auth.FacebookAuthProvider.credential(token.token);
 			break;
 
+		// case 'linkedin':
+		// case 'linkedin.com':
+		// 	authProvider = new firebase.auth.OAuthProvider('oidc.' + providerId);
+		// if (token)
+		// authCredential = authProvider.credential(token, null);
+		// 	break;
+
 		default:
 			type = undefined;
 			break;
