@@ -19,7 +19,9 @@ import { toLower } from '@lib/string.library';
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
 export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
-	return cloneObj(table) 															// clone to avoid mutating original array
+	const clone = cloneObj(table);											// clone to avoid mutating original array
+
+	return clone 															// clone to avoid mutating original array
 		.filter((row: IObject<any>) => {									// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
@@ -60,7 +62,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 }
 
 export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
-	filterTable<T>(table, filters)[0];
+	filterTable<T>(table, filters)[0] || {} as T;
 
 /**
  * Search an array, returning rows that match all the conditions *and* were in-effect on the 'date'
@@ -72,7 +74,7 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
 export const asAt = <T extends IMeta>(table: T[], cond: TWhere = [], date?: string | number) => {
 	const stamp = isNumber(date) ? date : getStamp(date);
 
-	return filterTable(cloneObj(table), cond)						// return the rows where date is between _effect and _expire
+	return filterTable(table, cond)										// return the rows where date is between _effect and _expire
 		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 }

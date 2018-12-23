@@ -55,7 +55,7 @@ export const cloneObj = <T>(obj: T) => {
 		: clone
 }
 
-export const parseObj = <T>(str: string | null) => {
+export const parseObj = <T>(str?: string | null) => {
 	if (!isString(str))
 		return {} as T;
 

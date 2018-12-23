@@ -235,7 +235,7 @@ export const buildTimetable = (source: ITimetableState) => {
 	 * If we found any Calendar events, push them on the Timetable.  
 	 * assume a Calendar's location overrides an usual Schedule at the location.
 	 */
-	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
+	 calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
 		const eventList = firstRow<IEvent>(events, { fieldPath: FIELD.key, value: calendarDoc[FIELD.type] });
 		let offset = 0;															// start-time offset
 
