@@ -105,7 +105,7 @@ export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: I
 						? equalObj(nextDoc[field], currDoc[field])
 						: asString(nextDoc[field]) == asString(currDoc[field])
 					if (!bool)
-						console.log('change: ', currDoc[field], ' => ', nextDoc[field]);
+						console.log('change ', field, ': ', currDoc[field], ' => ', nextDoc[field]);
 					return bool;														// <true> if fields are equal
 				})
 				.every(bool => bool === true)							// is a match if *all* fields are equal
