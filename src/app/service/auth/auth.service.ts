@@ -53,6 +53,10 @@ export class AuthService {
 				this.signInOAuth(provider);
 				break;
 
+			case 'oidc':
+				this.signInOIDC(provider);
+				break;
+
 			case 'email':
 				this.signInEmail(provider, opts.email, opts.password);
 				break;
@@ -116,6 +120,10 @@ export class AuthService {
 				if (state.auth.user)
 					window.close();										// only close on valid user
 			})
+	}
+
+	private async signInOIDC(provider: IProvider) {
+
 	}
 
 	private signInEmail(provider: IProvider, email: string, password: string) {

@@ -1,5 +1,5 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map, tap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@service/auth/auth.interface';
@@ -13,8 +13,8 @@ import { getSlice } from '@dbase/data/data.library';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
-import { isString, isArray, isFunction, isUndefined , isObject} from '@lib/type.library';
-import { fmtDate, DATE_KEY, addDate } from '@lib/date.library';
+import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
+import { fmtDate, DATE_KEY, parseDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
@@ -235,7 +235,7 @@ export const buildTimetable = (source: ITimetableState) => {
 	 * If we found any Calendar events, push them on the Timetable.  
 	 * assume a Calendar's location overrides an usual Schedule at the location.
 	 */
-	 calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
+	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
 		const eventList = firstRow<IEvent>(events, { fieldPath: FIELD.key, value: calendarDoc[FIELD.type] });
 		let offset = 0;															// start-time offset
 
@@ -257,7 +257,7 @@ export const buildTimetable = (source: ITimetableState) => {
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: addDate(DATE_KEY.HHmm, offset, calendarDoc.start),
+				start: parseDate(calendarDoc.start).add(offset, 'minutes').format(DATE_KEY.HHmm),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				icon: classDoc.icon,

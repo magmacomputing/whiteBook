@@ -4,7 +4,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
-	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo, LoginCredential
+	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginOIDC, LoginSetup, LoginAdditionalInfo, LoginCredential
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 

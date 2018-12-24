@@ -26,6 +26,10 @@ export class LoginOAuth {
 	static type = '[Auth] LoginOAuth';
 	constructor(public token: string, public prefix: string, public user: any) { }
 }
+export class LoginOIDC {
+	static type = '[Auth] LoginOIDC';
+	constructor(public token: string, public prefix: string, public user: any) { }
+}
 export class LoginEmail {
 	static type = '[Auth] LoginEmail';
 	constructor(public email: string, public password: string,

@@ -7,7 +7,7 @@ import { SLICE } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, IMeta } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, ICustomClaims } from '@dbase/data/data.schema';
 import { getWhere, updPrep, getSlice, docPrep, checkDiscard } from '@dbase/data/data.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -46,11 +46,15 @@ export class DataService {
 
 	getMeta(store: string, docId: string) {
 		return store
-			? this.fire.callMeta(store, docId)
+			? this.fire.callMeta(store, docId)										// get server to respond with document meta-data
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
 
-	getDirect<T>(collection: string, query?: IQuery) {				// special: direct access to collection, rather than via state
+	writeClaim(claim: ICustomClaims) {
+		return this.fire.writeClaim(claim);											// update some components on /register/{uid}/user/customClaims
+	}
+
+	getDirect<T>(collection: string, query?: IQuery) {				// direct access to collection, rather than via state
 		return this.fire.colRef<T>(collection, query)
 			.valueChanges()
 			.pipe(take(1))
@@ -105,7 +109,7 @@ export class DataService {
 				else nextDoc[FIELD.expire] = -currDocs.stamp;       // otherwise back-date the nextDoc's <expire>
 			}
 
-			if (!checkDiscard(discards, nextDoc, currDocs.data)) {// only if currDoc is different from nextDoc...
+			if (!checkDiscard(discards, nextDoc, currDocs.data)) {// only if all currDocs are different from nextDoc...
 				creates.push(nextDoc);                              // push the prepared document-create
 				updates.push(...currDocs.updates);                  // push the associated document-updates
 			}

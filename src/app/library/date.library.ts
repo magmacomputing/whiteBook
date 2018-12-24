@@ -1,33 +1,114 @@
 import * as moment from 'moment';
 
-import { TString, isString, isNumber, isUndefined, isDate, getType } from '@lib/type.library';
+import { TString, isString, isNumber, getType } from '@lib/type.library';
 import { toNumeric } from '@lib/string.library';
 
-const locale = 'en-AU';										// TODO: Observe from state?
+export const startOf = (offset: 'week' | 'month', dt?: string | number | Date) => setDate('start', offset, 0, dt);
+export const endOf = (offset: 'week' | 'month', dt?: string | number | Date) => setDate('end', offset, 0, dt);
+const setDate = (direction: 'add' | 'sub' | 'start' | 'end', unit: 'day' | 'days' | 'minute' | 'minutes' | 'week' | 'month', offset?: number, dt?: string | number | Date) => {
+	const base = parseDate(dt);
+
+	if (direction === 'start' || direction === 'end')
+		[base.HH, base.MM, base.SS] = [0, 0, 0];
+
+	switch (direction + '.' + unit) {
+		case 'start.week':
+			base.dd = base.dd - base.day + 1;
+			break;
+		case 'start.month':
+			base.dd = 1;
+			break;
+		case 'end.week':
+			base.dd = base.dd - base.day + 7
+			break;
+		case 'end.month':
+			base.mm += 1;
+			base.dd = 0;
+			break;
+		case 'add.day':
+		case 'add.days':
+			base.dd += offset!;
+			break;
+		case 'add.hour':
+		case 'add.hours':
+			base.HH += offset!;
+			break;
+		case 'add.minute':
+		case 'add.minutes':
+			base.MM += offset!;
+			break;
+	}
+
+	return parseDate(new Date(base.yy, base.mm - 1, base.dd, base.HH, base.MM, base.SS));
+}
+
+/** break a Date into components, plus methods to manipulate */
+interface IDateParts {
+	yy: number;
+	mm: number;
+	dd: number;
+	day: number;
+	HH: number;
+	MM: number;
+	SS: number;
+	ww: string;																								// week-name
+	mn: string;																								// month-name
+}
+const hhmm = /^\d\d:\d\d$/;
+export const parseDate = (dt?: string | number | Date) => {
+	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
+		dt = new Date().getFullYear() + dt;											// current year, plus time
+	const base = getDate(dt);
+	
+	let [yy, mm, dd, day, HH, MM, SS, ww, mn] = [
+		base.getFullYear(), base.getMonth(), base.getDate(), base.getDay(),
+		base.getHours(), base.getMinutes(), base.getSeconds(),
+		base.toString().split(' ')[0], base.toString().split(' ')[1]
+	];
+	if (!day) day = 7;																				// ISO weekday
+	mm += 1;																									// ISO month
+	const obj: IDateParts = { yy, mm, dd, day, HH, MM, SS, ww, mn };
+
+	return {
+		...obj,
+		add: (offset: number, unit: 'day' | 'days' | 'minute' | 'minutes') => setDate('add', unit, offset, base),
+		startOf: (unit: 'week' | 'month') => setDate('start', unit, 0, base),
+		endOf: (unit: 'week' | 'month') => setDate('end', unit, 0, base),
+		format: (fmt: string) => formatDate(fmt, obj),
+	}
+}
 
 export const getDate = (dt?: string | number | Date) => {
 	switch (getType(dt)) {
 		case 'Undefined':
-			return new Date();
+			return new Date();																		// current timestamp
 
 		case 'Date':
-			return dt as Date;
+			return dt as Date;																		// valid Date
 
 		case 'String':
-			return new Date(dt as string);
+			return new Date(dt as string);												// parse date-string
 
 		default:
-			return new Date(dt as number * 1000);
+			return new Date(dt as number * 1000);									// convert to milliseconds
 	}
 }
 
-/** shortcut to fmtDate(dt, 'stamp', ...) */
-export const getStamp1 = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
-	fmtDate<DATE_KEY.stamp>(dt, DATE_KEY.stamp, fmt);
+export const formatDate = (fmt: string, dt: IDateParts) => {
+	switch (fmt) {
+		case DATE_KEY.HHmm:
+			return `${fix(dt.HH)}:${fix(dt.MM)}`;
+		case DATE_KEY.yearMonthDay:
+			return `${dt.yy}${fix(dt.mm)}${fix(dt.dd)}`;
+	}
+}
 
-export const fmtDate1 = <K extends keyof IDate>(fmt?: Intl.DateTimeFormatOptions, dt?: string | number | Date ) =>
-	new Intl.DateTimeFormat(locale, fmt)
-		.format(getDate(dt)) as IDate[K];
+const fix = (nbr: number, max = 2, fill = '0') =>
+	nbr.toString().padStart(max, fill);
+
+export const getStamp = (dt?: string | number | Date) =>
+	Math.round(getDate(dt).getTime() / 1000)									// Unix timestamp-format
+
 
 interface IDate {
 	cell: string;
@@ -128,27 +209,8 @@ export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = M
 export const fmtDate = <K extends keyof IDate>(dt?: string | number | moment.Moment, key?: K, fmt: TString = MOMENT_FMT) =>
 	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key || 'yearMonthDay'])) as IDate[K];
 
-/** shortcut to fmtDate(dt, 'stamp', ...) */
-export const getStamp = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
-	fmtDate<DATE_KEY.stamp>(dt, DATE_KEY.stamp, fmt);
-
-/** useful when we want an Object with *all* formats available */
-export const fmtMoment = (dt?: any, fmt: TString = MOMENT_FMT): IDate => {
-	const mmt = moment.isMoment(dt) ? dt : getMoment(dt, fmt);
-	const obj = {} as IDate;
-
-	(Object.keys(DATE_FMT) as (keyof IDate)[])
-		.forEach(key => obj[key] = toNumeric(mmt.clone().format(DATE_FMT[key])));
-	return obj;
-}
-
 /** get integer difference between supplied date and now (default unit is 'years') */
 export const diffDate = (date?: string | number, unit: moment.unitOfTime.Diff = 'years') =>
 	isString(date) || isNumber(date)
 		? moment().diff(getMoment(date), unit)
 		: 0
-
-export const addDate = <K extends keyof IDate>(fmt: K, offset: number = 0, date?: string | number | moment.Moment, unit: moment.unitOfTime.Diff = 'minutes') =>
-	isString(date) || isNumber(date) || moment.isMoment(date) || isUndefined(date)
-		? getMoment(date, DATE_FMT[fmt]).add(offset, unit).format(DATE_FMT[fmt]) as IDate[K]
-		: date as IDate[K]

@@ -4,7 +4,7 @@ import { StateService } from '@dbase/state/state.service';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 
 import { isString, isObject, isNumber } from '@lib/type.library';
-import { getStamp, diffDate, getMoment, fmtDate, DATE_KEY } from '@lib/date.library';
+import { getStamp, diffDate, getDate, parseDate } from '@lib/date.library';
 import { FIELD } from '@dbase/data/data.define';
 
 // Library of member-related functions
@@ -62,22 +62,22 @@ export const paymentDue = () => {
 /** loop back over up-to-seven days to find when className was last scheduled */
 export const lkpDate = async (className: string, state: StateService, date?: number) => {
 	const timetable = await state.getTimetableData().toPromise();
-	let mmt = getMoment(date);												// start with today's date
+	let base = getDate(date);													// start with today's date
 	let ctr = 0;
 
 	for (ctr = 0; ctr <= 7; ctr++) {
-		const now = fmtDate(mmt, DATE_KEY.weekDay);			// get the offset 'day'
+		const now = parseDate(base);										// get the date components
 		const classes = timetable.client.schedule!			// loop through schedule
-			.filter(row => row.day === now)								// finding a match in 'day'
+			.filter(row => row.day === now.day)						// finding a match in 'day'
 			.filter(row => row[FIELD.key] === className)
 
 		if (classes.length)															// is this class offered on this 'day'   
 			break;
-		mmt = mmt.add(-1, 'days');											// move pointer to previous day
+		now.add(-1, 'days');														// move pointer to previous day
 	}
 
 	if (ctr > 7)																			// cannot find className on timetable
-		mmt = getMoment(date);													// so default back to today's date	
+		base = getDate(date);														// so default back to today's date	
 
-	return getStamp(mmt);
+	return getStamp(base);
 }

@@ -6,9 +6,9 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
+import { TStoreBase, IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/data/data.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -83,13 +83,17 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
+	writeClaim(claim: ICustomClaims) {
+		return this.callHttps('writeClaim', { collection: COLLECTION.register, customClaims: claim }, `setting claim`);;
+	}
+
 	/** Call a server Cloud Function */
-	private callHttps<T>(fnName: string, args: Object, msg: string) {
+	private callHttps<T>(fnName: string, args: Object, msg?: string) {
 		const fn = this.aff.httpsCallable(fnName);
 		let snack = true;																				// set a snackbar flag
 
 		setTimeout(() => {																			// if no response in one-second, show the snackbar
-			if (snack) {
+			if (snack && msg) {
 				this.zone.run(() =>																	// wrap snackbar in Angular Zone
 					this.snack.open(msg))															// let the User know there is a delay
 			}

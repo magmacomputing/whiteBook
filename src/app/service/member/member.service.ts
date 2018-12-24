@@ -35,13 +35,12 @@ export class MemberService {
 	}
 
 	async setPlan(plan: TPlan) {
-		const user = await this.state.asPromise(this.state.getAuthData());
 		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
 		this.dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
-			.then(_ => this.data.updPlan(plan))
+			.then(_ => this.data.writeClaim({ plan }))
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
