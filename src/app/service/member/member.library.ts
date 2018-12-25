@@ -4,7 +4,7 @@ import { StateService } from '@dbase/state/state.service';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 
 import { isString, isObject, isNumber } from '@lib/type.library';
-import { getStamp, diffDate, getDate, parseDate } from '@lib/date.library';
+import { getStamp, getDate, parseDate } from '@lib/date.library';
 import { FIELD } from '@dbase/data/data.define';
 
 // Library of member-related functions
@@ -47,7 +47,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
 		.filter(isNumber))
 
 export const getMemberAge = (info?: IProfileInfo[]) =>
-	diffDate(getMemberBirthDay(info));
+	parseDate().diff(getMemberBirthDay(info));
 
 /**
  * Determine if a new payment is due.  

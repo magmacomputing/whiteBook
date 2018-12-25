@@ -258,7 +258,7 @@ export const buildTimetable = (source: ITimetableState) => {
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: parseDate(calendarDoc.start).add(offset, 'minutes').format(DATE_KEY.HHmm) as string,
+				start: parseDate(calendarDoc.start).add(offset, 'minutes').format(DATE_KEY.HHmm),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				icon: classDoc.icon,

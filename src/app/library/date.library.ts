@@ -1,15 +1,13 @@
-import * as moment from 'moment';
-
-import { TString, isString, isNumber, getType } from '@lib/type.library';
+import { isString, getType } from '@lib/type.library';
 import { toNumeric } from '@lib/string.library';
 
 export const startOf = (offset: 'week' | 'month', dt?: string | number | Date) => setDate('start', offset, 0, dt);
 export const endOf = (offset: 'week' | 'month', dt?: string | number | Date) => setDate('end', offset, 0, dt);
-const setDate = (direction: 'add' | 'sub' | 'start' | 'end', unit: 'day' | 'days' | 'minute' | 'minutes' | 'week' | 'month', offset?: number, dt?: string | number | Date) => {
+const setDate = (direction: 'add' | 'start' | 'end', unit: 'day' | 'days' | 'minute' | 'minutes' | 'week' | 'month', offset?: number, dt?: string | number | Date) => {
 	const base = parseDate(dt);
 
 	if (direction === 'start' || direction === 'end')
-		[base.HH, base.MM, base.SS] = [0, 0, 0];
+		[base.HH, base.MM, base.SS] = [0, 0, 0];								// discard the time-portion of the date
 
 	switch (direction + '.' + unit) {
 		case 'start.week':
@@ -53,6 +51,7 @@ interface IDateParts {
 	MM: number;
 	SS: number;
 	ts: number;																								// unix timestamp
+	ms: number;																								// milliseconds
 	wn: string;																								// week-name
 	mn: string;																								// month-name
 }
@@ -60,24 +59,25 @@ const hhmm = /^\d\d:\d\d$/;																	// a regex to match HH:MM
 
 export const parseDate = (dt?: string | number | Date) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
-		dt = new Date().getFullYear() + dt;											// current year, plus time
+		dt = new Date().getFullYear() + ' ' + dt;								// current year, plus time
 	const base = getDate(dt);
 
-	let [yy, mm, dd, ww, HH, MM, SS, ts, wn, mn] = [
+	let [yy, mm, dd, ww, HH, MM, SS, ts, ms, wn, mn] = [
 		base.getFullYear(), base.getMonth(), base.getDate(), base.getDay(),
-		base.getHours(), base.getMinutes(), base.getSeconds(), Math.round(base.getTime() / 1000),
+		base.getHours(), base.getMinutes(), base.getSeconds(), Math.round(base.getTime() / 1000), base.getTime(),
 		base.toString().split(' ')[0], base.toString().split(' ')[1]
 	];
 	if (!ww) ww = 7;																					// ISO weekday
 	mm += 1;																									// ISO month
-	const obj: IDateParts = { yy, mm, dd, ww, HH, MM, SS, ts, wn, mn };
+	const obj: IDateParts = { yy, mm, dd, ww, HH, MM, SS, ts, ms, wn, mn };
 
 	return {
 		...obj,
 		add: (offset: number, unit: 'day' | 'days' | 'minute' | 'minutes') => setDate('add', unit, offset, base),
 		startOf: (unit: 'week' | 'month') => setDate('start', unit, 0, base),
 		endOf: (unit: 'week' | 'month') => setDate('end', unit, 0, base),
-		format: (fmt: TFormat) => formatDate(fmt, obj),
+		format: <K extends keyof IDate>(fmt: K) => formatDate(fmt, obj) as IDate[K],
+		diff: (dt2: string | number | Date, unit?: 'years' | 'months' | 'days') => diffDate(obj, parseDate(dt2), unit),
 	}
 }
 
@@ -97,7 +97,7 @@ export const getDate = (dt?: string | number | Date) => {
 	}
 }
 
-export const formatDate = <K extends keyof IDate>(fmt: K, dt: IDateParts): IDate[K] => {
+const formatDate = (fmt: keyof IDate, dt: IDateParts) => {
 	switch (fmt) {
 		case DATE_KEY.HHmm:
 			return `${fix(dt.HH)}:${fix(dt.MM)}`;
@@ -114,6 +114,21 @@ export const formatDate = <K extends keyof IDate>(fmt: K, dt: IDateParts): IDate
 		default:
 			return '';
 	}
+}
+
+const diffDate = (dt1: IDateParts, dt2: IDateParts, unit: 'years' | 'months' | 'days' = 'years') => {
+	const divideBy = {
+		years: 31536000000,
+		months: 2628000000,
+		weeks: 604800000,
+		days: 86400000,
+		hours: 3600000,
+		minutes: 60000,
+		seconds: 1000
+	};
+	const diff = dt2.ms - dt1.ms;
+
+	return Math.floor(diff / divideBy[unit]);
 }
 
 const fix = (nbr: number, max = 2, fill = '0') =>
@@ -203,23 +218,3 @@ export enum DATE_KEY {
 	log = 'log',
 	elapse = 'elapse',
 };
-
-/** an array of formats for Moment() to try against a string Date */
-const MOMENT_FMT = [
-	DATE_FMT.dayMonthYear,
-	DATE_FMT.yearMonthDay,
-	DATE_FMT.yearMonthDaySep,
-	DATE_FMT.dayMonthYearSep,
-	DATE_FMT.stamp,
-	DATE_FMT.time,
-];
-
-/** get a moment object */
-export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
-	dt ? moment(dt, fmt) : moment(moment.now());
-
-/** get integer difference between supplied date and now (default unit is 'years') */
-export const diffDate = (date?: string | number, unit: moment.unitOfTime.Diff = 'years') =>
-	isString(date) || isNumber(date)
-		? moment().diff(getMoment(date), unit)
-		: 0

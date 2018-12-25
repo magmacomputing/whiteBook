@@ -82,7 +82,7 @@ export class MemberService {
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await lkpDate(schedule[FIELD.key], this.state, date)
-		const when = base.format(DATE_KEY.yearMonthDay) as number;
+		const when = base.format(DATE_KEY.yearMonthDay);
 
 		// check we are not re-booking same Class on same Day
 		const attendFilter: TWhere = [
