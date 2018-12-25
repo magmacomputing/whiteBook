@@ -138,6 +138,8 @@ export class StateService {
 	 * class      -> has the Classes that are available on that schedule or event  
 	 * location   -> has the Locations that are indicated on that schedule or calendar
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
+	 * span				-> has the Class Duration definitions ('full' or 'half')
+	 * diary			-> has an array of Diary notes to display on the Attend component
 	 */
 	getScheduleData(date?: number, uid?: string): Observable<ITimetableState> {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date, DATE_KEY.weekDay) };
@@ -147,6 +149,10 @@ export class StateService {
 		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.classes}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
+		const filterDiary: TWhere = [
+			{ fieldPath: FIELD.type, value: STORE.schedule },
+			{ fieldPath: 'location', value: '{{client.schedule.location}}' }
+		]
 
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -157,6 +163,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, undefined, date),												// get class durations
+			// joinDoc(this.states, 'client', STORE.diary, filterDiary, date),											// get any Diary message for this date
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		)
 	}

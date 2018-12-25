@@ -2,7 +2,7 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
-export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span';
+export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'diary';
 export type TStoreMember = 'profile' | 'payment' | 'bonus';
 export type TStoreAttend = 'attend';
 export type TTypeDefault = TStoreClient | 'icon';
@@ -189,6 +189,14 @@ export interface ISpan extends IClientBase {
 	[FIELD.store]: STORE.span;
 	[FIELD.key]: TSpan;
 	duration: number;
+}
+
+//	/client/diary									// <key> is immaterial
+export interface IDiary extends IClientBase {
+	[FIELD.store]: STORE.diary;
+	[FIELD.type]: 'schedule'
+	location?: string;
+	note: string;
 }
 
 //	/client/schedule

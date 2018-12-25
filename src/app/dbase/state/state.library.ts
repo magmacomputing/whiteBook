@@ -14,7 +14,7 @@ import { getSlice } from '@dbase/data/data.library';
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { fmtDate, DATE_KEY, parseDate } from '@lib/date.library';
+import { DATE_KEY, fmtDate, parseDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
@@ -222,6 +222,7 @@ export const buildTimetable = (source: ITimetableState) => {
 		calendar = [],															// the calendar of special events on the date
 		event: events = [],													// the event-description for the calendar type
 		span: spans = [],														// the duration of classes / events
+		diary: diarys = [],													// any diary notes for this date
 	} = source.client;
 	const {
 		price: prices = [],
@@ -233,7 +234,7 @@ export const buildTimetable = (source: ITimetableState) => {
 
 	/**
 	 * If we found any Calendar events, push them on the Timetable.  
-	 * assume a Calendar's location overrides an usual Schedule at the location.
+	 * assume a Calendar's location overrides the usual Schedule at the location.
 	 */
 	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
 		const eventList = firstRow<IEvent>(events, { fieldPath: FIELD.key, value: calendarDoc[FIELD.type] });

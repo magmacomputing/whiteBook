@@ -1,4 +1,4 @@
-<div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],price:[],location:[],instructor:[]}}; let timetable">
+<div *ngIf="(timetable$ | async) || {client: {schedule:[],class:[],price:[],location:[],instructor:[],diary:[]}}; let timetable">
 	<div *ngIf="timetable.client?.schedule?.length; else noSchedule">
 		<p>Please select an Event from the list below...</p>
 	</div>
@@ -7,6 +7,7 @@
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
 			<mat-tab *ngFor="let loc of timetable.client?.location; let sfx = index">
 				<h3> {{ loc.name }} </h3>
+				<div *ngFor="let diary of timetable.client?.diary;"><p>{{ diary.note }}</p></div>
 
 				<div *ngIf="timetable.client?.location.length > 1">
 					{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
@@ -42,5 +43,5 @@
 </div>
 
 <ng-template #noSchedule>
-	<h3>Getting today's schedule</h3>
+	<h3>No Classes today !</h3>
 </ng-template>
