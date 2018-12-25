@@ -6,4 +6,11 @@
 	<p></p>
 	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/profile/account')">Account</button>
 
+	<div *ngIf="(data$ | async); let data">
+		<div *ngFor="let message of data.member.message">
+			<p>{{ message.note }}</p>
+		</div>
+	</div>
+
+
 </router-outlet>

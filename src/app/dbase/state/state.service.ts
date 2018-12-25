@@ -10,7 +10,7 @@ import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUser
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
@@ -97,6 +97,7 @@ export class StateService {
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
+			joinDoc(this.states, 'member', STORE.message, undefined, date),
 		)
 	}
 
@@ -141,7 +142,7 @@ export class StateService {
 	 * span				-> has the Class Duration definitions ('full' or 'half')
 	 * diary			-> has an array of Diary notes to display on the Attend component
 	 */
-	getScheduleData(date?: number, uid?: string): Observable<ITimetableState> {
+	getScheduleData(date?: number, uid?: string) {
 		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date, DATE_KEY.weekDay) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate(date, DATE_KEY.yearMonthDay) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
@@ -153,6 +154,10 @@ export class StateService {
 			{ fieldPath: FIELD.type, value: STORE.schedule },
 			{ fieldPath: 'location', value: '{{client.schedule.location}}' }
 		]
+		const filterNote: TWhere = [
+			{ fieldPath: FIELD.type, value: COLLECTION.member },
+			{ fieldPath: FIELD.uid, value: '{{auth.user.uid}}' }
+		]
 
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -163,9 +168,10 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, undefined, date),												// get class durations
-			// joinDoc(this.states, 'client', STORE.diary, filterDiary, date),											// get any Diary message for this date
+			joinDoc(this.states, 'client', STORE.diary, filterDiary, date),											// get any Diary message for this date
+			joinDoc(this.states, 'client', STORE.diary, filterNote, date),											// get any Notes for this Member
 			map(table => buildTimetable(table)),																								// assemble the Timetable
-		)
+		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)
 	}
 
 	/**

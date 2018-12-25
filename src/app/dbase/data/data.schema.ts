@@ -3,7 +3,7 @@ import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'diary';
-export type TStoreMember = 'profile' | 'payment' | 'bonus';
+export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
 export type TStoreAttend = 'attend';
 export type TTypeDefault = TStoreClient | 'icon';
 
@@ -22,13 +22,11 @@ export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phon
 //	/register
 type TRole = 'admin' | 'member' | 'guest';
 export interface ICustomClaims {				// a special sub-set of fields from the User Token
-	// claims: {
 	roles?: TRole[];
 	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
 	memberName?: string;
 	memberAllow?: string[];
 	memberDeny?: string[];
-	// }
 }
 
 // These are the meta- and common-fields for a standard collection document
@@ -246,6 +244,10 @@ export interface IProvider extends IClientBase {
 export interface IProfile extends IMemberBase {
 	[FIELD.store]: STORE.profile;
 	[FIELD.type]: TProfile;
+}
+export interface IMessage extends IMemberBase {
+	[FIELD.store]: STORE.message;
+	note: string;
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: STORE.plan;

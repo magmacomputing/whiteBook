@@ -13,7 +13,7 @@ export enum COLLECTION {
 export const STORES: { [col: string]: string[] } = {
 	auth: ['credential', 'info', 'token', 'user'],
 	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'diary', 'bonus', 'span', '_default_', '_config_', '_schema_'],
-	member: ['payment', 'profile'],
+	member: ['payment', 'profile', 'message', 'bonus'],
 	attend: ['attend'],
 	local: ['@config@'],
 }
@@ -34,6 +34,7 @@ export enum STORE {
 	diary = 'diary',
 	bonus = 'bonus',
 	span = 'span',
+	message = 'message',
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
