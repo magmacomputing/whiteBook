@@ -14,7 +14,7 @@ import { getSlice } from '@dbase/data/data.library';
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { DATE_KEY, fmtDate, parseDate } from '@lib/date.library';
+import { DATE_KEY, parseDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
@@ -171,7 +171,7 @@ export const sumAttend = (source: IAccountState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => Object.assign({ day: fmtDate(row[FIELD.key], DATE_KEY.weekDay), row }))
+			.map(row => Object.assign({ day: parseDate(row[FIELD.key]).format(DATE_KEY.weekDay), row }))
 	}
 
 	return { ...source };
@@ -258,7 +258,7 @@ export const buildTimetable = (source: ITimetableState) => {
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: parseDate(calendarDoc.start).add(offset, 'minutes').format(DATE_KEY.HHmm),
+				start: parseDate(calendarDoc.start).add(offset, 'minutes').format(DATE_KEY.HHmm) as string,
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				icon: classDoc.icon,

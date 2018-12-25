@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map, take, switchMap } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
@@ -10,12 +10,12 @@ import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUser
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { fmtDate, getMoment, DATE_KEY } from '@lib/date.library';
+import { DATE_KEY, parseDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -143,8 +143,9 @@ export class StateService {
 	 * diary			-> has an array of Diary notes to display on the Attend component
 	 */
 	getScheduleData(date?: number, uid?: string) {
-		const filterSchedule: TWhere = { fieldPath: 'day', value: fmtDate(date, DATE_KEY.weekDay) };
-		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: fmtDate(date, DATE_KEY.yearMonthDay) };
+		const base = parseDate(date);
+		const filterSchedule: TWhere = { fieldPath: 'day', value: base.format(DATE_KEY.weekDay) };
+		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: base.format(DATE_KEY.yearMonthDay) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterTypeClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.classes}}` };
@@ -152,11 +153,7 @@ export class StateService {
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
 		const filterDiary: TWhere = [
 			{ fieldPath: FIELD.type, value: STORE.schedule },
-			{ fieldPath: 'location', value: '{{client.schedule.location}}' }
-		]
-		const filterNote: TWhere = [
-			{ fieldPath: FIELD.type, value: COLLECTION.member },
-			{ fieldPath: FIELD.uid, value: '{{auth.user.uid}}' }
+			{ fieldPath: 'location', value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] }
 		]
 
 		return this.getMemberData(date, uid).pipe(
@@ -169,7 +166,6 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, undefined, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.diary, filterDiary, date),											// get any Diary message for this date
-			joinDoc(this.states, 'client', STORE.diary, filterNote, date),											// get any Notes for this Member
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)
 	}
@@ -179,14 +175,14 @@ export class StateService {
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
 	getTimetableData(date?: number): Observable<ITimetableState> {
-		const moment = getMoment(date);
+		const base = parseDate(date);
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
 
 		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: fmtDate(moment.startOf('week'), DATE_KEY.yearMonthDay) },
-			{ fieldPath: FIELD.key, opStr: '<=', value: fmtDate(moment.endOf('week'), DATE_KEY.yearMonthDay) },
+			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_KEY.yearMonthDay) },// fmtDate(base.startOf('week'), DATE_KEY.yearMonthDay) },
+			{ fieldPath: FIELD.key, opStr: '<=', value: base.endOf('week').format(DATE_KEY.yearMonthDay) },
 		]
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 

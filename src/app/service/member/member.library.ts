@@ -68,7 +68,7 @@ export const lkpDate = async (className: string, state: StateService, date?: num
 	for (ctr = 0; ctr <= 7; ctr++) {
 		const now = parseDate(base);										// get the date components
 		const classes = timetable.client.schedule!			// loop through schedule
-			.filter(row => row.day === now.day)						// finding a match in 'day'
+			.filter(row => row.day === now.ww)						// finding a match in 'day'
 			.filter(row => row[FIELD.key] === className)
 
 		if (classes.length)															// is this class offered on this 'day'   

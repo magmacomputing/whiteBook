@@ -13,13 +13,13 @@ const setDate = (direction: 'add' | 'sub' | 'start' | 'end', unit: 'day' | 'days
 
 	switch (direction + '.' + unit) {
 		case 'start.week':
-			base.dd = base.dd - base.day + 1;
+			base.dd = base.dd - base.ww + 1;
 			break;
 		case 'start.month':
 			base.dd = 1;
 			break;
 		case 'end.week':
-			base.dd = base.dd - base.day + 7
+			base.dd = base.dd - base.ww + 7
 			break;
 		case 'end.month':
 			base.mm += 1;
@@ -43,38 +43,41 @@ const setDate = (direction: 'add' | 'sub' | 'start' | 'end', unit: 'day' | 'days
 }
 
 /** break a Date into components, plus methods to manipulate */
+type TFormat = DATE_KEY.HHmm | DATE_KEY.yearMonthDay | DATE_KEY.weekDay | DATE_KEY.stamp;
 interface IDateParts {
 	yy: number;
 	mm: number;
 	dd: number;
-	day: number;
+	ww: number;																								// day-of-week, Mon=1
 	HH: number;
 	MM: number;
 	SS: number;
-	ww: string;																								// week-name
+	ts: number;																								// unix timestamp
+	wn: string;																								// week-name
 	mn: string;																								// month-name
 }
-const hhmm = /^\d\d:\d\d$/;
+const hhmm = /^\d\d:\d\d$/;																	// a regex to match HH:MM
+
 export const parseDate = (dt?: string | number | Date) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
 		dt = new Date().getFullYear() + dt;											// current year, plus time
 	const base = getDate(dt);
-	
-	let [yy, mm, dd, day, HH, MM, SS, ww, mn] = [
+
+	let [yy, mm, dd, ww, HH, MM, SS, ts, wn, mn] = [
 		base.getFullYear(), base.getMonth(), base.getDate(), base.getDay(),
-		base.getHours(), base.getMinutes(), base.getSeconds(),
+		base.getHours(), base.getMinutes(), base.getSeconds(), Math.round(base.getTime() / 1000),
 		base.toString().split(' ')[0], base.toString().split(' ')[1]
 	];
-	if (!day) day = 7;																				// ISO weekday
+	if (!ww) ww = 7;																					// ISO weekday
 	mm += 1;																									// ISO month
-	const obj: IDateParts = { yy, mm, dd, day, HH, MM, SS, ww, mn };
+	const obj: IDateParts = { yy, mm, dd, ww, HH, MM, SS, ts, wn, mn };
 
 	return {
 		...obj,
 		add: (offset: number, unit: 'day' | 'days' | 'minute' | 'minutes') => setDate('add', unit, offset, base),
 		startOf: (unit: 'week' | 'month') => setDate('start', unit, 0, base),
 		endOf: (unit: 'week' | 'month') => setDate('end', unit, 0, base),
-		format: (fmt: string) => formatDate(fmt, obj),
+		format: (fmt: TFormat) => formatDate(fmt, obj),
 	}
 }
 
@@ -94,12 +97,22 @@ export const getDate = (dt?: string | number | Date) => {
 	}
 }
 
-export const formatDate = (fmt: string, dt: IDateParts) => {
+export const formatDate = <K extends keyof IDate>(fmt: K, dt: IDateParts): IDate[K] => {
 	switch (fmt) {
 		case DATE_KEY.HHmm:
 			return `${fix(dt.HH)}:${fix(dt.MM)}`;
+
 		case DATE_KEY.yearMonthDay:
-			return `${dt.yy}${fix(dt.mm)}${fix(dt.dd)}`;
+			return toNumeric(`${dt.yy}${fix(dt.mm)}${fix(dt.dd)}`);
+
+		case DATE_KEY.weekDay:
+			return dt.ww;
+
+		case DATE_KEY.stamp:
+			return dt.ts;
+
+		default:
+			return '';
 	}
 }
 
@@ -204,10 +217,6 @@ const MOMENT_FMT = [
 /** get a moment object */
 export const getMoment = (dt?: string | number | moment.Moment, fmt: TString = MOMENT_FMT) =>
 	dt ? moment(dt, fmt) : moment(moment.now());
-
-/** format a date by a specified 'key' */
-export const fmtDate = <K extends keyof IDate>(dt?: string | number | moment.Moment, key?: K, fmt: TString = MOMENT_FMT) =>
-	toNumeric(getMoment(dt, fmt).format(DATE_FMT[key || 'yearMonthDay'])) as IDate[K];
 
 /** get integer difference between supplied date and now (default unit is 'years') */
 export const diffDate = (date?: string | number, unit: moment.unitOfTime.Diff = 'years') =>

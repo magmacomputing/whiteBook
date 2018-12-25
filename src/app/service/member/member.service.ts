@@ -11,12 +11,12 @@ import { IAccountState } from '@dbase/state/state.define';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { getStamp, fmtDate, DATE_KEY } from '@lib/date.library';
+import { getStamp, DATE_KEY, parseDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -72,6 +72,8 @@ export class MemberService {
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.getAccount();						// get Member's current account details
+		const base = parseDate(date);
+		const stamp = base.ts;
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
@@ -80,7 +82,7 @@ export class MemberService {
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await lkpDate(schedule[FIELD.key], this.state, date)
-		const when = fmtDate(date, DATE_KEY.yearMonthDay);
+		const when = base.format(DATE_KEY.yearMonthDay) as number;
 
 		// check we are not re-booking same Class on same Day
 		const attendFilter: TWhere = [
@@ -97,7 +99,6 @@ export class MemberService {
 
 		const creates: TStoreBase[] = [];
 		const updates: TStoreBase[] = [];
-		const stamp = getStamp();
 		const payments = data.account.payment;					// the list of current and prepaid payments
 
 		// determine which Payment record is active
