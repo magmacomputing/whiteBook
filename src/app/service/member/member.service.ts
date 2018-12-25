@@ -16,7 +16,7 @@ import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { getStamp, DATE_KEY, parseDate } from '@lib/date.library';
+import { getStamp, DATE_KEY, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -72,7 +72,7 @@ export class MemberService {
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.getAccount();						// get Member's current account details
-		const base = parseDate(date);
+		const base = getDate(date);
 		const stamp = base.ts;
 
 		// If no <price> on Schedule, then lookup based on member's plan

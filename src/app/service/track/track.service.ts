@@ -7,7 +7,7 @@ import { AuthService } from '@service/auth/auth.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { ETrack, ITrack } from '@service/track/track.define';
 
-import { parseDate } from '@lib/date.library';
+import { getDate } from '@lib/date.library';
 import { getPath } from '@lib/object.library';
 import { sprintf } from '@lib/logger.library';
 
@@ -18,7 +18,7 @@ export class TrackService {
 	constructor(private fire: FireService, private auth: AuthService) { }
 
 	async write(fmt?: any, ...data: any[]) {
-		const base = parseDate();
+		const base = getDate();
 		const uid = await this.auth.user
 			.then(user => getPath<string>(user, 'auth.user.uid'))
 

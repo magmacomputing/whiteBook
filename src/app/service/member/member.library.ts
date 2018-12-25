@@ -4,7 +4,7 @@ import { StateService } from '@dbase/state/state.service';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 
 import { isString, isObject, isNumber } from '@lib/type.library';
-import { getStamp, getDate, parseDate } from '@lib/date.library';
+import { getStamp, getDate } from '@lib/date.library';
 import { FIELD } from '@dbase/data/data.define';
 
 // Library of member-related functions
@@ -47,7 +47,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
 		.filter(isNumber))
 
 export const getMemberAge = (info?: IProfileInfo[]) =>
-	parseDate().diff(getMemberBirthDay(info));
+	getDate().diff(getMemberBirthDay(info));
 
 /**
  * Determine if a new payment is due.  
@@ -59,17 +59,16 @@ export const paymentDue = () => {
 	return true;
 }
 
-/** loop back over up-to-seven days to find when className was last scheduled */
+/** loop back up-to-seven days to find when className was last scheduled */
 export const lkpDate = async (className: string, state: StateService, date?: number) => {
 	const timetable = await state.getTimetableData().toPromise();
-	let base = getDate(date);													// start with today's date
+	let now = getDate(date);												// start with today's date
 	let ctr = 0;
 
 	for (ctr = 0; ctr <= 7; ctr++) {
-		const now = parseDate(base);										// get the date components
 		const classes = timetable.client.schedule!			// loop through schedule
 			.filter(row => row.day === now.ww)						// finding a match in 'day'
-			.filter(row => row[FIELD.key] === className)
+			.filter(row => row[FIELD.key] === className)	// and match in 'class'
 
 		if (classes.length)															// is this class offered on this 'day'   
 			break;
@@ -77,7 +76,7 @@ export const lkpDate = async (className: string, state: StateService, date?: num
 	}
 
 	if (ctr > 7)																			// cannot find className on timetable
-		base = getDate(date);														// so default back to today's date	
+		now = getDate(date);													// so default back to today's date	
 
-	return getStamp(base);
+	return now.ts;																		// timestamp
 }

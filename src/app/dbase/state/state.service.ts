@@ -15,7 +15,7 @@ import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { DATE_KEY, parseDate } from '@lib/date.library';
+import { DATE_KEY, getDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -143,7 +143,7 @@ export class StateService {
 	 * diary			-> has an array of Diary notes to display on the Attend component
 	 */
 	getScheduleData(date?: number, uid?: string) {
-		const base = parseDate(date);
+		const base = getDate(date);
 		const filterSchedule: TWhere = { fieldPath: 'day', value: base.format(DATE_KEY.weekDay) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: base.format(DATE_KEY.yearMonthDay) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
@@ -175,7 +175,7 @@ export class StateService {
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
 	getTimetableData(date?: number): Observable<ITimetableState> {
-		const base = parseDate(date);
+		const base = getDate(date);
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
