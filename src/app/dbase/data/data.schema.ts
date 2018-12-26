@@ -131,7 +131,7 @@ export interface ICalendar extends IClientBase {
 	day: number;
 	location?: string;
 	instructor?: string;
-	start: string;
+	start?: string;
 }
 
 //	/client/schedule

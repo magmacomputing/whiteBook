@@ -21,7 +21,7 @@ import { toLower } from '@lib/string.library';
 export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 	const clone = cloneObj(table);											// clone to avoid mutating original array
 
-	return clone 															// clone to avoid mutating original array
+	return clone 																				// clone to avoid mutating original array
 		.filter((row: IObject<any>) => {									// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
@@ -52,7 +52,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 							case 'array-contains':
 								return field.includes(compare);
 							case '!=':															// non-standard operator
-								return isUndefined(field) || field != compare;
+								return (isUndefined(field) && !isUndefined(compare)) || field != compare;
 							default:
 								return false;
 						}

@@ -155,10 +155,15 @@ export class StateService {
 			{ fieldPath: FIELD.type, value: STORE.schedule },
 			{ fieldPath: 'location', value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] }
 		]
+		const filterRange: TWhere = [
+			{ fieldPath: FIELD.effect, opStr: '>', value: Number.MIN_SAFE_INTEGER },
+			{ fieldPath: FIELD.expire, opStr: '<', value: Number.MAX_SAFE_INTEGER },
+		]
 
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
+			joinDoc(this.states, 'client', STORE.calendar, filterRange, date),									// get any blocked calendar-range
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date
 			joinDoc(this.states, 'client', STORE.class, filterTypeClass, date),									// get classes for this weekday
 			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get classes for this calendar-date
