@@ -66,7 +66,7 @@ export const lkpDate = async (state: StateService, className: string, location?:
 	let ctr = 0;
 
 	if (!location)
-		location = await state.getDefault(STORE.location);
+		location = state.getDefault(timetable, STORE.location);
 
 	for (ctr; ctr < 7; ctr++) {
 		const classes = timetable.client.schedule!			// loop through schedule

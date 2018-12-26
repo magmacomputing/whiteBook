@@ -60,13 +60,8 @@ export class StateService {
 			.then(table => table[0]);				// only the first document
 	}
 
-	getDefault<IDefault>(type: string) {
-		return of({})
-			.pipe(
-				joinDoc(this.states, 'default', STORE.default),
-				map(state => getDefault(state as IMemberState, type)),
-			)
-			.toPromise()
+	getDefault(state: IMemberState, type: string) {
+		return getDefault(state, type);
 	}
 
 	asPromise<T>(obs: Observable<T>) {

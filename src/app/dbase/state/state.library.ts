@@ -34,9 +34,9 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	)
 }
 
-export const getDefault = <IDefault>(state: IMemberState, type: string) => {
+export const getDefault = (state: IMemberState, type: string) => {
 	const table = (state['default'][STORE.default])
-		.filter(row => row[FIELD.type] === type);       // find the default value for the requested fieldPath
+		.filter(row => row[FIELD.type] === type);       // find the default value for the requested type
 	return table.length && table[0][FIELD.key] || undefined;
 }
 
