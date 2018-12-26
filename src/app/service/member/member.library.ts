@@ -65,7 +65,7 @@ export const lkpDate = async (className: string, state: StateService, date?: num
 	let now = getDate(date);													// start with today's date
 	let ctr = 0;
 
-	for (ctr = 0; ctr <= 7; ctr++) {
+	for (ctr = 0; ctr < 7; ctr++) {
 		const classes = timetable.client.schedule!			// loop through schedule
 			.filter(row => row.day === now.ww)						// finding a match in 'day'
 			.filter(row => row[FIELD.key] === className)	// and match in 'class'
@@ -75,7 +75,7 @@ export const lkpDate = async (className: string, state: StateService, date?: num
 		now.add(-1, 'days');														// move pointer to previous day
 	}
 
-	if (ctr > 7)																			// cannot find className on timetable
+	if (ctr >= 7)																			// cannot find className on timetable
 		now = getDate(date);														// so default back to today's date	
 
 	return now.ts;																		// timestamp

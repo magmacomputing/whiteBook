@@ -184,7 +184,6 @@ export class StateService {
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
-
 		const filterCalendar: TWhere = [
 			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_FMT.yearMonthDay) },// fmtDate(base.startOf('week'), DATE_FMT.yearMonthDay) },
 			{ fieldPath: FIELD.key, opStr: '<=', value: base.endOf('week').format(DATE_FMT.yearMonthDay) },
