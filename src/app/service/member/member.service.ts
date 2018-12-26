@@ -72,8 +72,6 @@ export class MemberService {
 	/** Insert an Attendance record, aligned to an <active> Account payment */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.getAccount();						// get Member's current account details
-		const base = getDate(date);
-		const stamp = base.ts;
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
@@ -82,6 +80,9 @@ export class MemberService {
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await lkpDate(this.state, schedule[FIELD.key], schedule.location, date)
+
+		const base = getDate(date);
+		const stamp = base.ts;
 		const when = base.format(DATE_FMT.yearMonthDay);
 
 		// check we are not re-booking same Class on same Day
