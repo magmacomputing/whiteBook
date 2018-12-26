@@ -13,13 +13,14 @@ interface IDate {													// parse a Date into components
 	ts: number;															// unix timestamp
 }
 
-interface IDateKey {
+interface IDateFmt {
 	yearMonthDay: number;
 	weekDay: number;
 	HHmm: string;
 	stamp: number;
 	display: string;
 	dayMonth: string;
+	dateTime: string;
 }
 
 export enum DATE_FMT {
@@ -29,6 +30,7 @@ export enum DATE_FMT {
 	stamp = 'stamp',
 	display = 'display',
 	dayMonth = 'dayMonth',
+	dateTime = 'dateTime',
 };
 
 type TDate = string | number | Date;
@@ -54,7 +56,7 @@ const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/** break a Date into components, plus methods to manipulate */
+/** parse a Date , return components and methods */
 export const getDate = (dt?: TDate) => {
 	const date = parseDate(dt);
 
@@ -64,13 +66,18 @@ export const getDate = (dt?: TDate) => {
 		startOf: (unit: TUnitOffset = 'week') => setDate('start', unit, date),
 		endOf: (unit: TUnitOffset = 'week') => setDate('end', unit, date),
 		diff: (unit: TUnitDiff = 'years', dt2?: TDate) => diffDate(date, parseDate(dt2), unit),
-		format: <K extends keyof IDateKey>(fmt: K) => formatDate(fmt, date) as IDateKey[K],
+		format: <K extends keyof IDateFmt>(fmt: K) => formatDate(fmt, date) as IDateFmt[K],
+		isValid: () => !isNaN(date.ts),
 	}
 }
 
 /** quick shortcut rather than getDate().format(stamp) */
 export const getStamp = (dt?: TDate) =>
-	Math.floor(checkDate(dt).getTime() / 1000);	// Unix timestamp-format
+	Math.floor(checkDate(dt).getTime() / 1000);								// Unix timestamp-format
+
+/** shortcut to getDate().format() */
+export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
+	getDate(dt).format(fmt);
 
 /** break a Date into components, plus methods to manipulate */
 const parseDate = (dt?: TDate) => {
@@ -82,7 +89,7 @@ const parseDate = (dt?: TDate) => {
 		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
 		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
 	];
-	if (!ww) ww = 7;																					// ISO weekday
+	if (!ww && !isNaN(ww)) ww = 7;														// ISO weekday
 	mm += 1;																									// ISO month
 
 	return { yy, mm, dd, ww, HH, MM, SS, ts } as IDate;
@@ -95,15 +102,13 @@ const checkDate = (dt?: TDate) => {
 	switch (getType(dt)) {
 		case 'Undefined': date = new Date(); break;
 		case 'Date': date = dt as Date; break;
-		case 'String': date = new Date(dt as string); break;
-		case 'Number': date = new Date(dt as number * 1000); break;
-		default: date = new Date();
+		case 'String': date = new Date(dt as string); break;		// attempt to parse date-string
+		case 'Number': date = new Date(dt as number * 1000); break;	// assume timestamp to milliseconds
+		default: date = new Date();															// unexpected input
 	}
 
-	if (isNaN(date.getTime())) {
-		date = new Date();
-		console.log('Invalid Date: ', dt);
-	}
+	if (isNaN(date.getTime()))
+		console.log('Invalid Date: ', dt);											// log the Invalid Date
 
 	return date;
 }
@@ -145,7 +150,7 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 }
 
 /** apply some standard format rules */
-const formatDate = (fmt: keyof IDateKey, date: IDate) => {
+const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 	switch (fmt) {
 		case DATE_FMT.HHmm:
 			return `${fix(date.HH)}:${fix(date.MM)}`;
@@ -164,6 +169,9 @@ const formatDate = (fmt: keyof IDateKey, date: IDate) => {
 
 		case DATE_FMT.dayMonth:
 			return `${fix(date.dd)}-${months[date.mm]}`;
+
+		case DATE_FMT.dateTime:
+			return `${date.yy}-${months[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.mm)}`;
 
 		default:
 			return '';
