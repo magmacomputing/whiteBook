@@ -6,7 +6,7 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState, IPlanState, IMemberState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
 import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
 import { getSlice } from '@dbase/data/data.library';
@@ -32,6 +32,12 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 		map(state => asAt<T>(state[index || store], filter, date)),
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
+}
+
+export const getDefault = <IDefault>(state: IMemberState, type: string) => {
+	const table = (state['default'][STORE.default])
+		.filter(row => row[FIELD.type] === type);       // find the default value for the requested fieldPath
+	return table.length && table[0][FIELD.key] || undefined;
 }
 
 /** extract the required fields from the AuthToken object */
@@ -114,9 +120,7 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 				if (isPath) {                                       // check if is it a fieldPath reference on the parent
 					const child = value.replace('{{', '').replace('}}', '').replace(' ', '');
 					const dflt = child.split('.').reverse()[0];       // get the last component of the fieldPath
-					const table = (parent['default'][STORE.default] as IDefault[])
-						.filter(row => row[FIELD.type] === dflt);       // find the default value for the requested fieldPath
-					const defaultValue = table.length && table[0][FIELD.key] || undefined;
+					const defaultValue = getDefault(parent, dflt);
 
 					lookup = getPath(parent, child, defaultValue)			// accessor
 					if (isArray(lookup))

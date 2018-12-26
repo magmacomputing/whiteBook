@@ -5,7 +5,7 @@ import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 
 import { isString, isObject, isNumber } from '@lib/type.library';
 import { getStamp, getDate } from '@lib/date.library';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 
 // Library of member-related functions
 
@@ -60,19 +60,23 @@ export const paymentDue = () => {
 }
 
 /** loop back up-to-seven days to find when className was last scheduled */
-export const lkpDate = async (className: string, state: StateService, date?: number) => {
+export const lkpDate = async (state: StateService, className: string, location?: string, date?: number) => {
 	const timetable = await state.getTimetableData().toPromise();
-	let now = getDate(date);													// start with today's date
+	let now = getDate(date);													// start with date-argument
 	let ctr = 0;
 
-	for (ctr = 0; ctr < 7; ctr++) {
+	if (!location)
+		location = await state.getDefault(STORE.location);
+
+	for (ctr; ctr < 7; ctr++) {
 		const classes = timetable.client.schedule!			// loop through schedule
 			.filter(row => row.day === now.ww)						// finding a match in 'day'
 			.filter(row => row[FIELD.key] === className)	// and match in 'class'
+			.filter(row => row.location === location)			// and match in 'location'
 
 		if (classes.length)															// is this class offered on this 'day'   
 			break;
-		now.add(-1, 'days');														// move pointer to previous day
+		now.add(-1, 'day');															// move pointer to previous day
 	}
 
 	if (ctr >= 7)																			// cannot find className on timetable

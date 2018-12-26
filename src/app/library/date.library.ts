@@ -79,6 +79,8 @@ export const getStamp = (dt?: TDate) =>
 export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
 	getDate(dt).format(fmt);
 
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 /** break a Date into components, plus methods to manipulate */
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...

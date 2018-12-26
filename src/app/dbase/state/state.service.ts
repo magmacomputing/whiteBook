@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, filter } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
 import { TStateSlice } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan } from '@dbase/state/state.library';
+import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -58,6 +58,15 @@ export class StateService {
 	getSingle<T>(store: string, filter: TWhere) {
 		return this.asPromise(this.getCurrent<T>(store, filter))
 			.then(table => table[0]);				// only the first document
+	}
+
+	getDefault<IDefault>(type: string) {
+		return of({})
+			.pipe(
+				joinDoc(this.states, 'default', STORE.default),
+				map(state => getDefault(state as IMemberState, type)),
+			)
+			.toPromise()
 	}
 
 	asPromise<T>(obs: Observable<T>) {
@@ -183,9 +192,8 @@ export class StateService {
 		const base = getDate(date);
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
-		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
 		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_FMT.yearMonthDay) },// fmtDate(base.startOf('week'), DATE_FMT.yearMonthDay) },
+			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_FMT.yearMonthDay) },
 			{ fieldPath: FIELD.key, opStr: '<=', value: base.endOf('week').format(DATE_FMT.yearMonthDay) },
 		]
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
@@ -195,7 +203,6 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.schedule, undefined, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
-			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
 			take(1),
