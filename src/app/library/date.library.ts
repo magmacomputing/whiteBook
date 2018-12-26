@@ -1,7 +1,7 @@
 import { fix } from '@lib/number.library';
 import { isString, isDate, isUndefined } from '@lib/type.library';
 
-interface IDate {												// parse a Date into components
+interface IDate {													// parse a Date into components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
 	dd: number;															// day
@@ -10,8 +10,6 @@ interface IDate {												// parse a Date into components
 	MM: number;															// minute
 	SS: number;															// second
 	ts: number;															// unix timestamp
-	wn: string;															// week-name
-	mn: string;															// month-name
 }
 
 interface IDateKey {
@@ -20,6 +18,7 @@ interface IDateKey {
 	HHmm: string;
 	stamp: number;
 	display: string;
+	dayMonth: string;
 }
 
 export enum DATE_FMT {
@@ -28,6 +27,7 @@ export enum DATE_FMT {
 	HHmm = 'HHmm',
 	stamp = 'stamp',
 	display = 'display',
+	dayMonth = 'dayMonth',
 };
 
 const DATE_KEY = {
@@ -75,10 +75,40 @@ const divideBy = {												// date-offset divisors (as unix-timestamp precisi
 	minutes: 60,
 	seconds: 1,
 };
-const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const weekdays = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/** break a Date into components, plus methods to manipulate */
+export const getDate = (dt?: TDate) => {
+	const date = parseDate(dt);
+
+	return {
+		...date,
+		add: (offset: number, unit: TUnitTime = 'minutes') => setDate('add', unit, date, offset),
+		startOf: (unit: TUnitOffset = 'week') => setDate('start', unit, date),
+		endOf: (unit: TUnitOffset = 'week') => setDate('end', unit, date),
+		diff: (unit: TUnitDiff = 'years', dt2?: TDate) => diffDate(date, parseDate(dt2), unit),
+		format: <K extends keyof IDateKey>(fmt: K) => formatDate(fmt, date) as IDateKey[K],
+	}
+}
+
+/** break a Date into components, plus methods to manipulate */
+const parseDate = (dt?: TDate) => {
+	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
+		dt = new Date().toDateString() + ' ' + dt;							// current date, append time
+	const date = checkDate(dt);
+
+	let [yy, mm, dd, ww, HH, MM, SS, ts] = [
+		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
+		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
+	];
+	if (!ww) ww = 7;																					// ISO weekday
+	mm += 1;																									// ISO month
+
+	return { yy, mm, dd, ww, HH, MM, SS, ts } as IDate;
+}
 
 /** translate the supplied parameter into a Date */
 const checkDate = (dt?: TDate) => {
@@ -130,37 +160,6 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 	return getDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MM, date.SS));
 }
 
-/** break a Date into components, plus methods to manipulate */
-export const getDate = (dt?: TDate) => {
-	const date = parseDate(dt);
-
-	return {
-		...date,
-		add: (offset: number, unit: TUnitTime = 'minutes') => setDate('add', unit, date, offset),
-		startOf: (unit: TUnitOffset = 'week') => setDate('start', unit, date),
-		endOf: (unit: TUnitOffset = 'week') => setDate('end', unit, date),
-		diff: (unit: TUnitDiff = 'years', dt2?: TDate) => diffDate(date, parseDate(dt2), unit),
-		format: <K extends keyof IDateKey>(fmt: K) => formatDate(fmt, date) as IDateKey[K],
-	}
-}
-
-/** break a Date into components, plus methods to manipulate */
-const parseDate = (dt?: TDate) => {
-	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
-		dt = new Date().toDateString() + ' ' + dt;							// current date, append time
-	const date = checkDate(dt);
-
-	let [yy, mm, dd, ww, HH, MM, SS, ts, wn, mn] = [
-		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
-		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
-		weekdays[date.getDay()], months[date.getMonth()],
-	];
-	if (!ww) ww = 7;																					// ISO weekday
-	mm += 1;																									// ISO month
-
-	return { yy, mm, dd, ww, HH, MM, SS, ts, wn, mn } as IDate;
-}
-
 /** apply some standard format rules */
 const formatDate = (fmt: keyof IDateKey, date: IDate) => {
 	switch (fmt) {
@@ -177,7 +176,10 @@ const formatDate = (fmt: keyof IDateKey, date: IDate) => {
 			return date.ts;
 
 		case DATE_FMT.display:
-			return `${date.wn}, ${fix(date.dd)} ${date.mn} ${date.yy}`;
+			return `${weekdays[date.ww]}, ${fix(date.dd)} ${months[date.mm]} ${date.yy}`;
+
+		case DATE_FMT.dayMonth:
+			return `${fix(date.dd)}-${months[date.mm]}`;
 
 		default:
 			return '';
@@ -188,6 +190,6 @@ const formatDate = (fmt: keyof IDateKey, date: IDate) => {
 const diffDate = (dt1: IDate, dt2: IDate, unit: TUnitDiff) =>
 	Math.floor((dt2.ts - dt1.ts) / divideBy[unit]);
 
-/** shortcut to getDate().format(stamp) */
+/** quick shortcut rather than getDate().format(stamp) */
 export const getStamp = (dt?: TDate) =>
-	getDate(dt).format(DATE_FMT.stamp);									// Unix timestamp-format
+	Math.floor(checkDate(dt).getTime() / 1000);	// Unix timestamp-format
