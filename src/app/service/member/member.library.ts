@@ -47,7 +47,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
 		.filter(isNumber))
 
 export const getMemberAge = (info?: IProfileInfo[]) =>
-	getDate().diff(getMemberBirthDay(info));
+	getDate(getMemberBirthDay(info)).diff();						// diff (in years) to today
 
 /**
  * Determine if a new payment is due.  
@@ -62,7 +62,7 @@ export const paymentDue = () => {
 /** loop back up-to-seven days to find when className was last scheduled */
 export const lkpDate = async (className: string, state: StateService, date?: number) => {
 	const timetable = await state.getTimetableData().toPromise();
-	let now = getDate(date);												// start with today's date
+	let now = getDate(date);													// start with today's date
 	let ctr = 0;
 
 	for (ctr = 0; ctr <= 7; ctr++) {
@@ -76,7 +76,7 @@ export const lkpDate = async (className: string, state: StateService, date?: num
 	}
 
 	if (ctr > 7)																			// cannot find className on timetable
-		now = getDate(date);													// so default back to today's date	
+		now = getDate(date);														// so default back to today's date	
 
 	return now.ts;																		// timestamp
 }

@@ -1,7 +1,7 @@
-import { toNumeric } from '@lib/string.library';
+import { fix } from '@lib/number.library';
 import { isString, isDate, isUndefined } from '@lib/type.library';
 
-interface IParse {
+interface IDate {												// parse a Date into components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
 	dd: number;															// day
@@ -10,39 +10,27 @@ interface IParse {
 	MM: number;															// minute
 	SS: number;															// second
 	ts: number;															// unix timestamp
-	ms: number;															// milliseconds
 	wn: string;															// week-name
 	mn: string;															// month-name
 }
 
-interface IDate {
-	cell: string;
-	short: string;
-	display: string;
-	hourMin: string;
-	human: string;
-	yearMonth: number;
+interface IDateKey {
 	yearMonthDay: number;
-	yearMonthSep: string;
-	yearMonthDaySep: string;
-	yearWeek: number;
-	dayMonthSep: string;
-	dayMonthSpace: string;
-	dayMonthYearSep: string;
-	dayMonthYear: string;
-	week: number;
 	weekDay: number;
-	day: number;
-	dayZZ: string;
-	time: string;
 	HHmm: string;
 	stamp: number;
-	ms: number;
-	log: string;
-	elapse: string;
+	display: string;
 }
 
-const DATE_FMT: Record<keyof IDate, string> = {
+export enum DATE_FMT {
+	yearMonthDay = 'yearMonthDay',
+	weekDay = 'weekDay',
+	HHmm = 'HHmm',
+	stamp = 'stamp',
+	display = 'display',
+};
+
+const DATE_KEY = {
 	cell: 'ddd, YYYY-MMM-DD HH:mm:ss',      // used to parse Check-In dates from a cell
 	short: 'ddd, YYYY-MMM-DD',              // used when time-portion is not relevant
 	display: 'YYYY-MM-DD HH:mm:ss',         // used to format a date for display
@@ -69,18 +57,26 @@ const DATE_FMT: Record<keyof IDate, string> = {
 	elapse: 'mm:ss.SSS'                     // useful for reporting duration
 };
 
-export enum DATE_KEY {
-	yearMonthDay = 'yearMonthDay',
-	weekDay = 'weekDay',
-	HHmm = 'HHmm',
-	stamp = 'stamp',
-};
-
 type TDate = string | number | Date;
-type TDirection = 'add' |'start'|'end';
-type TSetUnit = 'day' | 'days' | 'minute' | 'minutes' | 'week' | 'month';
+type TMutate = 'add' | 'start' | 'end';
+type TUnitTime = 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
+type TUnitOffset = 'week' | 'month';
+type TUnitDiff = 'years' | 'months' | 'days';
+
+const MON = 1, SUN = 7;
 
 const hhmm = /^\d\d:\d\d$/;								// a regex to match HH:MM
+const divideBy = {												// date-offset divisors (as unix-timestamp precision)
+	years: 31536000,
+	months: 2628000,
+	weeks: 604800,
+	days: 86400,
+	hours: 3600,
+	minutes: 60,
+	seconds: 1,
+};
+const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -99,104 +95,99 @@ const checkDate = (dt?: TDate) => {
 }
 
 /** mutate a Date */
-const setDate = (direction: TDirection, unit: TSetUnit, offset?: number, dt?: TDate) => {
-	const base = getDate(dt);
+const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, offset?: number) => {
+	if (mutate !== 'add')
+		[date.HH, date.MM, date.SS] = [0, 0, 0];								// discard the time-portion of the date
 
-	if (direction !== 'add')
-		[base.HH, base.MM, base.SS] = [0, 0, 0];								// discard the time-portion of the date
-
-	switch (direction + '.' + unit) {
+	switch (mutate + '.' + unit) {
 		case 'start.week':
-			base.dd = base.dd - base.ww + 1;
+			date.dd = date.dd - date.ww + MON;
 			break;
 		case 'start.month':
-			base.dd = 1;
+			date.dd = 1;
 			break;
 		case 'end.week':
-			base.dd = base.dd - base.ww + 7
+			date.dd = date.dd - date.ww + SUN;
 			break;
 		case 'end.month':
-			base.mm += 1;
-			base.dd = 0;
+			date.mm += 1;
+			date.dd = 0;
 			break;
 		case 'add.day':
 		case 'add.days':
-			base.dd += offset!;
+			date.dd += offset!;
 			break;
 		case 'add.hour':
 		case 'add.hours':
-			base.HH += offset!;
+			date.HH += offset!;
 			break;
 		case 'add.minute':
 		case 'add.minutes':
-			base.MM += offset!;
+			date.MM += offset!;
 			break;
 	}
 
-	return getDate(new Date(base.yy, base.mm - 1, base.dd, base.HH, base.MM, base.SS));
+	return getDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MM, date.SS));
 }
 
 /** break a Date into components, plus methods to manipulate */
 export const getDate = (dt?: TDate) => {
-	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
-		dt = new Date().getFullYear() + ' ' + dt;								// current year, plus time
-	const base = checkDate(dt);
-
-	let [yy, mm, dd, ww, HH, MM, SS, ts, ms, wn, mn] = [
-		base.getFullYear(), base.getMonth(), base.getDate(), base.getDay(),
-		base.getHours(), base.getMinutes(), base.getSeconds(), Math.round(base.getTime() / 1000), base.getTime(),
-		base.toString().split(' ')[0], base.toString().split(' ')[1]
-	];
-	if (!ww) ww = 7;																					// ISO weekday
-	mm += 1;																									// ISO month
-	const obj: IParse = { yy, mm, dd, ww, HH, MM, SS, ts, ms, wn, mn };
+	const date = parseDate(dt);
 
 	return {
-		...obj,
-		add: (offset: number, unit: 'day' | 'days' | 'minute' | 'minutes') => setDate('add', unit, offset, base),
-		startOf: (unit: 'week' | 'month') => setDate('start', unit, 0, base),
-		endOf: (unit: 'week' | 'month') => setDate('end', unit, 0, base),
-		format: <K extends keyof IDate>(fmt: K) => formatDate(fmt, obj) as IDate[K],
-		diff: (dt2: TDate, unit?: 'years' | 'months' | 'days') => diffDate(obj, getDate(dt2), unit),
+		...date,
+		add: (offset: number, unit: TUnitTime = 'minutes') => setDate('add', unit, date, offset),
+		startOf: (unit: TUnitOffset = 'week') => setDate('start', unit, date),
+		endOf: (unit: TUnitOffset = 'week') => setDate('end', unit, date),
+		diff: (unit: TUnitDiff = 'years', dt2?: TDate) => diffDate(date, parseDate(dt2), unit),
+		format: <K extends keyof IDateKey>(fmt: K) => formatDate(fmt, date) as IDateKey[K],
 	}
 }
 
-const formatDate = (fmt: keyof IDate, dt: IParse) => {
+/** break a Date into components, plus methods to manipulate */
+const parseDate = (dt?: TDate) => {
+	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
+		dt = new Date().toDateString() + ' ' + dt;							// current date, append time
+	const date = checkDate(dt);
+
+	let [yy, mm, dd, ww, HH, MM, SS, ts, wn, mn] = [
+		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
+		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
+		weekdays[date.getDay()], months[date.getMonth()],
+	];
+	if (!ww) ww = 7;																					// ISO weekday
+	mm += 1;																									// ISO month
+
+	return { yy, mm, dd, ww, HH, MM, SS, ts, wn, mn } as IDate;
+}
+
+/** apply some standard format rules */
+const formatDate = (fmt: keyof IDateKey, date: IDate) => {
 	switch (fmt) {
-		case DATE_KEY.HHmm:
-			return `${fix(dt.HH)}:${fix(dt.MM)}`;
+		case DATE_FMT.HHmm:
+			return `${fix(date.HH)}:${fix(date.MM)}`;
 
-		case DATE_KEY.yearMonthDay:
-			return toNumeric(`${dt.yy}${fix(dt.mm)}${fix(dt.dd)}`);
+		case DATE_FMT.yearMonthDay:
+			return `${date.yy}${fix(date.mm)}${fix(date.dd)}`;
 
-		case DATE_KEY.weekDay:
-			return dt.ww;
+		case DATE_FMT.weekDay:
+			return date.ww;
 
-		case DATE_KEY.stamp:
-			return dt.ts;
+		case DATE_FMT.stamp:
+			return date.ts;
+
+		case DATE_FMT.display:
+			return `${date.wn}, ${fix(date.dd)} ${date.mn} ${date.yy}`;
 
 		default:
 			return '';
 	}
 }
 
-const diffDate = (dt1: IParse, dt2: IParse, unit: 'years' | 'months' | 'days' = 'years') => {
-	const divideBy = {
-		years: 31536000000,
-		months: 2628000000,
-		weeks: 604800000,
-		days: 86400000,
-		hours: 3600000,
-		minutes: 60000,
-		seconds: 1000
-	};
-	const diff = dt2.ms - dt1.ms;
+/** calculate the difference between dates */
+const diffDate = (dt1: IDate, dt2: IDate, unit: TUnitDiff) =>
+	Math.floor((dt2.ts - dt1.ts) / divideBy[unit]);
 
-	return Math.floor(diff / divideBy[unit]);
-}
-
-const fix = (nbr: number, max = 2, fill = '0') =>
-	nbr.toString().padStart(max, fill);
-
+/** shortcut to getDate().format(stamp) */
 export const getStamp = (dt?: TDate) =>
-	getDate(dt).format(DATE_KEY.stamp);									// Unix timestamp-format
+	getDate(dt).format(DATE_FMT.stamp);									// Unix timestamp-format

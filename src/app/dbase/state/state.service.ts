@@ -15,7 +15,7 @@ import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { DATE_KEY, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -144,8 +144,8 @@ export class StateService {
 	 */
 	getScheduleData(date?: number, uid?: string) {
 		const base = getDate(date);
-		const filterSchedule: TWhere = { fieldPath: 'day', value: base.format(DATE_KEY.weekDay) };
-		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: base.format(DATE_KEY.yearMonthDay) };
+		const filterSchedule: TWhere = { fieldPath: 'day', value: base.format(DATE_FMT.weekDay) };
+		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: base.format(DATE_FMT.yearMonthDay) };
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 		const filterTypeClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.classes}}` };
@@ -181,8 +181,8 @@ export class StateService {
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.instructor}}' };
 
 		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_KEY.yearMonthDay) },// fmtDate(base.startOf('week'), DATE_KEY.yearMonthDay) },
-			{ fieldPath: FIELD.key, opStr: '<=', value: base.endOf('week').format(DATE_KEY.yearMonthDay) },
+			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_FMT.yearMonthDay) },// fmtDate(base.startOf('week'), DATE_FMT.yearMonthDay) },
+			{ fieldPath: FIELD.key, opStr: '<=', value: base.endOf('week').format(DATE_FMT.yearMonthDay) },
 		]
 		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
 

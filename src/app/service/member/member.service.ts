@@ -16,7 +16,7 @@ import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { getStamp, DATE_KEY, getDate } from '@lib/date.library';
+import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -82,7 +82,7 @@ export class MemberService {
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await lkpDate(schedule[FIELD.key], this.state, date)
-		const when = base.format(DATE_KEY.yearMonthDay);
+		const when = base.format(DATE_FMT.yearMonthDay);
 
 		// check we are not re-booking same Class on same Day
 		const attendFilter: TWhere = [
