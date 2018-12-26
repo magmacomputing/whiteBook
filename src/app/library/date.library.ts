@@ -1,5 +1,6 @@
 import { fix } from '@lib/number.library';
-import { isString, isDate, isUndefined } from '@lib/type.library';
+import { isString, isDate, isUndefined, getType } from '@lib/type.library';
+import { isNumber } from 'util';
 
 interface IDate {													// parse a Date into components
 	yy: number;															// year[4]
@@ -28,33 +29,6 @@ export enum DATE_FMT {
 	stamp = 'stamp',
 	display = 'display',
 	dayMonth = 'dayMonth',
-};
-
-const DATE_KEY = {
-	cell: 'ddd, YYYY-MMM-DD HH:mm:ss',      // used to parse Check-In dates from a cell
-	short: 'ddd, YYYY-MMM-DD',              // used when time-portion is not relevant
-	display: 'YYYY-MM-DD HH:mm:ss',         // used to format a date for display
-	hourMin: 'YYYY-MMM-DD HH:mm',           // used for hour-minute granularity
-	human: 'ddd, DD MMM YYYY',              // more readable by Members
-	yearMonth: 'YYYYMM',                    // useful for sorting by month
-	yearMonthDay: 'YYYYMMDD',               // useful for sorting by date
-	yearMonthSep: 'YYYY-MM',                // top-level date grouping
-	yearMonthDaySep: 'YYYY-MMM-DD',         // with abbrev month-name
-	yearWeek: 'GGGGWW',                     // useful for sorting by week
-	dayMonthSep: 'DD-MMM',                  // useful for showing short Date, dash separator
-	dayMonthSpace: 'DD MMM',                // space separator
-	dayMonthYearSep: 'DD-MMM-YYYY',					// month-name
-	dayMonthYear: 'DD/MM/YYYY',							// month-number
-	week: 'ww',                       		  // week number, leading zero
-	weekDay: 'E',                           // day of week, Mon=1
-	day: 'D',                               // return the Day number
-	dayZZ: 'DD',														// Day number, leading zero
-	time: 'HH:mm:ss',                       // useful for showing Time
-	HHmm: 'HH:mm',													// 24Hour-Minute
-	stamp: 'X',                             // Unix timestamp
-	ms: 'x',                       					// millisecond timestamp
-	log: 'HH:mm:ss.SSS',                    // useful for reporting timestamp in Log Spreadsheet
-	elapse: 'mm:ss.SSS'                     // useful for reporting duration
 };
 
 type TDate = string | number | Date;
@@ -94,6 +68,10 @@ export const getDate = (dt?: TDate) => {
 	}
 }
 
+/** quick shortcut rather than getDate().format(stamp) */
+export const getStamp = (dt?: TDate) =>
+	Math.floor(checkDate(dt).getTime() / 1000);	// Unix timestamp-format
+
 /** break a Date into components, plus methods to manipulate */
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
@@ -112,16 +90,22 @@ const parseDate = (dt?: TDate) => {
 
 /** translate the supplied parameter into a Date */
 const checkDate = (dt?: TDate) => {
-	if (isUndefined(dt))
-		return new Date();																			// curent datetime
+	let date: Date;
 
-	if (isDate(dt))
-		return dt;																							// Date
+	switch (getType(dt)) {
+		case 'Undefined': date = new Date(); break;
+		case 'Date': date = dt as Date; break;
+		case 'String': date = new Date(dt as string); break;
+		case 'Number': date = new Date(dt as number * 1000); break;
+		default: date = new Date();
+	}
 
-	if (isString(dt))
-		return new Date(dt);																		// parse date-string
+	if (isNaN(date.getTime())) {
+		date = new Date();
+		console.log('Invalid Date: ', dt);
+	}
 
-	return new Date(dt * 1000);																// timestamp
+	return date;
 }
 
 /** mutate a Date */
@@ -190,6 +174,30 @@ const formatDate = (fmt: keyof IDateKey, date: IDate) => {
 const diffDate = (dt1: IDate, dt2: IDate, unit: TUnitDiff) =>
 	Math.floor((dt2.ts - dt1.ts) / divideBy[unit]);
 
-/** quick shortcut rather than getDate().format(stamp) */
-export const getStamp = (dt?: TDate) =>
-	Math.floor(checkDate(dt).getTime() / 1000);	// Unix timestamp-format
+// old format codes
+const DATE_KEY = {
+	cell: 'ddd, YYYY-MMM-DD HH:mm:ss',      // used to parse Check-In dates from a cell
+	short: 'ddd, YYYY-MMM-DD',              // used when time-portion is not relevant
+	display: 'YYYY-MM-DD HH:mm:ss',         // used to format a date for display
+	hourMin: 'YYYY-MMM-DD HH:mm',           // used for hour-minute granularity
+	human: 'ddd, DD MMM YYYY',              // more readable by Members
+	yearMonth: 'YYYYMM',                    // useful for sorting by month
+	yearMonthDay: 'YYYYMMDD',               // useful for sorting by date
+	yearMonthSep: 'YYYY-MM',                // top-level date grouping
+	yearMonthDaySep: 'YYYY-MMM-DD',         // with abbrev month-name
+	yearWeek: 'GGGGWW',                     // useful for sorting by week
+	dayMonthSep: 'DD-MMM',                  // useful for showing short Date, dash separator
+	dayMonthSpace: 'DD MMM',                // space separator
+	dayMonthYearSep: 'DD-MMM-YYYY',					// month-name
+	dayMonthYear: 'DD/MM/YYYY',							// month-number
+	week: 'ww',                       		  // week number, leading zero
+	weekDay: 'E',                           // day of week, Mon=1
+	day: 'D',                               // return the Day number
+	dayZZ: 'DD',														// Day number, leading zero
+	time: 'HH:mm:ss',                       // useful for showing Time
+	HHmm: 'HH:mm',													// 24Hour-Minute
+	stamp: 'X',                             // Unix timestamp
+	ms: 'x',                       					// millisecond timestamp
+	log: 'HH:mm:ss.SSS',                    // useful for reporting timestamp in Log Spreadsheet
+	elapse: 'mm:ss.SSS'                     // useful for reporting duration
+};

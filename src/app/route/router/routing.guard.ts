@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
 		if (state.auth.user)												// is logged-on
 			return true;
 
-		this.navigate.route(ROUTE.login);
+		this.navigate.route(ROUTE.login);						// redirect to LoginComponent
 		return false;
 	}
 }
@@ -41,13 +41,12 @@ export class ProfileGuard implements CanActivate {
 
 	async canActivate() {
 		const state = await this.auth.user;
-		this.dbg('state: %j', state.auth!.token!.claims.claims);
 		const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
 
 		if (!isUndefined(planClaim))
 			return true;      												// ok to access Route
 
-		this.navigate.route(ROUTE.plan);
+		this.navigate.route(ROUTE.plan);						// redirect to PlanComponent
 		return false;
 	}
 }
