@@ -52,7 +52,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string | undefined, store: string, filter: TWhere = [], date?: number, callBack?: Function) => {
+export const joinDoc = (states: IState, node: string | undefined, store: string, filter: TWhere = [], date?: number, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
