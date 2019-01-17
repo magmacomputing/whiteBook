@@ -41,13 +41,15 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 }
 
 // each Provider might report a different birthday; take latest
-export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
-	Math.max(...info
+export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
+	const birthDays = info
 		.map(row => row.birthDay)
-		.filter(isNumber))
+		.filter(isNumber)
+	return birthDays.length ? Math.max(...birthDays) : undefined;
+}
 
-export const getMemberAge = (info?: IProfileInfo[]) =>
-	getDate(getMemberBirthDay(info)).diff();						// diff (in years) to today
+export const getMemberAge = (info: IProfileInfo[] = []) =>
+	getDate(getMemberBirthDay(info)).diff();						// diff (in years) from today
 
 /**
  * Determine if a new payment is due.  

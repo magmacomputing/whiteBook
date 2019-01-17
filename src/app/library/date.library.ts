@@ -108,8 +108,10 @@ const checkDate = (dt?: TDate) => {
 		default: date = new Date();															// unexpected input
 	}
 
-	if (isNaN(date.getTime()))
+	if (isNaN(date.getTime())) {
+		console.log('dt: ', dt);
 		console.log('Invalid Date: ', dt);											// log the Invalid Date
+	}
 
 	return date;
 }
