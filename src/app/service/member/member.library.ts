@@ -3,7 +3,7 @@ import * as firebase from 'firebase/app';
 import { StateService } from '@dbase/state/state.service';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 
-import { isString, isObject, isNumber } from '@lib/type.library';
+import { isString, isObject, isNumber, isDate } from '@lib/type.library';
 import { getStamp, getDate } from '@lib/date.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 
@@ -44,7 +44,7 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	const birthDays = info
 		.map(row => row.birthDay)
-		.filter(isNumber)
+		.filter(isNumber || isDate)
 	return birthDays.length ? Math.max(...birthDays) : undefined;
 }
 
