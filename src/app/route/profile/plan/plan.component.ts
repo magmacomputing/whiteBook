@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { IPlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { MemberService } from '@service/member/member.service';
+import { TrackService } from '@service/track/track.service';
 
 import { IPrice } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
@@ -18,9 +19,10 @@ export class PlanComponent implements OnInit {
 	public data$!: Observable<IPlanState>;
 	private dbg = dbg(this);
 
-	constructor(private readonly member: MemberService, private readonly state: StateService) { }
+	constructor(private readonly member: MemberService, private readonly state: StateService, private readonly track: TrackService) { }
 
 	ngOnInit() {
+		this.track.write('init');
 		this.data$ = this.state.getPlanData().pipe(
 			map(source => {
 				source.client.plan = source.client.plan.filter(row => !row[FIELD.hidden])

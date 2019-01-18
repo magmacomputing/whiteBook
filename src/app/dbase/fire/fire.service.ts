@@ -36,11 +36,13 @@ export class FireService {
 
 	/** Document Reference, for existing or new */
 	docRef(store: string, docId?: string) {
-		const slice = getSlice(store);
+		const col = store.includes('/')
+			? store																// already a '/{collection}' path
+			: getSlice(store)											// lookup parent collection path for a 'store'
 
 		return isUndefined(docId)
-			? this.afs.firestore.collection(slice).doc()
-			: this.afs.firestore.collection(slice).doc(docId)
+			? this.afs.firestore.collection(col).doc()
+			: this.afs.firestore.collection(col).doc(docId)
 	}
 
 	/** allocate a new meta-field _id */
@@ -68,7 +70,7 @@ export class FireService {
 	async setDoc(store: string, doc: Partial<IStoreMeta>) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
-		doc = this.remMeta(doc);										// remove the meta-field from the document
+		doc = this.remMeta(doc);								// remove the meta-fields from the document
 		await this.docRef(store, docId).set(doc);
 		return docId;
 	}

@@ -7,6 +7,7 @@ import { AuthService } from '@service/auth/auth.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { ETrack, ITrack } from '@service/track/track.define';
 
+import { fix } from '@lib/number.library';
 import { getDate } from '@lib/date.library';
 import { getPath } from '@lib/object.library';
 import { sprintf } from '@lib/logger.library';
@@ -22,17 +23,17 @@ export class TrackService {
 		const uid = await this.auth.user
 			.then(user => getPath<string>(user, 'auth.user.uid'))
 
+		const trackCol = `/${STORE.log}/${base.yy}${fix(base.mm)}/${fix(base.dd)}`;
 		const trackDoc: ITrack = {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
 			[FIELD.uid]: uid,
 			stamp: base.ts,
 			date: { year: base.yy, month: base.mm, day: base.dd },
-			msg: sprintf(data),
+			msg: sprintf(fmt, ...data),
 		}
 
-		this.fire.setDoc(STORE.log, trackDoc);
-		console.log(JSON.stringify(trackDoc));
+		this.fire.setDoc(trackCol, trackDoc);
 	}
 
 	set level(level: ETrack) {
