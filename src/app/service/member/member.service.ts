@@ -40,7 +40,7 @@ export class MemberService {
 		this.dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
-			.then(_ => this.data.writeClaim({ plan }))
+			// .then(_ => this.data.writeClaim({ plan }))	// TODO: evaluate whether this is still required
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
