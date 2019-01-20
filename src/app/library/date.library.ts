@@ -70,9 +70,9 @@ export const getDate = (dt?: TDate) => {
 	}
 }
 
-/** quick shortcut rather than getDate().format(stamp) */
+/** quick shortcut rather than getDate().format(DATE_FMT.stamp) */
 export const getStamp = (dt?: TDate) =>
-	Math.floor(checkDate(dt).getTime() / 1000);								// Unix timestamp-format
+	Math.round(checkDate(dt).getTime() / 1000);								// Unix timestamp-format
 
 /** shortcut to getDate().format() */
 export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
@@ -80,17 +80,17 @@ export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/** break a Date into components, plus methods to manipulate */
+/** break a Date into components */
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
-		dt = new Date().toDateString() + ' ' + dt;							// current date, append HH:MM
+		dt = new Date().toDateString() + ' ' + dt;							// prepend current date
 	const date = checkDate(dt);
 
 	let [yy, mm, dd, ww, HH, MM, SS, ts] = [
 		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
 		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
 	];
-	if (!ww && !isNaN(ww)) ww = 7;														// ISO weekday
+	if (!ww && !isNaN(ww)) ww = SUN;													// ISO weekday
 	mm += 1;																									// ISO month
 
 	return { yy, mm, dd, ww, HH, MM, SS, ts } as IDate;
@@ -108,10 +108,8 @@ const checkDate = (dt?: TDate) => {
 		default: date = new Date();															// unexpected input
 	}
 
-	if (isNaN(date.getTime())) {
-		console.log('dt: ', dt);
-		console.log('Invalid Date: ', dt);											// log the Invalid Date
-	}
+	if (isNaN(date.getTime()))
+		console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
 	return date;
 }
