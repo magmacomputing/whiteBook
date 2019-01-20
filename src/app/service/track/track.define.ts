@@ -1,3 +1,4 @@
+import { FIELD } from '@dbase/data/data.define';
 
 interface ITrackData {
 	msg: string;
@@ -5,12 +6,12 @@ interface ITrackData {
 }
 
 export interface ITrack {
-	store: 'log';
-	type: ETrack;
+	[FIELD.store]: 'log';
+	[FIELD.type]: ETrack;
+	[FIELD.uid]?: string;
 	msg: string;
 	data?: ITrackData;
 	event?: object;
-	uid?: string;
 	memberId?: string;
 	stamp: number;
 	date: {										// useful for indexing

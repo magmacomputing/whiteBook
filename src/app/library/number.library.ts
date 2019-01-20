@@ -2,7 +2,7 @@ import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { TNumber } from '@lib/type.library';
 
-export const toHex = (num: TNumber = [], len: number = 40) => {
+export const toHex = (num: TNumber = [], len: number = 64) => {
 	return asArray(num)
 		.map(val => (val + 0x100).toString(16).slice(-2))
 		.join('')

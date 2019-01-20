@@ -14,7 +14,7 @@ export const environment = {
     config: {
       name: 'whiteFire',
       automaticDataCollectionEnabled: true,
-      timestampsInSnapshots: true,
+      // timestampsInSnapshots: true,
     }
   }
 };

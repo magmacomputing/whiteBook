@@ -99,7 +99,7 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
-	/** Attempt to sign in a User via authentication by a federated identity provider */
+	/** Attempt to sign-in a User via authentication by a federated identity provider */
 	@Action(LoginIdentity)														// process signInWithPopup()
 	async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
 		try {

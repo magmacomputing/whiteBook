@@ -3,7 +3,7 @@ import * as firebase from 'firebase/app';
 import { StateService } from '@dbase/state/state.service';
 import { IProfileInfo, IMemberInfo } from '@dbase/data/data.schema';
 
-import { isString, isObject, isNumber } from '@lib/type.library';
+import { isString, isObject, isNumber, isDate } from '@lib/type.library';
 import { getStamp, getDate } from '@lib/date.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 
@@ -41,13 +41,15 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 }
 
 // each Provider might report a different birthday; take latest
-export const getMemberBirthDay = (info: IProfileInfo[] = []) =>
-	Math.max(...info
+export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
+	const birthDays = info
 		.map(row => row.birthDay)
-		.filter(isNumber))
+		.filter(isNumber || isDate)
+	return birthDays.length ? Math.max(...birthDays) : undefined;
+}
 
-export const getMemberAge = (info?: IProfileInfo[]) =>
-	getDate(getMemberBirthDay(info)).diff();						// diff (in years) to today
+export const getMemberAge = (info: IProfileInfo[] = []) =>
+	getDate(getMemberBirthDay(info)).diff();						// diff (in years) from today
 
 /**
  * Determine if a new payment is due.  

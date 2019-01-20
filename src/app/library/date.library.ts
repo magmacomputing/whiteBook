@@ -1,6 +1,5 @@
 import { fix } from '@lib/number.library';
-import { isString, isDate, isUndefined, getType } from '@lib/type.library';
-import { isNumber } from 'util';
+import { isString, getType } from '@lib/type.library';
 
 interface IDate {													// parse a Date into components
 	yy: number;															// year[4]
@@ -79,12 +78,12 @@ export const getStamp = (dt?: TDate) =>
 export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
 	getDate(dt).format(fmt);
 
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** break a Date into components, plus methods to manipulate */
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
-		dt = new Date().toDateString() + ' ' + dt;							// current date, append time
+		dt = new Date().toDateString() + ' ' + dt;							// current date, append HH:MM
 	const date = checkDate(dt);
 
 	let [yy, mm, dd, ww, HH, MM, SS, ts] = [
@@ -109,8 +108,10 @@ const checkDate = (dt?: TDate) => {
 		default: date = new Date();															// unexpected input
 	}
 
-	if (isNaN(date.getTime()))
+	if (isNaN(date.getTime())) {
+		console.log('dt: ', dt);
 		console.log('Invalid Date: ', dt);											// log the Invalid Date
+	}
 
 	return date;
 }

@@ -37,7 +37,7 @@ export class SyncService {
 
 	/** establish a listener to a remote Collection, and sync to an NGXS Slice */
 	public async on(collection: string, slice?: string, query?: IQuery) {
-		const sync = this.sync.bind(this, collection);//, this.fire);
+		const sync = this.sync.bind(this, collection);
 		const ready = createPromise<boolean>();
 		slice = slice || collection;                      // default to same-name as collection
 
