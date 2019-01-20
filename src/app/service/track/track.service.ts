@@ -10,11 +10,12 @@ import { ETrack, ITrack } from '@service/track/track.define';
 import { fix } from '@lib/number.library';
 import { getDate } from '@lib/date.library';
 import { getPath } from '@lib/object.library';
-import { sprintf } from '@lib/logger.library';
+import { dbg, sprintf } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class TrackService {
 	private logLevel = ETrack.all;
+	private dbg = dbg(this);
 
 	constructor(private fire: FireService, private auth: AuthService) { }
 
@@ -33,7 +34,8 @@ export class TrackService {
 			msg: sprintf(fmt, ...data),
 		}
 
-		this.fire.setDoc(trackCol, trackDoc);
+		this.dbg('track: %j', trackDoc);
+		// this.fire.setDoc(trackCol, trackDoc);
 	}
 
 	set level(level: ETrack) {

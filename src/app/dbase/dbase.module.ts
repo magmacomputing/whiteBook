@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AngularFireModule } from '@angular/fire';
-import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/firestore';
 import { AngularFireFunctionsModule, FunctionsRegionToken } from '@angular/fire/functions';
 import { environment } from '@env/environment';
 
@@ -27,6 +27,7 @@ const fb = environment.firebase || {};
 	],
 	providers: [
 		{ provide: FunctionsRegionToken, useValue: 'us-central1' },
+		{ provide: FirestoreSettingsToken, useValue: {} },				// TODO: is this still necessary after @angular/fire is upgraded from 5.1.1
 	],
 	declarations: [InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent],
 })

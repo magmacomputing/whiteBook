@@ -35,7 +35,8 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 	if (profileInfo.photoURL)															// strip the queryParams
 		profileInfo.photoURL = profileInfo.photoURL.split('?')[0];
 	if (profileInfo.birthDay)															// as number
-		profileInfo.birthDay = getStamp(profileInfo.birthDay);
+		profileInfo.birthDay = getStamp(profileInfo.birthDay)
+	else delete profileInfo.birthDay;
 
 	return profileInfo;
 }
