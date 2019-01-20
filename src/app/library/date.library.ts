@@ -114,7 +114,7 @@ const checkDate = (dt?: TDate) => {
 	return date;
 }
 
-/** mutate a Date */
+/** calculate a Date mutation */
 const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, offset?: number) => {
 	if (mutate !== 'add')
 		[date.HH, date.MM, date.SS] = [0, 0, 0];								// discard the time-portion of the date

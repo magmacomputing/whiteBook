@@ -1,7 +1,6 @@
 import { isArray } from '@lib/type.library';
-import { cloneObj } from '@lib/object.library';
 
-export const asArray = <T>(arr: T | T[] = []) => isArray(arr) ? cloneObj(arr) : [arr];
+export const asArray = <T>(arr: T | T[] = []) => isArray(arr) ? [...arr] : [arr];
 
-// useful for de-duping
+// useful for de-duping an array of values
 export const deDup = <T>(...value: T[]) => [... new Set(value)];
