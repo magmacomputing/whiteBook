@@ -35,7 +35,7 @@ export class TrackService {
 		}
 
 		this.dbg('track: %j', trackDoc);
-		// this.fire.setDoc(trackCol, trackDoc);
+		this.fire.setDoc(trackCol, trackDoc);
 	}
 
 	set level(level: ETrack) {

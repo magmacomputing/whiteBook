@@ -42,7 +42,7 @@ export class ProfileGuard implements CanActivate {
 	constructor(private auth: AuthService, private state: StateService, private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const state = await this.auth.user;					// this is quicker than reading State
+		const state = await this.auth.user;
 		const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
 		if (!isUndefined(planClaim))
 			return true;															// found a 'plan' on customClaims token
