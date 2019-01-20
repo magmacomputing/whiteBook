@@ -60,13 +60,13 @@ export const getDate = (dt?: TDate) => {
 	const date = parseDate(dt);
 
 	return {
-		...date,
 		add: (offset: number, unit: TUnitTime = 'minutes') => setDate('add', unit, date, offset),
 		startOf: (unit: TUnitOffset = 'week') => setDate('start', unit, date),
 		endOf: (unit: TUnitOffset = 'week') => setDate('end', unit, date),
 		diff: (unit: TUnitDiff = 'years', dt2?: TDate) => diffDate(date, parseDate(dt2), unit),
 		format: <K extends keyof IDateFmt>(fmt: K) => formatDate(fmt, date) as IDateFmt[K],
 		isValid: () => !isNaN(date.ts),
+		...date,
 	}
 }
 

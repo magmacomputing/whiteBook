@@ -78,7 +78,7 @@ export const lkpDate = async (state: StateService, className: string, location?:
 
 		if (classes.length)															// is this class offered on this 'day'   
 			break;
-		now.add(-1, 'day');															// move pointer to previous day
+		now = now.add(-1, 'day');												// move pointer to previous day
 	}
 
 	if (ctr >= 7)																			// cannot find className on timetable
