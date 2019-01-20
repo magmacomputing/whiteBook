@@ -61,7 +61,7 @@ export const paymentDue = () => {
 
 /** loop back up-to-seven days to find when className was last scheduled */
 export const lkpDate = async (state: StateService, className: string, location?: string, date?: number) => {
-	const timetable = await state.getTimetableData().toPromise();
+	const timetable = await state.getTimetableData(date).toPromise();
 	let now = getDate(date);													// start with date-argument
 	let ctr = 0;
 
