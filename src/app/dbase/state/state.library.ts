@@ -113,7 +113,7 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
 		cond.value = deDup(asArray(cond.value)
-			.flatMap(value => {    																		// loop through filter's <value>
+			.flatMap(value => {    																// loop through filter's <value>
 				const isPath = isString(value) && value.substring(0, 2) === '{{';
 				let lookup = value;
 
@@ -139,10 +139,10 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 
 /**
  * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, etc.).  
- * The IPayment array is pre-sorted by 'stamp', meaning payment[0] is active.  
+ * The IPayment array is pre-sorted by 'stamp', meaning payment[0] is the 'active' value.  
  * paid		: is amount from active payment  
  * bank		: is any unspent credit on active payment (brought forward from previous payment)  
- * pend 	: is amount from future payments  
+ * pend 	: is amount from future payments (not 'active')  
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {
