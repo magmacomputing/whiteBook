@@ -45,7 +45,7 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	const birthDays = info
 		.map(row => row.birthDay)
-		.filter(isNumber || isDate)
+		.filter(isNumber)
 	return birthDays.length ? Math.max(...birthDays) : undefined;
 }
 
