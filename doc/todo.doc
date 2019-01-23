@@ -15,8 +15,6 @@ test if multiple instances of same source
 *> logon as other User
 set authState.user ?  or authState.delegate
 
-*> logging to FireStore
-
 *> add 'note' to /attend
 
 *> add <mat-icon> to SnackBar

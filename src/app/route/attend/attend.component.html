@@ -30,7 +30,7 @@
 							</mat-card-subtitle>
 
 							<mat-card-content>
-								<button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)">
+								<button mat-raised-button [disabled]="item._disable" (click)="member.setAttend(item)" matBadge="1" matBadgeHidden="false">
 									Check-in: {{ item.price | currency }}
 								</button>
 							</mat-card-content>

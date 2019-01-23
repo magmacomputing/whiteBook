@@ -13,6 +13,7 @@ import { MatNativeDateModule } from '@angular/material';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
 const modules = [
@@ -28,6 +29,7 @@ const modules = [
 	MatDividerModule,
 	MatSnackBarModule,
 	MatTabsModule,
+	MatBadgeModule,
 ]
 
 @NgModule({
