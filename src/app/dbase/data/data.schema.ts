@@ -15,7 +15,7 @@ type TPayment = 'topUp' | 'hold' | 'credit' | 'close';
 type TProfile = 'plan' | 'claim' | 'info' | 'pref';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
-export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
+export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
 

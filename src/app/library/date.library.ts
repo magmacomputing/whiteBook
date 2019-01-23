@@ -1,5 +1,5 @@
 import { fix } from '@lib/number.library';
-import { isString, getType } from '@lib/type.library';
+import { isString, isNumber, getType } from '@lib/type.library';
 
 interface IDate {													// parse a Date into components
 	yy: number;															// year[4]
@@ -41,6 +41,7 @@ type TUnitDiff = 'years' | 'months' | 'days';
 const MON = 1, SUN = 7;
 
 const hhmm = /^\d\d:\d\d$/;								// a regex to match HH:MM
+const yyyymmdd = /(\d{4})(\d{2})(\d{2})/;	// a regex to match YYYYMMDD
 const divideBy = {												// date-offset divisors (as unix-timestamp precision)
 	years: 31536000,
 	months: 2628000,
@@ -84,6 +85,11 @@ export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
 		dt = new Date().toDateString() + ' ' + dt;							// prepend current date
+	if (isString(dt) && yyyymmdd.test(dt))										// if yyyymmdd supplied as string...
+		dt = dt.replace(yyyymmdd, '$1-$2-$3 00:00:00');
+	if (isNumber(dt) && yyyymmdd.test(dt.toString()))					// if yyyymmdd supplied as number...
+		dt = dt.toString().replace(yyyymmdd, '$1-$2-$3 00:00:00');
+	
 	const date = checkDate(dt);
 
 	let [yy, mm, dd, ww, HH, MM, SS, ts] = [
@@ -172,7 +178,7 @@ const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 			return `${fix(date.dd)}-${months[date.mm]}`;
 
 		case DATE_FMT.dateTime:
-			return `${date.yy}-${months[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.mm)}`;
+			return `${date.yy}-${months[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MM)}`;
 
 		default:
 			return '';

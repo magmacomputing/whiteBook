@@ -175,9 +175,8 @@ export const sumAttend = (source: IAccountState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => Object.assign({ day: getDate(row[FIELD.key]).format(DATE_FMT.weekDay), row }))
+			.map(row => Object.assign({ day: getDate(row[FIELD.key]).format(DATE_FMT.weekDay), ...row }))
 	}
-
 	return { ...source };
 }
 
@@ -217,7 +216,7 @@ export const buildPlan = (source: IPlanState) => {
 }
 /**
  * use the collected Schedule items to determine the Timetable to display.  
- * schedule type 'event' overrides 'class', 'special' appends.  
+ * schedule type 'event' overrides 'class'; 'special' appends.  
  */
 export const buildTimetable = (source: ITimetableState) => {
 	const {
