@@ -4,7 +4,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
-	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginOIDC, LoginSetup, LoginAdditionalInfo, LoginCredential
+	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo, LoginCredential
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
@@ -33,9 +33,9 @@ import { dbg } from '@lib/logger.library';
 })
 export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
-	private user: firebase.User | null = null;
+	private user?: firebase.User | null;//= null;
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) {	}
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -58,7 +58,8 @@ export class AuthState implements NgxsOnInit {
 	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
-		if (isNull(user) && !isNull(this.user)) {
+		if (isNull(user) && !isNull(this.user)) {	// TODO: does this affect OAuth logins
+		// if (isNull(user)) {
 			ctx.dispatch(new Logout());									// User logged-out
 		}
 

@@ -53,6 +53,10 @@ export class FireService {
 	/** Remove the meta-fields */
 	private remMeta(doc: Partial<IStoreMeta>) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
+		Object.entries(rest).forEach(([key, value]) => {
+			if (isUndefined(value))								// remove top-level keys with 'undefined' values
+				delete rest[key];										// TODO: recurse?
+		})
 		return rest;
 	}
 
