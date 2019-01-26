@@ -33,9 +33,9 @@ import { dbg } from '@lib/logger.library';
 })
 export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
-	private user?: firebase.User | null;//= null;
+	private user: firebase.User | null = null;
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) {	}
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) { }
 
 	ngxsOnInit(ctx: StateContext<IAuthState>) {
 		this.dbg('init');
@@ -59,7 +59,7 @@ export class AuthState implements NgxsOnInit {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && !isNull(this.user)) {	// TODO: does this affect OAuth logins
-		// if (isNull(user)) {
+			// if (isNull(user)) {
 			ctx.dispatch(new Logout());									// User logged-out
 		}
 
