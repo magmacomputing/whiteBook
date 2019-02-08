@@ -1,10 +1,10 @@
 import { fix } from '@lib/number.library';
 import { isString, isNumber, getType } from '@lib/type.library';
 
-interface IDate {													// parse a Date into components
+interface IDate {													// Date components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
-	dd: number;															// day
+	dd: number;															// day; 1-31
 	ww: number;															// day-of-week; Mon=1, Sun=7
 	HH: number;															// hour24
 	MM: number;															// minute
@@ -42,7 +42,7 @@ const MON = 1, SUN = 7;
 
 const hhmm = /^\d\d:\d\d$/;								// a regex to match HH:MM
 const yyyymmdd = /(\d{4})(\d{2})(\d{2})/;	// a regex to match YYYYMMDD
-const divideBy = {												// date-offset divisors (as unix-timestamp precision)
+const divideBy = {												// approx date-offset divisors (as unix-timestamp precision)
 	years: 31536000,
 	months: 2628000,
 	weeks: 604800,
@@ -56,7 +56,7 @@ const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/** parse a Date , return components and methods */
+/** parse a Date, return components and methods */
 export const getDate = (dt?: TDate) => {
 	const date = parseDate(dt);
 
@@ -89,7 +89,7 @@ const parseDate = (dt?: TDate) => {
 		dt = dt.replace(yyyymmdd, '$1-$2-$3 00:00:00');
 	if (isNumber(dt) && yyyymmdd.test(dt.toString()))					// if yyyymmdd supplied as number...
 		dt = dt.toString().replace(yyyymmdd, '$1-$2-$3 00:00:00');
-	
+
 	const date = checkDate(dt);
 
 	let [yy, mm, dd, ww, HH, MM, SS, ts] = [
