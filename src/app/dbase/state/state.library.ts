@@ -225,7 +225,7 @@ export const buildTimetable = (source: ITimetableState) => {
 		calendar = [],															// the calendar of special events on the date
 		event: events = [],													// the event-description for the calendar type
 		span: spans = [],														// the duration of classes / events
-		diary: diarys = [],													// any diary notes for this date
+		alert: alerts = [],													// any alert notes for this date
 	} = source.client;
 	const {
 		price: prices = [],

@@ -50,7 +50,7 @@ export class FireService {
 		return this.afs.createId();
 	}
 
-	/** Remove the meta-fields */
+	/** Remove the meta-fields and undefined fields from a document */
 	private remMeta(doc: Partial<IStoreMeta>) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		Object.entries(rest).forEach(([key, value]) => {

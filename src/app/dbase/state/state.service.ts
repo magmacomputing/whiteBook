@@ -101,7 +101,7 @@ export class StateService {
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
-			joinDoc(this.states, 'member', STORE.message, undefined, date),
+			joinDoc(this.states, 'member', STORE.diary, undefined, date),
 		)
 	}
 
@@ -144,7 +144,7 @@ export class StateService {
 	 * location   -> has the Locations that are indicated on that schedule or calendar
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 * span				-> has the Class Duration definitions ('full' or 'half')
-	 * diary			-> has an array of Diary notes to display on the Attend component
+	 * alert			-> has an array of Alert notes to display on the Attend component
 	 */
 	getScheduleData(date?: number, uid?: string) {
 		const base = getDate(date);
@@ -155,7 +155,7 @@ export class StateService {
 		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.classes}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
 		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
-		const filterDiary: TWhere = [
+		const filterAlert: TWhere = [
 			{ fieldPath: FIELD.type, value: STORE.schedule },
 			{ fieldPath: 'location', value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] }
 		]
@@ -174,7 +174,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, undefined, date),												// get class durations
-			joinDoc(this.states, 'client', STORE.diary, filterDiary, date),											// get any Diary message for this date
+			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)
 	}

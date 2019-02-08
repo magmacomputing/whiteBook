@@ -2,8 +2,8 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
-export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'diary';
-export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
+export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
+export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'diary';
 export type TStoreAttend = 'attend';
 export type TTypeDefault = TStoreClient | 'icon';
 
@@ -67,6 +67,7 @@ interface IAttendBase extends IMeta {
 export interface IStoreMeta extends IMeta {
 	[key: string]: any;											// add in index-signature
 }
+// client documents have a '<key>' field, member documents have a '<uid>' field
 export const isClientStore = (store: TStoreBase): store is IClientBase =>
 	(<IClientBase>store)[FIELD.key] !== undefined;
 
@@ -189,9 +190,9 @@ export interface ISpan extends IClientBase {
 	duration: number;
 }
 
-//	/client/diary									// <key> is immaterial
-export interface IDiary extends IClientBase {
-	[FIELD.store]: STORE.diary;
+//	/client/alert									// <key> is immaterial
+export interface IAlert extends IClientBase {
+	[FIELD.store]: STORE.alert;
 	[FIELD.type]: 'schedule'
 	location?: string;
 	note: string;
@@ -245,8 +246,8 @@ export interface IProfile extends IMemberBase {
 	[FIELD.store]: STORE.profile;
 	[FIELD.type]: TProfile;
 }
-export interface IMessage extends IMemberBase {
-	[FIELD.store]: STORE.message;
+export interface IDiary extends IMemberBase {
+	[FIELD.store]: STORE.diary;
 	note: string;
 }
 export interface IProfilePlan extends IProfile {
