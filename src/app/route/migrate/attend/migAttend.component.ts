@@ -21,7 +21,7 @@ export class MigAttendComponent implements OnInit {
 		};
 
 		sheets.spreadsheets.get(request)
-			.then(response=> console.log('response: '));
+			.then(response => console.log('response: ', response));
 	}
 
 }
