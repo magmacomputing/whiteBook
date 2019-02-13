@@ -2,14 +2,14 @@ import { Component, OnInit } from '@angular/core';
 
 import { google, sheets_v4 } from 'googleapis';
 
-import {} from '@lib/logger.library';
+import { dbg } from '@lib/logger.library';
 
 @Component({
 	selector: 'wb-migrate',
 	templateUrl: './migAttend.component.html',
 })
 export class MigAttendComponent implements OnInit {
-	private dbg: 
+	private dbg = dbg(this);
 
 	constructor() { }
 
