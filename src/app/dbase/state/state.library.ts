@@ -8,8 +8,7 @@ import { asAt, firstRow } from '@dbase/library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, IMemberState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
-import { SORTBY, STORE, FIELD } from '@dbase/data/data.define';
-import { getSlice } from '@dbase/data/data.library';
+import { SORTBY, STORE, FIELD, STORES } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
@@ -18,7 +17,7 @@ import { DATE_FMT, getDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
- * Special logic to slice 'attend' store, as it uses non-standard indexing
+ *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
 export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
 	const slice = getSlice(store);
@@ -32,6 +31,15 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 		map(state => asAt<T>(state[index || store], filter, date)),
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
+}
+export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
+	const slices = Object.keys(STORES)
+		.filter(col => STORES[col].includes(store));
+
+	if (!slices.length)
+		alert(`Unexpected store: ${store}`);
+
+	return slices[0];
 }
 
 export const getDefault = (state: IMemberState, type: string) => {

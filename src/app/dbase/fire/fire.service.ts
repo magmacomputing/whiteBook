@@ -6,10 +6,10 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { TStoreBase, IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
-import { getSlice } from '@dbase/data/data.library';
+import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined } from '@lib/type.library';

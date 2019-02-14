@@ -2,24 +2,14 @@ import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { IUserState } from '@dbase/state/state.define';
-import { FILTER, FIELD, STORES } from '@dbase/data/data.define';
+import { FILTER, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, isClientStore, IStoreMeta } from '@dbase/data/data.schema';
+import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
-import { alert } from '@lib/window.library';
 import { equalObj } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
-
-export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
-	const slices = Object.keys(STORES)
-		.filter(col => STORES[col].includes(store));
-
-	if (!slices.length)
-		alert(`Unexpected store: ${store}`);
-
-	return slices[0];
-}
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {

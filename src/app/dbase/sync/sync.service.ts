@@ -46,7 +46,7 @@ export class SyncService {
 			slice: slice,
 			ready: ready,
 			cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-			method: this.getSlice(slice),
+			method: this.getActionHandler(slice),
 			subscribe: this.fire.colRef<IStoreMeta>(collection, query)
 				.stateChanges()                               // watch for changes since last snapshot
 				.subscribe(sync)
@@ -78,7 +78,7 @@ export class SyncService {
 		}
 	}
 
-	private getSlice(slice: string) {
+	private getActionHandler(slice: string) {
 		switch (slice) {                           				// TODO: can we merge these?
 			case SLICE.client:
 				return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
