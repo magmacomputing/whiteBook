@@ -52,7 +52,7 @@ export enum LOCAL {
 	config = '@config@',
 }
 
-export enum FIELD {					// common Field names
+export enum FIELD {								// common Field names
 	effect = '_effect',							// valid when greater-than-or-equal-to
 	expire = '_expire',							// valid when less-than
 	update = '_update',							// date-time modified

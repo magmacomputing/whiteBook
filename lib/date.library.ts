@@ -22,6 +22,8 @@ interface IDateFmt {
 	dateTime: string;
 }
 
+export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
+export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 export enum DATE_FMT {
 	yearMonthDay = 'yearMonthDay',
 	weekDay = 'weekDay',
@@ -30,15 +32,13 @@ export enum DATE_FMT {
 	display = 'display',
 	dayMonth = 'dayMonth',
 	dateTime = 'dateTime',
-};
+}
 
 type TDate = string | number | Date;
 type TMutate = 'add' | 'start' | 'end';
 type TUnitTime = 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
 type TUnitOffset = 'week' | 'month';
 type TUnitDiff = 'years' | 'months' | 'days';
-
-const MON = 1, SUN = 7;
 
 const hhmm = /^\d\d:\d\d$/;								// a regex to match HH:MM
 const yyyymmdd = /(\d{4})(\d{2})(\d{2})/;	// a regex to match YYYYMMDD
@@ -50,9 +50,7 @@ const divideBy = {												// approx date-offset divisors (as unix-timestamp 
 	hours: 3600,
 	minutes: 60,
 	seconds: 1,
-};
-const weekdays = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -96,7 +94,7 @@ const parseDate = (dt?: TDate) => {
 		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
 		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
 	];
-	if (!ww && !isNaN(ww)) ww = SUN;													// ISO weekday
+	if (!ww && !isNaN(ww)) ww = DAY.Sun;											// ISO weekday
 	mm += 1;																									// ISO month
 
 	return { yy, mm, dd, ww, HH, MM, SS, ts } as IDate;
@@ -127,13 +125,13 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 
 	switch (mutate + '.' + unit) {
 		case 'start.week':
-			date.dd = date.dd - date.ww + MON;
+			date.dd = date.dd - date.ww + DAY.Mon;
 			break;
 		case 'start.month':
 			date.dd = 1;
 			break;
 		case 'end.week':
-			date.dd = date.dd - date.ww + SUN;
+			date.dd = date.dd - date.ww + DAY.Sun;
 			break;
 		case 'end.month':
 			date.mm += 1;
@@ -172,13 +170,13 @@ const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 			return date.ts;
 
 		case DATE_FMT.display:
-			return `${weekdays[date.ww]}, ${fix(date.dd)} ${months[date.mm]} ${date.yy}`;
+			return `${DAY[date.ww]}, ${fix(date.dd)} ${MONTH[date.mm]} ${date.yy}`;
 
 		case DATE_FMT.dayMonth:
-			return `${fix(date.dd)}-${months[date.mm]}`;
+			return `${fix(date.dd)}-${MONTH[date.mm]}`;
 
 		case DATE_FMT.dateTime:
-			return `${date.yy}-${months[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MM)}`;
+			return `${date.yy}-${MONTH[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MM)}`;
 
 		default:
 			return '';

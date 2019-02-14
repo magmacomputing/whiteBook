@@ -32,7 +32,7 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
 }
-export const getSlice = (store: string) => {    // determine the state-slice (collection) based on the <store> field
+export const getSlice = (store: string) => {    // determine the state-slice based on the <store> field
 	const slices = Object.keys(STORES)
 		.filter(col => STORES[col].includes(store));
 

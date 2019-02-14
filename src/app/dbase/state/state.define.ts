@@ -29,7 +29,7 @@ export enum SLICE {
  *      profile: [ {profile documents} ],   // Plan, Claims, User, etc.
  *      payment: [ {payment documents} ],   // describe payments
  *  },
- * attend: {																// Attend slice, keyed by User.uid
+ * attend: {																// Attend slice, keyed by User.uid, linked to /member/payment documents
  *      {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
  *  }
  */
