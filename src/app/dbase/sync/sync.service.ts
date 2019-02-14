@@ -5,12 +5,7 @@ import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { SLICE } from '@dbase/state/state.define';
-import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
-import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
-import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
-import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
-import { buildDoc, checkStorage, getSource, addMeta } from '@dbase/sync/sync.library';
+import { buildDoc, checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 import { LoginToken } from '@dbase/state/auth.action';
 
 import { IListen } from '@dbase/sync/sync.define';
@@ -46,7 +41,7 @@ export class SyncService {
 			slice: slice,
 			ready: ready,
 			cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-			method: this.getActionHandler(slice),
+			method: getMethod(slice),
 			subscribe: this.fire.colRef<IStoreMeta>(collection, query)
 				.stateChanges()                               // watch for changes since last snapshot
 				.subscribe(sync)
@@ -75,29 +70,6 @@ export class SyncService {
 				this.store.dispatch(new listen.method.truncStore());
 
 			delete this.listener[collection];
-		}
-	}
-
-	private getActionHandler(slice: string) {
-		switch (slice) {                           				// TODO: can we merge these?
-			case SLICE.client:
-				return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
-
-			case SLICE.member:
-				return { setStore: SetMember, delStore: DelMember, truncStore: TruncMember }
-
-			case SLICE.attend:
-				return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
-
-			case SLICE.local:
-				return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
-
-			case SLICE.admin:
-				return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
-
-			default:
-				this.dbg('snap: Unexpected slice: %s', slice);
-				throw (new Error(`snap: Unexpected slice: ${slice}`));
 		}
 	}
 

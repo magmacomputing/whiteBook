@@ -3,8 +3,13 @@ import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
-// import { FireService } from '@dbase/fire/fire.service';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
+
+import { SLICE } from '@dbase/state/state.define';
+import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
+import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
+import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys, parseObj } from '@lib/object.library';
@@ -46,7 +51,7 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback at this time)
-export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: any) => {//ireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: any) => {//FireService) => {
 	// const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		[FIELD.id]: snap.payload.doc.id,
@@ -64,3 +69,27 @@ const remMeta = (doc: IStoreMeta) => {
 }
 export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
 	Object.assign({ [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+
+/** Determine the ActionHandler based on the Slice listener */
+export const getMethod = (slice: string) => {
+	switch (slice) {                           				// TODO: can we merge these?
+		case SLICE.client:
+			return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
+
+		case SLICE.member:
+			return { setStore: SetMember, delStore: DelMember, truncStore: TruncMember }
+
+		case SLICE.attend:
+			return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
+
+		case SLICE.local:
+			return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
+
+		case SLICE.admin:
+			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
+
+		default:
+			this.dbg('snap: Unexpected slice: %s', slice);
+			throw (new Error(`snap: Unexpected slice: ${slice}`));
+	}
+}
