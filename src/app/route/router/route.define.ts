@@ -7,5 +7,4 @@ export enum ROUTE {
 	account = '/profile/account',
 	history = '/profile/history',
 	attend = '/attend',
-	migration = '/migrate',
 }
