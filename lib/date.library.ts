@@ -42,7 +42,7 @@ type TUnitDiff = 'years' | 'months' | 'days';
 
 const hhmm = /^\d\d:\d\d$/;								// a regex to match HH:MM
 const yyyymmdd = /(\d{4})(\d{2})(\d{2})/;	// a regex to match YYYYMMDD
-const divideBy = {												// approx date-offset divisors (as unix-timestamp precision)
+const divideBy = {												// approx date-offset divisors (unix-timestamp precision)
 	years: 31536000,
 	months: 2628000,
 	weeks: 604800,
@@ -51,6 +51,8 @@ const divideBy = {												// approx date-offset divisors (as unix-timestamp 
 	minutes: 60,
 	seconds: 1,
 }
+																					// max Unix Timestamp
+const maxTS = new Date('9999-12-31').valueOf() / 1000;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -108,7 +110,11 @@ const checkDate = (dt?: TDate) => {
 		case 'Undefined': date = new Date(); break;
 		case 'Date': date = dt as Date; break;
 		case 'String': date = new Date(dt as string); break;		// attempt to parse date-string
-		case 'Number': date = new Date(dt as number * 1000); break;	// assume timestamp to milliseconds
+		case 'Number':
+			const nbr = dt as number;
+			const val = (nbr < maxTS ? nbr * 1000 : nbr);
+			date = new Date(val);
+			break;	// assume timestamp to milliseconds
 		default: date = new Date();															// unexpected input
 	}
 
