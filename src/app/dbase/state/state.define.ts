@@ -4,7 +4,7 @@ import { IAuthState } from './auth.action';
 import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert
+	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -48,6 +48,7 @@ export interface IMemberState extends IUserState {
 		info: IProfileInfo[];              	// array of AdditionalUserInfo documents
 		pref: IProfilePref[];								// member's preferences
 		price: IPrice[];                   	// member's effective prices
+		message: IMessage[];								// array of messages to a Member
 	},
 	default: {
 		[STORE.default]: IDefault[];        // defaults to apply, if missing from Member data

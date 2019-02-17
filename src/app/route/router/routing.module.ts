@@ -16,7 +16,7 @@ const routes: Routes = [
 	{ path: ROUTE.attend, component: AttendComponent, canActivate: [AuthGuard, ProfileGuard] },
 	{ path: ROUTE.profile, loadChildren: '@route/profile/profile.module#ProfileModule', canActivate: [AuthGuard] },
 	{ path: ROUTE.admin, loadChildren: '@route/admin/admin.module#AdminModule', canActivate: [AuthGuard] },
-	{ path: ROUTE.migAttend, loadChildren: '@route/migrate/migrate.module#MigrateModule', canActivate: [AuthGuard] },
+	{ path: 'migrate', loadChildren: '@route/migrate/migrate.module#MigrateModule', canActivate: [AuthGuard] },
 	{ path: '**', redirectTo: '/attend', pathMatch: 'full' },
 ];
 

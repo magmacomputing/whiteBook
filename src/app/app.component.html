@@ -5,14 +5,15 @@
 	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/profile/plan')">Plan</button>
 	<p></p>
 	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/profile/account')">Account</button>
-	<p>	</p>
+	<p> </p>
 	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/migrate/migAttend')">Migrate Attend</button>
 
 	<div *ngIf="(data$ | async); let data">
-		<div *ngFor="let message of data.member.alert">
-			<p>{{ message.note }}</p>
+		<div *ngFor="let message of data.member.message">
+			<div *ngIf="message.type == 'alert'">
+				<p>{{ message.note }}</p>
+			</div>
 		</div>
 	</div>
-
 
 </router-outlet>

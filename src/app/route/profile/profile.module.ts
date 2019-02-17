@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@route/material.module';
-import { PlanComponent } from './plan/plan.component';
-import { AccountComponent } from './account/account.component';
-import { HistoryComponent } from './history/history.component';
+import { PlanComponent } from '@route/profile/plan/plan.component';
+import { AccountComponent } from '@route/profile/account/account.component';
+import { HistoryComponent } from '@route/profile/history/history.component';
 
 const routes: Routes = [
 	{ path: 'plan', component: PlanComponent },

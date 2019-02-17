@@ -19,9 +19,9 @@ export class AccountComponent implements OnInit {
 	constructor(readonly state: StateService, readonly member: MemberService) { }
 
 	ngOnInit() {
-		this.data$ = this.state.getAccountData().pipe(
-			// tap(data => this.dbg('account: %j', data.account.attend)),
-		)
+		// this.data$ = this.state.getAccountData().pipe(
+		// 	// tap(data => this.dbg('account: %j', data.account.attend)),
+		// )
 	}
 
 }
