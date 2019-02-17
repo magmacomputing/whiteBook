@@ -5,8 +5,8 @@ interface IDate {													// Date components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
 	dd: number;															// day; 1-31
-	ww: number;															// day-of-week; Mon=1, Sun=7
-	HH: number;															// hour24
+	ww: number;															// weekday; Mon=1, Sun=7
+	HH: number;															// hour[24]
 	MM: number;															// minute
 	SS: number;															// second
 	ts: number;															// unix timestamp
@@ -114,7 +114,7 @@ const checkDate = (dt?: TDate) => {
 			const nbr = dt as number;
 			const val = (nbr < maxTS ? nbr * 1000 : nbr);
 			date = new Date(val);
-			break;	// assume timestamp to milliseconds
+			break;																								// assume timestamp to milliseconds
 		default: date = new Date();															// unexpected input
 	}
 

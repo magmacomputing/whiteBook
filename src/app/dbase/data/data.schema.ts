@@ -3,7 +3,7 @@ import { TString } from '@lib/type.library';
 
 export type TStoreAdmin = '_schema' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
-export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'diary';
+export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
 export type TStoreAttend = 'attend';
 export type TTypeDefault = TStoreClient | 'icon';
 
@@ -246,8 +246,9 @@ export interface IProfile extends IMemberBase {
 	[FIELD.store]: STORE.profile;
 	[FIELD.type]: TProfile;
 }
-export interface IDiary extends IMemberBase {
-	[FIELD.store]: STORE.diary;
+export interface IMessage extends IMemberBase {
+	[FIELD.store]: STORE.message;
+	[FIELD.type]: 'diary' | 'alert';
 	note: string;
 }
 export interface IProfilePlan extends IProfile {

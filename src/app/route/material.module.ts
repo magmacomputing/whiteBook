@@ -45,5 +45,6 @@ const modules = [
 		{ provide: MATERIAL_SANITY_CHECKS, useValue: false },
 		{ provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 5000 } },
 	],
+	declarations: [],
 })
 export class MaterialModule { }

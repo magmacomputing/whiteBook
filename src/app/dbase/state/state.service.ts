@@ -96,12 +96,13 @@ export class StateService {
 			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getAuthData()'s 'auth.user.uid'
 		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
+		const filterMessage: TWhere = { fieldPath: FIELD.type, value: 'alert' };
 
 		return this.getAuthData().pipe(
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
-			joinDoc(this.states, 'member', STORE.diary, undefined, date),
+			joinDoc(this.states, 'member', STORE.message, filterMessage, date),
 		)
 	}
 

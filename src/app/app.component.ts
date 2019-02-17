@@ -10,7 +10,7 @@ import { StateService } from '@dbase/state/state.service';
 	templateUrl: './app.component.html',
 })
 export class AppComponent implements OnInit {
-	public data$ = this.state.getMemberData();
+	public data$ = this.state.getMemberData();								// per-member message
 
 	constructor(readonly data: DataService, readonly auth: AuthService, readonly state: StateService, private router: Router) { }
 
