@@ -38,7 +38,7 @@ export class FireService {
 	docRef(store: string, docId?: string) {
 		const col = store.includes('/')
 			? store																// already a '/{collection}' path
-			: getSlice(store)											// lookup parent collection path for a 'store'
+			: getSlice(store)											// lookup parent collection name for a 'store'
 
 		return isUndefined(docId)
 			? this.afs.firestore.collection(col).doc()

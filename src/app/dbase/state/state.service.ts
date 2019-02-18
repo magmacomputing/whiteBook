@@ -43,7 +43,6 @@ export class StateService {
 			'admin': this.admin$,
 			'local': this.local$,
 		}
-
 	}
 
 	/** Fetch the current, useable values for a supplied store */
@@ -63,6 +62,8 @@ export class StateService {
 	getDefault(state: IMemberState, type: string) {
 		return getDefault(state, type);
 	}
+
+	getSlice() {}
 
 	asPromise<T>(obs: Observable<T>) {
 		return obs
