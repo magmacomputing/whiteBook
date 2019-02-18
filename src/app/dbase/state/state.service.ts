@@ -63,8 +63,6 @@ export class StateService {
 		return getDefault(state, type);
 	}
 
-	getSlice() {}
-
 	asPromise<T>(obs: Observable<T>) {
 		return obs
 			.pipe(take(1))									// only the first snapshot
