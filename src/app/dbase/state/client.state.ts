@@ -2,7 +2,7 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, STORES, SORTBY } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
 import { dbg } from '@lib/logger.library';
@@ -28,6 +28,9 @@ export class ClientState implements NgxsOnInit {
 
 		if (payload[FIELD.store] === STORE.config)
 			this.store.dispatch(new SetLocal(payload));
+		if (payload[FIELD.store] === STORE.schedule) {
+			STORES[FIELD.type] = [...(STORES[FIELD.type] || []), payload[FIELD.key]];
+		 };
 
 		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });

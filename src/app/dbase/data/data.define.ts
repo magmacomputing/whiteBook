@@ -10,7 +10,7 @@ export enum COLLECTION {
 	admin = 'admin',
 }
 
-export const STORES: { [col: string]: string[] } = {
+export let STORES: { [col: string]: string[] } = {
 	auth: ['credential', 'info', 'token', 'user'],
 	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
 	member: ['payment', 'profile', 'message', 'track'],
@@ -75,7 +75,7 @@ export const FILTER: IObject<string[]> = {
 	[COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],
 }
 
-export const SORTBY: IObject<TString> = {
+export let SORTBY: IObject<TString> = {
 	[STORE.provider]: ["sort", FIELD.key],
 	[STORE.plan]: ["sort", FIELD.key],
 	[STORE.schedule]: ["location", FIELD.type, "day", "start", FIELD.key],
