@@ -1,0 +1,13 @@
+
+https://docs.google.com/a/magmacomputing.com.au/spreadsheets/d/e/2PACX-1vQD0Ky0ZxXr265Im0GJBGKJ1ksZMjIE4l2xh64kw7E2ZOTfxGUKc7EjIlEBBct5q-nf6Pwn-aklnouZ/pub?gid=1175713244&single=true&output=tsv
+
+https://docs.google.com/a/magmacomputing.com.au/spreadsheets/d/e/2PACX-1vQD0Ky0ZxXr265Im0GJBGKJ1ksZMjIE4l2xh64kw7E2ZOTfxGUKc7EjIlEBBct5q-nf6Pwn-aklnouZ/pub?output=csv
+
+https://docs.google.com/a/magmacomputing.com.au/spreadsheets/d/e/2PACX-1vQD0Ky0ZxXr265Im0GJBGKJ1ksZMjIE4l2xh64kw7E2ZOTfxGUKc7EjIlEBBct5q-nf6Pwn-aklnouZ/pub?output=tsv&single=true&gid=556058441
+
+https://docs.google.com/a/magmacomputing.com.au/spreadsheets/d/e/2PACX-1vQD0Ky0ZxXr265Im0GJBGKJ1ksZMjIE4l2xh64kw7E2ZOTfxGUKc7EjIlEBBct5q-nf6Pwn-aklnouZ/pub?gid=556058441&single=true&output=csv
+
+https://docs.google.com/a/magmacomputing.com.au/spreadsheets/d/e/2PACX-1vQD0Ky0ZxXr265Im0GJBGKJ1ksZMjIE4l2xh64kw7E2ZOTfxGUKc7EjIlEBBct5q-nf6Pwn-aklnouZ/pub?gid=1175713244&single=true&output=tsv
+
+GET https://sheets.googleapis.com/v4/spreadsheets/16hTR03kU6aZY1am2EtQ2iujllnwIQ7lURE2bHpcXhhw?key={YOUR_API_KEY}
+ 
