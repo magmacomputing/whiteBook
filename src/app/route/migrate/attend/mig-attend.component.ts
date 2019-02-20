@@ -8,6 +8,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class MigAttendComponent implements OnInit {
   private dbg = dbg(this);
+  private url = 'https://sheets.googleapis.com/v4/spreadsheets/16hTR03kU6aZY1am2EtQ2iujllnwIQ7lURE2bHpcXhhw';
   
   constructor() { console.log('migAttend'); }
 

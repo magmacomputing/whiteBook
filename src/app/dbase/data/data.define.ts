@@ -11,11 +11,11 @@ export enum COLLECTION {
 }
 
 export let STORES: { [col: string]: string[] } = {
-	auth: ['credential', 'info', 'token', 'user'],
-	client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
-	member: ['payment', 'profile', 'message', 'track'],
-	attend: ['attend'],
-	local: ['@config@'],
+	// auth: ['credential', 'info', 'token', 'user'],
+	// client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
+	// member: ['payment', 'profile', 'message', 'track'],
+	// attend: ['attend'],
+	// local: ['@config@'],
 }
 
 export enum STORE {

@@ -28,9 +28,14 @@ export class ClientState implements NgxsOnInit {
 
 		if (payload[FIELD.store] === STORE.config)
 			this.store.dispatch(new SetLocal(payload));
-		if (payload[FIELD.store] === STORE.schedule) {
-			STORES[FIELD.type] = [...(STORES[FIELD.type] || []), payload[FIELD.key]];
-		 };
+		if (payload[FIELD.store] === STORE.schema && payload[FIELD.type] && payload[FIELD.key]) {
+			const type = payload[FIELD.type]!;
+
+			STORES[type] = payload[FIELD.hidden]
+				? STORES[type].filter(store => store !== payload[FIELD.key])
+				: STORES[type] = [...(STORES[type] || []), payload[FIELD.key]].sort();
+			this.dbg('STORES: add %s, %j', payload[FIELD.key], STORES);
+		};
 
 		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
 		patchState({ ...state });
@@ -40,6 +45,12 @@ export class ClientState implements NgxsOnInit {
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
 		const store = this.filterClient(getState(), payload);
+
+		if (payload[FIELD.store] === STORE.schema && payload[FIELD.type] && payload[FIELD.key]) {
+			const type = payload[FIELD.type]!;
+			STORES[type] = STORES[type].filter(store => store !== payload[FIELD.key]);
+			this.dbg('STORES: del %s, %j', payload[FIELD.key], STORES);
+		}
 
 		if (store.length === 0)
 			delete state[payload[FIELD.store]]
