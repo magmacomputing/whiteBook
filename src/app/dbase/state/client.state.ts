@@ -77,10 +77,6 @@ export class ClientState implements NgxsOnInit {
 
 	/** rebuild values for STORES, SORTBY, FILTER variables */
 	private setSchema() {
-		// Object.keys(STORES).forEach(key => delete STORES[key]);
-		// Object.keys(SORTBY).forEach(key => delete SORTBY[key]);
-		// Object.keys(FILTER).forEach(key => delete FILTER[key]);
-
 		this.store
 			.selectOnce(state => state)
 			.toPromise()
@@ -117,9 +113,9 @@ export class ClientState implements NgxsOnInit {
 				Object.keys(acc.sortby).forEach(type => SORTBY[type] = acc.sortby[type]);
 				Object.keys(acc.filter).forEach(type => FILTER[type] = acc.filter[type]);
 
-				this.dbg('STORES: %j', STORES);
-				this.dbg('SORTBY: %j', SORTBY);
-				this.dbg('FILTER: %j', FILTER);
+				// this.dbg('STORES: %j', STORES);
+				// this.dbg('SORTBY: %j', SORTBY);
+				// this.dbg('FILTER: %j', FILTER);
 			})
 	}
 }

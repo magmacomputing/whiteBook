@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule} from '@angular/common/http';
 import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@route/material.module';
@@ -14,7 +15,7 @@ const routes: Routes = [
     MigAttendComponent,
   ],
   imports: [
-    CommonModule, MaterialModule, RouterModule.forChild(routes),
+    CommonModule, MaterialModule, RouterModule.forChild(routes), HttpClientModule,
   ]
 })
 export class MigrateModule { }
