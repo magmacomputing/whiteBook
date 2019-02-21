@@ -11,3 +11,9 @@ https://docs.google.com/a/magmacomputing.com.au/spreadsheets/d/e/2PACX-1vQD0Ky0Z
 
 GET https://sheets.googleapis.com/v4/spreadsheets/16hTR03kU6aZY1am2EtQ2iujllnwIQ7lURE2bHpcXhhw?key={YOUR_API_KEY}
  
+ 
+ 
+ Github action deploy firebase hosting
+ sheety
+ glide
+ 
