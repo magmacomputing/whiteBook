@@ -10,14 +10,6 @@ export enum COLLECTION {
 	admin = 'admin',
 }
 
-export let STORES: { [col: string]: string[] } = {
-	// auth: ['credential', 'info', 'token', 'user'],
-	// client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
-	// member: ['payment', 'profile', 'message', 'track'],
-	// attend: ['attend'],
-	// local: ['@config@'],
-}
-
 export enum STORE {
 	profile = 'profile',
 	payment = 'payment',
@@ -68,28 +60,37 @@ export enum FIELD {								// common Field names
 	key = 'key',
 };
 
+/** These variables will be built in ClientState */
+export let STORES: IObject<string[]> = {
+	// auth: ['credential', 'info', 'token', 'user'],
+	// client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
+	// member: ['payment', 'profile', 'message', 'track'],
+	// attend: ['attend'],
+	// local: ['@config@'],
+}
+
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
-export const FILTER: IObject<string[]> = {
-	[COLLECTION.client]: [FIELD.store, FIELD.key],
-	[COLLECTION.member]: [FIELD.store, FIELD.type, FIELD.uid],
-	[COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],
+export let FILTER: IObject<string[]> = {
+	// [COLLECTION.client]: [FIELD.store, FIELD.key],
+	// [COLLECTION.member]: [FIELD.store, FIELD.type, FIELD.uid],
+	// [COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],
 }
 
 export let SORTBY: IObject<TString> = {
-	[STORE.provider]: ["sort", FIELD.key],
-	[STORE.plan]: ["sort", FIELD.key],
-	[STORE.schedule]: ["location", FIELD.type, "day", "start", FIELD.key],
-	[STORE.calendar]: [FIELD.key, "start"],
-	[STORE.class]: FIELD.key,
-	[STORE.event]: [FIELD.key, "name"],
-	[STORE.price]: [FIELD.key, FIELD.type],
-	[STORE.location]: ["sort", FIELD.key],
-	[STORE.instructor]: ["sort", FIELD.key],
-	[STORE.bonus]: ["sort", FIELD.key],
-	[STORE.span]: [FIELD.key, "duration"],
-	[STORE.default]: [FIELD.type, FIELD.key],
-	[STORE.schema]: [FIELD.type, FIELD.key],
-	[STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],
-	[STORE.payment]: [FIELD.uid, "stamp", FIELD.type],
-	[STORE.attend]: [FIELD.uid, "date", FIELD.type],
+	// [STORE.provider]: ["sort", FIELD.key],
+	// [STORE.plan]: ["sort", FIELD.key],
+	// [STORE.schedule]: ["location", FIELD.type, "day", "start", FIELD.key],
+	// [STORE.calendar]: [FIELD.key, "start"],
+	// [STORE.class]: FIELD.key,
+	// [STORE.event]: [FIELD.key, "name"],
+	// [STORE.price]: [FIELD.key, FIELD.type],
+	// [STORE.location]: ["sort", FIELD.key],
+	// [STORE.instructor]: ["sort", FIELD.key],
+	// [STORE.bonus]: ["sort", FIELD.key],
+	// [STORE.span]: [FIELD.key, "duration"],
+	// [STORE.default]: [FIELD.type, FIELD.key],
+	// [STORE.schema]: [FIELD.type, FIELD.key],
+	// [STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],
+	// [STORE.payment]: [FIELD.uid, "stamp", FIELD.type],
+	// [STORE.attend]: [FIELD.uid, "date", FIELD.type],
 }

@@ -1,7 +1,7 @@
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
-export type TStoreAdmin = '_schema' | '_config_' | '_default_';
+export type TStoreAdmin = '_schema_' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
 export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
 export type TStoreAttend = 'attend';
@@ -82,6 +82,15 @@ export interface IConfig extends IClientBase {
 	[FIELD.store]: STORE.config;
 	[FIELD.type]: string;
 	value: any;
+}
+//	/client/_schema_
+export interface ISchema extends IClientBase {
+	[FIELD.store]: STORE.schema;
+	[FIELD.type]: string;
+	[FIELD.key]: string;
+	desc: string;
+	filter?: string[];
+	sort?: TString;
 }
 
 //	/client/price
