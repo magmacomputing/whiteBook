@@ -23,6 +23,7 @@ export class MigAttendComponent implements OnInit {
           const hist = obj.history!.history || [];
           this.dbg('get: %j',hist.length);
           this.dbg('get: %j', hist[hist.length - 1]);
+          this.dbg('get: %j', hist);
         } catch (err) {
           this.dbg('not a valid JSON');
         }
