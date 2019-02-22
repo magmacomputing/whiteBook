@@ -6,9 +6,9 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, IMemberState } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState, IPlanState, IMemberState, SLICE } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
-import { SORTBY, STORE, FIELD, STORES } from '@dbase/data/data.define';
+import { SORTBY, STORE, FIELD, SLICES } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj } from '@lib/object.library';
@@ -33,11 +33,11 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	)
 }
 export const getSlice = (store: string) => {    // determine the state-slice based on the <store> field
-	const slices = Object.keys(STORES)
-		.filter(col => STORES[col].includes(store));
+	const slices = (Object.keys(SLICES) || [SLICE.client])
+		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store
 
-	if (!slices.length)
-		alert(`Unexpected store: ${store}`);
+	if (!slices.length && !SLICES.length)
+		alert(`Unexpected store: ${store}`)
 
 	return slices[0];
 }

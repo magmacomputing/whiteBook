@@ -36,7 +36,7 @@ export class StateService {
 	public states: IState;
 
 	constructor() {
-		this.states = {                   // a Lookup map for State-to-Slice
+		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
 			'member': this.member$,
 			'attend': this.attend$,

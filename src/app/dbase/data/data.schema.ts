@@ -204,7 +204,7 @@ export interface IAlert extends IClientBase {
 	[FIELD.store]: STORE.alert;
 	[FIELD.type]: 'schedule'
 	location?: string;
-	note: string;
+	note: TString;
 }
 
 //	/client/schedule
@@ -258,7 +258,7 @@ export interface IProfile extends IMemberBase {
 export interface IMessage extends IMemberBase {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: 'diary' | 'alert';
-	note: string;
+	note: TString;
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: STORE.plan;

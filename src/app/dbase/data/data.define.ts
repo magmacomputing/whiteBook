@@ -61,7 +61,7 @@ export enum FIELD {								// common Field names
 };
 
 /** These variables will be built in ClientState */
-export let STORES: IObject<string[]> = {
+export let SLICES: IObject<string[]> = {
 	// auth: ['credential', 'info', 'token', 'user'],
 	// client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
 	// member: ['payment', 'profile', 'message', 'track'],

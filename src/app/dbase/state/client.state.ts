@@ -2,7 +2,7 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
-import { STORE, FIELD, STORES, SORTBY, FILTER } from '@dbase/data/data.define';
+import { STORE, FIELD, SLICES, SORTBY, FILTER } from '@dbase/data/data.define';
 import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
 
 import { TString } from '@lib/type.library';
@@ -33,7 +33,7 @@ export class ClientState implements NgxsOnInit {
 
 		if (payload[FIELD.store] === STORE.config)
 			this.store.dispatch(new SetLocal(payload));
-		if (payload[FIELD.store] === STORE.schema && debug)
+		if (payload[FIELD.store] === STORE.schema && (debug || !SLICES.length))
 			this.setSchema();											// rebuild the STORES / SORTBY / FILTER
 
 		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
@@ -49,7 +49,7 @@ export class ClientState implements NgxsOnInit {
 			const type = payload[FIELD.type]!;
 			const key = payload[FIELD.key];
 
-			STORES[type] = STORES[type].filter(store => store !== payload[FIELD.key]);
+			SLICES[type] = SLICES[type].filter(store => store !== payload[FIELD.key]);
 			delete SORTBY[key];
 			delete FILTER[key];
 		}
@@ -77,20 +77,26 @@ export class ClientState implements NgxsOnInit {
 
 	/** rebuild values for STORES, SORTBY, FILTER variables */
 	private setSchema() {
+		const acc = {
+			slices: {} as IObject<string[]>,
+			sortby: {} as IObject<TString>,
+			filter: {} as IObject<string[]>,
+		}
+
 		this.store
 			.selectOnce(state => state)
 			.toPromise()
 			.then(state => {
-				const schemas: ISchema[] = state[SLICE.client][STORE.schema];
+				const schemas: ISchema[] = state[SLICE.client][STORE.schema] || [];
 
 				return schemas.reduce((acc, schema) => {
 					const type = schema[FIELD.type];
 					const key = schema[FIELD.key];
 
 					if (!schema[FIELD.hidden]) {
-						acc.stores[type] = acc.stores[type] || [];
-						acc.stores[type].push(schema[FIELD.key]);
-						acc.stores[type].sort();
+						acc.slices[type] = acc.slices[type] || [];
+						acc.slices[type].push(schema[FIELD.key]);
+						acc.slices[type].sort();
 					}
 
 					if (schema.sort)
@@ -100,20 +106,14 @@ export class ClientState implements NgxsOnInit {
 						acc.filter[key] = schema.filter;
 
 					return acc;													// dummy <return>
-				},
-					{
-						stores: {} as IObject<string[]>,
-						sortby: {} as IObject<TString>,
-						filter: {} as IObject<string[]>,
-					}
-				)
+				}, acc)
 			})
 			.then(acc => {
-				Object.keys(acc.stores).forEach(type => STORES[type] = acc.stores[type]);
+				Object.keys(acc.slices).forEach(type => SLICES[type] = acc.slices[type]);
 				Object.keys(acc.sortby).forEach(type => SORTBY[type] = acc.sortby[type]);
 				Object.keys(acc.filter).forEach(type => FILTER[type] = acc.filter[type]);
 
-				// this.dbg('STORES: %j', STORES);
+				// this.dbg('SLICES: %j', SLICES);
 				// this.dbg('SORTBY: %j', SORTBY);
 				// this.dbg('FILTER: %j', FILTER);
 			})
