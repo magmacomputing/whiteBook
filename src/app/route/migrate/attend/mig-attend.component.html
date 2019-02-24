@@ -1,3 +1,14 @@
-<p>
-  mig-attend works!
-</p>
+<div *ngIf="members | async as members; else waitAdmin">
+  <div *ngFor="let member of members">
+    <p>
+      {{ member.sheetName }}
+    </p>
+  </div>
+</div>
+
+
+<ng-template #waitAdmin>
+  <div>
+    <p>Please wait while we fetch member list...</p>
+  </div>
+</ng-template>
