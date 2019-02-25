@@ -23,9 +23,11 @@ export class MigAttendComponent implements OnInit {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
-	public members: Promise<IAdmin[]>;
+	public members!: Promise<IAdmin[]>;
 
-	constructor(private http: HttpClient) {
+	constructor(private http: HttpClient) { }
+
+	ngOnInit() {
 		const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
 		const action = 'signIn';																// signIn as 'admin' to get Register
 
@@ -33,16 +35,8 @@ export class MigAttendComponent implements OnInit {
 			.then(json => json.members)
 	}
 
-	ngOnInit() { }
-
-	async getMember(memberName: string) {
+	async getMember(member: IAdmin) {
 		const action = 'history';
-		const member = (await this.members).find(member => member.sheetName === memberName);
-
-		if (isUndefined(member)) {
-			this.dbg('getMember: not found => %j', memberName);
-			return;
-		}
 
 		this.fetch(action, `provider=${member.provider}&id=${member.id}`)
 			.then(res => {

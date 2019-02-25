@@ -1,7 +1,7 @@
 <div *ngIf="members | async as members; else waitAdmin">
   <div *ngFor="let member of members">
     <p>
-      {{ member.sheetName }}
+      <button (click)="getMember(member)">{{ member.sheetName }}</button>
     </p>
   </div>
 </div>
