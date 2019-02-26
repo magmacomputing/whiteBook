@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { tap } from 'rxjs/operators';
 
-import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFirestore, docChanges } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -83,6 +83,15 @@ export class FireService {
 		data = this.remMeta(data);
 		await this.docRef(store, docId).update(data)
 		return docId;
+	}
+
+	/** get all Documents, optionally with a supplied Query */
+	async getAll(store: string, query?: IQuery) {
+		const snap = await this.colRef(store, query)
+			.snapshotChanges()
+			.toPromise()
+
+		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));
 	}
 
 	callMeta(store: string, docId: string) {

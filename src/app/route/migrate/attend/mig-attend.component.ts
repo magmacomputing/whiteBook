@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { isUndefined } from '@lib/type.library';
+import { STORE, COLLECTION, FIELD } from '@dbase/data/data.define';
+import { FireService } from '@dbase/fire/fire.service';
 import { dbg } from '@lib/logger.library';
 
-interface IAdmin {
+interface MRegister {
 	id: string;
 	provider: 'fb' | 'g+' | 'gh' | 'li' | 'tw';
 	sheetName: string;
@@ -13,6 +14,16 @@ interface IAdmin {
 	picture?: string;
 	isHidden?: boolean;
 	isAdmin?: boolean;
+}
+interface MHistory {
+	stamp: number;
+	date: number;
+	type: string;
+	title: string;
+	debit?: string;
+	credit?: string;
+	note?: string;
+	bank?: number;
 }
 
 @Component({
@@ -23,9 +34,9 @@ export class MigAttendComponent implements OnInit {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
-	public members!: Promise<IAdmin[]>;
+	public members!: Promise<MRegister[]>;
 
-	constructor(private http: HttpClient) { }
+	constructor(private http: HttpClient, private fire: FireService) { }
 
 	ngOnInit() {
 		const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
@@ -35,16 +46,21 @@ export class MigAttendComponent implements OnInit {
 			.then(json => json.members)
 	}
 
-	async getMember(member: IAdmin) {
+	async getMember(member: MRegister) {
 		const action = 'history';
+		const res = await this.fetch(action, `provider=${member.provider}&id=${member.id}`);
+		const hist: MHistory[] = res.history || [];
 
-		this.fetch(action, `provider=${member.provider}&id=${member.id}`)
-			.then(res => {
-				const hist = res.history || [];
-				this.dbg('get: %j', hist.length);
-				this.dbg('get: %j', hist[hist.length - 1]);
-				this.dbg('get: %j', hist);
-			})
+		const docs = await this.fire.getAll(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } });
+		const uid = docs[0][FIELD.id];
+		this.dbg('member: %s, %s', member.sheetName, uid);
+		// this.dbg('get: %j', hist.length);
+		// this.dbg('get: %j', hist[hist.length - 1]);
+		// this.dbg('get: %j', hist);
+
+		hist
+			.filter(row => row.type === 'Debit')
+			.forEach(row => this.dbg('row: %j', row))
 	}
 
 	private async fetch(action: string, query: string) {
