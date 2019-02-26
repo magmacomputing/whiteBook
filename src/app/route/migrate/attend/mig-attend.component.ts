@@ -5,6 +5,7 @@ import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { FireService } from '@dbase/fire/fire.service';
 import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 
+import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -29,12 +30,13 @@ export class MigAttendComponent implements OnInit {
 
 	async getMember(member: MRegister) {
 		const action = 'history';
+		const docs = await this.fire.getAll(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } })
+			.catch(err => { throw new Error(err) });
 		const res = await this.fetch(action, `provider=${member.provider}&id=${member.id}`);
 		const hist: MHistory[] = res.history || [];
 
-		const docs = await this.fire.getAll(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } });
 		const uid = docs[0][FIELD.id];
-		this.dbg('member: %s, %s', member.sheetName, uid);
+		this.dbg('member: %s, %j', member.sheetName, docs);
 		// this.dbg('get: %j', hist.length);
 		// this.dbg('get: %j', hist[hist.length - 1]);
 		// this.dbg('get: %j', hist);

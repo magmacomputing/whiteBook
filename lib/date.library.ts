@@ -40,9 +40,9 @@ type TUnitTime = 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
 type TUnitOffset = 'week' | 'month';
 type TUnitDiff = 'years' | 'months' | 'days';
 
-const hhmm = /^\d\d:\d\d$/;								// a regex to match HH:MM
-const yyyymmdd = /(\d{4})(\d{2})(\d{2})/;	// a regex to match YYYYMMDD
-const divideBy = {												// approx date-offset divisors (unix-timestamp precision)
+const hhmm = /^\d\d:\d\d$/;									// regex to match HH:MM
+const yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD
+const divideBy = {													// approx date-offset divisors (unix-timestamp precision)
 	years: 31536000,
 	months: 2628000,
 	weeks: 604800,
@@ -51,7 +51,7 @@ const divideBy = {												// approx date-offset divisors (unix-timestamp pre
 	minutes: 60,
 	seconds: 1,
 }
-																					// max Unix Timestamp
+// max Unix Timestamp
 const maxTS = new Date('9999-12-31').valueOf() / 1000;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

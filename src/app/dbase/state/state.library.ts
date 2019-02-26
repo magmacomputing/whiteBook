@@ -190,7 +190,7 @@ export const calendarDay = (source: ITimetableState) => {
 
 /** Assemble a Plan-view */
 export const buildPlan = (source: IPlanState) => {
-	const roles = getPath<string[]>(source.auth, 'token.claims.roles');
+	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
 	const isAdmin = roles && roles.includes('admin');
 	const myPlan = firstRow<IProfilePlan>(source.member.plan, { fieldPath: FIELD.type, value: 'plan' });
 	const myTopUp = firstRow<IPrice>(source.member.price, { fieldPath: FIELD.type, value: 'topUp' });
