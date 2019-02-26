@@ -1,30 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-import { STORE, COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { FireService } from '@dbase/fire/fire.service';
-import { dbg } from '@lib/logger.library';
+import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 
-interface MRegister {
-	id: string;
-	provider: 'fb' | 'g+' | 'gh' | 'li' | 'tw';
-	sheetName: string;
-	firstName?: string;
-	lastName?: string;
-	picture?: string;
-	isHidden?: boolean;
-	isAdmin?: boolean;
-}
-interface MHistory {
-	stamp: number;
-	date: number;
-	type: string;
-	title: string;
-	debit?: string;
-	credit?: string;
-	note?: string;
-	bank?: number;
-}
+import { dbg } from '@lib/logger.library';
 
 @Component({
 	selector: 'wb-mig-attend',

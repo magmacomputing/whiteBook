@@ -6,7 +6,8 @@
 	<p></p>
 	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/profile/account')">Account</button>
 	<p> </p>
-	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/migrate/migAttend')">Migrate Attend</button>
+	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/migrate/migAttend')">Migrate
+		Attend</button>
 
 	<div *ngIf="(data$ | async); let data">
 		<div *ngFor="let message of data.member.message">
@@ -15,5 +16,6 @@
 			</div>
 		</div>
 	</div>
+	<hr>
 
 </router-outlet>
