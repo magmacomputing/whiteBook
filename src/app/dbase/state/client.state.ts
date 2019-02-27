@@ -33,9 +33,6 @@ export class ClientState implements NgxsOnInit {
 
 		if (payload[FIELD.store] === STORE.config)
 			this.store.dispatch(new SetLocal(payload));
-		if (payload[FIELD.store] === STORE.schema) {
-			this.dbg('setClient: %s, %s', debug, isEmpty(SLICES));
-		}
 		if (payload[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
 			this.setSchema();											// rebuild the STORES / SORTBY / FILTER
 

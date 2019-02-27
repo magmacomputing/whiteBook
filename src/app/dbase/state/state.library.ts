@@ -11,7 +11,7 @@ import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, IS
 import { SORTBY, STORE, FIELD, SLICES } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
-import { getPath, sortKeys, cloneObj } from '@lib/object.library';
+import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
 import { DATE_FMT, getDate } from '@lib/date.library';
 
@@ -20,6 +20,7 @@ import { DATE_FMT, getDate } from '@lib/date.library';
  *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
 export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
+	debugger;
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -33,10 +34,13 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	)
 }
 export const getSlice = (store: string) => {    // determine the state-slice based on the <store> field
-	const slices = (Object.keys(SLICES) || [SLICE.client])
+	const slices = Object.keys(SLICES)
 		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store
 
-	if (!slices.length && !SLICES.length)
+	if (isEmpty(SLICES))													// nothing in State yet, on first-time connect
+		slices.push(SLICE.client);									// so, assume 'client' slice.
+
+	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
 
 	return slices[0];
@@ -183,7 +187,7 @@ export const sumAttend = (source: IAccountState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => Object.assign({ day: getDate(row[FIELD.key]).format(DATE_FMT.weekDay), ...row }))
+			.map(row => Object.assign({ ...row, day: getDate(row[FIELD.key]).format(DATE_FMT.weekDay) }))
 	}
 	return { ...source };
 }
@@ -222,6 +226,7 @@ export const buildPlan = (source: IPlanState) => {
 
 	return { ...source };
 }
+
 /**
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  

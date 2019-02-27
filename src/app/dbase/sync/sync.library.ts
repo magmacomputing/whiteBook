@@ -31,7 +31,6 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	const localState = getLocalStore(StoreStorage) as any;
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
-	
 	const snapList = snaps.map(addMeta);
 
 	Object.keys(localSlice).forEach(key => localList.push(...localSlice[key].map(remMeta)));
