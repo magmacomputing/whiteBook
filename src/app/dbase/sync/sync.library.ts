@@ -31,6 +31,7 @@ console.log('')
 	const localState = parseObj<any>(getLocalStore(StoreStorage));
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
+	
 	const snapList = snaps.map(addMeta);
 
 	Object.keys(localSlice).forEach(key => localList.push(...localSlice[key].map(remMeta)));
