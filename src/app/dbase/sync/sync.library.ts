@@ -44,8 +44,8 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	}
 
 	fmtLog('SyncLibrary', 'hash: %s / %s', localHash, storeHash);
-	fmtLog('SyncLibrary', 'local: %j', localSort);
-	fmtLog('SyncLibrary', 'store: %j', snapSort);
+	// fmtLog('SyncLibrary', 'local: %j', localSort);
+	// fmtLog('SyncLibrary', 'store: %j', snapSort);
 	return false;
 }
 
