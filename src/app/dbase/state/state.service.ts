@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of } from 'rxjs';
-import { map, take, filter, switchMap } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, SLICE } from '@dbase/state/state.define';
+import { TStateSlice, } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, SLICES } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
@@ -51,12 +51,7 @@ export class StateService {
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-		return of(SLICES)									// wait for initial setup
-			.pipe(
-				filter(slices => slices[SLICE.client].length !== 0),
-				switchMap(init => getStore<T & TStoreBase>(this.states, store, filters))
-			)
-		// return getStore<T & TStoreBase>(this.states, store, filters);
+		return getStore<T & TStoreBase>(this.states, store, filters);
 	}
 
 	getSingle<T>(store: string, filter: TWhere) {

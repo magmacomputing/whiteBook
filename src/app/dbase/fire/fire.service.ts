@@ -86,8 +86,8 @@ export class FireService {
 	}
 
 	/** get all Documents, optionally with a supplied Query */
-	async getAll(store: string, query?: IQuery) {
-		const snap = await this.colRef(store, query)
+	async getAll(collection: string, query?: IQuery) {
+		const snap = await this.colRef(collection, query)
 			.snapshotChanges()
 			.toPromise()
 

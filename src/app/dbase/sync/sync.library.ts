@@ -26,7 +26,8 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 }
 
 /** check for tampering on the localStorage object */
-export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[], debug: boolean) => {
+export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
+console.log('')
 	const localState = parseObj<any>(getLocalStore(StoreStorage));
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
@@ -42,11 +43,9 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 		return true;                                  // ok, already sync'd
 	}
 
-	if (debug) {
-		fmtLog('SyncLibrary', 'hash: %s / %s', localHash, storeHash);
-		fmtLog('local: %j', localSort);
-		fmtLog('store: %j', snapSort);
-	}
+	fmtLog('SyncLibrary', 'hash: %s / %s', localHash, storeHash);
+	fmtLog('SyncLibrary', 'local: %j', localSort);
+	fmtLog('SyncLibrary', 'store: %j', snapSort);
 	return false;
 }
 

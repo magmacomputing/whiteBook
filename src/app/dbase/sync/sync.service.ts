@@ -93,7 +93,7 @@ export class SyncService {
 			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
 		if (listen.cnt === 0) {                           // initial snapshot
-			if (await checkStorage(listen, snaps, debug))
+			if (await checkStorage(listen, snaps))
 				return;																				// storage already sync'd... skip the initial snapshot
 
 			await this.store

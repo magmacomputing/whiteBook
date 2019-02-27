@@ -6,7 +6,7 @@ import { STORE, FIELD, SLICES, SORTBY, FILTER } from '@dbase/data/data.define';
 import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
 
 import { TString } from '@lib/type.library';
-import { IObject } from '@lib/object.library';
+import { IObject, isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -33,7 +33,10 @@ export class ClientState implements NgxsOnInit {
 
 		if (payload[FIELD.store] === STORE.config)
 			this.store.dispatch(new SetLocal(payload));
-		if (payload[FIELD.store] === STORE.schema && (debug || !SLICES.length))
+		if (payload[FIELD.store] === STORE.schema) {
+			this.dbg('setClient: %s, %s', debug, isEmpty(SLICES));
+		}
+		if (payload[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
 			this.setSchema();											// rebuild the STORES / SORTBY / FILTER
 
 		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
