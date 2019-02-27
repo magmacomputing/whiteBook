@@ -27,8 +27,8 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
-console.log('')
-	const localState = parseObj<any>(getLocalStore(StoreStorage));
+	// const localState = parseObj<any>(getLocalStore(StoreStorage));
+	const localState = getLocalStore(StoreStorage) as any;
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);
@@ -37,7 +37,7 @@ console.log('')
 	const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
 	const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
 	const [localHash, storeHash] = await Promise.all([cryptoHash(localSort), cryptoHash(snapSort),]);
-
+	
 	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
 		listen.ready.resolve(true);                   // indicate snap0 is ready
 		return true;                                  // ok, already sync'd
