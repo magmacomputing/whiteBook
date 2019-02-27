@@ -7,7 +7,7 @@ interface IDate {													// Date components
 	dd: number;															// day; 1-31
 	ww: number;															// weekday; Mon=1, Sun=7
 	HH: number;															// hour[24]
-	MM: number;															// minute
+	MI: number;															// minute
 	SS: number;															// second
 	ts: number;															// unix timestamp
 }
@@ -84,7 +84,7 @@ export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
 /** break a Date into components */
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
-		dt = new Date().toDateString() + ' ' + dt;							// prepend current date
+		dt = new Date().toDateString() + ' ' + dt;							// 	prepend current date
 	if (isString(dt) && yyyymmdd.test(dt))										// if yyyymmdd supplied as string...
 		dt = dt.replace(yyyymmdd, '$1-$2-$3 00:00:00');
 	if (isNumber(dt) && yyyymmdd.test(dt.toString()))					// if yyyymmdd supplied as number...
@@ -92,14 +92,14 @@ const parseDate = (dt?: TDate) => {
 
 	const date = checkDate(dt);
 
-	let [yy, mm, dd, ww, HH, MM, SS, ts] = [
+	let [yy, mm, dd, ww, HH, MI, SS, ts] = [
 		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
 		date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
 	];
 	if (!ww && !isNaN(ww)) ww = DAY.Sun;											// ISO weekday
 	mm += 1;																									// ISO month
 
-	return { yy, mm, dd, ww, HH, MM, SS, ts } as IDate;
+	return { yy, mm, dd, ww, HH, MI, SS, ts } as IDate;
 }
 
 /** translate the supplied parameter into a Date */
@@ -127,7 +127,7 @@ const checkDate = (dt?: TDate) => {
 /** calculate a Date mutation */
 const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, offset?: number) => {
 	if (mutate !== 'add')
-		[date.HH, date.MM, date.SS] = [0, 0, 0];								// discard the time-portion of the date
+		[date.HH, date.MI, date.SS] = [0, 0, 0];								// discard the time-portion of the date
 
 	switch (mutate + '.' + unit) {
 		case 'start.week':
@@ -153,18 +153,18 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 			break;
 		case 'add.minute':
 		case 'add.minutes':
-			date.MM += offset!;
+			date.MI += offset!;
 			break;
 	}
 
-	return getDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MM, date.SS));
+	return getDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
 }
 
 /** apply some standard format rules */
 const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 	switch (fmt) {
 		case DATE_FMT.HHmm:
-			return `${fix(date.HH)}:${fix(date.MM)}`;
+			return `${fix(date.HH)}:${fix(date.MI)}`;
 
 		case DATE_FMT.yearMonthDay:
 			return `${date.yy}${fix(date.mm)}${fix(date.dd)}`;
@@ -182,7 +182,7 @@ const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 			return `${fix(date.dd)}-${MONTH[date.mm]}`;
 
 		case DATE_FMT.dateTime:
-			return `${date.yy}-${MONTH[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MM)}`;
+			return `${date.yy}-${MONTH[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
 
 		default:
 			return '';
