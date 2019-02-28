@@ -12,7 +12,7 @@ import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
-import { sortKeys, parseObj } from '@lib/object.library';
+import { sortKeys } from '@lib/object.library';
 import { getLocalStore } from '@lib/window.library';
 import { fmtLog } from '@lib/logger.library';
 

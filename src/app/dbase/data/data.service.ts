@@ -55,11 +55,13 @@ export class DataService {
 		return this.fire.writeClaim(claim);											// update some components on /register/{uid}/user/customClaims
 	}
 
-	getDirect<T>(collection: string, query?: IQuery) {				// direct access to collection, rather than via state
-		return this.fire.colRef<T>(collection, query)
-			.valueChanges()
+	async getAll<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
+		const snap = await this.fire.colRef<T>(collection, query)
+			.snapshotChanges()
 			.pipe(take(1))
 			.toPromise()
+
+		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));
 	}
 
 	get newId() {

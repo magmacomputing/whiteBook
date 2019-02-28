@@ -20,7 +20,6 @@ import { DATE_FMT, getDate } from '@lib/date.library';
  *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
 export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
-	debugger;
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];

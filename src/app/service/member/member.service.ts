@@ -92,7 +92,7 @@ export class MemberService {
 			{ fieldPath: 'date', value: when },
 			{ fieldPath: 'note', value: note },
 		]
-		const booked = await this.data.getDirect<IAttend>(STORE.attend, { where: attendFilter });
+		const booked = await this.data.getAll<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error('Already attended this class');
 			return;

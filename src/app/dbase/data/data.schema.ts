@@ -1,3 +1,4 @@
+import { UserInfo } from 'firebase';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
@@ -21,12 +22,23 @@ export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phon
 
 //	/register
 type TRole = 'admin' | 'member' | 'guest';
+/** /register/{uid} */
 export interface ICustomClaims {				// a special sub-set of fields from the User Token
 	roles?: TRole[];
 	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
 	memberName?: string;
 	memberAllow?: string[];
 	memberDeny?: string[];
+}
+export interface IRegister {
+	[FIELD.id]: string;
+	[FIELD.uid]: string;
+	[FIELD.expire]?: number;
+	[FIELD.disable]?: boolean;
+	[FIELD.hidden]?: boolean;
+	user: UserInfo & {
+		customClaims: ICustomClaims;
+	}
 }
 
 // These are the meta- and common-fields for a standard collection document

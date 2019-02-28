@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
-import { tap } from 'rxjs/operators';
+import { tap, take } from 'rxjs/operators';
 
-import { AngularFirestore, docChanges } from '@angular/fire/firestore';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -86,9 +86,12 @@ export class FireService {
 	}
 
 	/** get all Documents, optionally with a supplied Query */
-	async getAll(collection: string, query?: IQuery) {
-		const snap = await this.colRef(collection, query)
+	async getAll<T>(collection: string, query?: IQuery) {
+		this.dbg('getAll: %s, %j', collection, query);
+
+		const snap = await this.colRef<T>(collection, query)
 			.snapshotChanges()
+			.pipe(take(1))
 			.toPromise()
 
 		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));

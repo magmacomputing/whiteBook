@@ -1,4 +1,4 @@
-<div *ngIf="members | async as members; else waitAdmin">
+<div *ngIf="class.members | async as members; else waitAdmin">
   <div *ngFor="let member of members">
     <p>
       <button (click)="getMember(member)">{{ member.sheetName }}</button>
