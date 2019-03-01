@@ -7,7 +7,7 @@ export interface MRegister {
 	picture?: string;
 	isHidden?: boolean;
 	isAdmin?: boolean;
-	uid?: string;
+	uid: string;
 }
 
 export interface MHistory {
