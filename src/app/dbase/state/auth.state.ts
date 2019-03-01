@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app';
 import { AngularFireAuth } from '@angular/fire/auth';
 
-import { State, StateContext, Action, NgxsOnInit } from '@ngxs/store';
+import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
 	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo, LoginCredential
@@ -35,12 +35,14 @@ export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
 	private user: firebase.User | null = null;
 
-	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private snack: SnackService, private navigate: NavigateService) { }
+	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private store: Store, private snack: SnackService, private navigate: NavigateService) { this.init(); }
 
-	ngxsOnInit(ctx: StateContext<IAuthState>) {
+	ngxsOnInit(ctx: StateContext<IAuthState>) { this.init(); }
+
+	private init() {
 		this.dbg('init');
 		this.afAuth.authState
-			.subscribe(user => ctx.dispatch(new CheckSession(user)))
+			.subscribe(user => this.store.dispatch(new CheckSession(user)))
 	}
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {

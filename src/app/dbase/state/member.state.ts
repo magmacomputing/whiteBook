@@ -13,9 +13,13 @@ import { dbg } from '@lib/logger.library';
 export class MemberState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor() { }
+	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
+
+	private init() {
+		this.dbg('init:');
+	}
 
 	@Action(SetMember)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {

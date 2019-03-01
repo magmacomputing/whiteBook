@@ -16,9 +16,11 @@ import { dbg } from '@lib/logger.library';
 export class ClientState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor(private readonly store: Store) { }
+	constructor(private readonly store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) {
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
+
+	private init() {
 		this.dbg('init:');
 		this.setSchema();												// initial load of STORES / SORTBY / FILTER
 	}

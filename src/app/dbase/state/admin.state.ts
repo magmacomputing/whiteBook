@@ -17,9 +17,13 @@ import { dbg } from '@lib/logger.library';
 export class AdminState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor(private store: Store) { }
+	constructor(private store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
+
+	private init() {
+		this.dbg('init:');
+	}
 
 	@Action(SetAdmin)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {

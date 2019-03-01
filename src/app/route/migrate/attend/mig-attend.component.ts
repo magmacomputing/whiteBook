@@ -37,12 +37,14 @@ export class MigAttendComponent implements OnInit {
 		const action = 'history';
 		const docs = await this.data.getAll<IRegister>(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } })
 			.catch(err => { throw new Error(err) });
+		const uid = docs[0][FIELD.uid];
+
+		this.dbg('token: %j', await this.data.createToken(uid));
+		this.dbg('member: %s, %j', member.sheetName, docs);
 		this.dbg('docs: %j', docs);
 		const res = await this.fetch(action, `provider=${member.provider}&id=${member.id}`);
 		const hist: MHistory[] = res.history || [];
 
-		const uid = docs[0][FIELD.uid];
-		this.dbg('member: %s, %j', member.sheetName, docs);
 
 		// this.dbg('get: %j', hist.length);
 		// this.dbg('get: %j', hist[hist.length - 1]);

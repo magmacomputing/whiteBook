@@ -55,6 +55,12 @@ export class DataService {
 		return this.fire.writeClaim(claim);											// update some components on /register/{uid}/user/customClaims
 	}
 
+	async createToken(uid: string) {
+		const token = await this.fire.createToken(uid);
+		this.dbg('token: %j', token);
+		return token;
+	}
+
 	async getAll<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
 		const snap = await this.fire.colRef<T>(collection, query)
 			.snapshotChanges()

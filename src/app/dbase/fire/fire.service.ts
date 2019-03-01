@@ -105,6 +105,10 @@ export class FireService {
 		return this.callHttps('writeClaim', { collection: COLLECTION.register, customClaims: claim }, `setting claim`);;
 	}
 
+	createToken(uid: string) {
+		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
+	}
+
 	/** Call a server Cloud Function */
 	private callHttps<T>(fnName: string, args: Object, msg?: string) {
 		const fn = this.aff.httpsCallable(fnName);
