@@ -3,7 +3,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
-import { LoginIdentity, Logout, LoginEmail, LoginOAuth, LoginAdditionalInfo } from '@dbase/state/auth.action';
+import { LoginIdentity, Logout, LoginEmail, LoginToken, AuthInfo } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
@@ -101,20 +101,20 @@ export class AuthService {
 
 		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
 
-		const channel = new BroadcastChannel('oauth');
+		const channel = new BroadcastChannel('token');
 		channel.onmessage = (msg) => {
 			channel.close();
-			this.store.dispatch(new LoginAdditionalInfo({ info: JSON.parse(msg.data) }));
+			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
 		}
 	}
 
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
-		return this.store.dispatch(new LoginOAuth(response.token, response.prefix, response.user))
+		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
 				if (state.auth.info) 								// tell the main thread to update State
-					new BroadcastChannel('oauth')
+					new BroadcastChannel('token')
 						.postMessage(JSON.stringify(state.auth.info));
 
 				if (state.auth.user)

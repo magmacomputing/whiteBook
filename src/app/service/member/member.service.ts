@@ -6,7 +6,7 @@ import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
-import { LoginInfo } from '@dbase/state/auth.action';
+import { MemberInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
 
 import { TWhere } from '@dbase/fire/fire.interface';
@@ -28,10 +28,10 @@ export class MemberService {
 		this.dbg('new');
 
 		this.action.pipe(															// special: listen for changes of the auth.info
-			ofAction(LoginInfo),												// when LoginInfo is fired by AuthState (on user-login)
+			ofAction(MemberInfo),												// when LoginInfo is fired by AuthState (on user-login)
 			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
 		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed.
-		this.store.dispatch(new LoginInfo());					// now fire the initial LoginInfo check
+		this.store.dispatch(new MemberInfo());				// now fire the initial LoginInfo check
 	}
 
 	async setPlan(plan: TPlan) {
@@ -40,7 +40,6 @@ export class MemberService {
 		this.dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
-			// .then(_ => this.data.writeClaim({ plan }))	// TODO: evaluate whether this is still required
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 

@@ -3,8 +3,8 @@ import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
 import {
-	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, LoginToken,
-	LoginEmail, LoginLink, LoginInfo, LoginOAuth, LoginSetup, LoginAdditionalInfo, LoginCredential
+	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
+	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
@@ -117,9 +117,9 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
-	/** Attempt to sign in a User via authentication by an OAuth provider we have configured. (eg. LinkedIn) */
-	@Action(LoginOAuth)
-	async loginOAuth(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginOAuth) {
+	/** Attempt to sign in a User via authentication with a Custom Token */
+	@Action(LoginToken)
+	async loginOAuth(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),
@@ -193,13 +193,13 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, SLICE.attend, query);
 			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
-				.then(_ => ctx.dispatch(new LoginInfo()))						// check for AdditionalUserInfo
+				.then(_ => ctx.dispatch(new MemberInfo()))					// check for AdditionalUserInfo
 				.then(_ => this.navigate.route(ROUTE.attend))
 		}
 	}
 
-	@Action(LoginAdditionalInfo)
-	async additionalInfo(ctx: StateContext<IAuthState>, { info }: LoginAdditionalInfo) {
+	@Action(AuthInfo)
+	async authInfo(ctx: StateContext<IAuthState>, { info }: AuthInfo) {
 		ctx.patchState(info);
 	}
 
@@ -211,7 +211,7 @@ export class AuthState implements NgxsOnInit {
 		}
 	}
 
-	@Action(LoginToken)															// fetch latest IdToken
+	@Action(AuthToken)															// fetch latest IdToken
 	setToken(ctx: StateContext<IAuthState>) {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult(true)

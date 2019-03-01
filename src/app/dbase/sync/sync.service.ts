@@ -6,7 +6,7 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { buildDoc, checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { LoginToken } from '@dbase/state/auth.action';
+import { LoginToken, AuthToken } from '@dbase/state/auth.action';
 
 import { IListen } from '@dbase/sync/sync.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
@@ -112,10 +112,10 @@ export class SyncService {
 					this.store.dispatch(new setStore(data, debug));
 					if (listen.cnt !== 0) {
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-							this.store.dispatch(new LoginToken());    // special: access-level has changed
+							this.store.dispatch(new AuthToken());   // special: access-level has changed
 
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-							this.navigate.route(ROUTE.attend);				// special: initial Plan is set
+							this.navigate.route(ROUTE.attend);			// special: initial Plan is set
 					}
 					break;
 
@@ -123,7 +123,7 @@ export class SyncService {
 					this.store.dispatch(new delStore(data, debug));
 					if (listen.cnt !== 0) {
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-							this.navigate.route(ROUTE.plan);					// special: Plan has been deleted
+							this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
 					}
 					break;
 			}

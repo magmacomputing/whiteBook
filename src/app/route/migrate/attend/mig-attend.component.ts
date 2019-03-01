@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
+import { AuthService } from '@service/auth/auth.service';
 import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 
 import { getStamp } from '@lib/date.library';
@@ -18,10 +19,12 @@ export class MigAttendComponent implements OnInit {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
-	private static members: Promise<MRegister[]>;
 	public class = MigAttendComponent;												// reference to self
 
-	constructor(private http: HttpClient, private data: DataService) { }
+	private static members: Promise<MRegister[]>;
+	private static member: MRegister;
+
+	constructor(private http: HttpClient, private data: DataService, private auth: AuthService) { }
 
 	ngOnInit() {
 		const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
@@ -33,15 +36,23 @@ export class MigAttendComponent implements OnInit {
 		}
 	}
 
-	async getMember(member: MRegister) {
-		const action = 'history';
+	async signIn(member: MRegister) {
 		const docs = await this.data.getAll<IRegister>(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } })
 			.catch(err => { throw new Error(err) });
-		const uid = docs[0][FIELD.uid];
+		this.class.member = member;
+		this.class.member.uid = docs[0].user.uid;
+		this.dbg('register: %j', this.class.member);
 
-		this.dbg('token: %j', await this.data.createToken(uid));
-		this.dbg('member: %s, %j', member.sheetName, docs);
-		this.dbg('docs: %j', docs);
+		const token = await this.data.createToken(this.class.member.uid);
+		this.dbg('token: %j',token);
+		 this.auth.signInToken(token)
+	}
+
+	async getMember(member: MRegister) {
+		const action = 'history';
+
+
+		// this.dbg('member: %s, %j', member.sheetName, docs);
 		const res = await this.fetch(action, `provider=${member.provider}&id=${member.id}`);
 		const hist: MHistory[] = res.history || [];
 
@@ -68,7 +79,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.id]: this.data.newId,
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: 'topUp',
-					[FIELD.uid]: uid,
+					[FIELD.uid]: this.class.member.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
 				} as IPayment

@@ -22,8 +22,8 @@ export class LoginIdentity {
 	static type = '[Auth] LoginIdentity';
 	constructor(public authProvider: firebase.auth.AuthProvider, public credential?: any) { }
 }
-export class LoginOAuth {
-	static type = '[Auth] LoginOAuth';
+export class LoginToken {
+	static type = '[Auth] LoginToken';
 	constructor(public token: string, public prefix: string, public user: any) { }
 }
 export class LoginOIDC {
@@ -46,13 +46,6 @@ export class Logout {
 export class LogoutSuccess {
 	static type = '[Auth] LogoutSuccess';
 }
-export class LoginInfo {
-	static type = '[Auth] LoginInfo';
-}
-export class LoginAdditionalInfo {
-	static type = '[Auth] LoginAdditionalInfo';
-	constructor(public info: any) { }
-}
 
 // Events
 export class LoginRedirect {
@@ -66,8 +59,16 @@ export class LoginSetup {
 	static type = '[Auth] LoginSetup';
 	constructor(public user: firebase.User) { }
 }
-export class LoginToken {
-	static type = '[Auth] LoginToken';
+
+export class MemberInfo {												// signal MemberService to check for ProviderInfo changes
+	static type = '[Auth] MemberInfo';
+}
+export class AuthInfo {													// fetch AdditionalUserInfo into auth state
+	static type = '[Auth] AuthInfo';
+	constructor(public info: any) { }
+}
+export class AuthToken {
+	static type = '[Auth] AuthToken';
 }
 export class LoginFailed {
 	static type = '[Auth] LoginFailed';

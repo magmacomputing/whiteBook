@@ -1,13 +1,16 @@
 <div *ngIf="class.members | async as members; else waitAdmin">
-  <div *ngFor="let member of members">
-    <p>
-      <button (click)="getMember(member)">{{ member.sheetName }}</button>
-    </p>
-  </div>
+	<div *ngFor="let member of members">
+		<p>
+			{{ member.sheetName }}
+			<button (click)="signIn(member)">SignIn</button>
+			<button (click)="addPayment()">Add Payments</button>
+			<button (click)="addAttend()">Add Attends</button>
+		</p>
+	</div>
 </div>
 
 <ng-template #waitAdmin>
-  <div>
-    <p>Please wait while we fetch member list...</p>
-  </div>
+	<div>
+		<p>Please wait while we fetch member list...</p>
+	</div>
 </ng-template>

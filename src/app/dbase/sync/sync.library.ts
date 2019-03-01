@@ -27,7 +27,6 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	// const localState = parseObj<any>(getLocalStore(StoreStorage));
 	const localState = getLocalStore(StoreStorage) as any;
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
