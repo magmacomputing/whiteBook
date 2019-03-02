@@ -40,15 +40,22 @@ export class MigAttendComponent implements OnInit {
 	async signIn(member: MRegister) {
 		const docs = await this.data.getAll<IRegister>(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } })
 			.catch(err => { throw new Error(err) });
-		this.class.member = {...member, [FIELD.uid]: docs[0].user.uid};
+		this.class.member = { ...member, [FIELD.uid]: docs[0].user.uid };
 		this.dbg('register: %j', this.class.member);
+		try {
+			this.data.createToken(this.class.member.uid)
+				.then(token => {
+					const response = { token };
+					this.dbg('token: %j', token);
 
-		this.data.createToken(this.class.member.uid)
-			.then(token => {
-				this.dbg('token: %j', token);
-				this.auth.signInToken(token);
-			})
-			.catch(err => this.snack.error(err.message));
+					this.auth.signOut();
+					this.auth.signInToken(response);
+				})
+				.catch(err => this.snack.error(err.message));
+		}
+		catch (e) {
+			this.dbg('try: %j', e.message);
+		}
 	}
 
 	async getMember(member: MRegister) {
