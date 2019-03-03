@@ -2,6 +2,7 @@ export interface MRegister {
 	id: string;
 	provider: 'fb' | 'g+' | 'gh' | 'li' | 'tw';
 	sheetName: string;
+	email: string;
 	firstName?: string;
 	lastName?: string;
 	picture?: string;

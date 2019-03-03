@@ -119,7 +119,7 @@ export class AuthState implements NgxsOnInit {
 
 	/** Attempt to sign in a User via authentication with a Custom Token */
 	@Action(LoginToken)
-	async loginOAuth(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
+	async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),

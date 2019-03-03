@@ -71,6 +71,9 @@ export const getProviderId = (prefix: string) => {
 		case 'li':
 			return 'linkedin.com';
 
+		case 'gapps':														// Google Apps Sheet
+			return 'docs.google.com';
+
 		default:
 			return 'unknown';
 	}

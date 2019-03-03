@@ -30,10 +30,12 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
 	private dbg = dbg(this);
+	public init: Promise<boolean>;
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: SnackService) {
 		this.dbg('new');
-		this.sync.on(COLLECTION.client, SLICE.client);
+		this.init = this.sync.on(COLLECTION.client, SLICE.client);
+		this.init.then(res => this.dbg('init: %j', res));
 	}
 
 	/** Make Store data available in a Promise */

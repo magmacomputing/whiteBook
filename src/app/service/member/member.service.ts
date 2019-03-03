@@ -28,10 +28,10 @@ export class MemberService {
 		this.dbg('new');
 
 		this.action.pipe(															// special: listen for changes of the auth.info
-			ofAction(MemberInfo),												// when LoginInfo is fired by AuthState (on user-login)
+			ofAction(MemberInfo),												// when MemberInfo is fired by AuthState (on user-login)
 			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
 		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed.
-		this.store.dispatch(new MemberInfo());				// now fire the initial LoginInfo check
+		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}
 
 	async setPlan(plan: TPlan) {

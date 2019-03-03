@@ -11,6 +11,7 @@ import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 import { getStamp } from '@lib/date.library';
 import { TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { timingSafeEqual } from 'crypto';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -45,7 +46,8 @@ export class MigAttendComponent implements OnInit {
 		try {
 			this.data.createToken(this.class.member.uid)
 				.then(token => {
-					const response = { token };
+					const response = { token, prefix: 'gapps', user: this.class.member }
+
 					this.dbg('token: %j', token);
 
 					this.auth.signOut();
@@ -61,11 +63,9 @@ export class MigAttendComponent implements OnInit {
 	async getMember(member: MRegister) {
 		const action = 'history';
 
-
 		// this.dbg('member: %s, %j', member.sheetName, docs);
 		const res = await this.fetch(action, `provider=${member.provider}&id=${member.id}`);
 		const hist: MHistory[] = res.history || [];
-
 
 		// this.dbg('get: %j', hist.length);
 		// this.dbg('get: %j', hist[hist.length - 1]);

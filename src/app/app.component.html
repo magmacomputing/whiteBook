@@ -1,21 +1,22 @@
-<router-outlet>
-
-	<button [disabled]="!(auth.active | async)" (click)="data.auth.signOut()">Logout</button>
+<div *ngIf="(app$ | async); let app">
+	<button [disabled]="!app.auth.user" (click)="data.auth.signOut()">Logout</button>
 	<p></p>
-	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/profile/plan')">Plan</button>
+	<button [disabled]="!app.auth.user" (click)="router.navigateByUrl('/profile/plan')">Plan</button>
 	<p></p>
-	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/profile/account')">Account</button>
+	<button [disabled]="!app.auth.user" (click)="router.navigateByUrl('/profile/account')">Account</button>
 	<p> </p>
-	<button [disabled]="!(auth.active | async)" (click)="router.navigateByUrl('/migrate/migAttend')">Migrate
+	<button [hidden]="!app.auth.token ||
+	!app.auth.token.claims.claims ||
+	!app.auth.token.claims.claims.roles || 
+	!app.auth.token.claims.claims.roles.includes('admin')" (click)="router.navigateByUrl('/migrate/migAttend')">Migrate
 		Attend</button>
 
-	<div *ngIf="(data$ | async); let data">
-		<div *ngFor="let message of data.member.message">
-			<div *ngIf="message.type == 'alert'">
-				<p>{{ message.note }}</p>
-			</div>
+	<div *ngFor="let message of app.member.message">
+		<div *ngIf="message.type == 'alert'">
+			<p>{{ message.note }}</p>
 		</div>
 	</div>
-	<hr>
+</div>
+<hr>
 
-</router-outlet>
+<router-outlet></router-outlet>

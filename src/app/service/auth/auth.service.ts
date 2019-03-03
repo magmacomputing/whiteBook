@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { map, switchMap, take } from 'rxjs/operators';
+import { map, switchMap, take, tap } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
@@ -19,6 +19,7 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
 	private auth$ = this.state.getAuthData();
+	private open: Window | null = null;
 	private dbg = dbg(this);
 
 	constructor(private readonly store: Store, private state: StateService) { this.dbg('new'); }
@@ -99,7 +100,7 @@ export class AuthService {
 		const config = await this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: 'oauth' }) || {};
 		const oauth = config.value;
 
-		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
+		this.open = window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
 
 		const channel = new BroadcastChannel('token');
 		channel.onmessage = (msg) => {
@@ -117,7 +118,7 @@ export class AuthService {
 					new BroadcastChannel('token')
 						.postMessage(JSON.stringify(state.auth.info));
 
-				if (state.auth.user)
+				if (state.auth.user && this.open)
 					window.close();										// only close on valid user
 			})
 	}
