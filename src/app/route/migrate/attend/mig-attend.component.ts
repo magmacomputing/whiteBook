@@ -43,21 +43,21 @@ export class MigAttendComponent implements OnInit {
 			.catch(err => { throw new Error(err) });
 		this.class.member = { ...member, [FIELD.uid]: docs[0].user.uid };
 		this.dbg('register: %j', this.class.member);
-		try {
-			this.data.createToken(this.class.member.uid)
-				.then(token => {
-					const response = { token, prefix: 'gapps', user: this.class.member }
+		// try {
+		// 	this.data.createToken(this.class.member.uid)
+		// 		.then(token => {
+		// 			const response = { token, prefix: 'gapps', user: this.class.member }
 
-					this.dbg('token: %j', token);
+		// 			this.dbg('token: %j', token);
 
-					this.auth.signOut();
-					this.auth.signInToken(response);
-				})
-				.catch(err => this.snack.error(err.message));
-		}
-		catch (e) {
-			this.dbg('try: %j', e.message);
-		}
+		// 			this.auth.signOut();
+		// 			this.auth.signInToken(response);
+		// 		})
+		// 		.catch(err => this.snack.error(err.message));
+		// }
+		// catch (e) {
+		// 	this.dbg('try: %j', e.message);
+		// }
 	}
 
 	async getMember(member: MRegister) {

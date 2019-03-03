@@ -1,0 +1,22 @@
+{
+	"uid": "ZoeW",
+	"sheetName": "ZoeW",
+	"email": "zoew@astro-arpanet.com",
+	"userName": "Dr Zoe Wong",
+	"picture": "https://media.licdn.com/mpr/mprx/0_jbmxXtVYVDvGBLWngF72XA4f4f-CvQMnPishXrMfFo6PEGm9lTYPEKD39Tty9TZspkuTIBbX7Fhh",
+	"credit": 0,
+	"plan": "Casual",
+	"providers": [
+		{
+			"id": "K_SLOOV8it",
+			"provider": "li",
+			"userName": "Dr Zoe Wong",
+			"firstName": "Dr Zoe",
+			"lastName": "Wong",
+			"gender": "female",
+			"email": "zoew@astro-arpanet.com",
+			"picture": "https://media.licdn.com/mpr/mprx/0_jbmxXtVYVDvGBLWngF72XA4f4f-CvQMnPishXrMfFo6PEGm9lTYPEKD39Tty9TZspkuTIBbX7Fhh",
+			"isAdmin": false
+		}
+	]
+}
