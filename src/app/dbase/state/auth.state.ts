@@ -60,8 +60,7 @@ export class AuthState implements NgxsOnInit {
 	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
-		if (isNull(user) && !isNull(this.user)) {	// TODO: does this affect OAuth logins
-			// if (isNull(user)) {
+		if (isNull(user) && !isNull(this.user)) {			// TODO: does this affect OAuth logins
 			ctx.dispatch(new Logout());									// User logged-out
 		}
 

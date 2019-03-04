@@ -2,13 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { take } from 'rxjs/operators';
 
+import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
+
+import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment } from '@dbase/data/data.schema';
 import { SnackService } from '@service/snack/snack.service';
+import { SLICE } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { DataService } from '@dbase/data/data.service';
 import { AuthService } from '@service/auth/auth.service';
-import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
+import { SyncService } from '@dbase/sync/sync.service';
+import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getStamp } from '@lib/date.library';
 import { TString } from '@lib/type.library';
@@ -27,7 +31,7 @@ export class MigAttendComponent implements OnInit {
 	private static members: Promise<MRegister[]>;
 	private static member: MRegister;
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService) { }
+	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) { }
 
 	ngOnInit() {
 		const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
@@ -45,6 +49,11 @@ export class MigAttendComponent implements OnInit {
 		this.class.member = { ...member, [FIELD.uid]: docs[0].user.uid };
 
 		this.dbg('register: %j', this.class.member);
+		const query: IQuery = { where: { fieldPath: FIELD.uid, value: this.class.member.uid } };
+
+		this.sync.on(COLLECTION.attend, SLICE.attend, query);
+		this.sync.on(COLLECTION.member, SLICE.member, query);
+
 		this.state.getMemberData('Tue, 23 Sep 2014 10:49:41 GMT', this.class.member.uid)
 			.pipe(take(1))
 			.toPromise()

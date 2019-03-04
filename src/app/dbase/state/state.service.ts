@@ -78,11 +78,17 @@ export class StateService {
 		if (uid) {
 			const where: IWhere = { fieldPath: FIELD.uid, value: uid };
 			const reg: Promise<IRegister[]> = this.fire.getAll(COLLECTION.register, { where })
+			const userInfo: IAuthState = {
+				user: null,
+				token: null,
+				info: null,
+				credential: null,
+			}
 
 			return from(reg
 				.then(users => {
-					const userInfo = { auth: {user: ...users[0].user }}
-					// return { users[0].user} 
+					userInfo.user = users[0].user;
+					return { auth: userInfo }
 				})
 			)
 		}

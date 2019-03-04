@@ -1,118 +1,33 @@
 {
 	"auth": {
 		"user": {
-			"uid": "ThUoWJFIHZVOxu2OFoXfK21n1Fr1",
-			"displayName": "Michael McRae",
-			"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-			"email": "michael@magmacomputing.com.au",
+			"customClaims": {
+				"memberName": "ZoeW"
+			},
+			"disabled": false,
+			"displayName": "Dr Zoe Wong",
+			"email": "zoew@astro-arpanet.com",
 			"emailVerified": true,
-			"phoneNumber": null,
-			"isAnonymous": false,
+			"metadata": {
+				"creationTime": "Sun, 03 Mar 2019 04:18:58 GMT",
+				"lastSignInTime": null
+			},
+			"photoURL": "https://media.licdn.com/mpr/mprx/0_jbmxXtVYVDvGBLWngF72XA4f4f-CvQMnPishXrMfFo6PEGm9lTYPEKD39Tty9TZspkuTIBbX7Fhh",
 			"providerData": [
 				{
-					"uid": "110021813496510375957",
-					"displayName": "Michael McRae",
-					"photoURL": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-					"email": "michael@magmacomputing.com.au",
-					"phoneNumber": null,
-					"providerId": "google.com"
-				},
-				{
-					"uid": "100000138474102",
-					"displayName": "Michael McRae",
-					"photoURL": "https://graph.facebook.com/100000138474102/picture",
-					"email": "michael@magmacomputing.com.au",
-					"phoneNumber": null,
-					"providerId": "facebook.com"
+					"displayName": "Dr Zoe Wong",
+					"email": "zoew@astro-arpanet.com",
+					"photoURL": "https://media.licdn.com/mpr/mprx/0_jbmxXtVYVDvGBLWngF72XA4f4f-CvQMnPishXrMfFo6PEGm9lTYPEKD39Tty9TZspkuTIBbX7Fhh",
+					"providerId": "linkedin.com",
+					"uid": "K_SLOOV8it"
 				}
 			],
-			"apiKey": "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
-			"appName": "whiteFire",
-			"authDomain": "whitefire-dev.firebaseapp.com",
-			"stsTokenManager": {
-				"apiKey": "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
-				"refreshToken": "AEu4IL2YtqXBBna4T1Wx3-c32pFhAkIrmn9n3Okctrxx2b0sZ-GRn02DBoacTVviOTzoSGR_ZSC0IhUFjfvaZg3uHr8eBUNWFICErv7pNVjBPk4bk62RHn6OxMJf94j9ifqTCZSJY8b8QnpgJPuAJiiRNmZ5l1f8GczaRTSML7fhfC97cyso-mviKd_VgOaiCUM33W0wbDlNysXLeEKIvbW83DBWsMCMljvBwmg6urpkg_5vNntNgZu-Znrmc92-Fw-C8BD9kJ7MZ7VIIag4ia75DbLSOL-f0fs9278My5pMrFB9TON8i1jgTWwOAH54wWZd6G4RcDiZ",
-				"accessToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ1NjI5OWQ3YTI2ODE0NWJkOWJiMjA2Zjg4ODlkYWMwMjg0NjhmZTQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hpdGVmaXJlLWRldiIsIm5hbWUiOiJNaWNoYWVsIE1jUmFlIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS8tWXhDNkhLd2M3WkkvQUFBQUFBQUFBQUkvQUFBQUFBQUFCZWsvWXlKcHZ0TUh3d2cvcGhvdG8uanBnIiwiY2xhaW1zIjp7Im1lbWJlck5hbWUiOiJNaWNoYWVsTSIsInJvbGVzIjpbImFkbWluIl19LCJhdWQiOiJ3aGl0ZWZpcmUtZGV2IiwiYXV0aF90aW1lIjoxNTUxNjUxNzQ3LCJ1c2VyX2lkIjoiVGhVb1dKRklIWlZPeHUyT0ZvWGZLMjFuMUZyMSIsInN1YiI6IlRoVW9XSkZJSFpWT3h1Mk9Gb1hmSzIxbjFGcjEiLCJpYXQiOjE1NTE2NjI1NjEsImV4cCI6MTU1MTY2NjE2MSwiZW1haWwiOiJtaWNoYWVsQG1hZ21hY29tcHV0aW5nLmNvbS5hdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7Imdvb2dsZS5jb20iOlsiMTEwMDIxODEzNDk2NTEwMzc1OTU3Il0sImZhY2Vib29rLmNvbSI6WyIxMDAwMDAxMzg0NzQxMDIiXSwiZW1haWwiOlsibWljaGFlbEBtYWdtYWNvbXB1dGluZy5jb20uYXUiXX0sInNpZ25faW5fcHJvdmlkZXIiOiJmYWNlYm9vay5jb20ifX0.rEYNZYRSvqWtksqvqSBZCKwnhe566kIeMaLKpZ8q4JKj-obEUWWcvBxeKQ9CfFA5CTnc88FaSG_YgFp-elUSJgOfIL9qBjxxTk0le-qv0V85-1PmiuNUQL3qPP8tDeFapvKkUoP2c_yAsxVp-0Zp_rC3XVcb34KAW3KclDEASwC2K80n6OT63w4c4ecJ9BXo0bTlEG1KN7pxCM6H3h_Y6JpJ8ZuHX4-t_itnoFzyMpSepjz1P4v2C4XXz6i7pXXu4ZT_LpC_PrshvQibY09MdlGFZ8F8kWYi1RISSY0mv0vFRSrFjp_JglHCp8cfcm5s0gM3iUOiUCfwpG63V6yb6g",
-				"expirationTime": 1551666157170
-			},
-			"redirectEventId": null,
-			"lastLoginAt": "1551651747547",
-			"createdAt": "1551480126200"
+			"tokensValidAfterTime": "Sun, 03 Mar 2019 04:18:58 GMT",
+			"uid": "ZoeW"
 		},
-		"token": {
-			"token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ1NjI5OWQ3YTI2ODE0NWJkOWJiMjA2Zjg4ODlkYWMwMjg0NjhmZTQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd2hpdGVmaXJlLWRldiIsIm5hbWUiOiJNaWNoYWVsIE1jUmFlIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS8tWXhDNkhLd2M3WkkvQUFBQUFBQUFBQUkvQUFBQUFBQUFCZWsvWXlKcHZ0TUh3d2cvcGhvdG8uanBnIiwiY2xhaW1zIjp7Im1lbWJlck5hbWUiOiJNaWNoYWVsTSIsInJvbGVzIjpbImFkbWluIl19LCJhdWQiOiJ3aGl0ZWZpcmUtZGV2IiwiYXV0aF90aW1lIjoxNTUxNjUxNzQ3LCJ1c2VyX2lkIjoiVGhVb1dKRklIWlZPeHUyT0ZvWGZLMjFuMUZyMSIsInN1YiI6IlRoVW9XSkZJSFpWT3h1Mk9Gb1hmSzIxbjFGcjEiLCJpYXQiOjE1NTE2NjI1NjEsImV4cCI6MTU1MTY2NjE2MSwiZW1haWwiOiJtaWNoYWVsQG1hZ21hY29tcHV0aW5nLmNvbS5hdSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7Imdvb2dsZS5jb20iOlsiMTEwMDIxODEzNDk2NTEwMzc1OTU3Il0sImZhY2Vib29rLmNvbSI6WyIxMDAwMDAxMzg0NzQxMDIiXSwiZW1haWwiOlsibWljaGFlbEBtYWdtYWNvbXB1dGluZy5jb20uYXUiXX0sInNpZ25faW5fcHJvdmlkZXIiOiJmYWNlYm9vay5jb20ifX0.rEYNZYRSvqWtksqvqSBZCKwnhe566kIeMaLKpZ8q4JKj-obEUWWcvBxeKQ9CfFA5CTnc88FaSG_YgFp-elUSJgOfIL9qBjxxTk0le-qv0V85-1PmiuNUQL3qPP8tDeFapvKkUoP2c_yAsxVp-0Zp_rC3XVcb34KAW3KclDEASwC2K80n6OT63w4c4ecJ9BXo0bTlEG1KN7pxCM6H3h_Y6JpJ8ZuHX4-t_itnoFzyMpSepjz1P4v2C4XXz6i7pXXu4ZT_LpC_PrshvQibY09MdlGFZ8F8kWYi1RISSY0mv0vFRSrFjp_JglHCp8cfcm5s0gM3iUOiUCfwpG63V6yb6g",
-			"expirationTime": "Mon, 04 Mar 2019 02:22:41 GMT",
-			"authTime": "Sun, 03 Mar 2019 22:22:27 GMT",
-			"issuedAtTime": "Mon, 04 Mar 2019 01:22:41 GMT",
-			"signInProvider": "facebook.com",
-			"claims": {
-				"iss": "https://securetoken.google.com/whitefire-dev",
-				"name": "Michael McRae",
-				"picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
-				"claims": {
-					"memberName": "MichaelM",
-					"roles": [
-						"admin"
-					]
-				},
-				"aud": "whitefire-dev",
-				"auth_time": 1551651747,
-				"user_id": "ThUoWJFIHZVOxu2OFoXfK21n1Fr1",
-				"sub": "ThUoWJFIHZVOxu2OFoXfK21n1Fr1",
-				"iat": 1551662561,
-				"exp": 1551666161,
-				"email": "michael@magmacomputing.com.au",
-				"email_verified": true,
-				"firebase": {
-					"identities": {
-						"google.com": [
-							"110021813496510375957"
-						],
-						"facebook.com": [
-							"100000138474102"
-						],
-						"email": [
-							"michael@magmacomputing.com.au"
-						]
-					},
-					"sign_in_provider": "facebook.com"
-				}
-			}
-		},
-		"info": {
-			"providerId": "facebook.com",
-			"isNewUser": false,
-			"profile": {
-				"birthday": "01/01/1957",
-				"gender": "male",
-				"name": "Michael McRae",
-				"last_name": "McRae",
-				"granted_scopes": [
-					"user_birthday",
-					"user_friends",
-					"user_gender",
-					"email",
-					"public_profile"
-				],
-				"id": "100000138474102",
-				"first_name": "Michael",
-				"email": "michael@magmacomputing.com.au",
-				"picture": {
-					"data": {
-						"is_silhouette": false,
-						"width": 100,
-						"url": "https://scontent.xx.fbcdn.net/v/t1.0-1/c0.3.100.100a/p100x100/44826425_2394003443947581_3860208879275081728_n.jpg?_nc_cat=106&_nc_ht=scontent.xx&oh=647c59912f7e3d0bf13ac9697bb56dca&oe=5D13ED8A",
-						"height": 100
-					}
-				}
-			}
-		},
-		"credential": {
-			"a": null,
-			"accessToken": "EAAFoFZB0Le0YBAIbBYlbRYDWG1Hh5ZAirKuUp54ccpSDE78DmFLkZBWFvcmivL6Me85wT2ZCgn7NB3G85vSpO0lrGHl9DDsIiuWOLX7MZBLXdEHSmM8b6ZAZBjfRfy8p2znQH9iwmHbna1IPcOE3nvewZCgx8tVxZBfdeYyzKhZBq8kAZDZD",
-			"providerId": "facebook.com",
-			"signInMethod": "facebook.com"
-		}
+		"token": null,
+		"info": null,
+		"credential": null
 	},
 	"default": {
 		"_default_": [
@@ -171,7 +86,15 @@
 		]
 	},
 	"member": {
-		"profile": [],
+		"plan": [
+			{
+				"_id": "6YierRpXx3eX7Y4hClys",
+				"plan": "casual",
+				"store": "profile",
+				"type": "plan",
+				"uid": "ZoeW"
+			}
+		],
 		"price": [
 			{
 				"_id": "FgiKw3mbJCqfXGS0VWp2",
