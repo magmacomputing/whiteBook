@@ -13,13 +13,13 @@ import { SORTBY, STORE, FIELD, SLICES } from '@dbase/data/data.define';
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { DATE_FMT, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate, TDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
-export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: number, index?: string) => {
+export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -63,7 +63,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string | undefined, store: string, filter: TWhere = [], date?: number, callBack?: CallableFunction) => {
+export const joinDoc = (states: IState, node: string | undefined, store: string, filter: TWhere = [], date?: TDate, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 

@@ -2,7 +2,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
 
-import { getStamp } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/date.library';
 import { isString, isUndefined, isArray, isNumber } from '@lib/type.library';
 import { IObject, cloneObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
@@ -71,7 +71,7 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
  */
-export const asAt = <T extends IMeta>(table: T[], cond: TWhere = [], date?: string | number) => {
+export const asAt = <T extends IMeta>(table: T[], cond: TWhere = [], date?: TDate) => {
 	const stamp = isNumber(date) ? date : getStamp(date);
 
 	return filterTable(table, cond)										// return the rows where date is between _effect and _expire

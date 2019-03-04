@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { Observable, of } from 'rxjs';
+import { Observable, of, from } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
@@ -10,14 +10,16 @@ import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUser
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
+import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
+import { IStoreMeta, TStoreBase, IRegister } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
+import { FireService } from '@dbase/fire/fire.service';
 
 import { asArray } from '@lib/array.library';
-import { DATE_FMT, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate, TDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { UserInfo } from 'firebase';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -35,7 +37,7 @@ export class StateService {
 	private dbg = dbg(this);
 	public states: IState;
 
-	constructor() {
+	constructor(private fire: FireService) {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
 			'member': this.member$,
@@ -72,7 +74,18 @@ export class StateService {
 	/**
 	* Assemble a UserState Object describing an authenticated User
 	*/
-	getAuthData(): Observable<IUserState> {
+	getAuthData(uid?: string): Observable<IUserState> {
+		if (uid) {
+			const where: IWhere = { fieldPath: FIELD.uid, value: uid };
+			const reg: Promise<IRegister[]> = this.fire.getAll(COLLECTION.register, { where })
+
+			return from(reg
+				.then(users => {
+					const userInfo = { auth: {user: ...users[0].user }}
+					// return { users[0].user} 
+				})
+			)
+		}
 		return this.auth$.pipe(
 			map(auth => ({ auth: cloneObj(auth) })),
 		)
@@ -89,19 +102,19 @@ export class StateService {
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 * @param uid:	string	An optional User UID (defaults to current logged-on User)
 	 */
-	getMemberData(date?: number, uid?: string): Observable<IMemberState> {
+	getMemberData(date?: TDate, uid?: string): Observable<IMemberState> {
 		const filterProfile: TWhere = [
 			{ fieldPath: FIELD.type, value: ['plan', 'info', 'pref'] },   // where the <type> is either 'plan', 'info', or 'pref'
-			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is the getAuthData()'s 'auth.user.uid'
+			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is provided or the getAuthData()'s 'auth.user.uid'
 		]
 		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
-		// const filterMessage: TWhere = { fieldPath: FIELD.type, value: 'alert' };
+		const filterMessage: TWhere = { fieldPath: FIELD.type, value: 'alert' };
 
-		return this.getAuthData().pipe(
+		return this.getAuthData(uid).pipe(
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
-			joinDoc(this.states, 'member.message', STORE.message, undefined, date),
+			joinDoc(this.states, 'member.message', STORE.message, filterMessage, date),
 		)
 	}
 
@@ -110,7 +123,7 @@ export class StateService {
 	 * client.plan  -> has an array of asAt Plan documents  
 	 * client.price -> has an array of asAt Price documents
 	 */
-	getPlanData(date?: number, uid?: string): Observable<IPlanState> {
+	getPlanData(date?: TDate, uid?: string): Observable<IPlanState> {
 		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
 			joinDoc(this.states, 'client', STORE.price, undefined, date),
@@ -146,7 +159,7 @@ export class StateService {
 	 * span				-> has the Class Duration definitions ('full' or 'half')
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 */
-	getScheduleData(date?: number, uid?: string) {
+	getScheduleData(date?: TDate, uid?: string) {
 		const base = getDate(date);
 		const filterSchedule: TWhere = { fieldPath: 'day', value: base.format(DATE_FMT.weekDay) };
 		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: base.format(DATE_FMT.yearMonthDay) };
@@ -183,7 +196,7 @@ export class StateService {
 	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
-	getTimetableData(date?: number): Observable<ITimetableState> {
+	getTimetableData(date?: TDate): Observable<ITimetableState> {
 		const base = getDate(date);
 		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
 		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };

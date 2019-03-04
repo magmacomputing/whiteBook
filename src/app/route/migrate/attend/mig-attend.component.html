@@ -2,9 +2,9 @@
 	<div *ngFor="let member of members">
 		<p>
 			{{ member.sheetName }}
-			<button (click)="signIn(member)">SignIn</button>
-			<button (click)="addPayment()">Add Payments</button>
-			<button (click)="addAttend()">Add Attends</button>
+			<button (click)="signIn(member)" [disabled]="class.member">SignIn</button>
+			<button (click)="addPayment()" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add Payments</button>
+			<button (click)="addAttend()" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add Attends</button>
 		</p>
 	</div>
 </div>

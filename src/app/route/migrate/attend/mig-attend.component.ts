@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { take } from 'rxjs/operators';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment } from '@dbase/data/data.schema';
 import { SnackService } from '@service/snack/snack.service';
+import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 import { AuthService } from '@service/auth/auth.service';
 import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
@@ -11,7 +13,6 @@ import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 import { getStamp } from '@lib/date.library';
 import { TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { timingSafeEqual } from 'crypto';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -26,7 +27,7 @@ export class MigAttendComponent implements OnInit {
 	private static members: Promise<MRegister[]>;
 	private static member: MRegister;
 
-	constructor(private http: HttpClient, private data: DataService, private auth: AuthService, private snack: SnackService) { }
+	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService) { }
 
 	ngOnInit() {
 		const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
@@ -42,7 +43,13 @@ export class MigAttendComponent implements OnInit {
 		const docs = await this.data.getAll<IRegister>(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } })
 			.catch(err => { throw new Error(err) });
 		this.class.member = { ...member, [FIELD.uid]: docs[0].user.uid };
+
 		this.dbg('register: %j', this.class.member);
+		this.state.getMemberData('Tue, 23 Sep 2014 10:49:41 GMT', this.class.member.uid)
+			.pipe(take(1))
+			.toPromise()
+			.then(profile => this.dbg('profile: %j', profile))
+
 		// try {
 		// 	this.data.createToken(this.class.member.uid)
 		// 		.then(token => {

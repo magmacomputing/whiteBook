@@ -34,7 +34,7 @@ export enum DATE_FMT {
 	dateTime = 'dateTime',
 }
 
-type TDate = string | number | Date;
+export type TDate = string | number | Date;
 type TMutate = 'add' | 'start' | 'end';
 type TUnitTime = 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
 type TUnitOffset = 'week' | 'month';

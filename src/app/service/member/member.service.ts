@@ -34,6 +34,11 @@ export class MemberService {
 		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}
 
+	async callBack(cb: Function) {
+		cb.bind(this, this.data, this.store, this.state, this.snack);
+		return cb();
+	}
+
 	async setPlan(plan: TPlan) {
 		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
 
