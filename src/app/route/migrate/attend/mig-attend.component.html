@@ -4,8 +4,10 @@
 			{{ member.sheetName }}
 			<button (click)="signIn(member)" [disabled]="class.member" [hidden]="class.member && class.member.sheetName == member.sheetName">SignIn</button>
 			<button (click)="signOut()" [hidden]="!class.member || class.member.sheetName !== member.sheetName">SignOut</button>
-			<button (click)="addPayment()" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add Payments</button>
-			<button (click)="addAttend()" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add Attends</button>
+			<button (click)="addPayment()" [disabled]="class.payments.length" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add
+				Payments</button>
+			<button (click)="addAttend()" [disabled]="!class.payments.length || !class.attends.length" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add
+				Attends</button>
 		</p>
 	</div>
 </div>

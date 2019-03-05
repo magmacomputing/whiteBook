@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 import { AuthService } from '@service/auth/auth.service';
@@ -32,8 +33,9 @@ export class MigAttendComponent implements OnInit {
 	private static history: Promise<{ history: MHistory[] }>;
 	private static member: MRegister | null;
 	private static register: Promise<IRegister[]>;
-	private static payments: IPayment[];
-	private static attends: IAttend[];
+	private static payments: IPayment[] = [];
+	private static attends: IAttend[] = [];
+	private static account: Subscription;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) { }
 
@@ -62,6 +64,14 @@ export class MigAttendComponent implements OnInit {
 		const action = 'history';
 		this.class.history = this.fetch(action, `provider=${this.class.member.provider}&id=${this.class.member.id}`);
 		this.class.history.then(hist => this.dbg('history: %s', hist.history.length));
+
+		this.class.account = this.state.getAccountData(undefined, this.class.member.uid)
+			.subscribe(table => {
+				this.class.payments = table.account.payment;
+				this.class.attends = table.account.attend;
+				this.dbg('payments: %j', this.class.payments);
+				this.dbg('attends: %j', this.class.attends);
+			});
 	}
 
 	async	signOut() {
@@ -69,6 +79,9 @@ export class MigAttendComponent implements OnInit {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile[FIELD.uid] } };
 
 		this.class.member = null;
+		this.class.account.unsubscribe();
+		this.class.payments = [];
+		this.class.attends = [];
 		this.sync.on(COLLECTION.attend, SLICE.attend, query);
 		this.sync.on(COLLECTION.member, SLICE.member, query);
 	}
@@ -129,8 +142,8 @@ export class MigAttendComponent implements OnInit {
 		const creates = hist.history
 			.filter(row => row.type === '')
 			.map(row => {
-			
-		})
+
+			})
 	}
 
 	private async fetch(action: string, query: string) {
