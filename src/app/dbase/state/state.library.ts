@@ -32,6 +32,7 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
 }
+
 export const getSlice = (store: string) => {    // determine the state-slice based on the <store> field
 	const slices = Object.keys(SLICES)
 		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store

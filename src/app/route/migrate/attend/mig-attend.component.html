@@ -4,11 +4,13 @@
 			{{ member.sheetName }}
 			<button (click)="signIn(member)" [disabled]="class.member" [hidden]="class.member && class.member.sheetName == member.sheetName">SignIn</button>
 			<button (click)="signOut()" [hidden]="!class.member || class.member.sheetName !== member.sheetName">SignOut</button>
-			<button (click)="addPayment()" [disabled]="class.payments.length" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add
-				Payments</button>
-			<button (click)="addAttend()" [disabled]="!class.payments.length || !class.attends.length" [hidden]="!class.member || class.member.sheetName != member.sheetName">Add
-				Attends</button>
-		</p>
+			<div *ngIf="class.member && class.member.sheetName == member.sheetName">
+				<div *ngIf="class.data$ | async as data">
+					<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
+					<button (click)="addAttend()" [disabled]="data.account.attend.length">Add Attends</button>
+				</div>
+			</div>
+		<!-- </p> -->
 	</div>
 </div>
 
