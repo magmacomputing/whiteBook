@@ -89,7 +89,8 @@ export class ClientState implements NgxsOnInit {
 			.selectOnce(state => state)
 			.toPromise()
 			.then(state => {
-				const schemas: ISchema[] = state[SLICE.client][STORE.schema] || [];
+				const slice = state[SLICE.client] || {};
+				const schemas: ISchema[] = slice[STORE.schema] || [];
 
 				return schemas.reduce((acc, schema) => {
 					const type = schema[FIELD.type];

@@ -13,7 +13,7 @@ import { SORTBY, STORE, FIELD, SLICES } from '@dbase/data/data.define';
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { DATE_FMT, getDate, TDate } from '@lib/date.library';
+import { DATE_FMT, getDate, TDate, fmtDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
@@ -186,7 +186,7 @@ export const sumAttend = (source: IAccountState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => Object.assign({ ...row, day: getDate(row[FIELD.key]).format(DATE_FMT.weekDay) }))
+			.map(row => Object.assign({ ...row, day: fmtDate(DATE_FMT.weekDay, row[FIELD.key]) }))
 	}
 	return { ...source };
 }

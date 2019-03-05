@@ -2,19 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { take } from 'rxjs/operators';
 
+import { AuthService } from '@service/auth/auth.service';
+import { SnackService } from '@service/snack/snack.service';
 import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment } from '@dbase/data/data.schema';
-import { SnackService } from '@service/snack/snack.service';
+import { IRegister, IPayment, IAttend } from '@dbase/data/data.schema';
 import { SLICE } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { AuthService } from '@service/auth/auth.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { getStamp } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/date.library';
 import { TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -29,24 +29,29 @@ export class MigAttendComponent implements OnInit {
 	public class = MigAttendComponent;												// reference to self
 
 	private static members: Promise<MRegister[]>;
-	private static member: MRegister;
+	private static history: Promise<{ history: MHistory[] }>;
+	private static member: MRegister | null;
+	private static register: Promise<IRegister[]>;
+	private static payments: IPayment[];
+	private static attends: IAttend[];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) { }
 
 	ngOnInit() {
-		const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
-		const action = 'signIn';																// signIn as 'admin' to get Register
-
 		if (!this.class.members) {
+			const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
+			const action = 'signIn';																// signIn as 'admin' to get Register
+
 			this.class.members = this.fetch(action, query)
 				.then(json => json.members)
+		}
+		if (!this.class.register) {
+			this.class.register = this.data.getAll<IRegister>(COLLECTION.register);
 		}
 	}
 
 	async signIn(member: MRegister) {
-		const docs = await this.data.getAll<IRegister>(COLLECTION.register, { where: { fieldPath: 'user.customClaims.memberName', value: member.sheetName } })
-			.catch(err => { throw new Error(err) });
-		this.class.member = { ...member, [FIELD.uid]: docs[0].user.uid };
+		this.class.member = await this.getRegister(member.sheetName);	// stash current Member
 
 		this.dbg('register: %j', this.class.member);
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: this.class.member.uid } };
@@ -54,40 +59,40 @@ export class MigAttendComponent implements OnInit {
 		this.sync.on(COLLECTION.attend, SLICE.attend, query);
 		this.sync.on(COLLECTION.member, SLICE.member, query);
 
-		this.state.getMemberData('Tue, 23 Sep 2014 10:49:41 GMT', this.class.member.uid)
-			.pipe(take(1))
-			.toPromise()
-			.then(profile => this.dbg('profile: %j', profile))
-
-		// try {
-		// 	this.data.createToken(this.class.member.uid)
-		// 		.then(token => {
-		// 			const response = { token, prefix: 'gapps', user: this.class.member }
-
-		// 			this.dbg('token: %j', token);
-
-		// 			this.auth.signOut();
-		// 			this.auth.signInToken(response);
-		// 		})
-		// 		.catch(err => this.snack.error(err.message));
-		// }
-		// catch (e) {
-		// 	this.dbg('try: %j', e.message);
-		// }
+		const action = 'history';
+		this.class.history = this.fetch(action, `provider=${this.class.member.provider}&id=${this.class.member.id}`);
+		this.class.history.then(hist => this.dbg('history: %s', hist.history.length));
 	}
 
-	async getMember(member: MRegister) {
-		const action = 'history';
+	async	signOut() {
+		const profile = await this.getRegister('MichaelM');
+		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile[FIELD.uid] } };
 
-		// this.dbg('member: %s, %j', member.sheetName, docs);
-		const res = await this.fetch(action, `provider=${member.provider}&id=${member.id}`);
-		const hist: MHistory[] = res.history || [];
+		this.class.member = null;
+		this.sync.on(COLLECTION.attend, SLICE.attend, query);
+		this.sync.on(COLLECTION.member, SLICE.member, query);
+	}
 
-		// this.dbg('get: %j', hist.length);
-		// this.dbg('get: %j', hist[hist.length - 1]);
-		// this.dbg('get: %j', hist);
+	/** combine an MRegister (Google Sheets register) with an IRegister (Firestore register) */
+	private async getRegister(sheetName: string) {
+		const [register, profile] = await Promise.all([
+			this.class.register.then(reg => reg.find(row => row.user.customClaims.memberName === sheetName)),
+			this.class.members.then(mbr => mbr.find(row => row.sheetName === sheetName)),
+		]);
 
-		const creates = hist
+		return { ...profile!, [FIELD.uid]: register!.user.uid }
+	}
+
+	/** get Members data (plan, price, etc), as at supplied date */
+	private getAccount(date: TDate) {
+		return this.state.getAccountData(date, this.class.member!.uid)
+			.pipe(take(1))
+			.toPromise()
+	}
+
+	async addPayment() {
+		const hist = (await this.class.history) || { history: [] };
+		const creates = hist.history
 			.filter(row => row.type === 'Debit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; note?: TString; } = { stamp: 0, uid: '' };
@@ -105,7 +110,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.id]: this.data.newId,
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: 'topUp',
-					[FIELD.uid]: this.class.member.uid,
+					[FIELD.uid]: this.class.member!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
 				} as IPayment
@@ -114,13 +119,22 @@ export class MigAttendComponent implements OnInit {
 					paym.approve = approve;
 				return paym;
 			});
-		this.dbg('payment: %j', creates[0]);
-		// this.data.batch(creates)
-		// 	.then(_ => this.dbg('payment: %s', creates.length))
+
+		this.data.batch(creates)
+			.then(_ => this.dbg('payment: %s', creates.length))
+	}
+
+	async addAttend() {
+		const hist = (await this.class.history) || { history: [] };
+		const creates = hist.history
+			.filter(row => row.type === '')
+			.map(row => {
+			
+		})
 	}
 
 	private async fetch(action: string, query: string) {
-		this.dbg('fetch action: %j', action);
+		this.dbg('fetch: %j, %j', action, query);
 		const res = await this.http
 			.get(`${this.url}?${query}&action=${action}&prefix=${this.prefix}`, { responseType: 'text' })
 			.toPromise()

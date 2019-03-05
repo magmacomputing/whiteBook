@@ -9,6 +9,7 @@ import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
+import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
@@ -22,7 +23,7 @@ export class AuthService {
 	private open: Window | null = null;
 	private dbg = dbg(this);
 
-	constructor(private readonly store: Store, private state: StateService) { this.dbg('new'); }
+	constructor(private readonly store: Store, private state: StateService, private fire: FireService) { this.dbg('new'); }
 
 	get active() {
 		return this.auth$.pipe(
@@ -123,15 +124,24 @@ export class AuthService {
 			})
 	}
 
-	private async signInOIDC(provider: IProvider) {
-
-	}
-
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password));
 	}
 
+	private signInOIDC(provider: IProvider) { }
 	private signInPhone(provider: IProvider) { }
 	private signInPlay(provider: IProvider) { }
 	private signInAnon(provider: IProvider) { }
+
+	/** This allows us to logout current Member, and signOn as another */
+	public impersonate(uid: string) {
+		return this.fire.createToken(uid)				// ask Cloud Functions to mint a token on our behalf
+			.then(token => {
+				const authInfo = { token, prefix: 'local', user: {} };
+				this.dbg('token: %j', token);
+
+				this.signOut();
+				return this.signInToken(authInfo)
+			})
+	}
 }

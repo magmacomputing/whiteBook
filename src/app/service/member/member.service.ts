@@ -16,7 +16,7 @@ import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
+import { DATE_FMT, getStamp, getDate, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -34,14 +34,8 @@ export class MemberService {
 		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}
 
-	async callBack(cb: Function) {
-		cb.bind(this, this.data, this.store, this.state, this.snack);
-		return cb();
-	}
-
 	async setPlan(plan: TPlan) {
 		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
-
 		this.dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
@@ -141,8 +135,8 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	async getAccount(uid?: string) {
-		return this.state.getAccountData(uid)
+	async getAccount(date?: TDate, uid?: string) {
+		return this.state.getAccountData(date, uid)
 			.pipe(take(1))
 			.toPromise()
 	}

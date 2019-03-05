@@ -19,7 +19,6 @@ import { asArray } from '@lib/array.library';
 import { DATE_FMT, getDate, TDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { UserInfo } from 'firebase';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -143,11 +142,11 @@ export class StateService {
 	 * account.attend	-> has an array of attendances against the <active> payment  
 	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $ }
 	 */
-	getAccountData(uid?: string): Observable<IAccountState> {
+	getAccountData(date?: TDate, uid?: string): Observable<IAccountState> {
 		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
 		const filterAttend: IWhere = { fieldPath: 'payment', value: `{{account.payment[0].${FIELD.id}}}` };
 
-		return this.getMemberData(undefined, uid).pipe(
+		return this.getMemberData(date, uid).pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)

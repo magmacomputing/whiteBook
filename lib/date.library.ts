@@ -53,7 +53,7 @@ const divideBy = {													// approx date-offset divisors (unix-timestamp pr
 }
 // max Unix Timestamp
 const maxTS = new Date('9999-12-31').valueOf() / 1000;
-
+const minTS = new Date('1000-01-01').valueOf() / 1000;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** parse a Date, return components and methods */
