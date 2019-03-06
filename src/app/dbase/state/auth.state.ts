@@ -190,8 +190,8 @@ export class AuthState implements NgxsOnInit {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
 
 		if (this.afAuth.auth.currentUser) {
-			this.sync.on(COLLECTION.attend, SLICE.attend, query);
-			this.sync.on(COLLECTION.member, SLICE.member, query)	// wait for /member snap0 
+			this.sync.on(COLLECTION.attend, query);
+			this.sync.on(COLLECTION.member, query)	// wait for /member snap0 
 				.then(_ => ctx.dispatch(new MemberInfo()))					// check for AdditionalUserInfo
 				.then(_ => this.navigate.route(ROUTE.attend))
 		}

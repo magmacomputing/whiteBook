@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-
 import { timer } from 'rxjs';
 import { debounce, take } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
@@ -45,7 +44,7 @@ export class MemberService {
 	/** Create a new TopUp payment */
 	async setPayment(amount?: number, data?: IAccountState) {
 		data = data || await this.getAccount();
-		const price = data.member.price
+		const price = data.member.price								// find the topUp price for this Member
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 
 		return {

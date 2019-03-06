@@ -56,8 +56,8 @@ export class MigAttendComponent implements OnInit {
 		this.dbg('register: %j', this.class.member);
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: this.class.member.uid } };
 
-		this.sync.on(COLLECTION.attend, SLICE.attend, query);
-		this.sync.on(COLLECTION.member, SLICE.member, query);
+		this.sync.on(COLLECTION.attend, query);
+		this.sync.on(COLLECTION.member, query);
 
 		const action = 'history';
 		this.class.history = this.fetch(action, `provider=${this.class.member.provider}&id=${this.class.member.id}`);
@@ -71,8 +71,8 @@ export class MigAttendComponent implements OnInit {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile[FIELD.uid] } };
 
 		this.class.member = null;
-		this.sync.on(COLLECTION.attend, SLICE.attend, query);
-		this.sync.on(COLLECTION.member, SLICE.member, query);
+		this.sync.on(COLLECTION.attend, query);
+		this.sync.on(COLLECTION.member, query);
 	}
 
 	/** combine an MRegister (Google Sheets register) with an IRegister (Firestore register) */

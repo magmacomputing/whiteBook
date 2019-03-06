@@ -15,10 +15,10 @@ import { dbg } from '@lib/logger.library';
 	templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
-	public provider$ = this.state.getCurrent<IProvider>(STORE.provider);
+	public provider$= this.state.getCurrent<IProvider>(STORE.provider);
 	private dbg = dbg(this);
 
-	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService) { }
+	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService) {}
 
 	ngOnInit() { }
 

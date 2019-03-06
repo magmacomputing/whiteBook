@@ -8,7 +8,7 @@ import { asAt, firstRow } from '@dbase/library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, IMemberState, SLICE } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
-import { SORTBY, STORE, FIELD, SLICES } from '@dbase/data/data.define';
+import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
@@ -38,8 +38,10 @@ export const getSlice = (store: string) => {    // determine the state-slice bas
 		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store
 
 	if (isEmpty(SLICES))													// nothing in State yet, on first-time connect
-		slices.push(SLICE.client);									// so, assume 'client' slice.
-
+		slices.push(SLICE.client);									// special: assume 'client' slice.
+	if (!SORTBY[store])
+		SORTBY[store] = ['sort', 'key'];						// special: assume sort order
+	
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
 

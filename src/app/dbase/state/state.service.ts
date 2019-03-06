@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of, from } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, } from '@dbase/state/state.define';
+import { TStateSlice, SLICE, } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault } from '@dbase/state/state.library';
 
@@ -14,6 +14,7 @@ import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase, IRegister } from '@dbase/data/data.schema';
 import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
+import { SyncService } from '@dbase/sync/sync.service';
 
 import { asArray } from '@lib/array.library';
 import { DATE_FMT, getDate, TDate } from '@lib/date.library';
@@ -36,7 +37,7 @@ export class StateService {
 	private dbg = dbg(this);
 	public states: IState;
 
-	constructor(private fire: FireService) {
+	constructor(private fire: FireService, private sync: SyncService) {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
 			'member': this.member$,
