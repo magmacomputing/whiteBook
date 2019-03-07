@@ -8,6 +8,7 @@
 				<div *ngIf="class.data$ | async as data">
 					<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
 					<button (click)="addAttend()" [disabled]="data.account.attend.length">Add Attends</button>
+					{{ data.account.summary | json }}
 				</div>
 			</div>
 		<!-- </p> -->

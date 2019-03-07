@@ -140,7 +140,7 @@ const decodeFilter = (parent: any, filter: TWhere) => {
 					if (isArray(lookup))
 						lookup = lookup.flat();													// flatten array of arrays																				
 				}
-
+				
 				return lookup;                              				// rebuild filter's <value>
 			}))
 
