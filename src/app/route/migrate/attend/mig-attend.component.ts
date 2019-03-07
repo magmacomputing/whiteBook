@@ -126,6 +126,21 @@ export class MigAttendComponent implements OnInit {
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
 
+	/**
+	 * 1. 	filter != 'Debit'
+	 * 2.		sort(stamp)
+	 * 		forEach =>
+	 * 3.		convert event into a standard (eg.  'OldStep' -> 'Step')
+	 * 4.		determine price should have been charged asAt date
+	 * 5.		if !== hist.amount, abort   and log
+	 * 6.		determine active Payment
+	 * 7.		determine price paid for active Payment   (amount + bank)
+	 * 8.		determine if price-to-pay will exceed price-paid - sum(active.attends)
+	 * 		if so, expire active Payment, determine next Payment and rollover unused active-credit to bank
+	 * 9. 	if no effect date, set hist.stamp on activePayment
+	 * 10.	build Attend
+	 * 11.	batch Attends?   (if so, how will rolling credit be calc'd ?)
+	 */
 	async addAttend() {
 		const hist = (await this.class.history) || { history: [] };
 		const creates = hist.history
