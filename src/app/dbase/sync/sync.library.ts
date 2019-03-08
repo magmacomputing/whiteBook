@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
@@ -36,13 +36,13 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
 	const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
 	const [localHash, storeHash] = await Promise.all([cryptoHash(localSort), cryptoHash(snapSort),]);
-	
+
 	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
 		listen.ready.resolve(true);                   // indicate snap0 is ready
 		return true;                                  // ok, already sync'd
 	}
 
-	fmtLog('SyncLibrary', 'hash: %s / %s', localHash, storeHash);
+	fmtLog('SyncLibrary', '%s: %s / %s', listen.slice, localHash, storeHash);
 	// fmtLog('SyncLibrary', 'local: %j', localSort);
 	// fmtLog('SyncLibrary', 'store: %j', snapSort);
 	return false;
@@ -66,7 +66,7 @@ const remMeta = (doc: IStoreMeta) => {
 	return rest;
 }
 export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
-	Object.assign({ [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() })
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: string) => {
@@ -84,10 +84,11 @@ export const getMethod = (slice: string) => {
 			return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
 
 		case SLICE.admin:
+		case COLLECTION.register:												// TODO: assign register to admin SLICE?
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
 
 		default:
-			this.dbg('snap: Unexpected slice: %s', slice);
+			console.log('snap: Unexpected slice: ', slice);
 			throw (new Error(`snap: Unexpected slice: ${slice}`));
 	}
 }

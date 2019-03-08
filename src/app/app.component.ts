@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { DataService } from '@dbase/data/data.service';
-import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
 
 @Component({

@@ -8,7 +8,7 @@ import { IStoreMeta } from '@dbase/data/data.schema';
 import { dbg } from '@lib/logger.library';
 
 /**
- * AdminState is for items only Users with roles['isAdmin'] in their customClaims can see
+ * AdminState is for items only Users with roles['admin'] in their customClaims can see
  */
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.admin,
@@ -28,10 +28,10 @@ export class AdminState implements NgxsOnInit {
 	@Action(SetAdmin)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
 		const state = getState() || {};
-		const store = this.filterAdmin(state, payload);
+		const build = this.filterAdmin(state, payload);
 
-		store.push(payload);										// push the changed AdminDoc into the Store
-		state[payload.store] = store;
+		build.push(payload);										// push the changed AdminDoc into the Store
+		state[payload[FIELD.store]] = build;
 		if (debug) this.dbg('setAdmin: %j', payload);
 		patchState({ ...state });
 	}

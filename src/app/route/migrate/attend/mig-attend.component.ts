@@ -10,7 +10,7 @@ import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment } from '@dbase/data/data.schema';
-import {  IAccountState } from '@dbase/state/state.define';
+import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -47,7 +47,7 @@ export class MigAttendComponent implements OnInit {
 				.then(json => json.members)
 		}
 		if (!this.class.register) {
-			this.class.register = this.data.getAll<IRegister>(COLLECTION.register);
+			this.class.register = this.syncRegister();
 		}
 	}
 
@@ -76,13 +76,20 @@ export class MigAttendComponent implements OnInit {
 		this.sync.on(COLLECTION.member, query);
 	}
 
+	private syncRegister() {
+		return this.sync.on(COLLECTION.register)							// do a quick sync on /register
+			.then(ok => this.sync.off(COLLECTION.register))
+			.then(_ => this.class.register = this.data.getAll<IRegister>(COLLECTION.register))
+	}
+
 	/** combine an MRegister (Google Sheets register) with an IRegister (Firestore register) */
 	private async getRegister(sheetName: string) {
+		await this.syncRegister();													// get latest Firestore register
+
 		const [register, profile] = await Promise.all([
 			this.class.register.then(reg => reg.find(row => row.user.customClaims.memberName === sheetName)),
 			this.class.members.then(mbr => mbr.find(row => row.sheetName === sheetName)),
 		]);
-		this.class.register.then(reg => this.dbg('register: %j', reg));
 
 		return { ...profile!, [FIELD.uid]: register!.user.uid }
 	}

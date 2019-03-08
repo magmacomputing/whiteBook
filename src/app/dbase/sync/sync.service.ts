@@ -6,9 +6,10 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { buildDoc, checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { AuthToken } from '@dbase/state/auth.action';
-
 import { IListen } from '@dbase/sync/sync.define';
+import { AuthToken } from '@dbase/state/auth.action';
+import { getSlice } from '@dbase/state/state.library';
+
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -24,13 +25,12 @@ import { dbg } from '@lib/logger.library';
 export class SyncService {
 	private dbg = dbg(this);
 	private listener: IObject<IListen> = {};
-	static requests: IObject<Promise<boolean>> = {};
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) { this.dbg('new'); }
 
 	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
-		const sync = this.sync.bind(this, collection);
+		const sync = this.sync.bind(this, collection);		// bind 'collection' to a sync Function
 		const ready = createPromise<boolean>();
 
 		this.off(collection);                             // detach any prior Subscription
@@ -43,7 +43,6 @@ export class SyncService {
 				.stateChanges()                               // watch for changes since last snapshot
 				.subscribe(sync)
 		}
-		SyncService.requests[collection] = ready.promise;
 
 		this.dbg('on: %s', collection);
 		return ready.promise;                             // indicate when snap0 is complete
@@ -67,7 +66,6 @@ export class SyncService {
 			if (trunc)
 				this.store.dispatch(new listen.method.truncStore());
 
-			delete SyncService.requests[collection];
 			delete this.listener[collection];
 		}
 	}
@@ -104,6 +102,7 @@ export class SyncService {
 			const data = snap.type === 'removed'
 				? addMeta(snap)																// no need to fetch meta from server for 'removed' documents
 				: await buildDoc(snap, this.fire);
+			data[FIELD.store] = data[FIELD.store] || collection;
 
 			switch (snap.type) {
 				case 'added':
