@@ -33,7 +33,7 @@ export class MigAttendComponent implements OnInit {
 	private static members: Promise<MRegister[]>;
 	private static history: Promise<{ history: MHistory[] }>;
 	private static member: MRegister | null;
-	private static register: Promise<IRegister[]>;
+	// private static register: Promise<IRegister[]>;
 	private static data$: Observable<IAccountState>;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) { }
@@ -46,9 +46,9 @@ export class MigAttendComponent implements OnInit {
 			this.class.members = this.fetch(action, query)
 				.then(json => json.members)
 		}
-		if (!this.class.register) {
-			this.class.register = this.syncRegister();
-		}
+		// if (!this.class.register) {
+		// 	this.class.register = this.syncRegister();
+		// }
 	}
 
 	async signIn(member: MRegister) {
@@ -76,18 +76,10 @@ export class MigAttendComponent implements OnInit {
 		this.sync.on(COLLECTION.member, query);
 	}
 
-	private syncRegister() {
-		return this.sync.on(COLLECTION.register)							// do a quick sync on /register
-			.then(ok => this.sync.off(COLLECTION.register))
-			.then(_ => this.class.register = this.data.getAll<IRegister>(COLLECTION.register))
-	}
-
 	/** combine an MRegister (Google Sheets register) with an IRegister (Firestore register) */
 	private async getRegister(sheetName: string) {
-		await this.syncRegister();													// get latest Firestore register
-
-		const [register, profile] = await Promise.all([
-			this.class.register.then(reg => reg.find(row => row.user.customClaims.memberName === sheetName)),
+			const [register, profile] = await Promise.all([
+			this.data.getAll<IRegister>(COLLECTION.register).then(reg => reg.find(row => row.user.customClaims.memberName === sheetName)),
 			this.class.members.then(mbr => mbr.find(row => row.sheetName === sheetName)),
 		]);
 
