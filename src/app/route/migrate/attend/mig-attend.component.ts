@@ -15,10 +15,10 @@ import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { getStamp, TDate } from '@lib/date.library';
+import { TDate } from '@lib/date.library';
 import { TString } from '@lib/type.library';
-import { dbg } from '@lib/logger.library';
 import { sortKeys } from '@lib/object.library';
+import { dbg } from '@lib/logger.library';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -40,7 +40,7 @@ export class MigAttendComponent implements OnInit {
 
 	ngOnInit() {
 		if (!this.class.members) {
-			const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
+			const query = 'provider=gh&id=6935496';		// 'MichaelM.gh'
 			const action = 'signIn';																// signIn as 'admin' to get Register
 
 			this.class.members = this.fetch(action, query)
@@ -82,6 +82,7 @@ export class MigAttendComponent implements OnInit {
 			this.class.register.then(reg => reg.find(row => row.user.customClaims.memberName === sheetName)),
 			this.class.members.then(mbr => mbr.find(row => row.sheetName === sheetName)),
 		]);
+		this.class.register.then(reg => this.dbg('register: %j', reg));
 
 		return { ...profile!, [FIELD.uid]: register!.user.uid }
 	}
@@ -102,7 +103,7 @@ export class MigAttendComponent implements OnInit {
 				const dt = row.title.substring(10, 16) + '-' + row.date.toString().substring(0, 4);
 				this.dbg('date: %j', dt);
 				if (row.title.substring(0, 10) === 'Approved: ') {
-					approve.stamp = getStamp(dt);
+					approve.stamp = row.approved;//getStamp(dt);
 					approve.uid = 'JorgeEC';
 					if (row.note)
 						approve.note = row.note;
