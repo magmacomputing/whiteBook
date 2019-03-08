@@ -100,10 +100,10 @@ export class MigAttendComponent implements OnInit {
 			.filter(row => row.type === 'Debit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; note?: TString; } = { stamp: 0, uid: '' };
-				const dt = row.title.substring(10, 16) + '-' + row.date.toString().substring(0, 4);
-				this.dbg('date: %j', dt);
+				// const dt = row.title.substring(10, 16) + '-' + row.date.toString().substring(0, 4);
+				// this.dbg('date: %j', dt);
 				if (row.title.substring(0, 10) === 'Approved: ') {
-					approve.stamp = row.approved;//getStamp(dt);
+					approve.stamp = row.approved;
 					approve.uid = 'JorgeEC';
 					if (row.note)
 						approve.note = row.note;
