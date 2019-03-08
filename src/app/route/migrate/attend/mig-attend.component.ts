@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subscription, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 import { AuthService } from '@service/auth/auth.service';
@@ -9,8 +9,8 @@ import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, IAttend } from '@dbase/data/data.schema';
-import { SLICE, IAccountState } from '@dbase/state/state.define';
+import { IRegister, IPayment } from '@dbase/data/data.schema';
+import {  IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -18,6 +18,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { getStamp, TDate } from '@lib/date.library';
 import { TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { sortKeys } from '@lib/object.library';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -144,7 +145,8 @@ export class MigAttendComponent implements OnInit {
 	async addAttend() {
 		const hist = (await this.class.history) || { history: [] };
 		const creates = hist.history
-			.filter(row => row.type !== 'Debit')
+			.sort(sortKeys(FIELD.stamp))
+			// .filter(row => row.type !== 'Debit')
 			.map(row => {
 				this.dbg('hist: %j', row);
 
