@@ -52,6 +52,7 @@ export enum FIELD {								// common Field names
 	access = '_access',							// date-time accessed
 	hidden = '_hidden',							// valid, but not displayed to User
 	disable = '_disable',						// displayed, but greyed to User
+	stamp = 'stamp',
 	id = '_id',
 	uid = 'uid',
 	store = 'store',
