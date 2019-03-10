@@ -3,7 +3,6 @@ import { TString } from '@lib/type.library';
 
 export enum COLLECTION {
 	log = 'log',
-	register = 'register',
 	member = 'member',
 	attend = 'attend',
 	client = 'client',
@@ -30,6 +29,7 @@ export enum STORE {
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
+	register = 'register',
 	log = 'log',
 }
 
