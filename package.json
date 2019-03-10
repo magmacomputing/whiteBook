@@ -35,7 +35,7 @@
     "@angular/cli": "^7.3.5",
     "@angular/compiler-cli": "^7.2.8",
     "@angular/language-service": "^7.2.8",
-    "@types/node": "^11.10.4",
+    "@types/node": "^11.11.0",
     "codelyzer": "^4.5.0",
     "tslint": "^5.13.1",
     "typescript": "^3.2.4"
