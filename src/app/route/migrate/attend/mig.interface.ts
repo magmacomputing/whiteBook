@@ -14,6 +14,7 @@ export interface MRegister {
 export interface MHistory {
 	stamp: number;
 	date: number;
+	approved: number;
 	type: string;
 	title: string;
 	debit?: string;

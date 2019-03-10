@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, map } from 'rxjs/operators';
 
 import { AuthService } from '@service/auth/auth.service';
 import { SnackService } from '@service/snack/snack.service';
@@ -10,15 +10,15 @@ import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment } from '@dbase/data/data.schema';
-import {  IAccountState } from '@dbase/state/state.define';
+import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { getStamp, TDate } from '@lib/date.library';
+import { TDate } from '@lib/date.library';
 import { TString } from '@lib/type.library';
-import { dbg } from '@lib/logger.library';
 import { sortKeys } from '@lib/object.library';
+import { dbg } from '@lib/logger.library';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -30,79 +30,66 @@ export class MigAttendComponent implements OnInit {
 	private prefix = 'alert';
 	public class = MigAttendComponent;												// reference to self
 
-	private static members: Promise<MRegister[]>;
-	private static history: Promise<{ history: MHistory[] }>;
-	private static member: MRegister | null;
-	private static register: Promise<IRegister[]>;
-	private static data$: Observable<IAccountState>;
+	private register$: Observable<IRegister[]>;
+	private data$!: Observable<IAccountState>;
+	private history!: Promise<{ history: MHistory[] }>;
+	private member: IRegister | null;
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) { }
-
-	ngOnInit() {
-		if (!this.class.members) {
-			const query = 'provider=fb&id=100000138474102';					// 'MichaelM'
-			const action = 'signIn';																// signIn as 'admin' to get Register
-
-			this.class.members = this.fetch(action, query)
-				.then(json => json.members)
-		}
-		if (!this.class.register) {
-			this.class.register = this.data.getAll<IRegister>(COLLECTION.register);
-		}
+	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) {
+		this.member = null;
+		this.register$ = this.state.getAdminData()
+			.pipe(
+				map(admin => admin[COLLECTION.register]),						// get 'register' store
+				map(reg => reg.filter(row => !!row.migrate))				// only return 'migrated' members
+			)
 	}
 
-	async signIn(member: MRegister) {
-		this.class.member = await this.getRegister(member.sheetName);	// stash current Member
+	ngOnInit() { }
 
-		this.dbg('register: %j', this.class.member);
-		const query: IQuery = { where: { fieldPath: FIELD.uid, value: this.class.member.uid } };
+	async signIn(register: IRegister) {
+		this.member = register;																	// stash current Member
+
+		this.dbg('register: %j', this.member);
+		const query: IQuery = { where: { fieldPath: FIELD.uid, value: this.member.user.uid } };
 
 		this.sync.on(COLLECTION.attend, query);
 		this.sync.on(COLLECTION.member, query);
 
 		const action = 'history';
-		this.class.history = this.fetch(action, `provider=${this.class.member.provider}&id=${this.class.member.id}`);
-		this.class.history.then(hist => this.dbg('history: %s', hist.history.length));
+		this.history = this.fetch(action, `provider=${this.member.migrate!.providers.provider}&id=${this.member.migrate!.providers.id}`);
+		this.history.then(hist => this.dbg('history: %s', hist.history.length));
 
-		this.class.data$ = this.state.getAccountData(undefined, this.class.member.uid)
+		this.data$ = this.state.getAccountData(undefined, this.member.uid)
 	}
 
-	async	signOut() {
-		const profile = await this.getRegister('MichaelM');
-		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile[FIELD.uid] } };
+	async	signOut() {																					// signOut of 'impersonate' mode
+		const profile = await this.state.getAuthData()					// get the current Auth'd user
+			.pipe(take(1))
+			.toPromise();
 
-		this.class.member = null;
-		this.sync.on(COLLECTION.attend, query);
+		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile.auth.user!.uid } };
+
+		this.member = null;
+		this.sync.on(COLLECTION.attend, query);									// restore current User's state
 		this.sync.on(COLLECTION.member, query);
-	}
-
-	/** combine an MRegister (Google Sheets register) with an IRegister (Firestore register) */
-	private async getRegister(sheetName: string) {
-		const [register, profile] = await Promise.all([
-			this.class.register.then(reg => reg.find(row => row.user.customClaims.memberName === sheetName)),
-			this.class.members.then(mbr => mbr.find(row => row.sheetName === sheetName)),
-		]);
-
-		return { ...profile!, [FIELD.uid]: register!.user.uid }
 	}
 
 	/** get Members data (plan, price, etc), as at supplied date */
 	private getAccount(date: TDate) {
-		return this.state.getAccountData(date, this.class.member!.uid)
+		return this.state.getAccountData(date, this.member!.uid)
 			.pipe(take(1))
 			.toPromise()
 	}
 
 	async addPayment() {
-		const hist = (await this.class.history) || { history: [] };
+		const hist = (await this.history) || { history: [] };
 		const creates = hist.history
 			.filter(row => row.type === 'Debit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; note?: TString; } = { stamp: 0, uid: '' };
-				const dt = row.title.substring(10, 16) + '-' + row.date.toString().substring(0, 4);
-				this.dbg('date: %j', dt);
+
 				if (row.title.substring(0, 10) === 'Approved: ') {
-					approve.stamp = getStamp(dt);
+					approve.stamp = row.approved;
 					approve.uid = 'JorgeEC';
 					if (row.note)
 						approve.note = row.note;
@@ -113,7 +100,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.id]: this.data.newId,
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: 'topUp',
-					[FIELD.uid]: this.class.member!.uid,
+					[FIELD.uid]: this.member!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
 				} as IPayment
@@ -143,10 +130,10 @@ export class MigAttendComponent implements OnInit {
 	 * 11.	batch Attends?   (if so, how will rolling credit be calc'd ?)
 	 */
 	async addAttend() {
-		const hist = (await this.class.history) || { history: [] };
+		const hist = (await this.history) || { history: [] };
 		const creates = hist.history
 			.sort(sortKeys(FIELD.stamp))
-			// .filter(row => row.type !== 'Debit')
+			.filter(row => row.type !== 'Debit')
 			.map(row => {
 				this.dbg('hist: %j', row);
 

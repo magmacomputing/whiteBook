@@ -191,8 +191,8 @@ export class AuthState implements NgxsOnInit {
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, query);
-			this.sync.on(COLLECTION.member, query)	// wait for /member snap0 
-				.then(_ => ctx.dispatch(new MemberInfo()))					// check for AdditionalUserInfo
+			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
+				.then(_ => ctx.dispatch(new MemberInfo()))// check for AdditionalUserInfo
 				.then(_ => this.navigate.route(ROUTE.attend))
 		}
 	}
@@ -206,7 +206,11 @@ export class AuthState implements NgxsOnInit {
 	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
-				.then(token => ctx.patchState({ user, token }))
+				.then(token => {
+					ctx.patchState({ user, token });
+					if (token.claims.claims && token.claims.claims.roles && token.claims.claims.roles.includes('admin'))
+						this.sync.on(COLLECTION.register)
+				})
 		}
 	}
 
@@ -216,6 +220,13 @@ export class AuthState implements NgxsOnInit {
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
 				.then(token => ctx.patchState({ token }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
+				.then(_ => {
+					const token = ctx.getState().token as firebase.auth.IdTokenResult;
+					const roles = token && token.claims.claims.roles || [];
+					if (roles.includes('admin'))
+						this.sync.on(COLLECTION.register)
+					else this.sync.off(COLLECTION.register)
+				})
 		}
 	}
 
@@ -223,6 +234,7 @@ export class AuthState implements NgxsOnInit {
 	notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.member, true);
 		this.sync.off(COLLECTION.attend, true);
+		this.sync.off(COLLECTION.register, true);
 
 		if (error) {
 			this.dbg('logout: %j', error);
