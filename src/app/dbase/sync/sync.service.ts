@@ -10,7 +10,7 @@ import { IListen } from '@dbase/sync/sync.define';
 import { AuthToken } from '@dbase/state/auth.action';
 import { getSlice } from '@dbase/state/state.library';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -99,10 +99,11 @@ export class SyncService {
 		}
 
 		snaps.forEach(async snap => {
-			const data = snap.type === 'removed'
-				? addMeta(snap)																// no need to fetch meta from server for 'removed' documents
-				: await buildDoc(snap, this.fire);
-			data[FIELD.store] = data[FIELD.store] || collection;
+			// const data = snap.type === 'removed'
+			// 	? addMeta(snap, collection)										// no need to fetch meta from server for 'removed' documents
+			// 	: await buildDoc(snap, this.fire);
+			// data[FIELD.store] = data[FIELD.store] || collection;
+			const data = addMeta(snap, collection);
 
 			switch (snap.type) {
 				case 'added':

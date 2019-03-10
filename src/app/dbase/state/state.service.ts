@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 
 import { Observable, of, from } from 'rxjs';
-import { map, take, switchMap } from 'rxjs/operators';
+import { map, take, switchMap, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, SLICE, } from '@dbase/state/state.define';
+import { TStateSlice, SLICE, IAdminState, } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault } from '@dbase/state/state.library';
 
@@ -94,6 +94,17 @@ export class StateService {
 		}
 		return this.auth$.pipe(
 			map(auth => ({ auth: cloneObj(auth) })),
+		)
+	}
+
+	/**
+	 * Assemble an AdminState Object describing stores only available to Members with 'admin' roles
+	 * auth.register	-> has an array of the current state of /register
+	 */
+	getAdminData() {
+		return this.admin$.pipe(
+			// tap(res => this.dbg('admin: %j', res)),
+			map(admin => ({ register: admin[COLLECTION.register] as IRegister[] }))
 		)
 	}
 

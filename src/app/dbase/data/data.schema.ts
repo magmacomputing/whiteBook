@@ -33,12 +33,32 @@ export interface ICustomClaims {				// a special sub-set of fields from the User
 export interface IRegister {
 	[FIELD.id]: string;
 	[FIELD.uid]: string;
+	[FIELD.store]: string;
 	[FIELD.expire]?: number;
 	[FIELD.disable]?: boolean;
 	[FIELD.hidden]?: boolean;
 	user: UserInfo & {
 		customClaims: ICustomClaims;
-	}
+	};
+	migrate?: {
+		credit: number;
+		email: string;
+		picture: string;
+		plan: string;
+		sheetName: string;
+		uid: string;
+		userName: string;
+		providers: {
+			id: string;
+			provider: 'fb' | 'g+' | 'gh' | 'tw' | 'li';
+			firstName: string;
+			lastName: string;
+			userName: string;
+			email: string;
+			gender?: 'male' | 'female';
+			isAdmin?: boolean;
+		}
+	};
 }
 
 // These are the meta- and common-fields for a standard collection document

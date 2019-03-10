@@ -4,7 +4,7 @@ import { IAuthState } from './auth.action';
 import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, ICustomClaims
+	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, ICustomClaims, IRegister
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -40,6 +40,10 @@ export interface IState { [slice: string]: Observable<TStateSlice<IStoreMeta>> }
 
 export interface IUserState {
 	auth: IAuthState;
+}
+
+export interface IAdminState {
+	register: IRegister[];								// register collection
 }
 
 export interface IMemberState extends IUserState {

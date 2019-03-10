@@ -1,9 +1,23 @@
-<div *ngIf="class.members | async as members; else waitAdmin">
+<div *ngFor="let register of register$ | async">
+	<p>
+		{{ register.migrate.sheetName }}
+		<button (click)="signIn(register)" [disabled]="member"
+			[hidden]="member && member.migrate.sheetName == register.migrate.sheetName"> SignIn </button>
+		<button [hidden]="!member || member.migrate.sheetName != register.migrate.sheetName">SignOut</button>
+		<button  (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
+		<button (click) = "addAttend()" [diabled]="data.account.attend.length">Add Attends</button>
+		<p> {{ data.account.summary }}</p>
+	</p>
+</div>
+
+<!-- <div *ngIf="class.members | async as members; else waitAdmin">
 	<div *ngFor="let member of members">
 		<p>
 			{{ member.sheetName }}
-			<button (click)="signIn(member)" [disabled]="class.member" [hidden]="class.member && class.member.sheetName == member.sheetName">SignIn</button>
-			<button (click)="signOut()" [hidden]="!class.member || class.member.sheetName !== member.sheetName">SignOut</button>
+			<button (click)="signIn(member)" [disabled]="class.member"
+				[hidden]="class.member && class.member.sheetName == member.sheetName">SignIn</button>
+			<button (click)="signOut()"
+				[hidden]="!class.member || class.member.sheetName !== member.sheetName">SignOut</button>
 			<div *ngIf="class.member && class.member.sheetName == member.sheetName">
 				<div *ngIf="class.data$ | async as data">
 					<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
@@ -11,7 +25,6 @@
 					{{ data.account.summary | json }}
 				</div>
 			</div>
-		<!-- </p> -->
 	</div>
 </div>
 
@@ -19,4 +32,4 @@
 	<div>
 		<p>Please wait while we fetch member list...</p>
 	</div>
-</ng-template>
+</ng-template> -->
