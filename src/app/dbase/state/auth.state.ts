@@ -209,7 +209,7 @@ export class AuthState implements NgxsOnInit {
 				.then(token => {
 					ctx.patchState({ user, token });
 					if (token.claims.claims && token.claims.claims.roles && token.claims.claims.roles.includes('admin'))
-						this.sync.on(COLLECTION.register)
+						this.sync.on(COLLECTION.admin)
 				})
 		}
 	}
@@ -224,8 +224,8 @@ export class AuthState implements NgxsOnInit {
 					const token = ctx.getState().token as firebase.auth.IdTokenResult;
 					const roles = token && token.claims.claims.roles || [];
 					if (roles.includes('admin'))
-						this.sync.on(COLLECTION.register)
-					else this.sync.off(COLLECTION.register)
+						this.sync.on(COLLECTION.admin)
+					else this.sync.off(COLLECTION.admin)
 				})
 		}
 	}
@@ -234,7 +234,7 @@ export class AuthState implements NgxsOnInit {
 	notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.member, true);
 		this.sync.off(COLLECTION.attend, true);
-		this.sync.off(COLLECTION.register, true);
+		this.sync.off(COLLECTION.admin, true);
 
 		if (error) {
 			this.dbg('logout: %j', error);

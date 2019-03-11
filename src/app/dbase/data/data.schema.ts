@@ -57,7 +57,7 @@ export interface IRegister {
 			email: string;
 			gender?: 'male' | 'female';
 			isAdmin?: boolean;
-		}
+		}[]
 	};
 }
 

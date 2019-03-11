@@ -5,7 +5,7 @@ import { take, map } from 'rxjs/operators';
 
 import { AuthService } from '@service/auth/auth.service';
 import { SnackService } from '@service/snack/snack.service';
-import { MHistory, MRegister } from '@route/migrate/attend/mig.interface';
+import { MHistory } from '@route/migrate/attend/mig.interface';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
@@ -30,16 +30,16 @@ export class MigAttendComponent implements OnInit {
 	private prefix = 'alert';
 	public class = MigAttendComponent;												// reference to self
 
-	private register$: Observable<IRegister[]>;
+	private admin$: Observable<IRegister[]>;
 	private data$!: Observable<IAccountState>;
 	private history!: Promise<{ history: MHistory[] }>;
 	private member: IRegister | null;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) {
 		this.member = null;
-		this.register$ = this.state.getAdminData()
+		this.admin$ = this.state.getAdminData()
 			.pipe(
-				map(admin => admin[COLLECTION.register]),						// get 'register' store
+				map(admin => admin[STORE.register]),								// get 'register' store
 				map(reg => reg.filter(row => !!row.migrate))				// only return 'migrated' members
 			)
 	}
@@ -47,16 +47,15 @@ export class MigAttendComponent implements OnInit {
 	ngOnInit() { }
 
 	async signIn(register: IRegister) {
+		const query: IQuery = { where: { fieldPath: FIELD.uid, value: register.user.uid } };
 		this.member = register;																	// stash current Member
-
 		this.dbg('register: %j', this.member);
-		const query: IQuery = { where: { fieldPath: FIELD.uid, value: this.member.user.uid } };
-
+		
 		this.sync.on(COLLECTION.attend, query);
 		this.sync.on(COLLECTION.member, query);
 
 		const action = 'history';
-		this.history = this.fetch(action, `provider=${this.member.migrate!.providers.provider}&id=${this.member.migrate!.providers.id}`);
+		this.history = this.fetch(action, `provider=${this.member.migrate!.providers[0].provider}&id=${this.member.migrate!.providers[0].id}`);
 		this.history.then(hist => this.dbg('history: %s', hist.history.length));
 
 		this.data$ = this.state.getAccountData(undefined, this.member.uid)

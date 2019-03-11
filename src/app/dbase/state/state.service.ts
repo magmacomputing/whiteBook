@@ -76,8 +76,11 @@ export class StateService {
 	*/
 	getAuthData(uid?: string): Observable<IUserState> {
 		if (uid) {
-			const where: IWhere = { fieldPath: FIELD.uid, value: uid };
-			const reg: Promise<IRegister[]> = this.fire.getAll(COLLECTION.register, { where })
+			const where: TWhere = [
+				{ fieldPath: FIELD.store, value: STORE.register },
+				{ fieldPath: FIELD.uid, value: uid },
+			];
+			const reg: Promise<IRegister[]> = this.fire.getAll(COLLECTION.admin, { where })
 			const userInfo: IAuthState = {
 				user: null,
 				token: null,
@@ -101,10 +104,10 @@ export class StateService {
 	 * Assemble an AdminState Object describing stores only available to Members with 'admin' roles
 	 * auth.register	-> has an array of the current state of /register
 	 */
-	getAdminData() {
+	getAdminData(): Observable<IAdminState> {
 		return this.admin$.pipe(
 			// tap(res => this.dbg('admin: %j', res)),
-			map(admin => ({ register: admin[COLLECTION.register] as IRegister[] }))
+			joinDoc(this.states, 'register', STORE.register, undefined, undefined),
 		)
 	}
 

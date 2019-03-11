@@ -1,13 +1,13 @@
-<div *ngFor="let register of register$ | async">
+<div *ngFor="let reg of admin$ | async">
 	<p>
-		{{ register.migrate.sheetName }}
-		<button (click)="signIn(register)" [disabled]="member"
-			[hidden]="member && member.migrate.sheetName == register.migrate.sheetName"> SignIn </button>
-		<button [hidden]="!member || member.migrate.sheetName != register.migrate.sheetName">SignOut</button>
-		<button  (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
-		<button (click) = "addAttend()" [diabled]="data.account.attend.length">Add Attends</button>
-		<p> {{ data.account.summary }}</p>
-	</p>
+		{{ reg.migrate.sheetName }}
+		<button (click)="signIn(reg)" [disabled]="member" [hidden]="member && member.migrate.sheetName == reg.migrate.sheetName">
+			SignIn </button>
+		<button [hidden]="!member || member.migrate.sheetName != reg.migrate.sheetName">SignOut</button>
+		<button (click)="addPayment()" [disabled]="data.account && data.account.payment.length">Add Payments</button>
+		<button (click)="addAttend()" [disabled]="data.account && data.account.attend.length">Add Attends</button>
+		<p *ngIf="data.account"> {{ data.account.summary }} </p>
+	<!-- </p> -->
 </div>
 
 <!-- <div *ngIf="class.members | async as members; else waitAdmin">
@@ -26,10 +26,10 @@
 				</div>
 			</div>
 	</div>
-</div>
+</div> -->
 
 <ng-template #waitAdmin>
 	<div>
 		<p>Please wait while we fetch member list...</p>
 	</div>
-</ng-template> -->
+</ng-template>

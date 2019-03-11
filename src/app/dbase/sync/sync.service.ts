@@ -99,11 +99,7 @@ export class SyncService {
 		}
 
 		snaps.forEach(async snap => {
-			// const data = snap.type === 'removed'
-			// 	? addMeta(snap, collection)										// no need to fetch meta from server for 'removed' documents
-			// 	: await buildDoc(snap, this.fire);
-			// data[FIELD.store] = data[FIELD.store] || collection;
-			const data = addMeta(snap, collection);
+			const data = addMeta(snap);
 
 			switch (snap.type) {
 				case 'added':

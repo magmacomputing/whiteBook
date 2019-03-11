@@ -102,7 +102,7 @@ export class FireService {
 	}
 
 	writeClaim(claim: ICustomClaims) {
-		return this.callHttps('writeClaim', { collection: COLLECTION.register, customClaims: claim }, `setting claim`);;
+		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
 	}
 
 	createToken(uid: string) {

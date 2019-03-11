@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
@@ -30,16 +30,12 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	const localState = getLocalStore(StoreStorage) as any;
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
-	const snapList = snaps.map(snap => addMeta(snap, listen.slice));
+	const snapList = snaps.map(addMeta);
 
 	Object.keys(localSlice).forEach(key => localList.push(...localSlice[key].map(remMeta)));
 	const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
 	const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
 	const [localHash, storeHash] = await Promise.all([cryptoHash(localSort), cryptoHash(snapSort),]);
-	if (listen.slice === COLLECTION.register) {
-		console.log('localState: ', localState);
-		console.log('localSlice: ', localSlice);
-	}
 
 	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
 		listen.ready.resolve(true);                   // indicate snap0 is ready
@@ -69,8 +65,8 @@ const remMeta = (doc: IStoreMeta) => {
 	const { [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 	return rest;
 }
-export const addMeta = (snap: DocumentChangeAction<IStoreMeta>, store: string) =>
-	({ [FIELD.id]: snap.payload.doc.id, [FIELD.store]: store, ...snap.payload.doc.data() })
+export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
+	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() })
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: string) => {
@@ -88,7 +84,6 @@ export const getMethod = (slice: string) => {
 			return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
 
 		case SLICE.admin:
-		case COLLECTION.register:												// TODO: assign register to admin SLICE?
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
 
 		default:

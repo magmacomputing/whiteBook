@@ -6,7 +6,7 @@ import { Store } from '@ngxs/store';
 import { SLICE } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/snack/snack.service';
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, ICustomClaims } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 import { getSlice } from '@dbase/state/state.library';
@@ -82,9 +82,15 @@ export class DataService {
 	updDoc(store: string, docId: string, data: TStoreBase) {
 		return this.fire.updDoc(store, docId, data);
 	}
-	async	updPlan(plan: string) {
-		const state = await this.auth.user
-		return this.fire.updDoc(COLLECTION.register, state.auth.user!.uid, { user: { customClaims: { plan } } })
+
+	async	updPlan(plan: string) {															// this is no longer used
+		const state = await this.auth.user;
+		const where: TWhere = [
+			{ fieldPath: FIELD.store, value: STORE.register },
+			{ fieldPath: FIELD.uid, value: state.auth.user!.uid },
+		]
+		const docIds = await this.fire.getAll(COLLECTION.admin, { where });
+		return this.fire.updDoc(COLLECTION.admin, docIds[0][FIELD.id], { user: { customClaims: { plan } } })
 	}
 
 	log(output: any) {																				// write a /log entry
