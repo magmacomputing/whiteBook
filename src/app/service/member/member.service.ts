@@ -67,8 +67,9 @@ export class MemberService {
 	}
 
 	/** Insert an Attendance record, aligned to an <active> Account payment */
-	async setAttend(schedule: ISchedule, note?: string, date?: number) {
-		const data = await this.getAccount();						// get Member's current account details
+	async setAttend(schedule: ISchedule, note?: string, date?: number, uid?: string) {
+		debugger;
+		const data = await this.getAccount(date, uid);	// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))

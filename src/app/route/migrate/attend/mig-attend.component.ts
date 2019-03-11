@@ -5,20 +5,23 @@ import { take, map } from 'rxjs/operators';
 
 import { AuthService } from '@service/auth/auth.service';
 import { SnackService } from '@service/snack/snack.service';
+import { MemberService } from '@service/member/member.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
-
 import { DataService } from '@dbase/data/data.service';
+
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, TStoreBase } from '@dbase/data/data.schema';
+import { IRegister, IPayment, TStoreBase, ISchedule } from '@dbase/data/data.schema';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { TDate } from '@lib/date.library';
+import { TDate, fmtDate, DATE_FMT } from '@lib/date.library';
 import { TString } from '@lib/type.library';
-import { sortKeys } from '@lib/object.library';
+import { sortKeys, IObject } from '@lib/object.library';
+import { asAt } from '@dbase/library/app.library';
 import { dbg } from '@lib/logger.library';
+
 @Component({
 	selector: 'wb-mig-attend',
 	templateUrl: './mig-attend.component.html',
@@ -33,8 +36,14 @@ export class MigAttendComponent implements OnInit {
 	private data$!: Observable<IAccountState>;
 	private history!: Promise<{ history: MHistory[] }>;
 	private member: IRegister | null;
+	private schedule!: ISchedule[];
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService, private snack: SnackService, private sync: SyncService) {
+	private lookup: IObject<string> = {
+		oldStep: 'MultiStep',
+	}
+
+	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService,
+		private snack: SnackService, private sync: SyncService, private service: MemberService) {
 		this.member = null;
 		this.admin$ = this.state.getAdminData()
 			.pipe(
@@ -42,6 +51,10 @@ export class MigAttendComponent implements OnInit {
 				map(reg => (reg || []).filter(row => !!row.migrate)),	// only return 'migrated' members
 				map(reg => reg.sort(sortKeys(FIELD.uid))),
 			)
+
+		const where: TWhere = { fieldPath: FIELD.store, value: STORE.schedule };
+		this.data.getAll<ISchedule>(COLLECTION.client, { where })
+			.then(schedule => this.schedule = schedule);
 	}
 
 	ngOnInit() { }
@@ -54,7 +67,8 @@ export class MigAttendComponent implements OnInit {
 		this.sync.on(COLLECTION.member, query);
 
 		const action = 'history';
-		this.history = this.fetch(action, `provider=${this.member.migrate!.providers[0].provider}&id=${this.member.migrate!.providers[0].id}`);
+		const { id, provider } = this.member.migrate!.providers[0];
+		this.history = this.fetch(action, `provider=${provider}&id=${id}`);
 		this.history.then(hist => this.dbg('history: %s', hist.history.length));
 
 		this.data$ = this.state.getAccountData(undefined, this.member.uid)
@@ -128,13 +142,25 @@ export class MigAttendComponent implements OnInit {
 	 * 11.	batch Attends?   (if so, how will rolling credit be calc'd ?)
 	 */
 	async addAttend() {
-		const hist = (await this.history) || { history: [] };
-		const creates = hist.history
+		// const hist = (await this.history) || { history: [] };
+		const hist = { history: [{ "stamp": 1425086244, "date": 20150228, "type": "oldStep", "title": "<span style=\"color:#0000ff;\">oldStep</span>", "debit": "-8.00" } as MHistory] };
+		hist.history
 			.sort(sortKeys(FIELD.stamp))
-			.filter(row => row.type !== 'Debit')
+			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.map(row => {
 				this.dbg('hist: %j', row);
+				const event = this.lookup[row.type] || row.type;
+				const dow = fmtDate(DATE_FMT.weekDay, row.date);
+				const where: TWhere = [
+					{ fieldPath: FIELD.key, value: event },
+					{ fieldPath: 'day', value: dow },
+				]
+				const sched = asAt(this.schedule, where, row.date)[0];
+				this.dbg('schedule: %j', sched);
+				if (!sched)
+					throw new Error(`Cannot determine schedule: ${where}`);
 
+				this.service.setAttend(sched, row.note, row.stamp);
 			})
 	}
 
@@ -148,7 +174,7 @@ export class MigAttendComponent implements OnInit {
 		where.length = 0;													// truncate where-clause
 		where.push({ fieldPath: FIELD.uid, value: this.member!.user.uid });
 		deletes.push(...await this.data.getAll<TStoreBase>(COLLECTION.attend, { where }));
-	
+
 		return this.data.batch(undefined, undefined, deletes)
 	}
 
