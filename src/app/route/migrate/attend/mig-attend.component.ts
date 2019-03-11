@@ -9,17 +9,16 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment } from '@dbase/data/data.schema';
+import { IRegister, IPayment, TStoreBase } from '@dbase/data/data.schema';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { IQuery } from '@dbase/fire/fire.interface';
+import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { TDate } from '@lib/date.library';
 import { TString } from '@lib/type.library';
 import { sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-
 @Component({
 	selector: 'wb-mig-attend',
 	templateUrl: './mig-attend.component.html',
@@ -40,7 +39,8 @@ export class MigAttendComponent implements OnInit {
 		this.admin$ = this.state.getAdminData()
 			.pipe(
 				map(admin => admin[STORE.register]),								// get 'register' store
-				map(reg => reg.filter(row => !!row.migrate))				// only return 'migrated' members
+				map(reg => (reg || []).filter(row => !!row.migrate)),	// only return 'migrated' members
+				map(reg => reg.sort(sortKeys(FIELD.uid))),
 			)
 	}
 
@@ -49,8 +49,7 @@ export class MigAttendComponent implements OnInit {
 	async signIn(register: IRegister) {
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: register.user.uid } };
 		this.member = register;																	// stash current Member
-		this.dbg('register: %j', this.member);
-		
+
 		this.sync.on(COLLECTION.attend, query);
 		this.sync.on(COLLECTION.member, query);
 
@@ -65,9 +64,9 @@ export class MigAttendComponent implements OnInit {
 		const profile = await this.state.getAuthData()					// get the current Auth'd user
 			.pipe(take(1))
 			.toPromise();
-
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile.auth.user!.uid } };
 
+		this.data$ = this.state.getAccountData(undefined, profile.auth.user!.uid);
 		this.member = null;
 		this.sync.on(COLLECTION.attend, query);									// restore current User's state
 		this.sync.on(COLLECTION.member, query);
@@ -83,7 +82,7 @@ export class MigAttendComponent implements OnInit {
 	async addPayment() {
 		const hist = (await this.history) || { history: [] };
 		const creates = hist.history
-			.filter(row => row.type === 'Debit')
+			.filter(row => row.type === 'Debit' || row.type === 'Credit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; note?: TString; } = { stamp: 0, uid: '' };
 
@@ -137,6 +136,27 @@ export class MigAttendComponent implements OnInit {
 				this.dbg('hist: %j', row);
 
 			})
+	}
+
+	async delPayment() {
+		const where: TWhere = [
+			{ fieldPath: FIELD.store, value: STORE.payment },
+			{ fieldPath: FIELD.uid, value: this.member!.user.uid },
+		]
+		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.member, { where });
+
+		where.length = 0;													// truncate where-clause
+		where.push({ fieldPath: FIELD.uid, value: this.member!.user.uid });
+		deletes.push(...await this.data.getAll<TStoreBase>(COLLECTION.attend, { where }));
+	
+		return this.data.batch(undefined, undefined, deletes)
+	}
+
+	async delAttend() {
+		const where: TWhere = [{ fieldPath: FIELD.uid, value: this.member!.user.uid }];
+		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.attend, { where });
+
+		return this.data.batch(undefined, undefined, deletes);
 	}
 
 	private async fetch(action: string, query: string) {

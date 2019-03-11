@@ -1,32 +1,19 @@
 <div *ngFor="let reg of admin$ | async">
 	<p>
 		{{ reg.migrate.sheetName }}
-		<button (click)="signIn(reg)" [disabled]="member" [hidden]="member && member.migrate.sheetName == reg.migrate.sheetName">
+		<button color="primary" (click)="signIn(reg)" [disabled]="member" [hidden]="member && member.migrate.sheetName == reg.migrate.sheetName">
 			SignIn </button>
-		<button [hidden]="!member || member.migrate.sheetName != reg.migrate.sheetName">SignOut</button>
-		<button (click)="addPayment()" [disabled]="data.account && data.account.payment.length">Add Payments</button>
-		<button (click)="addAttend()" [disabled]="data.account && data.account.attend.length">Add Attends</button>
-		<p *ngIf="data.account"> {{ data.account.summary }} </p>
-	<!-- </p> -->
-</div>
-
-<!-- <div *ngIf="class.members | async as members; else waitAdmin">
-	<div *ngFor="let member of members">
-		<p>
-			{{ member.sheetName }}
-			<button (click)="signIn(member)" [disabled]="class.member"
-				[hidden]="class.member && class.member.sheetName == member.sheetName">SignIn</button>
-			<button (click)="signOut()"
-				[hidden]="!class.member || class.member.sheetName !== member.sheetName">SignOut</button>
-			<div *ngIf="class.member && class.member.sheetName == member.sheetName">
-				<div *ngIf="class.data$ | async as data">
-					<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
-					<button (click)="addAttend()" [disabled]="data.account.attend.length">Add Attends</button>
-					{{ data.account.summary | json }}
-				</div>
+		<div *ngIf="member && member.migrate.sheetName == reg.migrate.sheetName">
+			<div *ngIf="data$ | async as data">
+				<button color="accent" (click)="signOut()">SignOut</button>
+				<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
+				<button (click)="addAttend()" [disabled]="!data.account.payment.length || data.account.attend.length">Add Attends</button>
+				<button (click)="delPayment()" [disabled]="!data.account.payment.length">Del Payments</button>
+				<button (click)="delAttend()" [disabled]="!data.account.attend.length">Del Attends</button>
+				<p *ngIf="data.account"> {{ data.account.summary | json }} </p>
 			</div>
-	</div>
-</div> -->
+		</div>
+</div>
 
 <ng-template #waitAdmin>
 	<div>
