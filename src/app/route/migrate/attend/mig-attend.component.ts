@@ -39,6 +39,8 @@ export class MigAttendComponent implements OnInit {
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
+		prevStep: 'MultiStep',
+		Step: 'MultiStep',
 	}
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService,
@@ -70,7 +72,7 @@ export class MigAttendComponent implements OnInit {
 		this.history = this.fetch(action, `provider=${provider}&id=${id}`);
 		this.history.then(hist => this.dbg('history: %s', hist.history.length));
 
-		this.data$ = this.state.getAccountData(undefined, this.member.uid)
+		this.data$ = this.state.getAccountData(this.member.uid)
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode
@@ -79,7 +81,7 @@ export class MigAttendComponent implements OnInit {
 			.toPromise();
 		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile.auth.user!.uid } };
 
-		this.data$ = this.state.getAccountData(undefined, profile.auth.user!.uid);
+		this.data$ = this.state.getAccountData(profile.auth.user!.uid);
 		this.member = null;
 		this.sync.on(COLLECTION.attend, query);									// restore current User's state
 		this.sync.on(COLLECTION.member, query);
@@ -87,7 +89,7 @@ export class MigAttendComponent implements OnInit {
 
 	/** get Members data (plan, price, etc), as at supplied date */
 	private getAccount(date: TDate) {
-		return this.state.getAccountData(date, this.member!.uid)
+		return this.state.getAccountData(this.member!.uid, date)
 			.pipe(take(1))
 			.toPromise()
 	}
@@ -143,8 +145,10 @@ export class MigAttendComponent implements OnInit {
 	 * 11.	batch Attends?   (if so, how will rolling credit be calc'd ?)
 	 */
 	async addAttend() {
-		// const hist = (await this.history) || { history: [] };
-		const hist = { history: [{ "stamp": 1425086244, "date": 20150228, "type": "oldStep", "title": "<span style=\"color:#0000ff;\">oldStep</span>", "debit": "-8.00" } as MHistory] };
+		const hist = (await this.history) || { history: [] };
+		// const hist = { history: [{ "stamp": 1425086244, "date": 20150228, "type": "oldStep", "title": "<span style=\"color:#0000ff;\">oldStep</span>", "debit": "-8.00" } as MHistory] };
+
+		hist.history.length = Math.min(hist.history.length, 10);				// gimme only the first 10-attendances
 		hist.history
 			.sort(sortKeys(FIELD.stamp))
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')

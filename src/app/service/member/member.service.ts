@@ -45,8 +45,8 @@ export class MemberService {
 	/**
 	 * Create a new TopUp payment
 	 */
-	async setPayment(amount?: number, data?: IAccountState) {
-		data = data || await this.getAccount();
+	async setPayment(amount?: number, uid?: string) {
+		const data = await this.getAccount(undefined, uid);
 		const price = data.member.price								// find the topUp price for this Member
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 
@@ -54,7 +54,7 @@ export class MemberService {
 			[FIELD.id]: this.data.newId,
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
-			[FIELD.uid]: data.auth.user!.uid,
+			[FIELD.uid]: uid || data.auth.user!.uid,
 			amount: isUndefined(amount) ? price : amount,
 		} as IPayment
 	}
@@ -62,8 +62,8 @@ export class MemberService {
 	/**
 	 * get (or set a new) active Payment
 	 */
-	async getPayment(price: number, data?: IAccountState) {
-		data = data || await this.getAccount();
+	async getPayment(price: number, uid?: string) {
+		const data = await this.getAccount(uid);
 		const summary = await this.getAmount(data);
 
 		return (price > summary.credit)									// if not-enough in credit
@@ -75,7 +75,7 @@ export class MemberService {
 	 * Insert an Attendance record, aligned to an <active> Account payment
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number, uid?: string) {
-		const data = await this.getAccount(date, uid);	// get Member's current account details
+		const data = await this.getAccount(uid, date);	// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
@@ -108,7 +108,7 @@ export class MemberService {
 		const payments = data.account.payment;					// the list of current and prepaid payments
 
 		// determine which Payment record is active
-		const activePay = await this.getPayment(schedule.price, data);
+		const activePay = await this.getPayment(schedule.price, uid);
 		const amount = await this.getAmount(data);			// Account balance
 
 		if (payments[0]) {
@@ -143,8 +143,8 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	async getAccount(date?: TDate, uid?: string) {
-		return this.state.getAccountData(date, uid)
+	async getAccount(uid?: string, date?: TDate) {
+		return this.state.getAccountData(uid, date)
 			.pipe(take(1))
 			.toPromise()
 	}
