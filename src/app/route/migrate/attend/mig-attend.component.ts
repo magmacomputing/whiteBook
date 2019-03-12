@@ -41,6 +41,7 @@ export class MigAttendComponent implements OnInit {
 		oldStep: 'MultiStep',
 		prevStep: 'MultiStep',
 		Step: 'MultiStep',
+		"Holiday*1": 'MultiStep',
 	}
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService,
@@ -148,7 +149,7 @@ export class MigAttendComponent implements OnInit {
 		const hist = (await this.history) || { history: [] };
 		// const hist = { history: [{ "stamp": 1425086244, "date": 20150228, "type": "oldStep", "title": "<span style=\"color:#0000ff;\">oldStep</span>", "debit": "-8.00" } as MHistory] };
 
-		hist.history.length = Math.min(hist.history.length, 10);				// gimme only the first 10-attendances
+		hist.history.length = Math.min(hist.history.length, 11);				// gimme only the first 10-attendances
 		hist.history
 			.sort(sortKeys(FIELD.stamp))
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
