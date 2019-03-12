@@ -79,6 +79,14 @@ export interface IAccountState extends IMemberState {
 	}
 }
 
+export interface IAttendState {
+	[payment: string]: IAttend[];
+}
+
+export interface IPaymentState {
+	[payment: string]: IPayment[];
+}
+
 export interface ITimetableState extends IMemberState {
 	client: {
 		schedule?: ISchedule[];

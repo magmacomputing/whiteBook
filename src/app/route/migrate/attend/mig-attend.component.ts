@@ -17,7 +17,6 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { TDate, fmtDate, DATE_FMT } from '@lib/date.library';
-import { TString } from '@lib/type.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { asAt } from '@dbase/library/app.library';
 import { dbg } from '@lib/logger.library';
@@ -98,13 +97,11 @@ export class MigAttendComponent implements OnInit {
 		const creates = hist.history
 			.filter(row => row.type === 'Debit' || row.type === 'Credit')
 			.map(row => {
-				const approve: { stamp: number; uid: string; note?: TString; } = { stamp: 0, uid: '' };
+				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 
 				if (row.title.substring(0, 10) === 'Approved: ') {
 					approve.stamp = row.approved;
 					approve.uid = 'JorgeEC';
-					if (row.note)
-						approve.note = row.note;
 				}
 
 				this.dbg('row: %j', row);
@@ -115,10 +112,14 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.uid]: this.member!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
+					bank: row.bank,
 				} as IPayment
 
+				if (row.note)
+					paym.note = row.note;
 				if (approve.stamp)
 					paym.approve = approve;
+				
 				return paym;
 			});
 
@@ -160,7 +161,7 @@ export class MigAttendComponent implements OnInit {
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${where}`);
 
-				this.service.setAttend(sched, row.note, row.stamp);
+				this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
 			})
 	}
 

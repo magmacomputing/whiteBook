@@ -9,6 +9,7 @@ import { MemberInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
 
 import { TWhere } from '@dbase/fire/fire.interface';
+import { addWhere } from '@dbase/fire/fire.library';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
@@ -41,7 +42,9 @@ export class MemberService {
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
-	/** Create a new TopUp payment */
+	/**
+	 * Create a new TopUp payment
+	 */
 	async setPayment(amount?: number, data?: IAccountState) {
 		data = data || await this.getAccount();
 		const price = data.member.price								// find the topUp price for this Member
@@ -56,7 +59,9 @@ export class MemberService {
 		} as IPayment
 	}
 
-	/** get (or set a new) active Payment */
+	/**
+	 * get (or set a new) active Payment
+	 */
 	async getPayment(price: number, data?: IAccountState) {
 		data = data || await this.getAccount();
 		const summary = await this.getAmount(data);
@@ -66,9 +71,10 @@ export class MemberService {
 			: data.account.payment[0]											// else return the current Payment doc
 	}
 
-	/** Insert an Attendance record, aligned to an <active> Account payment */
+	/**
+	 * Insert an Attendance record, aligned to an <active> Account payment
+	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number, uid?: string) {
-		debugger;
 		const data = await this.getAccount(date, uid);	// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
@@ -85,11 +91,12 @@ export class MemberService {
 
 		// check we are not re-booking same Class on same Day
 		const attendFilter: TWhere = [
-			{ fieldPath: FIELD.type, value: schedule[FIELD.key] },
-			{ fieldPath: FIELD.uid, value: data.auth.user!.uid },
-			{ fieldPath: 'date', value: when },
-			{ fieldPath: 'note', value: note },
+			addWhere(FIELD.type, schedule[FIELD.key]),
+			addWhere(FIELD.uid, data.auth.user!.uid),
+			addWhere('date', when),
 		]
+		if (note)
+			attendFilter.push(addWhere(FIELD.note, note));
 		const booked = await this.data.getAll<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error('Already attended this class');
@@ -119,14 +126,15 @@ export class MemberService {
 		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
-			[FIELD.type]: schedule[FIELD.key] as TClass,	// the Attend's class
+			[FIELD.type]: 'class',												// TODO: work out whether 'class' or 'event'
+			[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
 			[FIELD.uid]: data.auth.user!.uid,							// the current User
+			[FIELD.stamp]: stamp,													// createDate
+			[FIELD.date]: when,														// yyyymmdd of the Attend
+			[FIELD.note]: note,														// optional 'note'
 			schedule: schedule[FIELD.id],									// <id> of the Schedule
 			payment: activePay[FIELD.id],									// <id> of Account's current active document
 			amount: schedule.price,												// calculated price of the Attend
-			stamp: stamp,																	// createDate
-			date: when,																		// yyyymmdd of the Attend
-			note: note,
 		}
 		creates.push(attendDoc as TStoreBase);
 

@@ -19,10 +19,10 @@ type TCalendar = 'event' | 'special'
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
+export type TAttend = 'class' | 'event';
 
-//	/register
+//	/admin/register
 type TRole = 'admin' | 'member' | 'guest';
-/** /register/{uid} */
 export interface ICustomClaims {				// a special sub-set of fields from the User Token
 	roles?: TRole[];
 	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
@@ -74,7 +74,7 @@ export interface IMeta {
 
 	[FIELD.store]: string;								// every document should declare the 'store' field
 	[FIELD.type]?: string | number;				// an optional 'type' code to qualify the 'store'
-	note?: TString;												// an optional 'note' on all documents
+	[FIELD.note]?: TString;								// an optional 'note' on all documents
 }
 
 /**
@@ -235,8 +235,8 @@ export interface ISpan extends IClientBase {
 export interface IAlert extends IClientBase {
 	[FIELD.store]: STORE.alert;
 	[FIELD.type]: 'schedule'
+	[FIELD.note]: TString;
 	location?: string;
-	note: TString;
 }
 
 //	/client/schedule
@@ -290,7 +290,7 @@ export interface IProfile extends IMemberBase {
 export interface IMessage extends IMemberBase {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: 'diary' | 'alert';
-	note: TString;
+	[FIELD.note]: TString;
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: STORE.plan;
@@ -324,14 +324,14 @@ export interface IMemberInfo {				// Conformed Info across Providers
 export interface IPayment extends IMemberBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: TPayment;
+	[FIELD.stamp]: number;						// create-date
 	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
-	stamp: number;										// create-date
 	bank?: number;										// un-used credit from previous payment
 	expiry?: number;									// six-months from _effect
 	approve?: {												// acknowledge receipt of payment
-		uid: string;
-		stamp: number;
-		note?: TString;
+		[FIELD.uid]: string;
+		[FIELD.stamp]: number;
+		[FIELD.note]?: TString;
 	},
 	plan?: string;										// the Plan-type this payment covers
 }
@@ -340,17 +340,18 @@ export interface IPayment extends IMemberBase {
 export interface IBonus extends IMemberBase {
 	[FIELD.store]: STORE.bonus,
 	[FIELD.type]: string;
-	stamp: number;
+	[FIELD.stamp]: number;
 	expiry?: number;
 }
 
 // /attend
 export interface IAttend extends IAttendBase {
 	[FIELD.store]: STORE.attend;
-	[FIELD.type]: TClass;
+	[FIELD.type]: TAttend;
+	[FIELD.key]: TClass;
+	[FIELD.stamp]: number;						// the timestamp of the check-in
 	payment: string;									// the /member/payment _id
 	schedule: string;									// the /client/schedule _id
-	stamp: number;										// the timestamp of the check-in
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
 	track?: {													// to use in bonus-checking
