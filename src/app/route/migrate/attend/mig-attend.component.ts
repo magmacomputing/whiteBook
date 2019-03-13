@@ -29,18 +29,30 @@ export class MigAttendComponent implements OnInit {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
-	public class = MigAttendComponent;												// reference to self
 
 	private admin$: Observable<IRegister[]>;
 	private data$!: Observable<IAccountState>;
-	private history!: Promise<{ history: MHistory[] }>;
+	private history!: Promise<MHistory[]>;
 	private member: IRegister | null;
 	private schedule!: ISchedule[];
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
-		prevStep: 'MultiStep',
 		Step: 'MultiStep',
+		oldStepDown: 'StepDown',
+		oldAeroStep: 'AeroStep',
+		oldHiLo: 'HiLo',
+		oldZumba: 'Zumba',
+		oldZumbaStep: 'ZumbaStep',
+		oldSmartStep: 'SmartStep',
+		prevStep: 'MultiStep',
+		prevSmartStep: 'SmartStep',
+		prevStepDown: 'StepDown',
+		prevAeroStep: 'AeroStep',
+		prevHiLo: 'HiLo',
+		prevZumba: 'Zumba',
+		prevZumbaStep: 'ZumbaStep',
+		prevStepIn: 'StepIn',
 		"Holiday*1": 'MultiStep',
 	}
 
@@ -70,8 +82,9 @@ export class MigAttendComponent implements OnInit {
 
 		const action = 'history';
 		const { id, provider } = this.member.migrate!.providers[0];
-		this.history = this.fetch(action, `provider=${provider}&id=${id}`);
-		this.history.then(hist => this.dbg('history: %s', hist.history.length));
+		this.history = this.fetch(action, `provider=${provider}&id=${id}`)
+			.then((resp: { history: MHistory[] }) => (resp.history || []).sort(sortKeys(FIELD.stamp)));
+		this.history.then(hist => this.dbg('history: %s', hist.length));
 
 		this.data$ = this.state.getAccountData(this.member.uid)
 	}
@@ -96,14 +109,14 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async addPayment() {
-		const hist = (await this.history) || { history: [] };
-		const creates = hist.history
+		const hist = (await this.history) || [];
+		const creates = hist
 			.filter(row => row.type === 'Debit' || row.type === 'Credit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 
-				if (row.title.substring(0, 10) === 'Approved: ') {
-					approve.stamp = row.approved;
+				if (row.title.startsWith('Approved: ')) {
+					approve.stamp = row.approved!;
 					approve.uid = 'JorgeEC';
 				}
 
@@ -122,7 +135,7 @@ export class MigAttendComponent implements OnInit {
 					paym.note = row.note;
 				if (approve.stamp)
 					paym.approve = approve;
-				
+
 				return paym;
 			});
 
@@ -146,12 +159,12 @@ export class MigAttendComponent implements OnInit {
 	 * 11.	batch Attends?   (if so, how will rolling credit be calc'd ?)
 	 */
 	async addAttend() {
-		const hist = (await this.history) || { history: [] };
-		// const hist = { history: [{ "stamp": 1425086244, "date": 20150228, "type": "oldStep", "title": "<span style=\"color:#0000ff;\">oldStep</span>", "debit": "-8.00" } as MHistory] };
+		const hist = await this.history;								// a sorted-list of Attendance check-ins / account payments
 
-		hist.history.length = Math.min(hist.history.length, 11);				// gimme only the first 10-attendances
-		hist.history
-			.sort(sortKeys(FIELD.stamp))
+		hist.length = Math.min(hist.length, 12);				// gimme only the first 10-attendances
+		// hist.length = 0;
+
+		hist
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.map(row => {
 				this.dbg('hist: %j', row);
@@ -164,7 +177,7 @@ export class MigAttendComponent implements OnInit {
 				const sched = asAt(this.schedule, where, row.date)[0];
 				this.dbg('schedule: %j', sched);
 				if (!sched)
-					throw new Error(`Cannot determine schedule: ${where}`);
+					throw new Error('Cannot determine schedule: ' + JSON.stringify(where));
 
 				this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
 			})

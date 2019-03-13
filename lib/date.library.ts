@@ -73,7 +73,7 @@ export const getDate = (dt?: TDate) => {
 
 /** quick shortcut rather than getDate(dt).format(DATE_FMT.stamp) */
 export const getStamp = (dt?: TDate) =>
-	Math.round(checkDate(dt).getTime() / 1000);								// Unix timestamp-format
+	parseDate(dt).ts;																					// Unix timestamp-format
 
 /** shortcut to getDate(dt).format(fmt) */
 export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>

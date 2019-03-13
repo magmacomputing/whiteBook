@@ -96,6 +96,7 @@ export class StateService {
 				})
 			)
 		}
+
 		return this.auth$.pipe(
 			map(auth => ({ auth: cloneObj(auth) })),
 		)

@@ -87,6 +87,7 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+	if (discards.includes('birthDay')) debugger;
 	const isMatch = currDocs
 		.map(currDoc => 															// for each current document
 			asArray(discards)														// for each of the field-names to match...

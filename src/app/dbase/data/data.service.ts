@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
+import { DocumentReference } from '@angular/fire/firestore';
 
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { SLICE } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
@@ -134,8 +134,13 @@ export class DataService {
 		return this.batch(creates, updates);                    // then apply writes in a Batch
 	}
 
-	/** Batch a series of writes */
+	/** Wrap writes in a Batch */
 	batch(creates?: TStoreBase[], updates?: TStoreBase[], deletes?: TStoreBase[]) {
 		return this.fire.batch(creates, updates, deletes);
+	}
+
+	/** Wrap writes in a Transaction */
+	runTxn(creates?: TStoreBase[], updates?: TStoreBase[], deletes?: TStoreBase[], selects?: DocumentReference[]) {
+		return this.fire.runTxn(creates, updates, deletes, selects);
 	}
 }

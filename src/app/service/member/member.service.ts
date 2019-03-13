@@ -29,7 +29,7 @@ export class MemberService {
 
 		this.action.pipe(															// special: listen for changes of the auth.info
 			ofAction(MemberInfo),												// when MemberInfo is fired by AuthState (on user-login)
-			debounce(_ => timer(2000)),									// wait a couple of seconds to have State settle
+			debounce(_ => timer(2000)),									// wait a few seconds to have State settle
 		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed.
 		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}

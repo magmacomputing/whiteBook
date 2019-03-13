@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { tap, take } from 'rxjs/operators';
 
-import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFirestore, DocumentReference } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -60,15 +60,27 @@ export class FireService {
 		return rest;
 	}
 
-	/** Batch a set of database-writes */
-	async batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
+	/** Wrap a set of database-writes within a Batch */
+	batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
 		const bat = this.afs.firestore.batch();
 
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remMeta(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
-		bat.commit();
+		return bat.commit();
+	}
+
+	/** Wrap a set of database-writes within a Transaction */
+	runTxn(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = [], selects: DocumentReference[] = []) {
+		return this.afs.firestore.runTransaction(txn => {
+			asArray(selects).forEach(ref => txn.get(ref));
+			asArray(creates).forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
+			asArray(updates).forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remMeta(upd)));
+			asArray(deletes).forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+
+			return Promise.resolve(true);					// if any change fails, the Transaction rejects
+		})
 	}
 
 	async setDoc(store: string, doc: Partial<IStoreMeta>) {
@@ -87,14 +99,12 @@ export class FireService {
 
 	/** get all Documents, optionally with a supplied Query */
 	async getAll<T>(collection: string, query?: IQuery) {
-		this.dbg('getAll: %s, %j', collection, query);
-
 		const snap = await this.colRef<T>(collection, query)
 			.snapshotChanges()
 			.pipe(take(1))
 			.toPromise()
 
-		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));
+		return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
 	}
 
 	callMeta(store: string, docId: string) {
