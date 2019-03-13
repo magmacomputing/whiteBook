@@ -11,7 +11,7 @@ export const fnQuery = (query: IQuery = {}) => {
 	return (colRef: Query) => {															// return a Query-function
 		if (query.where)
 			asArray(query.where)
-				.filter(qry => !isUndefined(qry.value))
+				.filter(qry => !isUndefined(qry.value))						// discard queries for 'undefined' value
 				.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as firebase.firestore.WhereFilterOp, qry.value));
 
 		if (query.orderBy)
@@ -26,7 +26,7 @@ export const fnQuery = (query: IQuery = {}) => {
 }
 
 /** Make a 'where' clause */
-export const addWhere = (fieldPath: string, value: any, opStr?: IWhere["opStr"]) => {
+export const addWhere = (fieldPath: string, value: any, opStr: IWhere["opStr"] = '==') => {
 	const where: IWhere = { fieldPath, value };
 	if (opStr) where.opStr = opStr;
 	return where;

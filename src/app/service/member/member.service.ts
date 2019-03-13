@@ -46,7 +46,7 @@ export class MemberService {
 	 * Create a new TopUp payment
 	 */
 	async setPayment(amount?: number, uid?: string) {
-		const data = await this.getAccount(undefined, uid);
+		const data = await this.getAccount(uid);
 		const price = data.member.price								// find the topUp price for this Member
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 
@@ -66,8 +66,8 @@ export class MemberService {
 		const data = await this.getAccount(uid);
 		const summary = await this.getAmount(data);
 
-		return (price > summary.credit)									// if not-enough in credit
-			? this.setPayment()														// return a new Payment doc
+		return (price > summary.funds)									// if price of the Class > unused funds
+			? data.account.payment[1] || this.setPayment()// activate next pre-payment, or generate a new payment
 			: data.account.payment[0]											// else return the current Payment doc
 	}
 
@@ -93,10 +93,10 @@ export class MemberService {
 		const attendFilter: TWhere = [
 			addWhere(FIELD.type, schedule[FIELD.key]),
 			addWhere(FIELD.uid, data.auth.user!.uid),
+			addWhere(FIELD.note, note),
 			addWhere('date', when),
 		]
-		if (note)
-			attendFilter.push(addWhere(FIELD.note, note));
+
 		const booked = await this.data.getAll<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error('Already attended this class');
@@ -111,16 +111,24 @@ export class MemberService {
 		const activePay = await this.getPayment(schedule.price, uid);
 		const amount = await this.getAmount(data);			// Account balance
 
-		if (payments[0]) {
-			if (payments[0][FIELD.id] !== activePay[FIELD.id]) {
-				if (amount.credit)
-					activePay.bank = amount.credit;						// rollover unused credit to new Payment
-				creates.push(Object.assign({ [FIELD.effect]: stamp }, activePay));
-				updates.push(Object.assign(payments[0], { [FIELD.expire]: stamp }));
-			} else {
-				if (!activePay[FIELD.effect])								// add effective date to Active Payment on first use
-					updates.push(Object.assign(activePay, { [FIELD.effect]: stamp }));
-			}
+		switch (true) {
+			// Current payment is still Active
+			case payments[0][FIELD.id] === activePay[FIELD.id]:
+				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
+					updates.push({ [FIELD.effect]: stamp, ...payments[0] });
+				break;
+			
+			// Next pre-payment is to become Active, rollover unused Funds
+			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
+				updates.push(({ [FIELD.expire]: stamp, ...payments[0] }));
+				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...payments[1] });
+				break;
+			
+			// New payment to become Active, rollever unused Funds
+			default:
+				updates.push(({ [FIELD.expire]: stamp, ...payments[0] }));
+				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...activePay });
+				break;
 		}
 
 		// build the Attend document
@@ -152,7 +160,7 @@ export class MemberService {
 	async getAmount(data?: IAccountState) {
 		data = data || await this.getAccount();
 		const { bank = 0, pend = 0, paid = 0, spend = 0 } = data.account.summary;
-		return { bank, pend, paid, spend, credit: bank + pend + paid - spend };
+		return { bank, pend, paid, spend, credit: bank + pend + paid - spend, funds: bank + paid - spend };
 	}
 
 	async	getPlan(data?: IAccountState) {
@@ -164,7 +172,7 @@ export class MemberService {
 	async getEventPrice(event: string, data?: IAccountState) {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
-		const span = await this.state.getSingle<IClass>(STORE.class, { fieldPath: FIELD.key, value: event });
+		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
 
 		return data.member.price												// look in member's prices for a match in 'span' and 'plan'
 			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;

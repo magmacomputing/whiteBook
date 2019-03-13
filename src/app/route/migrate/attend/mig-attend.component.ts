@@ -161,7 +161,7 @@ export class MigAttendComponent implements OnInit {
 	async addAttend() {
 		const hist = await this.history;								// a sorted-list of Attendance check-ins / account payments
 
-		hist.length = Math.min(hist.length, 12);				// gimme only the first 10-attendances
+		hist.length = Math.min(hist.length, 15);				// gimme only the first 10-attendances
 		// hist.length = 0;
 
 		hist
