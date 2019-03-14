@@ -13,6 +13,7 @@ import { getSlice } from '@dbase/state/state.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
+import { addWhere } from '@dbase/fire/fire.library';
 import { AuthService } from '@service/auth/auth.service';
 import { asAt } from '@dbase/library/app.library';
 
@@ -57,8 +58,7 @@ export class DataService {
 	}
 
 	createToken(uid: string) {
-		return this.fire.createToken(uid)
-			.then(token => token)
+		return this.fire.createToken(uid);
 	}
 
 	async getAll<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
@@ -67,7 +67,7 @@ export class DataService {
 			.pipe(take(1))
 			.toPromise()
 
-		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));
+		return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
 	}
 
 	get newId() {
@@ -85,25 +85,22 @@ export class DataService {
 
 	async	updPlan(plan: string) {															// this is no longer used
 		const state = await this.auth.user;
-		const where: TWhere = [
-			{ fieldPath: FIELD.store, value: STORE.register },
-			{ fieldPath: FIELD.uid, value: state.auth.user!.uid },
+		const where = [
+			addWhere(FIELD.store, STORE.register),
+			addWhere(FIELD.uid, state.auth.user!.uid),
 		]
 		const docIds = await this.fire.getAll(COLLECTION.admin, { where });
 		return this.fire.updDoc(COLLECTION.admin, docIds[0][FIELD.id], { user: { customClaims: { plan } } })
 	}
 
-	log(output: any) {																				// write a /log entry
-
-	}
-
 	/** Expire any current matching docs, and Create new doc */
 	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
-		const creates: TStoreBase[] = [];
-		const updates: TStoreBase[] = [];
+		const creates: TStoreBase[] = [];												// array of documents to Create
+		const updates: TStoreBase[] = [];												// array of documents to Update
+		const stamp = getStamp();																// the timestamp of the Insert
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
-			let tstamp = nextDoc[FIELD.effect] || getStamp();	    // the position in the date-range to Create
+			let tstamp = nextDoc[FIELD.effect] || stamp;	    		// the position in the date-range to Create
 			let where: TWhere;
 
 			try {

@@ -13,7 +13,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase, IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
-import { TWhere, IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
@@ -49,7 +49,7 @@ export class StateService {
 	}
 
 	/** Fetch the current, useable values for a supplied store */
-	getCurrent<T>(store: string, where?: TWhere) {
+	getCurrent<T>(store: string, where?:TWhere) {
 		const filters = asArray(where);
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
@@ -77,9 +77,9 @@ export class StateService {
 	*/
 	getAuthData(uid?: string): Observable<IUserState> {
 		if (uid) {
-			const where: TWhere = [
-				{ fieldPath: FIELD.store, value: STORE.register },
-				{ fieldPath: FIELD.uid, value: uid },
+			const where = [
+				addWhere(FIELD.store, STORE.register),
+				addWhere(FIELD.uid, uid),
 			];
 			const reg: Promise<IRegister[]> = this.fire.getAll(COLLECTION.admin, { where })
 			const userInfo: IAuthState = {
@@ -108,7 +108,6 @@ export class StateService {
 	 */
 	getAdminData(): Observable<IAdminState> {
 		return this.admin$.pipe(
-			// tap(res => this.dbg('admin: %j', res)),
 			joinDoc(this.states, 'register', STORE.register, undefined, undefined),
 		)
 	}
@@ -153,12 +152,12 @@ export class StateService {
 	 * @param uid:	string	An optional User UID (defaults to current logged-on User)
 	 */
 	getMemberData(date?: TDate, uid?: string): Observable<IMemberState> {
-		const filterProfile: TWhere = [
-			{ fieldPath: FIELD.type, value: ['plan', 'info', 'pref'] },   // where the <type> is either 'plan', 'info', or 'pref'
-			{ fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' },  // and the <uid> is provided or the getAuthData()'s 'auth.user.uid'
+		const filterProfile = [
+			addWhere(FIELD.type, ['plan', 'info', 'pref']),   // where the <type> is either 'plan', 'info', or 'pref'
+			addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),  // and the <uid> is provided or the getAuthData()'s 'auth.user.uid'
 		]
-		const filterPrice: TWhere = { fieldPath: FIELD.key, value: '{{member.plan[0].plan}}' };
-		const filterMessage: TWhere = { fieldPath: FIELD.type, value: 'alert' };
+		const filterPrice = addWhere(FIELD.key, '{{member.plan[0].plan');
+		const filterMessage = addWhere(FIELD.type, 'alert');
 
 		return this.getAuthData(uid).pipe(
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
@@ -188,8 +187,8 @@ export class StateService {
 	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $ }
 	 */
 	getAccountData(uid?: string, date?: TDate): Observable<IAccountState> {
-		const filterPayment: IWhere = { fieldPath: FIELD.uid, value: uid || '{{auth.user.uid}}' };
-		const filterAttend: IWhere = { fieldPath: 'payment', value: `{{account.payment[0].${FIELD.id}}}` };
+		const filterPayment = addWhere(FIELD.uid, uid || '{{auth.user.uid}}');
+		const filterAttend = addWhere('payment', `{{account.payment[0].${FIELD.id}}}`);
 
 		return this.getMemberData(date, uid).pipe(												// watch for /member changes
 			combineLatest(this.getAttendData(uid)),													// make sure we watch for /attend changes too
@@ -213,20 +212,20 @@ export class StateService {
 	 */
 	getScheduleData(date?: TDate, uid?: string) {
 		const base = getDate(date);
-		const filterSchedule: TWhere = { fieldPath: 'day', value: base.format(DATE_FMT.weekDay) };
-		const filterCalendar: TWhere = { fieldPath: FIELD.key, value: base.format(DATE_FMT.yearMonthDay) };
-		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
-		const filterTypeClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
-		const filterTypeEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.event.classes}}` };
-		const filterLocation: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] };
-		const filterInstructor: TWhere = { fieldPath: FIELD.key, value: ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}'] };
-		const filterAlert: TWhere = [
-			{ fieldPath: FIELD.type, value: STORE.schedule },
-			{ fieldPath: 'location', value: ['{{client.schedule.location}}', '{{client.calendar.location}}'] }
+		const filterSchedule = addWhere('day', base.format(DATE_FMT.weekDay));
+		const filterCalendar = addWhere(FIELD.key, base.format(DATE_FMT.yearMonthDay));//{ fieldPath: FIELD.key, value: base.format(DATE_FMT.yearMonthDay) };
+		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
+		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
+		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);
+		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
+		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
+		const filterAlert = [
+			addWhere(FIELD.type, STORE.schedule),
+			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
 		]
-		const filterRange: TWhere = [
-			{ fieldPath: FIELD.effect, opStr: '>', value: Number.MIN_SAFE_INTEGER },
-			{ fieldPath: FIELD.expire, opStr: '<', value: Number.MAX_SAFE_INTEGER },
+		const filterRange = [
+			addWhere(FIELD.effect, Number.MIN_SAFE_INTEGER, '>'),
+			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
 		]
 
 		return this.getMemberData(date, uid).pipe(
@@ -250,13 +249,13 @@ export class StateService {
 	 */
 	getTimetableData(date?: TDate): Observable<ITimetableState> {
 		const base = getDate(date);
-		const filterClass: TWhere = { fieldPath: FIELD.key, value: `{{client.schedule.${FIELD.key}}}` };
-		const filterLocation: TWhere = { fieldPath: FIELD.key, value: '{{client.schedule.location}}' };
-		const filterCalendar: TWhere = [
-			{ fieldPath: FIELD.key, opStr: '>=', value: base.startOf('week').format(DATE_FMT.yearMonthDay) },
-			{ fieldPath: FIELD.key, opStr: '<=', value: base.endOf('week').format(DATE_FMT.yearMonthDay) },
+		const filterClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
+		const filterLocation = addWhere(FIELD.key, '{{client.schedule.location}}');
+		const filterCalendar = [
+			addWhere(FIELD.key, base.startOf('week').format(DATE_FMT.yearMonthDay), '>='),
+			addWhere(FIELD.key, base.endOf('week').format(DATE_FMT.yearMonthDay), '<='),
 		]
-		const filterEvent: TWhere = { fieldPath: FIELD.key, value: `{{client.calendar.${FIELD.type}}}` };
+		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 
 		return of({}).pipe(																						// start with an empty Object
 			joinDoc(this.states, 'default', STORE.default, undefined, date),

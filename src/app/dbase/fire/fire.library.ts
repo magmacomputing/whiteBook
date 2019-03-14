@@ -1,5 +1,5 @@
 import * as firebase from 'firebase/app';
-import { Query } from '@angular/fire/firestore';
+import { Query, FieldPath } from '@angular/fire/firestore';
 import { IQuery, IWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
@@ -26,7 +26,7 @@ export const fnQuery = (query: IQuery = {}) => {
 }
 
 /** Make a 'where' clause */
-export const addWhere = (fieldPath: string, value: any, opStr: IWhere["opStr"] = '==') => {
+export const addWhere = (fieldPath: string | FieldPath, value: any, opStr: IWhere["opStr"] = '==') => {
 	const where: IWhere = { fieldPath, value };
 	if (opStr) where.opStr = opStr;
 	return where;

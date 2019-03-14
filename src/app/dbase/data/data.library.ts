@@ -10,6 +10,7 @@ import { isObject, TString } from '@lib/type.library';
 import { equalObj } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
+import { addWhere } from '@dbase/fire/fire.library';
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
@@ -17,15 +18,16 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	const collection = getSlice(nextDoc[FIELD.store]);
 	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
+	if (filters.length === 0) debugger;
 	filters.forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
-			where.push({ fieldPath: field, value: nextDoc[field] })
+			where.push(addWhere(field, nextDoc[field]));
 		else throw new Error(`missing required field: ${field}`)
 	})
 
 	asArray(filter).forEach(clause => {           // add any additional match-criteria
 		if (nextDoc[clause.fieldPath as string])
-			where.push({ fieldPath: clause.fieldPath, value: clause.value })
+			where.push(addWhere(clause.fieldPath, clause.value, clause.opStr))
 	})
 
 	return where;

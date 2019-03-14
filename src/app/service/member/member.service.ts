@@ -60,8 +60,12 @@ export class MemberService {
 	}
 
 	/**
-	 * get (or set a new) active Payment
-	 */
+	 * get (or set a new) active Payment  
+   * Determine if a new payment is due.  
+   * -> if the price of the intended class is greater than their current funds  
+   * -> if they've exceeded 99 Attends against a Payment  
+   * -> if their intro-pass has expired (auto bump them to 'member' plan)  
+  */
 	async getPayment(price: number, uid?: string) {
 		const data = await this.getAccount(uid);
 		const summary = await this.getAmount(data);
@@ -117,13 +121,13 @@ export class MemberService {
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
 					updates.push({ [FIELD.effect]: stamp, ...payments[0] });
 				break;
-			
+
 			// Next pre-payment is to become Active, rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
 				updates.push(({ [FIELD.expire]: stamp, ...payments[0] }));
 				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...payments[1] });
 				break;
-			
+
 			// New payment to become Active, rollever unused Funds
 			default:
 				updates.push(({ [FIELD.expire]: stamp, ...payments[0] }));
@@ -200,7 +204,7 @@ export class MemberService {
 			[FIELD.type]: 'info',
 		}
 
-		const where: TWhere = { fieldPath: 'providerId', value: user.auth.info.providerId };
+		const where = addWhere('providerId', user.auth.info.providerId);
 		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
 	}
 
