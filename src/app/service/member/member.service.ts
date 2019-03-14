@@ -69,7 +69,6 @@ export class MemberService {
 		const data = await this.getAccount(uid);
 		const summary = await this.getAmount(data);
 
-		debugger;
 		switch (true) {
 			// more than 99-attendances against the activePayment
 			case data.account.attend.length > 99:

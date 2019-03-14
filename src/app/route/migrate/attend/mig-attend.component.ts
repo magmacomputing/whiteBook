@@ -148,7 +148,7 @@ export class MigAttendComponent implements OnInit {
 		(await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.slice(0, 15)											// for testing: just the first few Attends
-			.map(async row => {
+			.forEach(async row => {
 				this.dbg('hist: %j', row);
 				const what = this.lookup[row.type] || row.type;
 				const dow = fmtDate(DATE_FMT.weekDay, row.date);
