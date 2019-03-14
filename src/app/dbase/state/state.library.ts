@@ -1,10 +1,10 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, tap } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
-import { asAt, firstRow } from '@dbase/library/app.library';
+import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, IMemberState, SLICE } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
@@ -19,7 +19,7 @@ import { DATE_FMT, getDate, TDate, fmtDate } from '@lib/date.library';
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
-export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
+export const getCurrent = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -30,6 +30,22 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 	return state.pipe(
 		map(state => asAt<T>(state[index || store], filter, date)),
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
+	)
+}
+
+/**
+ * Get all documents by filter, do not exclude _expire
+ */
+export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate , index?: string) => {
+	const slice = getSlice(store);
+	const state = states[slice] as Observable<IStoreMeta>;
+	
+	if (!state)
+		throw new Error(`Cannot resolve state from ${store}`);
+
+	return state.pipe(
+		tap(state => console.log('state: %j', state)),
+		map(state => filterTable<T>(state[index || store], filter))
 	)
 }
 
@@ -77,7 +93,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 
 				parent = data;                                        // stash the original parent data state
 
-				return combineLatest(getStore<TStoreBase>(states, store, filters, date, index));
+				return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, index));
 			}),
 
 			map(res => {
@@ -123,12 +139,12 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
  * A helper function to analyze the <value> field of each filter.  
  * If <value> isString and matches {{...}}, it refers to the current data in the <parent>
  */
-const decodeFilter = (parent: any, filter: TWhere) => {
+const decodeFilter = (parent: any, filter: TWhere = []) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
 		cond.value = deDup(asArray(cond.value)
 			.flatMap(value => {    																// loop through filter's <value>
-				const isPath = isString(value) && value.substring(0, 2) === '{{';
+				const isPath = isString(value) && value.startsWith('{{');
 				let lookup = value;
 
 				if (isPath) {                                       // check if is it a fieldPath reference on the parent

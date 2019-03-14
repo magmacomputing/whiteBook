@@ -1,6 +1,6 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
-import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
+import { SetAttend, DelAttend, TruncAttend, NewAttend } from '@dbase/state/state.action';
 
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
@@ -22,24 +22,25 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(SetAttend)
-	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
+	setStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
 		const state = getState() || {};
-		const payment = this.filterAttend(state, payload);
+		const attend = this.filterAttend(state, payload);	// remove the doc if it was previously created
 
-		payment.push(payload);										// push the changed AttendDoc into the Store
-		state[payload.payment] = payment;
+		attend.push(payload);															// push the changed AttendDoc into the Store
+		state[payload.payment] = attend;
 		if (debug) this.dbg('setAttend: %j', payload);
 		patchState({ ...state });
+		dispatch(new NewAttend(payload));									// tell any listener we have sync'd
 	}
 
 	@Action(DelAttend)
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
-		const payment = this.filterAttend(state, payload);
+		const attend = this.filterAttend(state, payload);
 
-		if (payment.length === 0)
+		if (attend.length === 0)
 			delete state[payload.payment]
-		else state[payload.payment] = payment;
+		else state[payload.payment] = attend;
 		if (debug) this.dbg('delAttend: %j', payload);
 		patchState({ ...state });
 	}

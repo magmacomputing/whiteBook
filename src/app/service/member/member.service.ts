@@ -12,7 +12,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass, ICalendar } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { DATE_FMT, getStamp, getDate, TDate } from '@lib/date.library';

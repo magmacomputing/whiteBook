@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { take, map } from 'rxjs/operators';
+import { Actions, ofActionDispatched } from '@ngxs/store';
 
 import { AuthService } from '@service/auth/auth.service';
 import { SnackService } from '@service/snack/snack.service';
@@ -10,7 +11,8 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar } from '@dbase/data/data.schema';
+import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
+import { NewAttend } from '@dbase/state/state.action';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -20,6 +22,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { fmtDate, DATE_FMT } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { asAt } from '@dbase/library/app.library';
+import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -59,7 +62,7 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService,
-		private snack: SnackService, private sync: SyncService, private service: MemberService) {
+		private snack: SnackService, private sync: SyncService, private service: MemberService, private actions: Actions) {
 		this.member = null;
 		this.admin$ = this.state.getAdminData()
 			.pipe(
@@ -147,24 +150,28 @@ export class MigAttendComponent implements OnInit {
 	async addAttend() {
 		(await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			.slice(0, 15)											// for testing: just the first few Attends
-			.forEach(async row => {
-				this.dbg('hist: %j', row);
-				const what = this.lookup[row.type] || row.type;
-				const dow = fmtDate(DATE_FMT.weekDay, row.date);
-				const where = [
-					addWhere(FIELD.key, what),
-					addWhere('day', dow),
-				]
-				const sched = asAt(this.schedule, where, row.date)[0];
-				const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+			.slice(0, 1)											// for testing: just the first few Attends
+			.forEach(async row => this.newAttend(row))
+	}
 
-				this.dbg('schedule: %j, %j, %j', sched, caldr);
-				if (!sched)
-					throw new Error('Cannot determine schedule: ' + JSON.stringify(where));
+	async newAttend(row: MHistory) {
+		this.dbg('hist: %j', row);
+		const what = this.lookup[row.type] || row.type;
+		const dow = fmtDate(DATE_FMT.weekDay, row.date);
+		const where = [
+			addWhere(FIELD.key, what),
+			addWhere('day', dow),
+		]
+		const sched = asAt(this.schedule, where, row.date)[0];
+		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 
-				await this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
-			})
+		this.dbg('schedule: %j, %j, %j', sched, caldr);
+		if (!sched)
+			throw new Error('Cannot determine schedule: ' + JSON.stringify(where));
+
+		const sub = this.actions.pipe(ofActionDispatched(NewAttend)).subscribe(itm => this.dbg('successfully wrote: %j', itm));
+		await this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
+		sub.unsubscribe();
 	}
 
 	async delPayment() {
@@ -182,10 +189,17 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async delAttend() {
-		const where = addWhere(FIELD.uid, this.member!.user.uid);
-		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.attend, { where });
+		const deletes = await this.data.getAll<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.member!.user.uid) });
+		const pays = deDup(...deletes.map(row => row.payment));
+		const payments = await this.data.getStore<IPayment>(STORE.payment, [
+			addWhere(FIELD.uid, this.member!.user.uid),
+			addWhere(FIELD.id, pays),											// get any Payment which is referenced by the Attend documents
+		])
+		const updates = payments.map(row => ({ ...row, [FIELD.expire]: Number.MIN_SAFE_INTEGER, [FIELD.effect]: Number.MIN_SAFE_INTEGER }));
 
-		return this.data.batch(undefined, undefined, deletes);
+		this.dbg('payments: %j', payments);
+		this.dbg('updates: %j', updates);
+		return this.data.batch(undefined, updates, deletes);
 	}
 
 	private async fetch(action: string, query: string) {

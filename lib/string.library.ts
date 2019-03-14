@@ -12,7 +12,7 @@ export const isNumeric = (str: any): str is number =>
 	!isNaN(parseFloat(str)) && isFinite(str);
 
 export const toNumeric = (str: string | number, stripZero: boolean = false) =>
-	isNumeric(str) && (str.toString().substring(0, 1) !== '0' || stripZero)
+	isNumeric(str) && (!str.toString().startsWith('0') || stripZero)
 		? parseInt(str.toString(), 10)
 		: str
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { DBaseModule } from '@dbase/dbase.module';
 import { DocumentReference } from '@angular/fire/firestore';
 
+import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
@@ -9,7 +9,10 @@ import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, ICustomClaims } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
+
+import { DBaseModule } from '@dbase/dbase.module';
 import { getSlice } from '@dbase/state/state.library';
+import { StateService } from '@dbase/state/state.service';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -32,7 +35,7 @@ import { dbg } from '@lib/logger.library';
 export class DataService {
 	private dbg = dbg(this);
 
-	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private snack: SnackService) {
+	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
 		this.sync.on(COLLECTION.client)
 			.then(res => this.dbg('init: %j', res));
@@ -47,6 +50,10 @@ export class DataService {
 			.toPromise()
 	}
 
+	getStore<T>(store: string, where: TWhere = []) {
+		return this.state.asPromise(this.state.getStore(store, where) as Observable<T[]>);
+	}
+
 	getMeta(store: string, docId: string) {
 		return store
 			? this.fire.callMeta(store, docId)										// get server to respond with document meta-data
@@ -54,13 +61,14 @@ export class DataService {
 	}
 
 	writeClaim(claim: ICustomClaims) {
-		return this.fire.writeClaim(claim);											// update some components on /register/{uid}/user/customClaims
+		return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
 	}
 
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
 	}
 
+	// TODO: if query contains array, split into multiple colRef's, then combineLatest()
 	async getAll<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
 		const snap = await this.fire.colRef<T>(collection, query)
 			.snapshotChanges()

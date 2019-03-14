@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-
 import { Observable, of, from } from 'rxjs';
 import { map, take, combineLatest } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
@@ -7,7 +6,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.action';
 import { TStateSlice, IAdminState, IAttendState, IPaymentState, } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, getStore, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
@@ -54,7 +53,11 @@ export class StateService {
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
 
-		return getStore<T & TStoreBase>(this.states, store, filters);
+		return getCurrent<T & TStoreBase>(this.states, store, filters);
+	}
+
+	getStore<T>(store: string, where?: TWhere) {
+		return getStore<T & TStoreBase>(this.states, store, where);
 	}
 
 	getSingle<T>(store: string, filter: TWhere) {

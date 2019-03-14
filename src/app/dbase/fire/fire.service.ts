@@ -1,4 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
+import * as firebase from 'firebase/app';
 import { tap, take } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference } from '@angular/fire/firestore';
@@ -50,12 +51,14 @@ export class FireService {
 		return this.afs.createId();
 	}
 
-	/** Remove the meta-fields and undefined fields from a document */
+	/** Remove the meta-fields,  undefined fields, low-values fields from a document */
 	private remMeta(doc: Partial<IStoreMeta>) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
 				delete rest[key];										// TODO: recurse?
+			if (value === Number.MIN_SAFE_INTEGER)
+				rest[key] = firebase.firestore.FieldValue.delete();
 		})
 		return rest;
 	}
