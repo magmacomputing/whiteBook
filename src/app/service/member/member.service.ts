@@ -8,12 +8,11 @@ import { StateService } from '@dbase/state/state.service';
 import { MemberInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
 
-import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
 import { getMemberInfo, lkpDate } from '@service/member/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass, ICalendar } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { DATE_FMT, getStamp, getDate, TDate } from '@lib/date.library';
@@ -62,17 +61,31 @@ export class MemberService {
 	/**
 	 * get (or set a new) active Payment  
    * Determine if a new payment is due.  
-   * -> if the price of the intended class is greater than their current funds  
-   * -> if they've exceeded 99 Attends against a Payment  
+   * -> if the price of the class is greater than their current funds  
+   * -> if they've exceeded 99 Attends against the active Payment  
    * -> if their intro-pass has expired (auto bump them to 'member' plan)  
   */
 	async getPayment(price: number, uid?: string) {
 		const data = await this.getAccount(uid);
 		const summary = await this.getAmount(data);
 
-		return (price > summary.funds)									// if price of the Class > unused funds
-			? data.account.payment[1] || this.setPayment()// activate next pre-payment, or generate a new payment
-			: data.account.payment[0]											// else return the current Payment doc
+		debugger;
+		switch (true) {
+			// more than 99-attendances against the activePayment
+			case data.account.attend.length > 99:
+				return data.account.payment[1] || this.setPayment();
+
+			// new account not-yet-activated
+			case data.account.payment[0] && !data.account.payment[0][FIELD.effect]:
+				return data.account.payment[0];
+
+			// time for a new activePayment
+			case price > summary.funds:
+				return data.account.payment[1] || this.setPayment();
+
+			default:
+				return data.account.payment[0] || this.setPayment();
+		}
 	}
 
 	/**
@@ -94,7 +107,7 @@ export class MemberService {
 		const when = base.format(DATE_FMT.yearMonthDay);
 
 		// check we are not re-booking same Class on same Day
-		const attendFilter: TWhere = [
+		const attendFilter = [
 			addWhere(FIELD.type, schedule[FIELD.key]),
 			addWhere(FIELD.uid, data.auth.user!.uid),
 			addWhere(FIELD.note, note),
@@ -124,13 +137,13 @@ export class MemberService {
 
 			// Next pre-payment is to become Active, rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
-				updates.push(({ [FIELD.expire]: stamp, ...payments[0] }));
+				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...payments[1] });
 				break;
 
 			// New payment to become Active, rollever unused Funds
 			default:
-				updates.push(({ [FIELD.expire]: stamp, ...payments[0] }));
+				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...activePay });
 				break;
 		}

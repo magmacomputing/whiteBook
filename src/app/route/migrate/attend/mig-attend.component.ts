@@ -10,13 +10,14 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, TStoreBase, ISchedule } from '@dbase/data/data.schema';
+import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar } from '@dbase/data/data.schema';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { IQuery, TWhere } from '@dbase/fire/fire.interface';
+import { addWhere } from '@dbase/fire/fire.library';
+import { IQuery } from '@dbase/fire/fire.interface';
 
-import { TDate, fmtDate, DATE_FMT } from '@lib/date.library';
+import { fmtDate, DATE_FMT } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { asAt } from '@dbase/library/app.library';
 import { dbg } from '@lib/logger.library';
@@ -35,6 +36,8 @@ export class MigAttendComponent implements OnInit {
 	private history!: Promise<MHistory[]>;
 	private member: IRegister | null;
 	private schedule!: ISchedule[];
+	private calendar!: ICalendar[];
+	private events!: IEvent[];
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
@@ -53,7 +56,6 @@ export class MigAttendComponent implements OnInit {
 		prevZumba: 'Zumba',
 		prevZumbaStep: 'ZumbaStep',
 		prevStepIn: 'StepIn',
-		"Holiday*1": 'MultiStep',
 	}
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService,
@@ -66,9 +68,12 @@ export class MigAttendComponent implements OnInit {
 				map(reg => reg.sort(sortKeys(FIELD.uid))),
 			)
 
-		const where: TWhere = { fieldPath: FIELD.store, value: STORE.schedule };
-		this.data.getAll<ISchedule>(COLLECTION.client, { where })
+		this.data.getAll<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
 			.then(schedule => this.schedule = schedule);
+		this.data.getAll<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) })
+			.then(calendar => this.calendar = calendar);
+		this.data.getAll<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
+			.then(events => this.events = events);
 	}
 
 	ngOnInit() { }
@@ -99,13 +104,6 @@ export class MigAttendComponent implements OnInit {
 		this.member = null;
 		this.sync.on(COLLECTION.attend, query);									// restore current User's state
 		this.sync.on(COLLECTION.member, query);
-	}
-
-	/** get Members data (plan, price, etc), as at supplied date */
-	private getAccount(date: TDate) {
-		return this.state.getAccountData(this.member!.uid, date)
-			.pipe(take(1))
-			.toPromise()
 	}
 
 	async addPayment() {
@@ -144,61 +142,47 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	/**
-	 * 1. 	filter != 'Debit'
-	 * 2.		sort(stamp)
-	 * 		forEach =>
-	 * 3.		convert event into a standard (eg.  'OldStep' -> 'Step')
-	 * 4.		determine price should have been charged asAt date
-	 * 5.		if !== hist.amount, abort   and log
-	 * 6.		determine active Payment
-	 * 7.		determine price paid for active Payment   (amount + bank)
-	 * 8.		determine if price-to-pay will exceed price-paid - sum(active.attends)
-	 * 		if so, expire active Payment, determine next Payment and rollover unused active-credit to bank
-	 * 9. 	if no effect date, set hist.stamp on activePayment
-	 * 10.	build Attend
-	 * 11.	batch Attends?   (if so, how will rolling credit be calc'd ?)
+	 * Add Attendance records for a Member
 	 */
 	async addAttend() {
-		const hist = await this.history;								// a sorted-list of Attendance check-ins / account payments
-
-		hist.length = Math.min(hist.length, 15);				// gimme only the first 10-attendances
-		// hist.length = 0;
-
-		hist
+		(await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			.map(row => {
+			.slice(0, 15)											// for testing: just the first few Attends
+			.map(async row => {
 				this.dbg('hist: %j', row);
-				const event = this.lookup[row.type] || row.type;
+				const what = this.lookup[row.type] || row.type;
 				const dow = fmtDate(DATE_FMT.weekDay, row.date);
-				const where: TWhere = [
-					{ fieldPath: FIELD.key, value: event },
-					{ fieldPath: 'day', value: dow },
+				const where = [
+					addWhere(FIELD.key, what),
+					addWhere('day', dow),
 				]
 				const sched = asAt(this.schedule, where, row.date)[0];
-				this.dbg('schedule: %j', sched);
+				const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+
+				this.dbg('schedule: %j, %j, %j', sched, caldr);
 				if (!sched)
 					throw new Error('Cannot determine schedule: ' + JSON.stringify(where));
 
-				this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
+				await this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
 			})
 	}
 
 	async delPayment() {
-		const where: TWhere = [
-			{ fieldPath: FIELD.store, value: STORE.payment },
-			{ fieldPath: FIELD.uid, value: this.member!.user.uid },
+		const where = [
+			addWhere(FIELD.store, STORE.payment),
+			addWhere(FIELD.uid, this.member!.user.uid),
 		]
 		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.member, { where });
 
 		where.length = 0;													// truncate where-clause
-		where.push({ fieldPath: FIELD.uid, value: this.member!.user.uid });
+		where.push(addWhere(FIELD.uid, this.member!.user.uid));
 		deletes.push(...await this.data.getAll<TStoreBase>(COLLECTION.attend, { where }));
 
 		return this.data.batch(undefined, undefined, deletes)
 	}
 
 	async delAttend() {
-		const where: TWhere = [{ fieldPath: FIELD.uid, value: this.member!.user.uid }];
+		const where = addWhere(FIELD.uid, this.member!.user.uid);
 		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.attend, { where });
 
 		return this.data.batch(undefined, undefined, deletes);

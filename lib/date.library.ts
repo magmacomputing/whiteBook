@@ -36,7 +36,7 @@ export enum DATE_FMT {
 
 export type TDate = string | number | Date;
 type TMutate = 'add' | 'start' | 'end';
-type TUnitTime = 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
+type TUnitTime = 'month' | 'months' | 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
 type TUnitOffset = 'week' | 'month';
 type TUnitDiff = 'years' | 'months' | 'days';
 
@@ -51,7 +51,7 @@ const divideBy = {													// approx date-offset divisors (unix-timestamp pr
 	minutes: 60,
 	seconds: 1,
 }
-// max Unix Timestamp
+// High-date / Low-Dates
 const maxTS = new Date('9999-12-31').valueOf() / 1000;
 const minTS = new Date('1000-01-01').valueOf() / 1000;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -142,6 +142,10 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 		case 'end.month':
 			date.mm += 1;
 			date.dd = 0;
+			break;
+		case 'add.month':
+		case 'add.months':
+			date.mm += offset!;
 			break;
 		case 'add.day':
 		case 'add.days':

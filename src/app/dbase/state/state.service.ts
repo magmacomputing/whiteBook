@@ -49,7 +49,7 @@ export class StateService {
 	}
 
 	/** Fetch the current, useable values for a supplied store */
-	getCurrent<T>(store: string, where?:TWhere) {
+	getCurrent<T>(store: string, where?: TWhere) {
 		const filters = asArray(where);
 		filters.push({ fieldPath: FIELD.expire, value: 0 });
 		filters.push({ fieldPath: FIELD.hidden, value: false });
