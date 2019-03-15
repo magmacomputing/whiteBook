@@ -171,7 +171,7 @@ const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 			return `${fix(date.HH)}:${fix(date.MI)}`;
 
 		case DATE_FMT.yearMonthDay:
-			return `${date.yy}${fix(date.mm)}${fix(date.dd)}`;
+			return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 		case DATE_FMT.weekDay:
 			return date.ww;

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { Observable, timer } from 'rxjs';
+import { take, map, debounce } from 'rxjs/operators';
 import { Actions, ofActionDispatched } from '@ngxs/store';
 
 import { AuthService } from '@service/auth/auth.service';
@@ -148,13 +148,13 @@ export class MigAttendComponent implements OnInit {
 	 * Add Attendance records for a Member
 	 */
 	async addAttend() {
-		(await this.history)								// a sorted-list of Attendance check-ins / account payments
+		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			.slice(0, 1)											// for testing: just the first few Attends
-			.forEach(async row => this.newAttend(row))
+			.slice(0, 15)																		// for testing: just the first few Attends
+		this.newAttend(table[0], ...table.slice(1));
 	}
 
-	async newAttend(row: MHistory) {
+	newAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
 		const what = this.lookup[row.type] || row.type;
 		const dow = fmtDate(DATE_FMT.weekDay, row.date);
@@ -165,13 +165,21 @@ export class MigAttendComponent implements OnInit {
 		const sched = asAt(this.schedule, where, row.date)[0];
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 
-		this.dbg('schedule: %j, %j, %j', sched, caldr);
+		this.dbg('schedule: %j, %j', sched, caldr);
 		if (!sched)
 			throw new Error('Cannot determine schedule: ' + JSON.stringify(where));
 
-		const sub = this.actions.pipe(ofActionDispatched(NewAttend)).subscribe(itm => this.dbg('successfully wrote: %j', itm));
-		await this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
-		sub.unsubscribe();
+		const sub = this.actions.pipe(
+			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get correct account-details
+			debounce(_ => timer(500)),									// wait to have State settle
+		)																							// wait for new Attend to sync into State
+			.subscribe(row => {
+				this.dbg('sync: %j', row);
+				sub.unsubscribe();
+				if (rest.length)
+					this.newAttend(rest[0], ...rest.slice(1));
+			});
+		this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
 	}
 
 	async delPayment() {
