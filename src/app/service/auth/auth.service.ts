@@ -3,7 +3,7 @@ import { map, switchMap, take, tap } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
-import { LoginIdentity, Logout, LoginEmail, LoginToken, AuthInfo } from '@dbase/state/auth.action';
+import { LoginIdentity, Logout, LoginEmail, LoginToken, AuthInfo, LoginAnon } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
@@ -127,11 +127,15 @@ export class AuthService {
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password));
 	}
+	
+	private signInAnon(provider: IProvider) { 
+		return this.store.dispatch(new LoginAnon());
+	}
 
 	private signInOIDC(provider: IProvider) { }
 	private signInPhone(provider: IProvider) { }
 	private signInPlay(provider: IProvider) { }
-	private signInAnon(provider: IProvider) { }
+
 
 	/** This allows us to logout current Member, and signOn as another */
 	public impersonate(uid: string) {

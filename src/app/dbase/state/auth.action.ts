@@ -36,6 +36,9 @@ export class LoginEmail {
 		public method: 'signIn' | 'createUser' = 'signIn',
 		public credential?: any) { }
 }
+export class LoginAnon {
+	static type = '[Auth] LoginAnon';
+}
 export class LoginLink {
 	static type = '[Auth] LoginLink';
 	constructor(public link: string, public credential?: any) { }

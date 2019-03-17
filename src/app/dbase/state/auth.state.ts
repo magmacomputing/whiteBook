@@ -4,7 +4,7 @@ import { AngularFireAuth } from '@angular/fire/auth';
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
-	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo
+	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo, LoginAnon
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
@@ -153,6 +153,13 @@ export class AuthState implements NgxsOnInit {
 		} catch (error) {
 			return ctx.dispatch(new LoginFailed(error));
 		}
+	}
+
+	/** Attempt to sign in a User anonymously */
+	@Action(LoginAnon)
+	LoginAnon(ctx: StateContext<IAuthState>) {
+		return this.afAuth.auth.signInAnonymously()
+			.catch(error => ctx.dispatch(new LoginFailed(error)));
 	}
 
 	/** Attempt to sign in a User via a link sent to their emailAddress */
