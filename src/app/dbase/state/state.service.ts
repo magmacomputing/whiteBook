@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, from } from 'rxjs';
-import { map, take, combineLatest } from 'rxjs/operators';
+import { map, take, combineLatest, filter } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
@@ -118,30 +118,35 @@ export class StateService {
 	/**
 	 * Watch for changes on the Member's Attendance
 	 */
-	getAttendData(uid?: string): Observable<IAttendState> {
+	getAttendData(uid?: string) {
 		const filterAttend = [
 			addWhere(FIELD.store, STORE.attend),
 			addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),
 		];
 
 		return this.attend$.pipe(
-			joinDoc(this.states, 'member.attend', STORE.attend, filterAttend),
+			map(source => {
+				let target: TStateSlice<IStoreMeta> = {};
+				for (const key in source)
+					target[key] = source[key].filter(row => row[FIELD.uid] === uid)
+				return target;
+			})
 		)
 	}
 
-	/**
-	 * Watch for changes on the Member's Payments
-	 */
-	getPaymentData(uid?: string): Observable<IPaymentState> {
-		const filterPayment = [
-			addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),
-			addWhere(FIELD.store, STORE.payment),
-		]
+	// /**
+	//  * Watch for changes on the Member's Payments
+	//  */
+	// getPaymentData(uid?: string): Observable<IPaymentState> {
+	// 	const filterPayment = [
+	// 		addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),
+	// 		addWhere(FIELD.store, STORE.payment),
+	// 	]
 
-		return this.member$.pipe(
-			joinDoc(this.states, 'member.payment', STORE.payment, filterPayment),
-		)
-	}
+	// 	return this.member$.pipe(
+	// 		joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
+	// 	)
+	// }
 
 	/**
 	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
@@ -159,7 +164,7 @@ export class StateService {
 			addWhere(FIELD.type, ['plan', 'info', 'pref']),   // where the <type> is either 'plan', 'info', or 'pref'
 			addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),  // and the <uid> is provided or the getAuthData()'s 'auth.user.uid'
 		]
-		const filterPrice = addWhere(FIELD.key, '{{member.plan[0].plan');
+		const filterPrice = addWhere(FIELD.key, '{{member.plan[0].plan}}');
 		const filterMessage = addWhere(FIELD.type, 'alert');
 
 		return this.getAuthData(uid).pipe(
@@ -193,12 +198,19 @@ export class StateService {
 		const filterPayment = addWhere(FIELD.uid, uid || '{{auth.user.uid}}');
 		const filterAttend = addWhere('payment', `{{account.payment[0].${FIELD.id}}}`);
 
-		return this.getMemberData(date, uid).pipe(												// watch for /member changes
-			combineLatest(this.getAttendData(uid)),													// make sure we watch for /attend changes too
-			map(([MemberState, _AttendState]) => MemberState),							// forward only the MemberState
+		return this.getAttendData(uid).pipe(
+			combineLatest(this.getMemberData(date, uid)),
+			map(([_AttendState, MemberState]) => MemberState),
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)
+
+		// return this.getMemberData(date, uid).pipe(												// watch for /member changes
+		// 	combineLatest(this.getAttendData(uid)),													// make sure we watch for /attend changes too
+		// 	map(([MemberState, _AttendState]) => MemberState),							// forward only the MemberState
+		// 	joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
+		// 	joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
+		// )
 	}
 
 	//TODO: apply bonus-pricing to client.schedule

@@ -36,15 +36,15 @@ export const getCurrent = <T extends IStoreMeta>(states: IState, store: string, 
 /**
  * Get all documents by filter, do not exclude _expire
  */
-export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate , index?: string) => {
+export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
-	
+
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		tap(state => console.log('state: %j', state)),
+		// tap(state => console.log('state: ', state)),
 		map(state => filterTable<T>(state[index || store], filter))
 	)
 }
@@ -57,7 +57,7 @@ export const getSlice = (store: string) => {    // determine the state-slice bas
 		slices.push(SLICE.client);									// special: assume 'client' slice.
 	if (!SORTBY[store])
 		SORTBY[store] = ['sort', 'key'];						// special: assume sort order
-	
+
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
 
@@ -65,6 +65,7 @@ export const getSlice = (store: string) => {    // determine the state-slice bas
 }
 
 export const getDefault = (state: IMemberState, type: string) => {
+	// console.log('default: ', type, state);
 	const table = (state['default'][STORE.default])
 		.filter(row => row[FIELD.type] === type);       // find the default value for the requested type
 	return table.length && table[0][FIELD.key] || undefined;
@@ -156,7 +157,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 					if (isArray(lookup))
 						lookup = lookup.flat();													// flatten array of arrays																				
 				}
-				
+
 				return lookup;                              				// rebuild filter's <value>
 			}))
 

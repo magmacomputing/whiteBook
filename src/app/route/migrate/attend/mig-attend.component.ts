@@ -4,14 +4,13 @@ import { Observable, timer } from 'rxjs';
 import { take, map, debounce } from 'rxjs/operators';
 import { Actions, ofActionDispatched } from '@ngxs/store';
 
-import { AuthService } from '@service/auth/auth.service';
-import { SnackService } from '@service/snack/snack.service';
 import { MemberService } from '@service/member/member.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
+import { asAt } from '@dbase/library/app.library';
 import { NewAttend } from '@dbase/state/state.action';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
@@ -19,9 +18,8 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { fmtDate, DATE_FMT } from '@lib/date.library';
+import { fmtDate, DATE_FMT, getDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
-import { asAt } from '@dbase/library/app.library';
 import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -60,9 +58,10 @@ export class MigAttendComponent implements OnInit {
 		prevZumbaStep: 'ZumbaStep',
 		prevStepIn: 'StepIn',
 	}
+	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService, private auth: AuthService,
-		private snack: SnackService, private sync: SyncService, private service: MemberService, private actions: Actions) {
+	constructor(private http: HttpClient, private data: DataService, private state: StateService,
+		private sync: SyncService, private service: MemberService, private actions: Actions) {
 		this.member = null;
 		this.admin$ = this.state.getAdminData()
 			.pipe(
@@ -129,7 +128,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.uid]: this.member!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
-					bank: row.bank,
+					// bank: row.bank,															// bank will be auto-calculated
 				} as IPayment
 
 				if (row.note)
@@ -151,6 +150,24 @@ export class MigAttendComponent implements OnInit {
 		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.slice(0, 15)																		// for testing: just the first few Attends
+
+		table.length = 0;
+		table.push({
+			"stamp": 1411469381,
+			"date": 20130329,
+			"type": "Routine*2 Classes",
+			"title": "<span style=\"color:#5b2012;\">Routine*2 Classes</span>",
+			"debit": "-20.00",
+			"funds": 150
+		});
+		table.push({
+			"stamp": 1545296400,
+			"date": 20181220,
+			"type": "AeroStep",
+			"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
+			"debit": "-10.00",
+			"funds": 170
+		});
 		this.newAttend(table[0], ...table.slice(1));
 	}
 
@@ -162,12 +179,32 @@ export class MigAttendComponent implements OnInit {
 			addWhere(FIELD.key, what),
 			addWhere('day', dow),
 		]
-		const sched = asAt(this.schedule, where, row.date)[0];
-		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 
-		this.dbg('schedule: %j, %j', sched, caldr);
-		if (!sched)
-			throw new Error('Cannot determine schedule: ' + JSON.stringify(where));
+		const [prefix, suffix, ...none] = what.split('*');
+		let sched: ISchedule;
+		if (this.special.includes(prefix)) {					// dummy-up a Schedule
+			const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+			const event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+			const cnt = parseInt(suffix.split(' ')[0], 10);
+
+			if (!caldr)
+				throw new Error(`Cannot determine calendar: ${row.date}`);
+
+			sched = {
+				[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[cnt < 0 ? Math.abs(cnt) : 0],
+				day: getDate(caldr.key).ww, start: caldr.start || '09:00', location: caldr.location, instructor: caldr.instructor
+			};
+
+			for (let nbr = 1; nbr < cnt; nbr++) {				// stack additional attends
+				row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount
+				rest.splice(0, 0, row);
+				this.dbg('splice: %j', rest);
+			}
+		} else {
+			sched = asAt(this.schedule, where, row.date)[0];
+			if (!sched)
+				throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
+		}
 
 		const sub = this.actions.pipe(
 			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get correct account-details
@@ -179,7 +216,7 @@ export class MigAttendComponent implements OnInit {
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1));
 			});
-		this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
+		return this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
 	}
 
 	async delPayment() {

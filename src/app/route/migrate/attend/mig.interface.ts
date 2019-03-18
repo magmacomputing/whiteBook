@@ -19,6 +19,6 @@ export interface MHistory {
 	debit?: string;
 	credit?: string;
 	note?: string;
-	bank?: number;
+	funds?: number;
 	approved?: number;
 }

@@ -129,7 +129,7 @@ export class MemberService {
 
 		switch (true) {
 			// Current payment is still Active
-			case payments[0][FIELD.id] === activePay[FIELD.id]:
+			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
 					updates.push({ [FIELD.effect]: stamp, ...payments[0] });
 				break;
@@ -150,7 +150,7 @@ export class MemberService {
 		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
-			[FIELD.type]: 'class',												// TODO: work out whether 'class' or 'event'
+			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
 			[FIELD.uid]: data.auth.user!.uid,							// the current User
 			[FIELD.stamp]: stamp,													// createDate

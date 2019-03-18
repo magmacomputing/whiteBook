@@ -19,7 +19,6 @@ type TCalendar = 'event' | 'special'
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
-export type TAttend = 'class' | 'event';
 
 //	/admin/register
 type TRole = 'admin' | 'member' | 'guest';
@@ -347,7 +346,7 @@ export interface IBonus extends IMemberBase {
 // /attend
 export interface IAttend extends IAttendBase {
 	[FIELD.store]: STORE.attend;
-	[FIELD.type]: TAttend;
+	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass;
 	[FIELD.stamp]: number;						// the timestamp of the check-in
 	payment: string;									// the /member/payment _id
