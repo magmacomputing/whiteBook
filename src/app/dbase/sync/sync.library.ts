@@ -5,7 +5,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
-import { SLICE } from '@dbase/state/state.define';
+import { SLICE, LState } from '@dbase/state/state.define';
 import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
@@ -27,7 +27,7 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	const localState = getLocalStore(StoreStorage) as any;
+	const localState = getLocalStore<LState>(StoreStorage) || {};
 	const localSlice = localState[listen.slice] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);

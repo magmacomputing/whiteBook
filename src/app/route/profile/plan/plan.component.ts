@@ -19,10 +19,9 @@ export class PlanComponent implements OnInit {
 	public data$!: Observable<IPlanState>;
 	private dbg = dbg(this);
 
-	constructor(private readonly member: MemberService, private readonly state: StateService, private readonly track: TrackService) { }
+	constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
 	ngOnInit() {
-		this.track.write('init');
 		this.data$ = this.state.getPlanData().pipe(
 			map(source => {
 				source.client.plan = source.client.plan.filter(row => !row[FIELD.hidden])

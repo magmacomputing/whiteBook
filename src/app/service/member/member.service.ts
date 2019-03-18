@@ -88,7 +88,8 @@ export class MemberService {
 	}
 
 	/**
-	 * Insert an Attendance record, aligned to an <active> Account payment
+	 * Insert an Attendance record, matched to an <active> Account Payment,  
+	 * else create new Payment as well
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number, uid?: string) {
 		const data = await this.getAccount(uid, date);	// get Member's current account details
@@ -112,7 +113,6 @@ export class MemberService {
 			addWhere(FIELD.note, note),
 			addWhere('date', when),
 		]
-
 		const booked = await this.data.getAll<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error('Already attended this class');
