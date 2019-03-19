@@ -32,16 +32,21 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 }
 
 /** sort Object by multiple keys */
-export const sortKeys = (...keys: any[]): any => (a: any, b: any) => {
-	const key = keys[0];														// take out the first key
+export const sortKeys = (...keys: string[]): any => (a: any, b: any) => {
+	const desc = keys.length ? (keys[0].startsWith('-')) : false;
+	const key = desc ? keys[0].substring(1) : keys[0];// take out the first key
+
 	switch (true) {
 		case keys.length === 0:
 			return 0;
+	
 		// case a[key] < b[key]:
-		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)):
+		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && !desc:
+		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && desc:
 			return -1;
 		// case a[key] > b[key]:
-		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)):
+		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && desc:
+		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && !desc:
 			return 1;
 		default:
 			return sortKeys(...keys.slice(1))(a, b);		// recurse into keys
