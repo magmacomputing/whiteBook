@@ -1,10 +1,11 @@
 import * as firebase from 'firebase/app';
+import { filter } from 'rxjs/operators';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
-	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo, LoginAnon, AuthMimic
+	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo, LoginAnon, AuthOther
 } from '@dbase/state/auth.action';
 import { SLICE } from '@dbase/state/state.define';
 
@@ -16,23 +17,21 @@ import { NavigateService } from '@route/navigate.service';
 
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { IRegister } from '@dbase/data/data.schema';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { addWhere } from '@dbase/fire/fire.library';
-import { IRegister } from '@dbase/data/data.schema';
-import { filter, map } from 'rxjs/operators';
 
 @State<IAuthState>({
 	name: SLICE.auth,
 	defaults: {
-		user: null,
-		token: null,
-		info: null,
-		credential: null,
-		mimic: null,
+		user: null,																			// firebase.User object
+		token: null,																		// oauth token
+		info: null,																			// Provider additionalInfo
+		credential: null,																// authenticated user's credential
+		effective: null,																// the effective User (used in 'impersonate' mode)
 	}
 })
 export class AuthState implements NgxsOnInit {
@@ -213,15 +212,15 @@ export class AuthState implements NgxsOnInit {
 		ctx.patchState(info);
 	}
 
-	@Action(AuthMimic)															// mimic another User
-	mimicMember(ctx: StateContext<IAuthState>, { uid }: AuthMimic) {
+	@Action(AuthOther)															// mimic another User
+	otherMember(ctx: StateContext<IAuthState>, { uid }: AuthOther) {
 		const state = ctx.getState();
-		if (state.mimic && state.mimic.uid === uid)
+		if (state.effective && state.effective.uid === uid)
 			return;																			// nothing to do
 
 		this.store.selectOnce(state => state.admin)
 			.pipe(filter(table => table[FIELD.store] === STORE.register && table[FIELD.uid] === uid))
-			.subscribe((reg: IRegister[]) => ctx.patchState({ mimic: reg[0].user }))
+			.subscribe((reg: IRegister[]) => ctx.patchState({ effective: reg[0].user }))
 	}
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
@@ -266,7 +265,7 @@ export class AuthState implements NgxsOnInit {
 				return ctx.dispatch(new LoginCredential(error));
 		}
 
-		ctx.setState({ user: null, token: null, info: null, credential: null, mimic: null, });
+		ctx.setState({ user: null, token: null, info: null, credential: null, effective: null, });
 		this.navigate.route(ROUTE.login);
 	}
 }

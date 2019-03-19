@@ -7,7 +7,7 @@ export interface IAuthState {
 	token: firebase.auth.IdTokenResult | null;
 	info: firebase.auth.AdditionalUserInfo | null;				// additionalUserInfo from provider
 	credential?: firebase.auth.AuthCredential | null;
-	mimic?: firebase.UserInfo | null;											// impersonate-mode
+	effective?: firebase.UserInfo | null;									// effective UserId
 }
 
 // Actions
@@ -74,8 +74,8 @@ export class AuthInfo {													// fetch AdditionalUserInfo into auth state
 export class AuthToken {
 	static type = '[Auth] AuthToken';
 }
-export class AuthMimic {												// Event to request impersonate another Member
-	static type = '[Auth] AuthMimic';
+export class AuthOther {												// Event to request impersonate another Member
+	static type = '[Auth] AuthOther';
 	constructor(public uid: string) { }
 }
 export class LoginFailed {
