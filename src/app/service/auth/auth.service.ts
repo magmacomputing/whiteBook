@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { map, switchMap, take, tap } from 'rxjs/operators';
+import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
@@ -9,6 +9,7 @@ import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
+import { addWhere } from '@dbase/fire/fire.library';
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, LOCAL } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
@@ -98,7 +99,7 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const config = await this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: 'oauth' }) || {};
+		const config = await this.state.getSingle<IConfig>(LOCAL.config, addWhere(FIELD.key, 'oauth')) || {};
 		const oauth = config.value;
 
 		this.open = window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
@@ -127,8 +128,8 @@ export class AuthService {
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password));
 	}
-	
-	private signInAnon(provider: IProvider) { 
+
+	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon());
 	}
 

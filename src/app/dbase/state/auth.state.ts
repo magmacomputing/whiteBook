@@ -18,6 +18,7 @@ import { NavigateService } from '@route/navigate.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister } from '@dbase/data/data.schema';
+import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
@@ -197,7 +198,7 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		const query: IQuery = { where: { fieldPath: FIELD.uid, value: user.uid } };
+		const query: IQuery = { where: [addWhere(FIELD.uid, user.uid)] };
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, query);
@@ -218,7 +219,7 @@ export class AuthState implements NgxsOnInit {
 		if (state.effective && state.effective.uid === uid)
 			return;																			// nothing to do
 
-		this.store.selectOnce(state => state.admin)
+		this.store.selectOnce(state => state[SLICE.admin])
 			.pipe(filter(table => table[FIELD.store] === STORE.register && table[FIELD.uid] === uid))
 			.subscribe((reg: IRegister[]) => ctx.patchState({ effective: reg[0].user }))
 	}
@@ -228,7 +229,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => {
-					ctx.patchState({ user, token });
+					ctx.patchState({ user, token, effective: user });
 					if (token.claims.claims && token.claims.claims.roles && token.claims.claims.roles.includes('admin'))
 						this.sync.on(COLLECTION.admin)
 				})

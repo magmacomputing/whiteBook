@@ -1,14 +1,12 @@
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
-import { AppStorage } from '@dbase/sync/sync.define';
 
 import { getStamp, TDate } from '@lib/date.library';
-import { isString, isUndefined, isArray, isNull } from '@lib/type.library';
+import { isString, isUndefined, isArray } from '@lib/type.library';
 import { IObject, cloneObj } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { toLower } from '@lib/string.library';
-import { getLocalStore, setLocalStore } from '@lib/window.library';
 
 /**
  * apply Firestore-like filters to an Array.  

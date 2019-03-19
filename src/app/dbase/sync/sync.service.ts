@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
-import { buildDoc, checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
+import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 import { IListen } from '@dbase/sync/sync.define';
-import { AuthToken } from '@dbase/state/auth.action';
-import { getSlice } from '@dbase/state/state.library';
+import { SLICE } from '@dbase/state/state.define';
+import { AuthToken, IAuthState } from '@dbase/state/auth.action';
 
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -25,8 +26,15 @@ import { dbg } from '@lib/logger.library';
 export class SyncService {
 	private dbg = dbg(this);
 	private listener: IObject<IListen> = {};
+	private uid: Promise<string | null>;
 
-	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) { this.dbg('new'); }
+	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) {
+		this.dbg('new');
+		this.uid = this.store
+			.selectOnce<IAuthState>(state => state[SLICE.auth])
+			.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
+			.toPromise();
+	}
 
 	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
@@ -100,12 +108,13 @@ export class SyncService {
 
 		snaps.forEach(async snap => {
 			const data = addMeta(snap);
+			const check = listen.cnt !== 0 && data[FIELD.uid] === this.uid;
 
 			switch (snap.type) {
 				case 'added':
 				case 'modified':
 					this.store.dispatch(new setStore(data, debug));
-					if (listen.cnt !== 0) {
+					if (check) {
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
 							this.store.dispatch(new AuthToken());   // special: access-level has changed
 
@@ -116,7 +125,7 @@ export class SyncService {
 
 				case 'removed':
 					this.store.dispatch(new delStore(data, debug));
-					if (listen.cnt !== 0) {
+					if (check) {
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 							this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
 					}

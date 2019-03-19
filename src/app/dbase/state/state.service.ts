@@ -50,8 +50,8 @@ export class StateService {
 	/** Fetch the current, useable values for a supplied store */
 	getCurrent<T>(store: string, where?: TWhere) {
 		const filters = asArray(where);
-		filters.push({ fieldPath: FIELD.expire, value: 0 });
-		filters.push({ fieldPath: FIELD.hidden, value: false });
+		filters.push(addWhere(FIELD.expire,  0 ));
+		filters.push(addWhere(FIELD.hidden,  false ));
 
 		return getCurrent<T & TStoreBase>(this.states, store, filters);
 	}
@@ -78,28 +78,7 @@ export class StateService {
 	/**
 	* Assemble a UserState Object describing an authenticated User
 	*/
-	getAuthData(uid?: string): Observable<IUserState> {
-		if (uid) {
-			const where = [
-				addWhere(FIELD.store, STORE.register),
-				addWhere(FIELD.uid, uid),
-			];
-			const reg: Promise<IRegister[]> = this.fire.getAll(COLLECTION.admin, { where })
-			const userInfo: IAuthState = {
-				user: null,
-				token: null,
-				info: null,
-				credential: null,
-			}
-
-			return from(reg
-				.then(users => {
-					userInfo.user = users[0].user;
-					return { auth: userInfo }
-				})
-			)
-		}
-
+	getAuthData(): Observable<IUserState> {
 		return this.auth$.pipe(
 			map(auth => ({ auth: cloneObj(auth) })),
 		)
@@ -167,7 +146,7 @@ export class StateService {
 		const filterPrice = addWhere(FIELD.key, '{{member.plan[0].plan}}');
 		const filterMessage = addWhere(FIELD.type, 'alert');
 
-		return this.getAuthData(uid).pipe(
+		return this.getAuthData().pipe(
 			joinDoc(this.states, 'default', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
@@ -228,7 +207,7 @@ export class StateService {
 	getScheduleData(date?: TDate, uid?: string) {
 		const base = getDate(date);
 		const filterSchedule = addWhere('day', base.format(DATE_FMT.weekDay));
-		const filterCalendar = addWhere(FIELD.key, base.format(DATE_FMT.yearMonthDay));//{ fieldPath: FIELD.key, value: base.format(DATE_FMT.yearMonthDay) };
+		const filterCalendar = addWhere(FIELD.key, base.format(DATE_FMT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);

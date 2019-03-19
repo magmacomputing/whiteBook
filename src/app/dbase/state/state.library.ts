@@ -14,6 +14,7 @@ import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
 import { DATE_FMT, getDate, TDate, fmtDate } from '@lib/date.library';
+import { addWhere } from '@dbase/fire/fire.library';
 
 /**
  * Generic Slice Observable  
@@ -215,14 +216,14 @@ export const calendarDay = (source: ITimetableState) => {
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
 	const isAdmin = roles && roles.includes('admin');
-	const myPlan = firstRow<IProfilePlan>(source.member.plan, { fieldPath: FIELD.type, value: 'plan' });
-	const myTopUp = firstRow<IPrice>(source.member.price, { fieldPath: FIELD.type, value: 'topUp' });
+	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, 'plan'));
+	const myTopUp = firstRow<IPrice>(source.member.price, addWhere(FIELD.type, 'topUp'));
 	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<IPrice>(source.client.price, [
-			{ fieldPath: FIELD.key, value: plan[FIELD.key] },
-			{ fieldPath: FIELD.type, value: 'topUp' },
+			addWhere(FIELD.key, plan[FIELD.key]),
+			addWhere(FIELD.type, 'topUp'),
 		])
 
 		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
@@ -263,8 +264,8 @@ export const buildTimetable = (source: ITimetableState) => {
 		price: prices = [],
 	} = source.member;														// the prices as per member's plan
 
-	const icon = firstRow<IDefault>(source.default[STORE.default], { fieldPath: FIELD.type, value: 'icon' });
-	const locn = firstRow<IDefault>(source.default[STORE.default], { fieldPath: FIELD.type, value: 'location' });
+	const icon = firstRow<IDefault>(source.default[STORE.default], addWhere(FIELD.type, 'icon'));
+	const locn = firstRow<IDefault>(source.default[STORE.default], addWhere(FIELD.type, 'location'));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
 	/**
@@ -272,7 +273,7 @@ export const buildTimetable = (source: ITimetableState) => {
 	 * assume a Calendar's location overrides the usual Schedule at the location.
 	 */
 	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
-		const eventList = firstRow<IEvent>(events, { fieldPath: FIELD.key, value: calendarDoc[FIELD.type] });
+		const eventList = firstRow<IEvent>(events, addWhere(FIELD.key, calendarDoc[FIELD.type]));
 		let offset = 0;															// start-time offset
 
 		if (!calendarDoc.location)
@@ -281,10 +282,10 @@ export const buildTimetable = (source: ITimetableState) => {
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
 		asArray(eventList.classes).forEach(className => {
-			const classDoc = firstRow<IClass>(classes, { fieldPath: FIELD.key, value: className });
+			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, className));
 			const span = firstRow<ISpan>(spans, [
-				{ fieldPath: FIELD.key, value: classDoc[FIELD.type] },
-				{ fieldPath: FIELD.type, value: STORE.event },
+				addWhere(FIELD.key, classDoc[FIELD.type]),
+				addWhere(FIELD.type, STORE.event),
 			])
 
 			const time: Partial<ISchedule> = {
@@ -308,8 +309,8 @@ export const buildTimetable = (source: ITimetableState) => {
 	// TODO: determine bonus-pricing
 	source.client.schedule = times
 		.map(time => {
-			const classDoc = firstRow<IClass>(classes, { fieldPath: FIELD.key, value: time[FIELD.key] });
-			const price = firstRow<IPrice>(prices, { fieldPath: FIELD.type, value: classDoc[FIELD.type] });
+			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
+			const price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
 
 			if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
 				time.price = time.price || price.amount;	// add-on the member's price for each scheduled event

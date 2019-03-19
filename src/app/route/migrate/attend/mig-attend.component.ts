@@ -81,7 +81,7 @@ export class MigAttendComponent implements OnInit {
 	ngOnInit() { }
 
 	async signIn(register: IRegister) {
-		const query: IQuery = { where: { fieldPath: FIELD.uid, value: register.user.uid } };
+		const query: IQuery = { where: addWhere(FIELD.uid, register.user.uid) };
 		this.member = register;																	// stash current Member
 
 		this.sync.on(COLLECTION.attend, query);
@@ -100,7 +100,7 @@ export class MigAttendComponent implements OnInit {
 		const profile = await this.state.getAuthData()					// get the current Auth'd user
 			.pipe(take(1))
 			.toPromise();
-		const query: IQuery = { where: { fieldPath: FIELD.uid, value: profile.auth.user!.uid } };
+		const query: IQuery = { where: addWhere(FIELD.uid, profile.auth.user!.uid) };
 
 		this.data$ = this.state.getAccountData(profile.auth.user!.uid);
 		this.member = null;

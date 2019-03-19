@@ -15,7 +15,3 @@ export interface IListen {
 };
 
 export const StoreStorage = '@@STATE';	// NGXS Store in localStorage
-export const AppStorage = '@@WHITE';		// Application key-values in localStorage
-export interface IAppStorage {
-	plan?: string;
-}

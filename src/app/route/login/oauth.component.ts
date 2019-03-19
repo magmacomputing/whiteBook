@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
+import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { AuthService } from '@service/auth/auth.service';
 
@@ -22,7 +23,7 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.getSingle<IConfig>(LOCAL.config, { fieldPath: FIELD.key, value: 'oauth' })
+			this.state.getSingle<IConfig>(LOCAL.config, addWhere(FIELD.key, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);

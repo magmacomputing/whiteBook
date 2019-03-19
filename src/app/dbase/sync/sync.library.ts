@@ -66,7 +66,7 @@ const remMeta = (doc: IStoreMeta) => {
 	return rest;
 }
 export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
-	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() })
+	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreMeta)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: string) => {
