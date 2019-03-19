@@ -67,7 +67,7 @@ export class MigAttendComponent implements OnInit {
 			.pipe(
 				map(admin => admin[STORE.register]),								// get 'register' store
 				map(reg => (reg || []).filter(row => !!row.migrate)),	// only return 'migrated' members
-				map(reg => reg.sort(sortKeys(FIELD.uid))),
+				map(reg => reg.sort(sortKeys('user.customClaims.memberName'))),
 			)
 
 		this.data.getAll<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })

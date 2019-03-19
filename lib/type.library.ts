@@ -25,6 +25,10 @@ export const isPromise = <T>(obj?: any): obj is Promise<T> => isType(obj, 'Promi
 export const isUndefined = (obj?: any): obj is undefined => isType(obj, 'Undefined');
 export const isBlob = (obj?: any): obj is Blob => isType(obj, 'Blob');
 
+export const nullToZero = (obj?: any) => isUndefined(obj) || isNull(obj) ? 0 : obj;
+export const nullToEmpty = (obj?: any) => isUndefined(obj) || isNull(obj) ? '' : obj;
+export const nullToValue = (obj?: any, value?: any) => isUndefined(obj) || isNull(obj) ? value : obj;
+
 export type TString = string | string[];
 export type TNumber = number | number[];
 

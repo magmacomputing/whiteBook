@@ -1,4 +1,4 @@
-import { getType, isObject, isArray, isString, TString, isNull, isUndefined } from '@lib/type.library';
+import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero } from '@lib/type.library';
 
 export interface IObject<T> { [key: string]: T; }
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
@@ -37,9 +37,11 @@ export const sortKeys = (...keys: any[]): any => (a: any, b: any) => {
 	switch (true) {
 		case keys.length === 0:
 			return 0;
-		case a[key] < b[key]:
+		// case a[key] < b[key]:
+		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)):
 			return -1;
-		case a[key] > b[key]:
+		// case a[key] > b[key]:
+		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)):
 			return 1;
 		default:
 			return sortKeys(...keys.slice(1))(a, b);		// recurse into keys
