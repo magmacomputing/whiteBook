@@ -46,7 +46,7 @@ export class SyncService {
 			.map((ref, idx) => ({
 				slice: collection,
 				ready: ready,
-				cnt: !idx ? -1 : 1,														// '-1' is not-yet-snapped, '0' is first snapshot
+				cnt: !idx ? -1 : 0,														// '-1' is not-yet-snapped, '0' is first snapshot
 				method: getMethod(collection),
 				subscribe: ref.stateChanges().subscribe(this.sync.bind(this, collection, idx))
 			}))
