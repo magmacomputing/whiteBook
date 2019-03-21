@@ -31,7 +31,11 @@ export class FireService {
 		this.dbg('new');
 	}
 
-	/** Collection Reference, with optional query */
+	/**
+	 * Collection References, with optional query.  
+	 * If a 'logical-or' is detected in the 'value' of any Where-clause,
+	 * multiple Collection References are returned.
+	 */
 	colRef<T>(store: string, query?: IQuery) {
 		return fnQuery(query).map(qry => this.afs.collection<T>(store, qry));
 	}
@@ -109,7 +113,7 @@ export class FireService {
 
 	/** get all Documents, optionally with a supplied Query */
 	async getAll<T>(collection: string, query?: IQuery) {
-		const snap = await this.colRef<T>(collection, query)[0]
+		const snap = await this.colRef<T>(collection, query)[0]	// TODO: allow for logical-or, merge of snapshotChanges
 			.snapshotChanges()
 			.pipe(take(1))
 			.toPromise()

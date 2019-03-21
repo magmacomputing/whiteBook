@@ -68,7 +68,8 @@ export class DataService {
 		return this.fire.createToken(uid);
 	}
 
-	// TODO: if query contains array, split into multiple colRef's, then combineLatest()
+	// TODO: if query contains array, split into multiple colRef's, then merge snapshotChanges()
+	// TODO: shouldn't we call this.fire.getAll()  for consistency
 	async getAll<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
 		const snap = await this.fire.colRef<T>(collection, query)[0]
 			.snapshotChanges()
