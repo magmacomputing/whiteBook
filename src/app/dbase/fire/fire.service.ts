@@ -1,8 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
+import { concat, combineLatest } from 'rxjs';
+import { tap, take, switchMap } from 'rxjs/operators';
 import * as firebase from 'firebase/app';
-import { tap, take } from 'rxjs/operators';
 
-import { AngularFirestore, DocumentReference } from '@angular/fire/firestore';
+import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -30,9 +31,15 @@ export class FireService {
 		this.dbg('new');
 	}
 
-	/** Collection Reference, with option query */
+	/** Collection Reference, with optional query */
 	colRef<T>(store: string, query?: IQuery) {
-		return this.afs.collection<T>(store, fnQuery(query));
+		return fnQuery(query).map(qry => this.afs.collection<T>(store, qry));
+	}
+
+	/** Combine Collection References, snapshot each, merge Observable */
+	combine<T>(changes: 'stateChanges' | 'valueChanges' | 'snapshotChanges' | 'auditTrail', ...colRefs: AngularFirestoreCollection[]) {
+		return combineLatest(...colRefs.map(ref => ref[changes]()))
+			.pipe(switchMap(refs => concat<DocumentChangeAction<T>[][]>(...refs)))
 	}
 
 	/** Document Reference, for existing or new */
@@ -41,9 +48,9 @@ export class FireService {
 			? store																// already a '/{collection}' path
 			: getSlice(store)											// lookup parent collection name for a 'store'
 
-		return isUndefined(docId)
-			? this.afs.firestore.collection(col).doc()
-			: this.afs.firestore.collection(col).doc(docId)
+		docId = isUndefined(docId) ? this.newId() : docId;	// use supplied Id, else generate a new Id
+
+		return this.afs.firestore.collection(col).doc(docId)
 	}
 
 	/** allocate a new meta-field _id */
@@ -51,7 +58,7 @@ export class FireService {
 		return this.afs.createId();
 	}
 
-	/** Remove the meta-fields,  undefined fields, low-values fields from a document */
+	/** Remove the meta-fields, undefined fields, low-values fields from a document */
 	private remMeta(doc: Partial<IStoreMeta>) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		Object.entries(rest).forEach(([key, value]) => {
@@ -102,7 +109,7 @@ export class FireService {
 
 	/** get all Documents, optionally with a supplied Query */
 	async getAll<T>(collection: string, query?: IQuery) {
-		const snap = await this.colRef<T>(collection, query)
+		const snap = await this.colRef<T>(collection, query)[0]
 			.snapshotChanges()
 			.pipe(take(1))
 			.toPromise()

@@ -1,5 +1,5 @@
 import * as firebase from 'firebase/app';
-import { filter } from 'rxjs/operators';
+import { filter, tap, map } from 'rxjs/operators';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
@@ -7,7 +7,7 @@ import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
 	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo, LoginAnon, AuthOther
 } from '@dbase/state/auth.action';
-import { SLICE } from '@dbase/state/state.define';
+import { SLICE, IState, TStateSlice } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/snack/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
@@ -22,7 +22,8 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
-import { isNull } from '@lib/type.library';
+import { getPath } from '@lib/object.library';
+import { isNull, getType } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({
@@ -32,7 +33,7 @@ import { dbg } from '@lib/logger.library';
 		token: null,																		// oauth token
 		info: null,																			// Provider additionalInfo
 		credential: null,																// authenticated user's credential
-		effective: null,																// the effective User (used in 'impersonate' mode)
+		current: null,																	// the effective User (used in 'impersonate' mode)
 	}
 })
 export class AuthState implements NgxsOnInit {
@@ -62,6 +63,7 @@ export class AuthState implements NgxsOnInit {
 	/** Commands */
 	@Action(CheckSession)														// check Authentication status
 	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
+		const state = ctx.getState();
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && !isNull(this.user)) {			// TODO: does this affect OAuth logins
@@ -198,7 +200,7 @@ export class AuthState implements NgxsOnInit {
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
 	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
-		const query: IQuery = { where: [addWhere(FIELD.uid, user.uid)] };
+		const query: IQuery = { where: addWhere(FIELD.uid, user.uid) };
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, query);
@@ -214,14 +216,20 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(AuthOther)															// mimic another User
-	otherMember(ctx: StateContext<IAuthState>, { uid }: AuthOther) {
+	otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
 		const state = ctx.getState();
-		if (state.effective && state.effective.uid === uid)
+
+		if (state.current && state.current.uid === member)
+			return;																			// nothing to do
+		if (state.current && getPath(state.current, 'customClaims.memberName') === member)
 			return;																			// nothing to do
 
-		this.store.selectOnce(state => state[SLICE.admin])
-			.pipe(filter(table => table[FIELD.store] === STORE.register && table[FIELD.uid] === uid))
-			.subscribe((reg: IRegister[]) => ctx.patchState({ effective: reg[0].user }))
+		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
+			.pipe(
+				map(slice => slice[STORE.register]),			// get the Register slice
+				map(table => table.filter(row => row[FIELD.store] === STORE.register && (row[FIELD.uid] === member || getPath(row, 'user.customClaims.memberName') === member))),
+			)
+			.subscribe(reg => ctx.patchState({ current: reg[0].user }))
 	}
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
@@ -229,7 +237,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => {
-					ctx.patchState({ user, token, effective: user });
+					ctx.patchState({ user, token, current: user });
 					if (token.claims.claims && token.claims.claims.roles && token.claims.claims.roles.includes('admin'))
 						this.sync.on(COLLECTION.admin)
 				})
@@ -266,7 +274,7 @@ export class AuthState implements NgxsOnInit {
 				return ctx.dispatch(new LoginCredential(error));
 		}
 
-		ctx.setState({ user: null, token: null, info: null, credential: null, effective: null, });
+		ctx.setState({ user: null, token: null, info: null, credential: null, current: null, });
 		this.navigate.route(ROUTE.login);
 	}
 }

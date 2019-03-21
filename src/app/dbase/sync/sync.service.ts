@@ -25,7 +25,7 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: IObject<IListen> = {};
+	private listener: IObject<IListen[]> = {};
 	private uid: Promise<string | null>;
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) {
@@ -36,28 +36,27 @@ export class SyncService {
 			.toPromise();
 	}
 
-	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
+	/** establish an array of listeners to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
-		const sync = this.sync.bind(this, collection);		// bind 'collection' to a sync Function
 		const ready = createPromise<boolean>();
 
 		this.off(collection);                             // detach any prior Subscription
-		this.listener[collection] = {
-			slice: collection,
-			ready: ready,
-			cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-			method: getMethod(collection),
-			subscribe: this.fire.colRef<IStoreMeta>(collection, query)
-				.stateChanges()                               // watch for changes since last snapshot
-				.subscribe(sync)
-		}
+		this.listener[collection] = this.fire
+			.colRef<IStoreMeta>(collection, query)
+			.map((ref, idx) => ({
+				slice: collection,
+				ready: ready,
+				cnt: !idx ? -1 : 1,														// '-1' is not-yet-snapped, '0' is first snapshot
+				method: getMethod(collection),
+				subscribe: ref.stateChanges().subscribe(this.sync.bind(this, collection, idx))
+			}))
 
 		this.dbg('on: %s', collection);
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 
 	public status(collection: string) {
-		const { slice, cnt, ready: { promise: ready } } = this.listener[collection];
+		const { slice, cnt, ready: { promise: ready } } = this.listener[collection][0];
 		return { slice, cnt, ready };
 	}
 
@@ -66,26 +65,26 @@ export class SyncService {
 		const listen = this.listener[collection];
 
 		if (listen) {																			// are we listening?
-			if (isFunction(listen.subscribe.unsubscribe)) {
-				listen.subscribe.unsubscribe();
-				this.dbg('off: %s', collection);
-			}
+			listen.forEach(ref => {
+				if (isFunction(ref.subscribe.unsubscribe))
+					ref.subscribe.unsubscribe();
+			})
+			this.dbg('off: %s', collection);
 
 			if (trunc)
-				this.store.dispatch(new listen.method.truncStore());
+				this.store.dispatch(new listen[0].method.truncStore());
 
 			delete this.listener[collection];
 		}
 	}
 
 	/** handler for snapshot listeners */
-	// private async sync(collection: string, fire: FireService, snaps: DocumentChangeAction<IStoreMeta>[]) {
-	private async sync(collection: string, snaps: DocumentChangeAction<IStoreMeta>[]) {
-		const listen = this.listener[collection];
+	private async sync(collection: string, idx: number, snaps: DocumentChangeAction<IStoreMeta>[]) {
+		const listen = this.listener[collection][idx];
 		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = getSource(snaps);
-		const debug = source !== 'cache' && this.listener[collection].cnt !== -1;
+		const debug = source !== 'cache' && listen.cnt !== -1;
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
@@ -93,9 +92,9 @@ export class SyncService {
 				return cnts;
 			}, [0, 0, 0]);
 
-		this.listener[collection].cnt += 1;
-		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
-			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
+		listen.cnt += 1;
+		this.dbg('sync: %s #%s.%s detected from %s (add:%s, mod:%s, rem:%s)',
+			collection, idx, listen.cnt, source, snapAdd, snapMod, snapDel);
 
 		if (listen.cnt === 0) {                           // initial snapshot
 			if (await checkStorage(listen, snaps))

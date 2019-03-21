@@ -1,13 +1,14 @@
 import * as firebase from 'firebase/app';
 
 import { ICredential } from '@service/auth/auth.interface';
+import { TUser } from '@dbase/data/data.schema';
 
 export interface IAuthState {
 	user: firebase.UserInfo | null;
 	token: firebase.auth.IdTokenResult | null;
 	info: firebase.auth.AdditionalUserInfo | null;				// additionalUserInfo from provider
-	credential?: firebase.auth.AuthCredential | null;
-	effective?: firebase.UserInfo | null;									// effective UserId
+	credential: firebase.auth.AuthCredential | null;
+	current: TUser | null;																// effective UserId
 }
 
 // Actions
@@ -76,7 +77,7 @@ export class AuthToken {
 }
 export class AuthOther {												// Event to request impersonate another Member
 	static type = '[Auth] AuthOther';
-	constructor(public uid: string) { }
+	constructor(public member: string) { }				// 'member' can be a <uid> or a <memberName>
 }
 export class LoginFailed {
 	static type = '[Auth] LoginFailed';

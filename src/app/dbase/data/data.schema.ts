@@ -29,6 +29,9 @@ export interface ICustomClaims {				// a special sub-set of fields from the User
 	memberAllow?: string[];
 	memberDeny?: string[];
 }
+export type TUser = UserInfo & {
+	customClaims?: ICustomClaims;
+}
 export interface IRegister {
 	[FIELD.id]: string;
 	[FIELD.uid]: string;
@@ -36,9 +39,7 @@ export interface IRegister {
 	[FIELD.expire]?: number;
 	[FIELD.disable]?: boolean;
 	[FIELD.hidden]?: boolean;
-	user: UserInfo & {
-		customClaims: ICustomClaims;
-	};
+	user: TUser;
 	migrate?: {
 		credit: number;
 		email: string;

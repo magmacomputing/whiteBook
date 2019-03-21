@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, timer } from 'rxjs';
 import { take, map, debounce } from 'rxjs/operators';
-import { Actions, ofActionDispatched } from '@ngxs/store';
+import { Actions, ofActionDispatched, Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
@@ -11,6 +11,7 @@ import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
+import { AuthOther } from '@dbase/state/auth.action';
 import { NewAttend } from '@dbase/state/state.action';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
@@ -32,10 +33,12 @@ export class MigAttendComponent implements OnInit {
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
 
-	private admin$: Observable<IRegister[]>;
-	private data$!: Observable<IAccountState>;
+	private register$: Observable<IRegister[]>;
+	private account$!: Observable<IAccountState>;
 	private history!: Promise<MHistory[]>;
-	private member: IRegister | null;
+	private current: IRegister | null;
+	private user!: firebase.UserInfo | null;
+
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: IEvent[];
@@ -61,12 +64,12 @@ export class MigAttendComponent implements OnInit {
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService,
-		private sync: SyncService, private service: MemberService, private actions: Actions) {
-		this.member = null;
-		this.admin$ = this.state.getAdminData()
+		private sync: SyncService, private service: MemberService, private store: Store, private actions: Actions) {
+		this.current = null;
+		this.register$ = this.state.getAdminData()
 			.pipe(
 				map(admin => admin[STORE.register]),								// get 'register' store
-				map(reg => (reg || []).filter(row => !!row.migrate)),	// only return 'migrated' members
+				map(reg => (reg || []).filter(row => row.migrate)),	// only return 'migrated' members
 				map(reg => reg.sort(sortKeys('user.customClaims.memberName'))),
 			)
 
@@ -76,36 +79,44 @@ export class MigAttendComponent implements OnInit {
 			.then(calendar => this.calendar = calendar);
 		this.data.getAll<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
 			.then(events => this.events = events);
+		this.state.getAuthData()																	// stash the current Auth'd user
+			.pipe(take(1))
+			.toPromise()
+			.then(auth => this.user = auth.auth.user)
 	}
 
 	ngOnInit() { }
 
 	async signIn(register: IRegister) {
-		const query: IQuery = { where: addWhere(FIELD.uid, register.user.uid) };
-		this.member = register;																	// stash current Member
+		this.current = register;																	// stash current Member
 
-		this.sync.on(COLLECTION.attend, query);
-		this.sync.on(COLLECTION.member, query);
+		this.store.dispatch(new AuthOther(register.uid))
+			.subscribe(_other => {
+				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
+				this.dbg('query: %j', query);
+				this.sync.on(COLLECTION.attend, query);
+				this.sync.on(COLLECTION.member, query);
 
-		const action = 'history';
-		const { id, provider } = this.member.migrate!.providers[0];
-		this.history = this.fetch(action, `provider=${provider}&id=${id}`)
-			.then((resp: { history: MHistory[] }) => (resp.history || []).sort(sortKeys(FIELD.stamp)));
-		this.history.then(hist => this.dbg('history: %s', hist.length));
+				const action = 'history';
+				const { id, provider } = register.migrate!.providers[0];
+				this.history = this.fetch(action, `provider=${provider}&id=${id}`)
+					.then((resp: { history: MHistory[] }) => (resp.history || []).sort(sortKeys(FIELD.stamp)));
+				this.history.then(hist => this.dbg('history: %s', hist.length));
 
-		this.data$ = this.state.getAccountData(this.member.uid)
+				this.account$ = this.state.getAccountData(register.uid)
+			})
+			.unsubscribe()
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode
-		const profile = await this.state.getAuthData()					// get the current Auth'd user
-			.pipe(take(1))
-			.toPromise();
-		const query: IQuery = { where: addWhere(FIELD.uid, profile.auth.user!.uid) };
+		this.store.dispatch(new AuthOther(this.user!.uid))
+			.subscribe(_other => {
+				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
-		this.data$ = this.state.getAccountData(profile.auth.user!.uid);
-		this.member = null;
-		this.sync.on(COLLECTION.attend, query);									// restore current User's state
-		this.sync.on(COLLECTION.member, query);
+				this.current = null;
+				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
+				this.sync.on(COLLECTION.member, query);
+			});
 	}
 
 	async addPayment() {
@@ -125,7 +136,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.id]: this.data.newId,
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: 'topUp',
-					[FIELD.uid]: this.member!.uid,
+					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
 					// bank: row.bank,															// bank will be auto-calculated
@@ -207,7 +218,7 @@ export class MigAttendComponent implements OnInit {
 		}
 
 		const sub = this.actions.pipe(
-			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get correct account-details
+			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get latest account-details
 			debounce(_ => timer(500)),									// wait to have State settle
 		)																							// wait for new Attend to sync into State
 			.subscribe(row => {
@@ -216,28 +227,28 @@ export class MigAttendComponent implements OnInit {
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1));
 			});
-		return this.service.setAttend(sched, row.note, row.stamp, this.member!.user.uid);
+		return this.service.setAttend(sched, row.note, row.stamp, this.current!.user.uid);
 	}
 
 	async delPayment() {
 		const where = [
 			addWhere(FIELD.store, STORE.payment),
-			addWhere(FIELD.uid, this.member!.user.uid),
+			addWhere(FIELD.uid, this.current!.user.uid),
 		]
 		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.member, { where });
 
 		where.length = 0;													// truncate where-clause
-		where.push(addWhere(FIELD.uid, this.member!.user.uid));
+		where.push(addWhere(FIELD.uid, this.current!.user.uid));
 		deletes.push(...await this.data.getAll<TStoreBase>(COLLECTION.attend, { where }));
 
 		return this.data.batch(undefined, undefined, deletes)
 	}
 
 	async delAttend() {
-		const deletes = await this.data.getAll<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.member!.user.uid) });
+		const deletes = await this.data.getAll<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.current!.user.uid) });
 		const pays = deDup(...deletes.map(row => row.payment));
 		const payments = await this.data.getStore<IPayment>(STORE.payment, [
-			addWhere(FIELD.uid, this.member!.user.uid),
+			addWhere(FIELD.uid, this.current!.user.uid),
 			addWhere(FIELD.id, pays),											// get any Payment which is referenced by the Attend documents
 		])
 		const updates = payments.map(row => ({ ...row, [FIELD.expire]: Number.MIN_SAFE_INTEGER, [FIELD.effect]: Number.MIN_SAFE_INTEGER }));

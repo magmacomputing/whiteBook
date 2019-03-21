@@ -70,7 +70,7 @@ export class DataService {
 
 	// TODO: if query contains array, split into multiple colRef's, then combineLatest()
 	async getAll<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
-		const snap = await this.fire.colRef<T>(collection, query)
+		const snap = await this.fire.colRef<T>(collection, query)[0]
 			.snapshotChanges()
 			.pipe(take(1))
 			.toPromise()
