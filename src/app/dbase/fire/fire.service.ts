@@ -27,23 +27,18 @@ export class FireService {
 	private dbg = dbg(this);
 
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
-		private zone: NgZone, private snack: SnackService) {
-		this.dbg('new');
-	}
+		private zone: NgZone, private snack: SnackService) { this.dbg('new'); }
 
 	/**
 	 * Collection References, with optional query.  
 	 * If a 'logical-or' is detected in the 'value' of any Where-clause,
 	 * multiple Collection References are returned.
 	 */
-	colRef<T>(store: string, query?: IQuery) {
-		return fnQuery(query).map(qry => this.afs.collection<T>(store, qry));
-	}
-
-	/** Combine Collection References, snapshot each, merge Observable */
-	combine<T>(changes: 'stateChanges' | 'valueChanges' | 'snapshotChanges' | 'auditTrail', ...colRefs: AngularFirestoreCollection[]) {
-		return combineLatest(...colRefs.map(ref => ref[changes]()))
-			.pipe(switchMap(refs => concat<DocumentChangeAction<T>[][]>(...refs)))
+	colRef<T>(collection: string, query?: IQuery) {
+		return !query
+			? [this.afs.collection<T>(collection)]
+			: fnQuery(query)										// run an array of Querys over a collection
+				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
 	/** Document Reference, for existing or new */
@@ -68,7 +63,7 @@ export class FireService {
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
 				delete rest[key];										// TODO: recurse?
-			if (value === Number.MIN_SAFE_INTEGER)
+			if (value === Number.MIN_SAFE_INTEGER)// special: to remove a numeric field on update, mark it as low-value
 				rest[key] = firebase.firestore.FieldValue.delete();
 		})
 		return rest;

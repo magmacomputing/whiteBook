@@ -26,19 +26,14 @@ import { dbg } from '@lib/logger.library';
 export class SyncService {
 	private dbg = dbg(this);
 	private listener: IObject<IListen[]> = {};
-	private uid: Promise<string | null>;
+	private uid?: string | null;
 
-	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) {
-		this.dbg('new');
-		this.uid = this.store
-			.selectOnce<IAuthState>(state => state[SLICE.auth])
-			.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
-			.toPromise();
-	}
+	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) { this.dbg('new'); }
 
 	/** establish an array of listeners to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
 		const ready = createPromise<boolean>();
+		this.getAuthUID();																// make sure we stash the Auth User's ID
 
 		this.off(collection);                             // detach any prior Subscription
 		this.listener[collection] = this.fire
@@ -53,6 +48,16 @@ export class SyncService {
 
 		this.dbg('on: %s', collection);
 		return ready.promise;                             // indicate when snap0 is complete
+	}
+
+	private getAuthUID() {															// Useful for matching sync-events to the Auth'd User
+		if (!this.uid) {
+			this.store
+				.selectOnce<IAuthState>(state => state[SLICE.auth])
+				.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
+				.toPromise()
+				.then(uid => this.uid = uid)
+		}
 	}
 
 	public status(collection: string) {
