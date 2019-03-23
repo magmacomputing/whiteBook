@@ -9,7 +9,7 @@ export interface IPromise<T> {
 
 /** store a Promise and its callbacks, for later fulfilment */
 export const createPromise = <T>() => {
-	const obj: any = {};						// create the placeholder for the Promise object
+	const obj: Partial<IPromise<T>> = {};						// create the placeholder for the Promise object
 
 	obj.promise = new Promise<T>((resolve, reject) => {
 		obj.resolve = resolve;

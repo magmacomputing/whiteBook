@@ -41,8 +41,8 @@ export class SyncService {
 
 		this.off(collection);                             // detach any prior Subscription
 		this.listener[collection] = {
-			slice: collection,
-			ready: ready,
+			collection,
+			ready,
 			cnt: -1,																				// '-1' is not-yet-snapped, '0' is first snapshot
 			method: getMethod(collection),
 			subscribe: stream.subscribe(sync)
@@ -63,8 +63,8 @@ export class SyncService {
 	}
 
 	public status(collection: string) {
-		const { slice, cnt, ready: { promise: ready } } = this.listener[collection];
-		return { slice, cnt, ready };
+		const { cnt, ready: { promise: ready } } = this.listener[collection];
+		return { collection, cnt, ready };
 	}
 
 	/** detach an existing snapshot listener */

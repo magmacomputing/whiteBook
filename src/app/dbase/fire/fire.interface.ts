@@ -20,7 +20,11 @@ export interface IOrderBy {
 export interface IQuery {
 	where?: TWhere;
 	orderBy?: IOrderBy | IOrderBy[];
-	limitTo?: number;
+	limit?: number;
+	startAt?: string;
+	startAfter?: string;
+	endAt?: string;
+	endBefore?: string;
 }
 
 /** FirestoreFunction getMeta() */

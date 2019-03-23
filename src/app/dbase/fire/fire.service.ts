@@ -41,11 +41,13 @@ export class FireService {
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
-	merge<T>(type: 'stateChanges' | 'valueChanges' | 'snapshotChanges' | 'auditTrail', colRefs: AngularFirestoreCollection<T>[]) {
-		return merge(...(colRefs.map(colRef => colRef[type]()))) as Observable<DocumentChangeAction<T>[]>;
+	merge<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]):
+		Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]> {
+		return merge(...(colRefs.map(colRef => colRef[type]())))
 	}
 
-	/** Document Reference, for existing or new */
+	/** Document 
+	 * , for existing or new */
 	docRef(store: string, docId?: string) {
 		const col = store.includes('/')
 			? store																// already a '/{collection}' path
