@@ -154,6 +154,10 @@ export class MigAttendComponent implements OnInit {
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
 
+
+	// TODO: if a colour is wrong at source, might have been Event.
+	// TODO: if Event*1, then is it zumba? step? etc?
+	// TODO: ZumbaStep not recorded correctly?
 	/**
 	 * Add Attendance records for a Member
 	 */
@@ -161,24 +165,6 @@ export class MigAttendComponent implements OnInit {
 		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.slice(0, 15)																		// for testing: just the first few Attends
-
-		// table.length = 0;
-		// table.push({
-		// 	"stamp": 1411469381,
-		// 	"date": 20130329,
-		// 	"type": "Routine*2 Classes",
-		// 	"title": "<span style=\"color:#5b2012;\">Routine*2 Classes</span>",
-		// 	"debit": "-20.00",
-		// 	"funds": 150
-		// });
-		// table.push({
-		// 	"stamp": 1545296400,
-		// 	"date": 20181220,
-		// 	"type": "AeroStep",
-		// 	"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
-		// 	"debit": "-10.00",
-		// 	"funds": 170
-		// });
 		this.newAttend(table[0], ...table.slice(1));
 	}
 
