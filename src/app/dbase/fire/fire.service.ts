@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
-import { concat, combineLatest } from 'rxjs';
-import { tap, take, switchMap } from 'rxjs/operators';
+import { merge, Observable, combineLatest } from 'rxjs';
+import { tap, take } from 'rxjs/operators';
 import * as firebase from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
@@ -39,6 +39,10 @@ export class FireService {
 			? [this.afs.collection<T>(collection)]
 			: fnQuery(query)										// register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
+	}
+
+	merge<T>(type: 'stateChanges' | 'valueChanges' | 'snapshotChanges' | 'auditTrail', colRefs: AngularFirestoreCollection<T>[]) {
+		return merge(...(colRefs.map(colRef => colRef[type]()))) as Observable<DocumentChangeAction<T>[]>;
 	}
 
 	/** Document Reference, for existing or new */

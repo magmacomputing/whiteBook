@@ -25,8 +25,8 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: IObject<IListen[]> = {};
-	private uid?: string | null;
+	private listener: IObject<IListen> = {};
+	private uid: string | null = null;
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) { this.dbg('new'); }
 
@@ -35,16 +35,18 @@ export class SyncService {
 		const ready = createPromise<boolean>();
 		this.getAuthUID();																// make sure we stash the Auth User's ID
 
+		const refs = this.fire.colRef<IStoreMeta>(collection, query);
+		const stream = this.fire.merge('stateChanges', refs);
+		const sync = this.sync.bind(this, collection);
+
 		this.off(collection);                             // detach any prior Subscription
-		this.listener[collection] = this.fire
-			.colRef<IStoreMeta>(collection, query)
-			.map((ref, idx) => ({
-				slice: collection,
-				ready: ready,
-				cnt: !idx ? -1 : 0,														// '-1' is not-yet-snapped, '0' is first snapshot
-				method: getMethod(collection),
-				subscribe: ref.stateChanges().subscribe(this.sync.bind(this, collection, idx))
-			}))
+		this.listener[collection] = {
+			slice: collection,
+			ready: ready,
+			cnt: -1,																				// '-1' is not-yet-snapped, '0' is first snapshot
+			method: getMethod(collection),
+			subscribe: stream.subscribe(sync)
+		}
 
 		this.dbg('on: %s', collection);
 		return ready.promise;                             // indicate when snap0 is complete
@@ -54,14 +56,14 @@ export class SyncService {
 		if (!this.uid) {
 			this.store
 				.selectOnce<IAuthState>(state => state[SLICE.auth])
-				.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
+				.pipe(map(auth => auth.user && auth.user.uid))// if logged-in, return the UserId
 				.toPromise()
 				.then(uid => this.uid = uid)
 		}
 	}
 
 	public status(collection: string) {
-		const { slice, cnt, ready: { promise: ready } } = this.listener[collection][0];
+		const { slice, cnt, ready: { promise: ready } } = this.listener[collection];
 		return { slice, cnt, ready };
 	}
 
@@ -70,26 +72,25 @@ export class SyncService {
 		const listen = this.listener[collection];
 
 		if (listen) {																			// are we listening?
-			listen.forEach(ref => {
-				if (isFunction(ref.subscribe.unsubscribe))
-					ref.subscribe.unsubscribe();
-			})
-			this.dbg('off: %s', collection);
-
-			if (trunc)
-				this.store.dispatch(new listen[0].method.truncStore());
-
-			delete this.listener[collection];
+			if (isFunction(listen.subscribe.unsubscribe)) {
+				listen.subscribe.unsubscribe();
+				this.dbg('off: %s', collection);
+			}
 		}
+
+		if (trunc)
+			this.store.dispatch(new listen.method.truncStore());
+
+		delete this.listener[collection];
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: string, idx: number, snaps: DocumentChangeAction<IStoreMeta>[]) {
-		const listen = this.listener[collection][idx];
+	private async sync(collection: string, snaps: DocumentChangeAction<IStoreMeta>[]) {
+		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = getSource(snaps);
-		const debug = source !== 'cache' && listen.cnt !== (idx ? 0 : -1);
+		const debug = source !== 'cache' && listen.cnt !== -1;
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
@@ -98,8 +99,8 @@ export class SyncService {
 			}, [0, 0, 0]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s #%s.%s detected from %s (add:%s, mod:%s, rem:%s)',
-			collection, idx, listen.cnt, source, snapAdd, snapMod, snapDel);
+		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
+			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
 		if (listen.cnt === 0) {                           // initial snapshot
 			if (await checkStorage(listen, snaps))
