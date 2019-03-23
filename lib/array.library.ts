@@ -7,4 +7,4 @@ export const deDup = <T>(...value: T[]) => [... new Set(value)];
 
 // useful for cartesian product of arrays
 const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));
-export const cartesian: any = (a: any, b: any, ...c: any) => (b ? cartesian(cartFn(a, b), ...c) : a);
+export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);

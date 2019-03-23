@@ -13,20 +13,20 @@ import { isUndefined } from '@lib/type.library';
 export const fnQuery = (query: IQuery = {}) => {
 	const fns: QueryFn[] = [];
 
-	splitQuery(query).forEach(qry => {
+	splitQuery(query).forEach(split => {
 		fns.push(
 			(colRef: Query) => {															// push a Query-function
-				if (query.where)
-					asArray(query.where)
+				if (split.where)
+					asArray(split.where)
 						.filter(qry => !isUndefined(qry.value))			// discard queries for 'undefined' value
 						.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as firebase.firestore.WhereFilterOp, qry.value));
 
-				if (query.orderBy)
-					asArray(query.orderBy)
+				if (split.orderBy)
+					asArray(split.orderBy)
 						.forEach(order => colRef = colRef.orderBy(order.fieldPath, order.directionStr));
 
-				if (isNumeric(query.limitTo))
-					colRef = colRef.limit(query.limitTo as number);
+				if (isNumeric(split.limitTo))
+					colRef = colRef.limit(split.limitTo);
 
 				return colRef;
 			}
@@ -36,23 +36,29 @@ export const fnQuery = (query: IQuery = {}) => {
 	return fns;
 }
 
-/** create a set of Where-clauses to split the logical-or criteria */
-const splitQuery = (query: IQuery) => {
-	const split: IQuery[] = [];
-	const wheres = asArray(query.where);
-
-	if (query.where) {
-		const vals = wheres.map(where => asArray(where.value).map((_value, v) => v));
-		const rows: number[][] = cartesian(...vals);
-
-		rows.forEach(row => {
-			split.push({
-				limitTo: query.limitTo, orderBy: query.orderBy,
-				where: row.map((itm, idx) => ({ fieldPath: wheres[idx].fieldPath, opStr: wheres[idx].opStr, value: wheres[idx].value[itm] }))
-			});
+// TODO: consider split on fieldPath as well?
+/** create a set of Query-clauses to split the logical-or criteria */
+const splitQuery = (query: IQuery = {}) => {
+	const vals = asArray(query.where)						// for each 'where' clause
+		.map(where => asArray(where.value)				// for each 'value'
+			.map(value =>														// build an array of IWhere
+				({
+					fieldPath: where.fieldPath,
+					opStr: where.opStr,
+					value: value,
+				})
+			)
+		);
+	const wheres: IWhere[] = cartesian(...vals) || [];// cartesian product of Where array
+	const split: IQuery[] = wheres.map(where =>	// for each split Where
+		({																				// build an array of IQuery
+			orderBy: query.orderBy,
+			limitTo: query.limitTo,
+			where: where,
 		})
-	}
-	return split.length ? split : [query];
+	)
+
+	return split.length ? split : [query];			// if no Where, return array of original Query
 }
 
 /** Make a 'where' clause */

@@ -37,7 +37,7 @@ export class FireService {
 	colRef<T>(collection: string, query?: IQuery) {
 		return !query
 			? [this.afs.collection<T>(collection)]
-			: fnQuery(query)										// run an array of Querys over a collection
+			: fnQuery(query)										// register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
