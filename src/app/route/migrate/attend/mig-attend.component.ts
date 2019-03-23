@@ -91,6 +91,7 @@ export class MigAttendComponent implements OnInit {
 		this.current = register;																	// stash current Member
 
 		this.store.dispatch(new AuthOther(register.uid))
+			.pipe(take(1))
 			.subscribe(_other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
 				this.dbg('query: %j', query);
@@ -104,19 +105,19 @@ export class MigAttendComponent implements OnInit {
 				this.history.then(hist => this.dbg('history: %s', hist.length));
 
 				this.account$ = this.state.getAccountData(register.uid)
-			})
-			.unsubscribe()
+			});
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode
 		this.store.dispatch(new AuthOther(this.user!.uid))
+			.pipe(take(1))
 			.subscribe(_other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
 				this.current = null;
 				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 				this.sync.on(COLLECTION.member, query);
-			});
+			})
 	}
 
 	async addPayment() {
@@ -227,7 +228,7 @@ export class MigAttendComponent implements OnInit {
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1));
 			});
-		return this.service.setAttend(sched, row.note, row.stamp, this.current!.user.uid);
+		return this.service.setAttend(sched, row.note, row.stamp);
 	}
 
 	async delPayment() {

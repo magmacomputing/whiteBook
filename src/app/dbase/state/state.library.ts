@@ -6,8 +6,8 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, IMemberState, SLICE } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
+import { IState, IAccountState, ITimetableState, IPlanState, IMemberState, SLICE, IAttendState, TStateSlice } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IAttend } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
@@ -201,6 +201,22 @@ export const sumAttend = (source: IAccountState) => {
 	}
 
 	return source;
+}
+
+/** Build an Attend slice */
+export const buildAttend = (source: IAttendState) => {
+	if (source.attend) {
+		const slice: TStateSlice<IAttend> = {};
+		source.attend
+			.forEach(attend => {
+				if (!slice[attend.payment])
+					slice[attend.payment] = [];
+				slice[attend.payment].push(attend);
+			})
+		// source.attend = slice;
+	}
+	
+	return { ...source };
 }
 
 /** calc a 'day' field for a Calendar row */

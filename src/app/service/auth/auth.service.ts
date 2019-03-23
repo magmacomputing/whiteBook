@@ -39,6 +39,13 @@ export class AuthService {
 			.toPromise()
 	}
 
+	get current() {
+		return this.auth$
+			.pipe(take(1))
+			.toPromise()
+			.then(user => user.auth.current)
+	}
+
 	public signOut() {
 		this.store.dispatch(new Logout());
 	}

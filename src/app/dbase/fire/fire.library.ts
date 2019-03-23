@@ -11,14 +11,11 @@ import { isUndefined } from '@lib/type.library';
  * and needs to be split into a separate Query
  */
 export const fnQuery = (query: IQuery = {}) => {
-	const fns: QueryFn[] = [];
-
-	splitQuery(query).forEach(split => {
-		fns.push(
-			(colRef: Query) => {															// push a Query-function
+	return splitQuery(query)
+		.map(split =>
+			(colRef: Query) => {													// map a Query-function
 				if (split.where)
 					asArray(split.where)
-						.filter(qry => !isUndefined(qry.value))			// discard queries for 'undefined' value
 						.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as firebase.firestore.WhereFilterOp, qry.value));
 
 				if (split.orderBy)
@@ -43,17 +40,15 @@ export const fnQuery = (query: IQuery = {}) => {
 				return colRef;
 			}
 		)
-	})
-
-	return fns;
 }
 
 // TODO: consider split on fieldPath as well?
 /** create a set of Query-clauses to split the logical-or criteria */
 const splitQuery = (query: IQuery = {}) => {
-	const vals = asArray(query.where)						// for each 'where' clause
-		.map(where => deDup(...asArray(where.value))				// for each 'value'
-			.map(value =>														// build an array of IWhere
+	const vals = asArray(query.where)							// for each 'where' clause
+		.map(where => deDup(...asArray(where.value))// for each 'value'
+			.filter(value => !isUndefined(value))			// discard undefined values
+			.map(value =>															// build an array of IWhere
 				({
 					fieldPath: where.fieldPath,
 					opStr: where.opStr,
@@ -62,8 +57,8 @@ const splitQuery = (query: IQuery = {}) => {
 			)
 		);
 	const wheres: IWhere[] = cartesian(...vals) || [];// cartesian product of Where array
-	const split: IQuery[] = wheres.map(where =>	// for each split Where
-		({																				// build an array of IQuery
+	const split: IQuery[] = wheres.map(where =>		// for each split Where
+		({																					// build an array of IQuery
 			orderBy: query.orderBy,
 			limitTo: query.limit,
 			startAt: query.startAt,
@@ -74,7 +69,7 @@ const splitQuery = (query: IQuery = {}) => {
 		})
 	)
 
-	return split.length ? split : [query];			// if no Where, return array of original Query
+	return split.length ? split : asArray(query);	// if no Where, return array of original Query
 }
 
 /** Make a 'where' clause */

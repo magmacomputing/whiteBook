@@ -44,8 +44,8 @@ export class MemberService {
 	/**
 	 * Create a new TopUp payment
 	 */
-	async setPayment(amount?: number, uid?: string) {
-		const data = await this.getAccount(uid);
+	async setPayment(amount?: number) {
+		const data = await this.getAccount();
 		const price = data.member.price								// find the topUp price for this Member
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 
@@ -53,7 +53,7 @@ export class MemberService {
 			[FIELD.id]: this.data.newId,
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
-			[FIELD.uid]: uid || data.auth.user!.uid,
+			[FIELD.uid]: data.auth.current!.uid,
 			amount: isUndefined(amount) ? price : amount,
 		} as IPayment
 	}
@@ -65,8 +65,8 @@ export class MemberService {
    * -> if they've exceeded 99 Attends against the active Payment  
    * -> if their intro-pass has expired (auto bump them to 'member' plan)  
   */
-	async getPayment(price: number, uid?: string) {
-		const data = await this.getAccount(uid);
+	async getPayment(price: number) {
+		const data = await this.getAccount();
 		const summary = await this.getAmount(data);
 
 		switch (true) {
@@ -91,8 +91,8 @@ export class MemberService {
 	 * Insert an Attendance record, matched to an <active> Account Payment,  
 	 * else create new Payment as well
 	 */
-	async setAttend(schedule: ISchedule, note?: string, date?: number, uid?: string) {
-		const data = await this.getAccount(uid, date);	// get Member's current account details
+	async setAttend(schedule: ISchedule, note?: string, date?: number) {
+		const data = await this.getAccount(date);	// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
@@ -109,7 +109,7 @@ export class MemberService {
 		// check we are not re-booking same Class on same Day
 		const attendFilter = [
 			addWhere(FIELD.type, schedule[FIELD.key]),
-			addWhere(FIELD.uid, data.auth.user!.uid),
+			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.note, note),
 			addWhere('date', when),
 		]
@@ -124,7 +124,7 @@ export class MemberService {
 		const payments = data.account.payment;					// the list of current and prepaid payments
 
 		// determine which Payment record is active
-		const activePay = await this.getPayment(schedule.price, uid);
+		const activePay = await this.getPayment(schedule.price);
 		const amount = await this.getAmount(data);			// Account balance
 
 		switch (true) {
@@ -152,7 +152,7 @@ export class MemberService {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
-			[FIELD.uid]: data.auth.user!.uid,							// the current User
+			[FIELD.uid]: data.auth.current!.uid,					// the current User
 			[FIELD.stamp]: stamp,													// createDate
 			[FIELD.date]: when,														// yyyymmdd of the Attend
 			[FIELD.note]: note,														// optional 'note'
@@ -167,8 +167,8 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	async getAccount(uid?: string, date?: TDate) {
-		return this.state.getAccountData(uid, date)
+	async getAccount(date?: TDate) {
+		return this.state.getAccountData(date)
 			.pipe(take(1))
 			.toPromise()
 	}

@@ -9,7 +9,6 @@ import { ETrack, ITrack } from '@service/track/track.define';
 
 import { fix } from '@lib/number.library';
 import { getDate } from '@lib/date.library';
-import { getPath } from '@lib/object.library';
 import { dbg, sprintf } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -21,14 +20,14 @@ export class TrackService {
 
 	async write(fmt?: any, ...data: any[]) {
 		const base = getDate();
-		const uid = await this.auth.user
-			.then(user => getPath<string>(user, 'auth.user.uid'))
+		const uid = await this.auth.current
+			.then(user => user && user.uid)
 
 		const trackCol = `/${STORE.log}/${base.yy}${fix(base.mm)}/${fix(base.dd)}`;
 		const trackDoc: ITrack = {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
-			[FIELD.uid]: uid,
+			[FIELD.uid]: uid || 'anonymous',
 			stamp: base.ts,
 			date: { year: base.yy, month: base.mm, day: base.dd },
 			msg: sprintf(fmt, ...data),

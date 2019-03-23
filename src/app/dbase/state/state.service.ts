@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, from } from 'rxjs';
-import { map, take, combineLatest, filter } from 'rxjs/operators';
+import { Observable, of, combineLatest } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAdminState, IAttendState, IPaymentState, } from '@dbase/state/state.define';
+import { TStateSlice, IAdminState, IAttendState, IPaymentState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, buildAttend } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta, TStoreBase, IRegister } from '@dbase/data/data.schema';
+import { STORE, FIELD } from '@dbase/data/data.define';
+import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
@@ -50,8 +50,8 @@ export class StateService {
 	/** Fetch the current, useable values for a supplied store */
 	getCurrent<T>(store: string, where?: TWhere) {
 		const filters = asArray(where);
-		filters.push(addWhere(FIELD.expire,  0 ));
-		filters.push(addWhere(FIELD.hidden,  false ));
+		filters.push(addWhere(FIELD.expire, 0));
+		filters.push(addWhere(FIELD.hidden, false));
 
 		return getCurrent<T & TStoreBase>(this.states, store, filters);
 	}
@@ -97,35 +97,30 @@ export class StateService {
 	/**
 	 * Watch for changes on the Member's Attendance
 	 */
-	getAttendData(uid?: string) {
+	getAttendData(): Observable<IAttendState> {
 		const filterAttend = [
 			addWhere(FIELD.store, STORE.attend),
-			addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 
 		return this.attend$.pipe(
-			map(source => {
-				let target: TStateSlice<IStoreMeta> = {};
-				for (const key in source)
-					target[key] = source[key].filter(row => row[FIELD.uid] === uid)
-				return target;
-			})
+			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, buildAttend)
 		)
 	}
 
 	// /**
 	//  * Watch for changes on the Member's Payments
 	//  */
-	// getPaymentData(uid?: string): Observable<IPaymentState> {
-	// 	const filterPayment = [
-	// 		addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),
-	// 		addWhere(FIELD.store, STORE.payment),
-	// 	]
+	getPaymentData(): Observable<IPaymentState> {
+		const filterPayment = [
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),
+			addWhere(FIELD.store, STORE.payment),
+		]
 
-	// 	return this.member$.pipe(
-	// 		joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
-	// 	)
-	// }
+		return this.member$.pipe(
+			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
+		)
+	}
 
 	/**
 	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
@@ -136,12 +131,11 @@ export class StateService {
 	 * member.price -> has an array of IPrice that match the Member's plan-type
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
-	 * @param uid:	string	An optional User UID (defaults to current logged-on User)
 	 */
-	getMemberData(date?: TDate, uid?: string): Observable<IMemberState> {
+	getMemberData(date?: TDate): Observable<IMemberState> {
 		const filterProfile = [
 			addWhere(FIELD.type, ['plan', 'info', 'pref']),   // where the <type> is either 'plan', 'info', or 'pref'
-			addWhere(FIELD.uid, uid || '{{auth.user.uid}}'),  // and the <uid> is provided or the getAuthData()'s 'auth.user.uid'
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),  		// and the <uid> is current active User
 		]
 		const filterPrice = addWhere(FIELD.key, '{{member.plan[0].plan}}');
 		const filterMessage = addWhere(FIELD.type, 'alert');
@@ -159,8 +153,8 @@ export class StateService {
 	 * client.plan  -> has an array of asAt Plan documents  
 	 * client.price -> has an array of asAt Price documents
 	 */
-	getPlanData(date?: TDate, uid?: string): Observable<IPlanState> {
-		return this.getMemberData(date, uid).pipe(
+	getPlanData(date?: TDate): Observable<IPlanState> {
+		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
 			joinDoc(this.states, 'client', STORE.price, undefined, date),
 			map(table => buildPlan(table)),
@@ -173,23 +167,15 @@ export class StateService {
 	 * account.attend	-> has an array of attendances against the <active> payment  
 	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $ }
 	 */
-	getAccountData(uid?: string, date?: TDate): Observable<IAccountState> {
-		const filterPayment = addWhere(FIELD.uid, uid || '{{auth.user.uid}}');
+	getAccountData(date?: TDate): Observable<IAccountState> {
+		const filterPayment = addWhere(FIELD.uid, '{{auth.current.uid}}');
 		const filterAttend = addWhere('payment', `{{account.payment[0].${FIELD.id}}}`);
 
-		return this.getAttendData(uid).pipe(
-			combineLatest(this.getMemberData(date, uid)),
+		return combineLatest(this.getAttendData(), this.getMemberData(date)).pipe(
 			map(([_AttendState, MemberState]) => MemberState),
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)
-
-		// return this.getMemberData(date, uid).pipe(												// watch for /member changes
-		// 	combineLatest(this.getAttendData(uid)),													// make sure we watch for /attend changes too
-		// 	map(([MemberState, _AttendState]) => MemberState),							// forward only the MemberState
-		// 	joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
-		// 	joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
-		// )
 	}
 
 	//TODO: apply bonus-pricing to client.schedule
@@ -204,7 +190,7 @@ export class StateService {
 	 * span				-> has the Class Duration definitions ('full' or 'half')
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 */
-	getScheduleData(date?: TDate, uid?: string) {
+	getScheduleData(date?: TDate) {
 		const base = getDate(date);
 		const filterSchedule = addWhere('day', base.format(DATE_FMT.weekDay));
 		const filterCalendar = addWhere(FIELD.key, base.format(DATE_FMT.yearMonthDay));
@@ -222,7 +208,7 @@ export class StateService {
 			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
 		]
 
-		return this.getMemberData(date, uid).pipe(
+		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
 			joinDoc(this.states, 'client', STORE.calendar, filterRange, date),									// get any blocked calendar-range
