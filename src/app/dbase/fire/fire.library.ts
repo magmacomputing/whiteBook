@@ -16,6 +16,7 @@ export const fnQuery = (query: IQuery = {}) => {
 			(colRef: Query) => {													// map a Query-function
 				if (split.where)
 					asArray(split.where)
+						.filter(qry => !isUndefined(qry.value))	// discard queries for 'undefined' value
 						.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as firebase.firestore.WhereFilterOp, qry.value));
 
 				if (split.orderBy)
@@ -47,7 +48,6 @@ export const fnQuery = (query: IQuery = {}) => {
 const splitQuery = (query: IQuery = {}) => {
 	const vals = asArray(query.where)							// for each 'where' clause
 		.map(where => deDup(...asArray(where.value))// for each 'value'
-			.filter(value => !isUndefined(value))			// discard undefined values
 			.map(value =>															// build an array of IWhere
 				({
 					fieldPath: where.fieldPath,

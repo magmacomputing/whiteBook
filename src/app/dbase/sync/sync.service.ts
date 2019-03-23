@@ -30,7 +30,7 @@ export class SyncService {
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) { this.dbg('new'); }
 
-	/** establish an array of listeners to a remote Firestore Collection, and sync to an NGXS Slice */
+	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
 		const ready = createPromise<boolean>();
 		this.getAuthUID();																// make sure we stash the Auth User's ID
@@ -48,7 +48,7 @@ export class SyncService {
 			subscribe: stream.subscribe(sync)
 		}
 
-		this.dbg('on: %s', collection);
+		this.dbg('on: %s' + (query ? ', %j' : ''), collection, query || '');
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 

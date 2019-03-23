@@ -94,9 +94,8 @@ export class MigAttendComponent implements OnInit {
 			.pipe(take(1))
 			.subscribe(_other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
-				this.dbg('query: %j', query);
-				this.sync.on(COLLECTION.attend, query);
 				this.sync.on(COLLECTION.member, query);
+				this.sync.on(COLLECTION.attend, query);
 
 				const action = 'history';
 				const { id, provider } = register.migrate!.providers[0];
@@ -104,7 +103,7 @@ export class MigAttendComponent implements OnInit {
 					.then((resp: { history: MHistory[] }) => (resp.history || []).sort(sortKeys(FIELD.stamp)));
 				this.history.then(hist => this.dbg('history: %s', hist.length));
 
-				this.account$ = this.state.getAccountData(register.uid)
+				this.account$ = this.state.getAccountData()
 			});
 	}
 
@@ -115,8 +114,8 @@ export class MigAttendComponent implements OnInit {
 				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
 				this.current = null;
-				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 				this.sync.on(COLLECTION.member, query);
+				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 			})
 	}
 
@@ -163,23 +162,23 @@ export class MigAttendComponent implements OnInit {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.slice(0, 15)																		// for testing: just the first few Attends
 
-		table.length = 0;
-		table.push({
-			"stamp": 1411469381,
-			"date": 20130329,
-			"type": "Routine*2 Classes",
-			"title": "<span style=\"color:#5b2012;\">Routine*2 Classes</span>",
-			"debit": "-20.00",
-			"funds": 150
-		});
-		table.push({
-			"stamp": 1545296400,
-			"date": 20181220,
-			"type": "AeroStep",
-			"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
-			"debit": "-10.00",
-			"funds": 170
-		});
+		// table.length = 0;
+		// table.push({
+		// 	"stamp": 1411469381,
+		// 	"date": 20130329,
+		// 	"type": "Routine*2 Classes",
+		// 	"title": "<span style=\"color:#5b2012;\">Routine*2 Classes</span>",
+		// 	"debit": "-20.00",
+		// 	"funds": 150
+		// });
+		// table.push({
+		// 	"stamp": 1545296400,
+		// 	"date": 20181220,
+		// 	"type": "AeroStep",
+		// 	"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
+		// 	"debit": "-10.00",
+		// 	"funds": 170
+		// });
 		this.newAttend(table[0], ...table.slice(1));
 	}
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
@@ -90,7 +90,7 @@ export class StateService {
 	 */
 	getAdminData(): Observable<IAdminState> {
 		return this.admin$.pipe(
-			joinDoc(this.states, 'register', STORE.register, undefined, undefined),
+			joinDoc(this.states, 'register', STORE.register),
 		)
 	}
 
@@ -104,20 +104,21 @@ export class StateService {
 		];
 
 		return this.attend$.pipe(
-			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, buildAttend)
+			joinDoc(this.states, 'default', STORE.default),
+			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend)//, undefined, buildAttend)
 		)
 	}
 
-	// /**
-	//  * Watch for changes on the Member's Payments
-	//  */
+	/**
+	 * Watch for changes on the Member's Payments
+	 */
 	getPaymentData(): Observable<IPaymentState> {
 		const filterPayment = [
-			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 			addWhere(FIELD.store, STORE.payment),
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		]
 
-		return this.member$.pipe(
+		return this.getMemberData().pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
 		)
 	}
@@ -168,11 +169,17 @@ export class StateService {
 	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $ }
 	 */
 	getAccountData(date?: TDate): Observable<IAccountState> {
-		const filterPayment = addWhere(FIELD.uid, '{{auth.current.uid}}');
-		const filterAttend = addWhere('payment', `{{account.payment[0].${FIELD.id}}}`);
+		const filterPayment = [
+			addWhere(FIELD.store, STORE.payment),
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),
+		];
+		const filterAttend = [
+			addWhere('payment', `{{account.payment[0].${FIELD.id}}}`),
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),
+		];
 
-		return combineLatest(this.getAttendData(), this.getMemberData(date)).pipe(
-			map(([_AttendState, MemberState]) => MemberState),
+		return combineLatest(this.getAttendData(), this.getPaymentData()).pipe(
+			switchMap(_ => this.getMemberData(date)),
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)

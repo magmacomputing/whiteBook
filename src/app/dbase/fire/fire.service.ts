@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { merge, Observable, combineLatest } from 'rxjs';
+import { merge, Observable } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
 import * as firebase from 'firebase/app';
 
