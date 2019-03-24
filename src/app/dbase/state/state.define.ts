@@ -4,7 +4,7 @@ import { IAuthState } from './auth.action';
 import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister
+	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -46,16 +46,21 @@ export interface IAdminState {
 	register: IRegister[];								// register collection
 }
 
-export interface IMemberState extends IUserState {
+export interface IApplicationState {		// application-wide settings
+	application: {
+		[STORE.default]: IDefault[];        // defaults to apply, if missing from Member data
+		[STORE.schema]?: ISchema[];
+		[STORE.config]?: IConfig[];
+	}
+}
+
+export interface IMemberState extends IUserState, IApplicationState {
 	member: {
 		plan: IProfilePlan[];              	// member's effective plan
 		info: IProfileInfo[];              	// array of AdditionalUserInfo documents
 		pref: IProfilePref[];								// member's preferences
 		price: IPrice[];                   	// member's effective prices
 		message: IMessage[];								// array of messages to a Member
-	},
-	default: {
-		[STORE.default]: IDefault[];        // defaults to apply, if missing from Member data
 	}
 }
 
@@ -87,7 +92,7 @@ export interface IPaymentState {
 	[payment: string]: IPayment[];
 }
 
-export interface ITimetableState extends IMemberState {
+export interface ITimetableState extends IMemberState, IApplicationState {
 	client: {
 		schedule?: ISchedule[];
 		class?: IClass[];

@@ -1,12 +1,12 @@
 import { Observable, defer, combineLatest } from 'rxjs';
-import { switchMap, map, tap } from 'rxjs/operators';
+import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, IMemberState, SLICE, IAttendState, TStateSlice } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, IAttendState, TStateSlice, IApplicationState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IAttend } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
@@ -65,9 +65,8 @@ export const getSlice = (store: string) => {    // determine the state-slice bas
 	return slices[0];
 }
 
-export const getDefault = (state: IMemberState, type: string) => {
-	// console.log('default: ', type, state);
-	const table = (state['default'][STORE.default])
+export const getDefault = (state: IApplicationState, type: string) => {
+	const table = (state['application'][STORE.default])
 		.filter(row => row[FIELD.type] === type);       // find the default value for the requested type
 	return table.length && table[0][FIELD.key] || undefined;
 }
@@ -280,8 +279,8 @@ export const buildTimetable = (source: ITimetableState) => {
 		price: prices = [],
 	} = source.member;														// the prices as per member's plan
 
-	const icon = firstRow<IDefault>(source.default[STORE.default], addWhere(FIELD.type, 'icon'));
-	const locn = firstRow<IDefault>(source.default[STORE.default], addWhere(FIELD.type, 'location'));
+	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
+	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
 	/**

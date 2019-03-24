@@ -4,7 +4,7 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAdminState, IAttendState, IPaymentState } from '@dbase/state/state.define';
+import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, buildAttend } from '@dbase/state/state.library';
 
@@ -65,7 +65,7 @@ export class StateService {
 			.then(table => table[0]);				// only the first document
 	}
 
-	getDefault(state: IMemberState, type: string) {
+	getDefault(state: IApplicationState, type: string) {
 		return getDefault(state, type);
 	}
 
@@ -104,7 +104,7 @@ export class StateService {
 		];
 
 		return this.attend$.pipe(
-			joinDoc(this.states, 'default', STORE.default),
+			joinDoc(this.states, 'application', STORE.default),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend)//, undefined, buildAttend)
 		)
 	}
@@ -125,7 +125,7 @@ export class StateService {
 
 	/**
 	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
-	 * default._default -> has the current defaults to be used where join-fields are undefined
+	 * application._default -> has the current defaults to be used where join-fields are undefined
 	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
 	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
 	 * member.pref	-> has an array of member preferences  
@@ -142,7 +142,7 @@ export class StateService {
 		const filterMessage = addWhere(FIELD.type, 'alert');
 
 		return this.getAuthData().pipe(
-			joinDoc(this.states, 'default', STORE.default, undefined, date),
+			joinDoc(this.states, 'application', STORE.default, undefined, date),
 			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member', STORE.price, filterPrice, date),
 			joinDoc(this.states, 'member.message', STORE.message, filterMessage, date),
@@ -245,7 +245,7 @@ export class StateService {
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 
 		return of({}).pipe(																						// start with an empty Object
-			joinDoc(this.states, 'default', STORE.default, undefined, date),
+			joinDoc(this.states, 'application', STORE.default, undefined, date),
 			joinDoc(this.states, 'client', STORE.schedule, undefined, date),
 			joinDoc(this.states, 'client', STORE.class, filterClass, date),
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),
