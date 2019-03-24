@@ -64,24 +64,24 @@ class Instant {
 
 	constructor(dt?: TDate) { this.date = parseDate(dt); }
 
-	/** 4-digit year */		get yy() { return this.date.yy }
-	/** month number */		get mm() { return this.date.mm }
-	/** short month name*/get mn() { return this.date.mn }
-	/** day number */			get dd() { return this.date.dd }
-	/** short day name */	get dn() { return this.date.dn }
-	/** 24-hour format */	get HH() { return this.date.HH }
-	/** minute */					get MM() { return this.date.MI }
-	/** minute */					get MI() { return this.date.MI }
-	/** seconds */				get SS() { return this.date.SS }
-	/** weekday number */	get ww() { return this.date.ww }
-	/** unix timestamp */	get ts() { return this.date.ts }
+/** 4-digit year */		get yy() { return this.date.yy }
+/** month number */		get mm() { return this.date.mm }
+/** short month name*/get mn() { return this.date.mn }
+/** day number */			get dd() { return this.date.dd }
+/** short day name */	get dn() { return this.date.dn }
+/** 24-hour format */	get HH() { return this.date.HH }
+/** minute */					get MM() { return this.date.MI }
+/** minute */					get MI() { return this.date.MI }
+/** seconds */				get SS() { return this.date.SS }
+/** weekday number */	get ww() { return this.date.ww }
+/** unix timestamp */	get ts() { return this.date.ts }
 
-	format<K extends keyof IDateFmt>(fmt: K) { return formatDate(fmt, this.date) as IDateFmt[K] }
-	diff(unit: TUnitDiff = 'years', dt2?: TDate) { return diffDate(this.date, parseDate(dt2), unit) }
-	add(offset: number, unit: TUnitTime = 'minutes') { return setDate('add', unit, this.date, offset) }
-	startOf(unit: TUnitOffset = 'week') { return setDate('start', unit, this.date) }
-	endOf(unit: TUnitOffset = 'week') { return setDate('end', unit, this.date) }
-	isValid() { return !isNaN(this.date.ts) }
+/** apply formatting*/format<K extends keyof IDateFmt>(fmt: K) { return formatDate(fmt, this.date) as IDateFmt[K] }
+/** calc diff Dates */diff(unit: TUnitDiff = 'years', dt2?: TDate) { return diffDate(this.date, parseDate(dt2), unit) }
+/** add date offset */add(offset: number, unit: TUnitTime = 'minutes') { return setDate('add', unit, this.date, offset) }
+/** start offset */		startOf(unit: TUnitOffset = 'week') { return setDate('start', unit, this.date) }
+/** ending offset */	endOf(unit: TUnitOffset = 'week') { return setDate('end', unit, this.date) }
+/** is Instant valid*/isValid() { return !isNaN(this.date.ts) }
 }
 
 /** shortcut functions to common DateTime properties / methods */
