@@ -46,8 +46,7 @@ export class FireService {
 		return merge(...(colRefs.map(colRef => colRef[type]())))
 	}
 
-	/** Document 
-	 * , for existing or new */
+	/** Document Reference, for existing or new */
 	docRef(store: string, docId?: string) {
 		const col = store.includes('/')
 			? store																// already a '/{collection}' path
