@@ -83,6 +83,8 @@ export class MigAttendComponent implements OnInit {
 			.pipe(take(1))
 			.toPromise()
 			.then(auth => this.user = auth.auth.user)
+
+			const now = getDate();
 	}
 
 	ngOnInit() { }
