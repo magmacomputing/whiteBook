@@ -73,11 +73,11 @@ export class MigAttendComponent implements OnInit {
 				map(reg => reg.sort(sortKeys('user.customClaims.memberName'))),
 			)
 
-		this.data.getAll<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
+		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
 			.then(schedule => this.schedule = schedule);
-		this.data.getAll<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) })
+		this.data.getFire<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) })
 			.then(calendar => this.calendar = calendar);
-		this.data.getAll<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
+		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
 			.then(events => this.events = events);
 		this.state.getAuthData()																	// stash the current Auth'd user
 			.pipe(take(1))
@@ -221,23 +221,23 @@ export class MigAttendComponent implements OnInit {
 			addWhere(FIELD.store, STORE.payment),
 			addWhere(FIELD.uid, this.current!.user.uid),
 		]
-		const deletes = await this.data.getAll<TStoreBase>(COLLECTION.member, { where });
+		const deletes = await this.data.getFire<TStoreBase>(COLLECTION.member, { where });
 
 		where.length = 0;													// truncate where-clause
 		where.push(addWhere(FIELD.uid, this.current!.user.uid));
-		deletes.push(...await this.data.getAll<TStoreBase>(COLLECTION.attend, { where }));
+		deletes.push(...await this.data.getFire<TStoreBase>(COLLECTION.attend, { where }));
 
 		return this.data.batch(undefined, undefined, deletes)
 	}
 
 	async delAttend() {
-		const deletes = await this.data.getAll<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.current!.user.uid) });
+		const deletes = await this.data.getFire<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.current!.user.uid) });
 		const pays = deDup(...deletes.map(row => row.payment));
 		const payments = await this.data.getStore<IPayment>(STORE.payment, [
 			addWhere(FIELD.uid, this.current!.user.uid),
 			addWhere(FIELD.id, pays),											// get any Payment which is referenced by the Attend documents
 		])
-		const updates = payments.map(row => ({ ...row, [FIELD.expire]: Number.MIN_SAFE_INTEGER, [FIELD.effect]: Number.MIN_SAFE_INTEGER }));
+		const updates = payments.map(row => ({ ...row, [FIELD.expire]: Number.MIN_SAFE_INTEGER, [FIELD.effect]: Number.MIN_SAFE_INTEGER, expiry: Number.MIN_SAFE_INTEGER }));
 
 		this.dbg('payments: %j', payments);
 		this.dbg('updates: %j', updates);

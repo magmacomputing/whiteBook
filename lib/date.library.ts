@@ -39,7 +39,7 @@ export enum DATE_FMT {
 export type TDate = string | number | Date | Instant;
 type TMutate = 'add' | 'start' | 'end';
 type TUnitTime = 'month' | 'months' | 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
-type TUnitOffset = 'week' | 'month';
+type TUnitOffset = 'day' | 'week' | 'month';
 type TUnitDiff = 'years' | 'months' | 'days';
 
 const hhmm = /^\d\d:\d\d$/;									// regex to match HH:MM
@@ -139,6 +139,12 @@ class Instant {
 			[date.HH, date.MI, date.SS] = [0, 0, 0];								// discard the time-portion of the date
 
 		switch (`${mutate}.${unit}`) {
+			case 'start.day':
+				break;
+			case 'end.day':
+				date.dd += 1;
+				date.HH = 23; date.MI = 59; date.SS = 59;
+				break;
 			case 'start.week':
 				date.dd = date.dd - date.ww + DAY.Mon;
 				break;
@@ -189,13 +195,13 @@ class Instant {
 				return date.ts;
 
 			case DATE_FMT.display:
-				return `${DAY[date.ww]}, ${fix(date.dd)} ${MONTH[date.mm]} ${date.yy}`;
+				return `${date.dn}, ${fix(date.dd)} ${date.mn} ${date.yy}`;
 
 			case DATE_FMT.dayMonth:
-				return `${fix(date.dd)}-${MONTH[date.mm]}`;
+				return `${fix(date.dd)}-${date.mn}`;
 
 			case DATE_FMT.dateTime:
-				return `${date.yy}-${MONTH[date.mm]}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
+				return `${date.yy}-${date.mn}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
 
 			default:
 				return '';
@@ -203,7 +209,7 @@ class Instant {
 	}
 
 	/** calculate the difference between dates */
-	private diffDate = (dt1: IDate, dt2: IDate, unit: TUnitDiff) =>
+	private diffDate = (dt1: IDate, dt2: IDate, unit: TUnitDiff = 'years') =>
 		Math.floor((dt2.ts - dt1.ts) / divideBy[unit]);
 }
 

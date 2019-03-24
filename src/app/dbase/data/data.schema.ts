@@ -11,7 +11,7 @@ export type TTypeDefault = TStoreClient | 'icon';
 export type TMeta = IMeta | IMeta[];
 
 type TSpan = 'full' | 'half';
-type TPrice = TSpan | 'topUp';
+type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
 type TPayment = 'topUp' | 'hold' | 'credit' | 'close';
 type TProfile = 'plan' | 'claim' | 'info' | 'pref';
 type TSchedule = 'event' | 'class' | 'special';

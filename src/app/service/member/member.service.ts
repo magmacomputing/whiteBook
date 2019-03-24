@@ -9,7 +9,7 @@ import { MemberInfo } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
 
 import { addWhere } from '@dbase/fire/fire.library';
-import { getMemberInfo, lkpDate } from '@service/member/member.library';
+import { getMemberInfo, lkpDate, calcExpiry } from '@service/member/member.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
@@ -113,7 +113,7 @@ export class MemberService {
 			addWhere(FIELD.note, note),
 			addWhere('date', when),
 		]
-		const booked = await this.data.getAll<IAttend>(STORE.attend, { where: attendFilter });
+		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error('Already attended this class');
 			return;
@@ -137,13 +137,13 @@ export class MemberService {
 			// Next pre-payment is to become Active, rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...payments[1] });
+				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1].amount, data.member.price), ...payments[1] });
 				break;
 
-			// New payment to become Active, rollever unused Funds
+			// New payment to become Active, rollover unused Funds
 			default:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, ...activePay });
+				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1].amount, data.member.price), ...activePay });
 				break;
 		}
 
