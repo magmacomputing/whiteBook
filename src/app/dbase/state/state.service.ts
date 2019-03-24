@@ -17,7 +17,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
 import { asArray } from '@lib/array.library';
-import { DATE_FMT, TDate, Instant } from '@lib/date.library';
+import { DATE_FMT, TDate, getDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -198,9 +198,9 @@ export class StateService {
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 */
 	getScheduleData(date?: TDate) {
-		const base = new Instant(date);
-		const filterSchedule = addWhere('day', base.format(DATE_FMT.weekDay));
-		const filterCalendar = addWhere(FIELD.key, base.format(DATE_FMT.yearMonthDay));
+		const now = getDate(date);
+		const filterSchedule = addWhere('day', now.format(DATE_FMT.weekDay));
+		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);
@@ -235,12 +235,12 @@ export class StateService {
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
 	getTimetableData(date?: TDate): Observable<ITimetableState> {
-		const base = new Instant(date);
+		const now = getDate(date);
 		const filterClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterLocation = addWhere(FIELD.key, '{{client.schedule.location}}');
 		const filterCalendar = [
-			addWhere(FIELD.key, base.startOf('week').format(DATE_FMT.yearMonthDay), '>='),
-			addWhere(FIELD.key, base.endOf('week').format(DATE_FMT.yearMonthDay), '<='),
+			addWhere(FIELD.key, now.startOf('week').format(DATE_FMT.yearMonthDay), '>='),
+			addWhere(FIELD.key, now.endOf('week').format(DATE_FMT.yearMonthDay), '<='),
 		]
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 

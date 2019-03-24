@@ -19,17 +19,17 @@ export class TrackService {
 	constructor(private fire: FireService, private auth: AuthService) { }
 
 	async write(fmt?: any, ...data: any[]) {
-		const base = getDate();
+		const now = getDate();
 		const uid = await this.auth.current
 			.then(user => user && user.uid)
 
-		const trackCol = `/${STORE.log}/${base.yy}${fix(base.mm)}/${fix(base.dd)}`;
+		const trackCol = `/${STORE.log}/${now.yy}${fix(now.mm)}/${fix(now.dd)}`;
 		const trackDoc: ITrack = {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
 			[FIELD.uid]: uid || 'anonymous',
-			stamp: base.ts,
-			date: { year: base.yy, month: base.mm, day: base.dd },
+			stamp: now.ts,
+			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
 		}
 

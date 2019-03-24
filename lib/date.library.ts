@@ -34,7 +34,7 @@ export enum DATE_FMT {
 	dateTime = 'dateTime',
 }
 
-export type TDate = string | number | Date;
+export type TDate = string | number | Date | Instant;
 type TMutate = 'add' | 'start' | 'end';
 type TUnitTime = 'month' | 'months' | 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
 type TUnitOffset = 'week' | 'month';
@@ -57,10 +57,19 @@ const minTS = new Date('1000-01-01').valueOf() / 1000;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** parse a Date, return components and methods */
-export class Instant {
-	date: IDate;
+class Instant {
+	private date: IDate;
 
 	constructor(dt?: TDate) { this.date = parseDate(dt); }
+
+	get yy() { return this.date.yy }
+	get mm() { return this.date.mm }
+	get dd() { return this.date.dd }
+	get HH() { return this.date.HH }
+	get MM() { return this.date.MI }
+	get SS() { return this.date.SS }
+	get ww() { return this.date.ww }
+	get ts() { return this.date.ts }
 
 	format<K extends keyof IDateFmt>(fmt: K) { return formatDate(fmt, this.date) as IDateFmt[K] }
 	diff(unit: TUnitDiff = 'years', dt2?: TDate) { return diffDate(this.date, parseDate(dt2), unit) }
@@ -71,10 +80,10 @@ export class Instant {
 }
 
 /** shortcut functions to common DateTime properties / methods */
-export const newDate = (dt?: TDate) => new Instant(dt);
-export const getDate = (dt?: TDate) => new Instant(dt).date;
-export const getStamp = (dt?: TDate) => new Instant(dt).date.ts;
-export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => new Instant(dt).format(fmt);
+export const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
+export const getDate = (dt?: TDate) => new Instant(dt);
+export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
+export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).format(fmt);
 
 /** break a Date into components */
 const parseDate = (dt?: TDate) => {
@@ -87,15 +96,25 @@ const parseDate = (dt?: TDate) => {
 
 	let date: Date;
 	switch (getType(dt)) {																		// translate supplied parameter into a Date
-		case 'Undefined': date = new Date(); break;
-		case 'Date': date = dt as Date; break;
-		case 'String': date = new Date(dt as string); break;		// attempt to parse date-string
-		case 'Number':
+		case 'Undefined':																				// set to 'now'
+			date = new Date();
+			break;
+		case 'Date':																						// already a valid Date
+			date = dt as Date;
+			break;
+		case 'Instant':																					// turn Instant back into a date-string
+			date = new Date((dt as Instant).format(DATE_FMT.dateTime));
+			break;
+		case 'String':
+			date = new Date(dt as string);												// attempt to parse date-string
+			break;
+		case 'Number':																					// check whether milliseconds or microseconds
 			const nbr = dt as number;
-			const val = (nbr < maxTS ? nbr * 1000 : nbr);
+			const val = (nbr < maxTS ? nbr * 1000 : nbr);					// assume timestamp to milliseconds
 			date = new Date(val);
-			break;																								// assume timestamp to milliseconds
-		default: date = new Date();															// unexpected input
+			break;
+		default:																								// unexpected input
+			date = new Date();
 	}
 	if (isNaN(date.getTime()))
 		console.log('Invalid Date: ', dt, date);								// log the Invalid Date
@@ -147,7 +166,7 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 			break;
 	}
 
-	return newDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
+	return new Instant(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
 }
 
 /** apply some standard format rules */

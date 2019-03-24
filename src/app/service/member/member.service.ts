@@ -102,9 +102,9 @@ export class MemberService {
 		if (isUndefined(date))
 			date = await lkpDate(this.state, schedule[FIELD.key], schedule.location, date)
 
-		const base = getDate(date);
-		const stamp = base.ts;
-		const when = base.format(DATE_FMT.yearMonthDay);
+		const now = getDate(date);
+		const stamp = now.ts;
+		const when = now.format(DATE_FMT.yearMonthDay);
 
 		// check we are not re-booking same Class on same Day
 		const attendFilter = [
