@@ -7,12 +7,13 @@ import { isNumeric } from '@lib/string.library';
 import { isUndefined } from '@lib/type.library';
 
 /** Array of Query Functions with any limit / order criteria.  
- * If a Where-clause contains an array of <value>, this indicates a logical-or,
- * and needs to be split into a separate Query
+ * If a Where-clause contains an array of <values>, this indicates a logical-or,
+ * and needs to be split into separate Queries, as Firestore does not currently
+ * 'or' in a single-query
  */
 export const fnQuery = (query: IQuery = {}) => {
 	return splitQuery(query)
-		.map(split =>
+		.map<QueryFn>(split =>
 			(colRef: Query) => {													// map a Query-function
 				if (split.where)
 					asArray(split.where)
@@ -44,11 +45,15 @@ export const fnQuery = (query: IQuery = {}) => {
 }
 
 // TODO: consider split on fieldPath as well?
-/** create a set of Query-clauses to split the logical-or criteria */
+/**
+ * create a set of Query-clauses to split the logical-or criteria.  
+ * for example {fieldPath: 'uid', value: ['abc','def']} will return an array of
+ * [ {fieldPath:'uid', value:'abc'}, {fieldPath:'uid', value'def'} ]
+ */
 const splitQuery = (query: IQuery = {}) => {
 	const vals = asArray(query.where)							// for each 'where' clause
 		.map(where => deDup(...asArray(where.value))// for each 'value'
-			.map(value =>															// build an array of IWhere
+			.map<IWhere>(value =>											// build an array of separate IWhere
 				({
 					fieldPath: where.fieldPath,
 					opStr: where.opStr,
@@ -56,8 +61,8 @@ const splitQuery = (query: IQuery = {}) => {
 				})
 			)
 		);
-	const wheres: IWhere[] = cartesian(...vals) || [];// cartesian product of Where array
-	const split: IQuery[] = wheres.map(where =>		// for each split Where
+	const wheres: IWhere[] = cartesian(...vals) || [];// cartesian product of IWhere array
+	const split: IQuery[] = wheres.map(where =>		// for each split IWhere
 		({																					// build an array of IQuery
 			orderBy: query.orderBy,
 			limitTo: query.limit,

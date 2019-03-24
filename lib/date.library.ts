@@ -57,40 +57,48 @@ const minTS = new Date('1000-01-01').valueOf() / 1000;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** parse a Date, return components and methods */
-export const getDate = (dt?: TDate) => {
-	const date = parseDate(dt);
+export class Instant {
+	date: IDate;
 
-	return {
-		add: (offset: number, unit: TUnitTime = 'minutes') => setDate('add', unit, date, offset),
-		startOf: (unit: TUnitOffset = 'week') => setDate('start', unit, date),
-		endOf: (unit: TUnitOffset = 'week') => setDate('end', unit, date),
-		diff: (unit: TUnitDiff = 'years', dt2?: TDate) => diffDate(date, parseDate(dt2), unit),
-		format: <K extends keyof IDateFmt>(fmt: K) => formatDate(fmt, date) as IDateFmt[K],
-		isValid: () => !isNaN(date.ts),
-		...date,
-	}
+	constructor(dt?: TDate) { this.date = parseDate(dt); }
+
+	format<K extends keyof IDateFmt>(fmt: K) { return formatDate(fmt, this.date) as IDateFmt[K] }
+	diff(unit: TUnitDiff = 'years', dt2?: TDate) { return diffDate(this.date, parseDate(dt2), unit) }
+	add(offset: number, unit: TUnitTime = 'minutes') { return setDate('add', unit, this.date, offset) }
+	startOf(unit: TUnitOffset = 'week') { return setDate('start', unit, this.date) }
+	endOf(unit: TUnitOffset = 'week') { return setDate('end', unit, this.date) }
+	isValid() { return !isNaN(this.date.ts) }
 }
 
-/** quick shortcut rather than getDate(dt).format(DATE_FMT.stamp) */
-export const getStamp = (dt?: TDate) =>
-	parseDate(dt).ts;																					// Unix timestamp-format
-
-/** shortcut to getDate(dt).format(fmt) */
-export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) =>
-	getDate(dt).format(fmt);
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/** shortcut functions to common DateTime properties / methods */
+export const newDate = (dt?: TDate) => new Instant(dt);
+export const getDate = (dt?: TDate) => new Instant(dt).date;
+export const getStamp = (dt?: TDate) => new Instant(dt).date.ts;
+export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => new Instant(dt).format(fmt);
 
 /** break a Date into components */
 const parseDate = (dt?: TDate) => {
 	if (isString(dt) && hhmm.test(dt))												// if only HH:MM supplied...
 		dt = new Date().toDateString() + ' ' + dt;							// 	prepend current date
 	if (isString(dt) && yyyymmdd.test(dt))										// if yyyymmdd supplied as string...
-		dt = dt.replace(yyyymmdd, '$1-$2-$3 00:00:00');
+		dt = dt.replace(yyyymmdd, '$1-$2-$3 00:00:00');					//  format to look like a date-string
 	if (isNumber(dt) && yyyymmdd.test(dt.toString()))					// if yyyymmdd supplied as number...
 		dt = dt.toString().replace(yyyymmdd, '$1-$2-$3 00:00:00');
 
-	const date = checkDate(dt);
+	let date: Date;
+	switch (getType(dt)) {																		// translate supplied parameter into a Date
+		case 'Undefined': date = new Date(); break;
+		case 'Date': date = dt as Date; break;
+		case 'String': date = new Date(dt as string); break;		// attempt to parse date-string
+		case 'Number':
+			const nbr = dt as number;
+			const val = (nbr < maxTS ? nbr * 1000 : nbr);
+			date = new Date(val);
+			break;																								// assume timestamp to milliseconds
+		default: date = new Date();															// unexpected input
+	}
+	if (isNaN(date.getTime()))
+		console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
 	let [yy, mm, dd, ww, HH, MI, SS, ts] = [
 		date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
@@ -102,34 +110,12 @@ const parseDate = (dt?: TDate) => {
 	return { yy, mm, dd, ww, HH, MI, SS, ts } as IDate;
 }
 
-/** translate the supplied parameter into a Date */
-const checkDate = (dt?: TDate) => {
-	let date: Date;
-
-	switch (getType(dt)) {
-		case 'Undefined': date = new Date(); break;
-		case 'Date': date = dt as Date; break;
-		case 'String': date = new Date(dt as string); break;		// attempt to parse date-string
-		case 'Number':
-			const nbr = dt as number;
-			const val = (nbr < maxTS ? nbr * 1000 : nbr);
-			date = new Date(val);
-			break;																								// assume timestamp to milliseconds
-		default: date = new Date();															// unexpected input
-	}
-
-	if (isNaN(date.getTime()))
-		console.log('Invalid Date: ', dt, date);								// log the Invalid Date
-
-	return date;
-}
-
 /** calculate a Date mutation */
 const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, offset?: number) => {
 	if (mutate !== 'add')
 		[date.HH, date.MI, date.SS] = [0, 0, 0];								// discard the time-portion of the date
 
-	switch (mutate + '.' + unit) {
+	switch (`${mutate}.${unit}`) {
 		case 'start.week':
 			date.dd = date.dd - date.ww + DAY.Mon;
 			break;
@@ -161,7 +147,7 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 			break;
 	}
 
-	return getDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
+	return newDate(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
 }
 
 /** apply some standard format rules */
