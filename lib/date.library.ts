@@ -67,6 +67,7 @@ class Instant {
 	get dd() { return this.date.dd }
 	get HH() { return this.date.HH }
 	get MM() { return this.date.MI }
+	get MI() { return this.date.MI }
 	get SS() { return this.date.SS }
 	get ww() { return this.date.ww }
 	get ts() { return this.date.ts }
@@ -80,7 +81,7 @@ class Instant {
 }
 
 /** shortcut functions to common DateTime properties / methods */
-export const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
+const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
 export const getDate = (dt?: TDate) => new Instant(dt);
 export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
 export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).format(fmt);
