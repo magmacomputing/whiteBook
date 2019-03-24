@@ -86,9 +86,9 @@ class Instant {
 
 /** shortcut functions to common DateTime properties / methods */
 const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
-export const getDate = (dt?: TDate) => new Instant(dt);
-export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
-export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).format(fmt);
+/** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
+/** get Timestamp */	export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
+/** format a Date */	export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).format(fmt);
 
 /** break a Date into components */
 const parseDate = (dt?: TDate) => {
@@ -174,7 +174,7 @@ const setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, of
 	return new Instant(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
 }
 
-/** apply some standard format rules */
+/** combine Instant components to apply some standard format rules */
 const formatDate = (fmt: keyof IDateFmt, date: IDate) => {
 	switch (fmt) {
 		case DATE_FMT.HHmm:
