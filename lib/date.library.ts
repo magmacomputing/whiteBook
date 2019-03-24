@@ -4,7 +4,9 @@ import { isString, isNumber, getType } from '@lib/type.library';
 interface IDate {													// Date components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
+	mn: string;															// short month-name
 	dd: number;															// day; 1-31
+	dn: string;															// short day-name
 	ww: number;															// weekday; Mon=1, Sun=7
 	HH: number;															// hour[24]
 	MI: number;															// minute
@@ -62,15 +64,17 @@ class Instant {
 
 	constructor(dt?: TDate) { this.date = parseDate(dt); }
 
-	get yy() { return this.date.yy }
-	get mm() { return this.date.mm }
-	get dd() { return this.date.dd }
-	get HH() { return this.date.HH }
-	get MM() { return this.date.MI }
-	get MI() { return this.date.MI }
-	get SS() { return this.date.SS }
-	get ww() { return this.date.ww }
-	get ts() { return this.date.ts }
+	/** 4-digit year */		get yy() { return this.date.yy }
+	/** month number */		get mm() { return this.date.mm }
+	/** short month name*/get mn() { return this.date.mn }
+	/** day number */			get dd() { return this.date.dd }
+	/** short day name */	get dn() { return this.date.dn }
+	/** 24-hour format */	get HH() { return this.date.HH }
+	/** minute */					get MM() { return this.date.MI }
+	/** minute */					get MI() { return this.date.MI }
+	/** seconds */				get SS() { return this.date.SS }
+	/** weekday number */	get ww() { return this.date.ww }
+	/** unix timestamp */	get ts() { return this.date.ts }
 
 	format<K extends keyof IDateFmt>(fmt: K) { return formatDate(fmt, this.date) as IDateFmt[K] }
 	diff(unit: TUnitDiff = 'years', dt2?: TDate) { return diffDate(this.date, parseDate(dt2), unit) }
@@ -127,7 +131,7 @@ const parseDate = (dt?: TDate) => {
 	if (!ww && !isNaN(ww)) ww = DAY.Sun;											// ISO weekday
 	mm += 1;																									// ISO month
 
-	return { yy, mm, dd, ww, HH, MI, SS, ts } as IDate;
+	return { yy, mm, dd, ww, HH, MI, SS, ts, mn: MONTH[mm], dn: DAY[ww] } as IDate;
 }
 
 /** calculate a Date mutation */
