@@ -1,7 +1,7 @@
 import { fix } from '@lib/number.library';
 import { isString, isNumber, getType } from '@lib/type.library';
 
-interface IDate {													// Date components
+interface IInstant {													// Date components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
 	mn: string;															// short month-name
@@ -24,8 +24,6 @@ interface IDateFmt {
 	dateTime: string;
 }
 
-export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
-export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 export enum DATE_FMT {
 	yearMonthDay = 'yearMonthDay',
 	weekDay = 'weekDay',
@@ -36,6 +34,8 @@ export enum DATE_FMT {
 	dateTime = 'dateTime',
 }
 
+export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
+export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 export type TDate = string | number | Date | Instant;
 type TMutate = 'add' | 'start' | 'end';
 type TUnitTime = 'month' | 'months' | 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
@@ -61,12 +61,12 @@ const minTS = new Date('1000-01-01').valueOf() / 1000;
 /** shortcut functions to common DateTime properties / methods */
 const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
-/** get Timestamp */	export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
-/** format a Date */	export const fmtDate = (fmt: keyof IDateFmt, dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).format(fmt);
+/** get ms Timestamp*/export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
+/** format a Date */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).format(fmt);
 
 /** parse a Date, return components and methods */
 class Instant {
-	private date: IDate;
+	private date: IInstant;
 
 	constructor(dt?: TDate) { this.date = this.parseDate(dt); }
 
@@ -82,12 +82,12 @@ class Instant {
 /** weekday number */	get ww() { return this.date.ww }
 /** unix timestamp */	get ts() { return this.date.ts }
 
-/** apply formatting*/format<K extends keyof IDateFmt>(fmt: K) { return this.formatDate(fmt, this.date) as IDateFmt[K] }
-/** calc diff Dates */diff(unit: TUnitDiff = 'years', dt2?: TDate) { return this.diffDate(this.date, this.parseDate(dt2), unit) }
-/** add date offset */add(offset: number, unit: TUnitTime = 'minutes') { return this.setDate('add', unit, this.date, offset) }
-/** start offset */		startOf(unit: TUnitOffset = 'week') { return this.setDate('start', unit, this.date) }
-/** ending offset */	endOf(unit: TUnitOffset = 'week') { return this.setDate('end', unit, this.date) }
-/** is Instant valid*/isValid() { return !isNaN(this.date.ts) }
+/** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
+/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(dt2, unit);
+/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
+/** start offset */		startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
+/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
+/** is Instant valid*/isValid = () => !isNaN(this.date.ts);
 
 	/** break a Date into components */
 	private parseDate = (dt?: TDate) => {
@@ -129,12 +129,13 @@ class Instant {
 		];
 		if (!ww && !isNaN(ww)) ww = DAY.Sun;											// ISO weekday
 		mm += 1;																									// ISO month
-
-		return { yy, mm, dd, ww, HH, MI, SS, ts, mn: MONTH[mm], dn: DAY[ww] } as IDate;
+		this.format(DATE_FMT.HHmm)
+		return { yy, mm, dd, ww, HH, MI, SS, ts, mn: MONTH[mm], dn: DAY[ww] } as IInstant;
 	}
 
 	/** calculate a Date mutation */
-	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, date: IDate, offset?: number) => {
+	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, offset?: number) => {
+		const date = { ...this.date };														// clone the current Instant
 		if (mutate !== 'add')
 			[date.HH, date.MI, date.SS] = [0, 0, 0];								// discard the time-portion of the date
 
@@ -179,7 +180,8 @@ class Instant {
 	}
 
 	/** combine Instant components to apply some standard format rules */
-	private formatDate = (fmt: keyof IDateFmt, date: IDate) => {
+	private formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
+		const date = { ...this.date };													// clone current Instant
 		switch (fmt) {
 			case DATE_FMT.HHmm:
 				return `${fix(date.HH)}:${fix(date.MI)}`;
@@ -208,8 +210,8 @@ class Instant {
 	}
 
 	/** calculate the difference between dates */
-	private diffDate = (dt1: IDate, dt2: IDate, unit: TUnitDiff = 'years') =>
-		Math.floor((dt2.ts - dt1.ts) / divideBy[unit]);
+	private diffDate = (dt2?: TDate, unit: TUnitDiff = 'years') =>
+		Math.floor((this.parseDate(dt2).ts - this.date.ts) / divideBy[unit]);
 }
 
 // old format codes

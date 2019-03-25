@@ -10,6 +10,7 @@
 				<button (click)="addAttend()" [disabled]="!data.account.payment.length || data.account.attend.length">Add Attends</button>
 				<button (click)="delPayment()" [disabled]="!data.account.payment.length">Del Payments</button>
 				<button (click)="delAttend()" [disabled]="!data.account.attend.length">Del Attends</button>
+				<button (click)="delPayment()" [disabled]="!data.account.payment.length">Reset</button>
 				<p *ngIf="data.account"> {{ data.account.summary | json }} </p>
 			</div>
 		</div>

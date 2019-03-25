@@ -19,7 +19,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { fmtDate, DATE_FMT, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -177,11 +177,11 @@ export class MigAttendComponent implements OnInit {
 			addWhere('day', dow),
 		]
 
-		const [prefix, suffix, ...none] = what.split('*');
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 		let sched: ISchedule;
-		if (this.special.includes(prefix)) {					// dummy-up a Schedule
-		// if (caldr[FIELD.type]) {
+		// if (this.special.includes(prefix)) {					// dummy-up a Schedule
+		if (caldr && caldr[FIELD.type]) {
+			const [prefix, suffix, ...none] = what.split('*');
 			const event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 			const cnt = parseInt(suffix.split(' ')[0], 10);
 

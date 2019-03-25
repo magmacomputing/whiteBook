@@ -29,6 +29,8 @@ export class FireService {
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) { this.dbg('new'); }
 
+	// TODO: does it make more sense to pass multiple 'wheres' to a Observable(pipe(filter))?
+	// this would allow for a single subscription
 	/**
 	 * Collection References, with optional query.  
 	 * If a 'logical-or' is detected in the 'value' of any Where-clause,
