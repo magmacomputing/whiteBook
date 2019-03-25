@@ -6,7 +6,7 @@
 		<div *ngIf="current && current.migrate.sheetName == reg.migrate.sheetName">
 			<div *ngIf="account$ | async as data">
 				<button color="accent" (click)="signOut()">SignOut</button>
-				<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
+				<button (click)="addPayment()" [disabled]="data.account.payment.length || !data.account.attend.length">Add Payments</button>
 				<button (click)="addAttend()" [disabled]="!data.account.payment.length || data.account.attend.length">Add Attends</button>
 				<button (click)="delPayment()" [disabled]="!data.account.payment.length">Del Payments</button>
 				<button (click)="delAttend()" [disabled]="!data.account.attend.length">Del Attends</button>

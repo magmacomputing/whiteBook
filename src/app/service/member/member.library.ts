@@ -1,6 +1,7 @@
 import * as firebase from 'firebase/app';
 
 import { StateService } from '@dbase/state/state.service';
+import { IMemberState } from '@dbase/state/state.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPrice } from '@dbase/data/data.schema';
 
@@ -88,12 +89,12 @@ export const lkpDate = async (state: StateService, className: string, location?:
 }
 
 /** A Member's payment will auto-expire (i.e. unused funds are reversed) after a number of months */
-export const calcExpiry = (stamp: number, paidAmount: number, price: IPrice[]) => {
-	const topUp = price.find(row => row[FIELD.type] === 'topUp');
-	const limit = price.find(row => row[FIELD.type] === 'expiry');
+export const calcExpiry = (stamp: number, paidAmount: number, state: IMemberState) => {
+	const plan = state.member.plan[0] || {};
+	const topUp = state.member.price.find(row => row[FIELD.type] === 'topUp');
 
-	if (topUp && limit) {															// limit.amount is usually six-months
-		const offset = Math.round(paidAmount / (topUp.amount / limit.amount)) || 1;
+	if (topUp && plan.active) {															// limit.amount is usually six-months
+		const offset = Math.round(paidAmount / (topUp.amount / plan.active)) || 1;
 		return getDate(stamp).add(offset, 'months').startOf('day').ts;
 	}
 	return undefined;

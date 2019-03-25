@@ -178,9 +178,10 @@ export class MigAttendComponent implements OnInit {
 		]
 
 		const [prefix, suffix, ...none] = what.split('*');
+		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 		let sched: ISchedule;
 		if (this.special.includes(prefix)) {					// dummy-up a Schedule
-			const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+		// if (caldr[FIELD.type]) {
 			const event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 			const cnt = parseInt(suffix.split(' ')[0], 10);
 
@@ -237,7 +238,11 @@ export class MigAttendComponent implements OnInit {
 			addWhere(FIELD.uid, this.current!.user.uid),
 			addWhere(FIELD.id, pays),											// get any Payment which is referenced by the Attend documents
 		])
-		const updates = payments.map(row => ({ ...row, [FIELD.expire]: Number.MIN_SAFE_INTEGER, [FIELD.effect]: Number.MIN_SAFE_INTEGER, expiry: Number.MIN_SAFE_INTEGER }));
+		const updates = payments.map(row => ({
+			...row, [FIELD.effect]: Number.MIN_SAFE_INTEGER, [FIELD.expire]: Number.MIN_SAFE_INTEGER,
+			bank: Number.MIN_SAFE_INTEGER, expiry: Number.MIN_SAFE_INTEGER
+		})
+		);
 
 		this.dbg('payments: %j', payments);
 		this.dbg('updates: %j', updates);

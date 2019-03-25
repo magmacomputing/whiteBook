@@ -144,6 +144,8 @@ export interface IPlan extends IClientBase {
 	[FIELD.key]: string;
 	desc: string;
 	sort: number;
+	rule?: TString;
+	active?: number;										// number of months a Payment is active (before it is auto-expired)
 }
 //	/client/class
 export interface IClass extends IClientBase {

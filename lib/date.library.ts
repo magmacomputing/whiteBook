@@ -142,8 +142,7 @@ class Instant {
 			case 'start.day':
 				break;
 			case 'end.day':
-				date.dd += 1;
-				date.HH = 23; date.MI = 59; date.SS = 59;
+				[date.HH, date.MI, date.SS] = [23, 59, 59];
 				break;
 			case 'start.week':
 				date.dd = date.dd - date.ww + DAY.Mon;
