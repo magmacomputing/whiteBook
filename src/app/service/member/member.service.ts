@@ -133,7 +133,7 @@ export class MemberService {
 			// Current payment is still Active
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
-					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0].amount, data.member), ...payments[0] });
+					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0].amount, data), ...payments[0] });
 				if (amount.credit === schedule.price)					// no funds left on Active Payment
 					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				break;
@@ -141,13 +141,13 @@ export class MemberService {
 			// Next pre-payment is to become Active, rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1].amount, data.member), ...payments[1] });
+				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1].amount, data), ...payments[1] });
 				break;
 
 			// New payment to become Active, rollover unused Funds
 			default:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay.amount, data.member), ...activePay });
+				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay.amount, data), ...activePay });
 				break;
 		}
 
@@ -191,7 +191,7 @@ export class MemberService {
 	// TODO: apply bonus-tracking to determine discount price
 	async getEventPrice(event: string, data?: IAccountState) {
 		data = data || (await this.getAccount());
-		const profile = data.member.plan[0];						// the member's plan
+		const profile = data.member.profile.plan[0];						// the member's plan
 		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
 
 		return data.member.price												// look in member's prices for a match in 'span' and 'plan'

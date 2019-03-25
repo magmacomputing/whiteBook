@@ -231,9 +231,9 @@ export const calendarDay = (source: ITimetableState) => {
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
 	const isAdmin = roles && roles.includes('admin');
-	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, 'plan'));
+	const myPlan = firstRow<IProfilePlan>(source.member.profile.plan, addWhere(FIELD.type, 'plan'));
 	const myTopUp = firstRow<IPrice>(source.member.price, addWhere(FIELD.type, 'topUp'));
-	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
+	const myAge = getMemberAge(source.member.profile.info);	// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<IPrice>(source.client.price, [
