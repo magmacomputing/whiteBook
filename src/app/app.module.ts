@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, Injector } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -33,4 +33,10 @@ import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } 
 	bootstrap: [AppComponent],
 	entryComponents: [InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent],
 })
-export class AppModule { }
+export class AppModule {
+	static injector: Injector;
+
+	constructor(injector: Injector) {
+		AppModule.injector = injector;					// allow for retrieving singletons using AppModule.injector.get(MyService)
+	}
+}

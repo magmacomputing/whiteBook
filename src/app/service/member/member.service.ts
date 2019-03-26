@@ -1,21 +1,20 @@
 import { Injectable } from '@angular/core';
 import { timer } from 'rxjs';
-import { debounce, take } from 'rxjs/operators';
+import { debounce } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { MemberInfo } from '@dbase/state/auth.action';
-import { IAccountState } from '@dbase/state/state.define';
-
 import { addWhere } from '@dbase/fire/fire.library';
-import { getMemberInfo, lkpDate, calcExpiry } from '@service/member/member.library';
+import { getMemberInfo, calcExpiry } from '@service/member/member.library';
+import { AttendService } from '@service/member/attend.service';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, IClass, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { DATE_FMT, getStamp, getDate, TDate } from '@lib/date.library';
+import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -23,7 +22,8 @@ import { dbg } from '@lib/logger.library';
 export class MemberService {
 	private dbg = dbg(this);
 
-	constructor(private readonly data: DataService, private readonly store: Store, private state: StateService, private action: Actions, private snack: SnackService) {
+	constructor(private readonly data: DataService, private readonly store: Store, private attend: AttendService,
+		private state: StateService, private action: Actions, private snack: SnackService) {
 		this.dbg('new');
 
 		this.action.pipe(															// special: listen for changes of the auth.info
@@ -45,7 +45,7 @@ export class MemberService {
 	 * Create a new TopUp payment
 	 */
 	async setPayment(amount?: number) {
-		const data = await this.getAccount();
+		const data = await this.attend.getAccount();
 		const price = data.client.price								// find the topUp price for this Member
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 
@@ -59,15 +59,15 @@ export class MemberService {
 	}
 
 	/**
-	 * get (or set a new) active Payment  
+	 * get (or define a new) active Payment  
    * Determine if a new payment is due.  
    * -> if the price of the class is greater than their current funds  
    * -> if they've exceeded 99 Attends against the active Payment  
    * -> if their intro-pass has expired (auto bump them to 'member' plan)  
   */
 	async getPayment(price: number) {
-		const data = await this.getAccount();
-		const summary = await this.getAmount(data);
+		const data = await this.attend.getAccount();
+		const summary = await this.attend.getAmount(data);
 
 		switch (true) {
 			// more than 99-attendances against the activePayment
@@ -92,15 +92,15 @@ export class MemberService {
 	 * else create new Payment as well
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
-		const data = await this.getAccount(date);	// get Member's current account details
+		const data = await this.attend.getAccount(date);	// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
-			schedule.price = await this.getEventPrice(schedule[FIELD.key], data);
+			schedule.price = await this.attend.getEventPrice(schedule[FIELD.key], data);
 
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
-			date = await lkpDate(this.state, schedule[FIELD.key], schedule.location, date)
+			date = await this.attend.lkpDate(schedule[FIELD.key], schedule.location, date)
 
 		const now = getDate(date);
 		const stamp = now.ts;
@@ -125,7 +125,7 @@ export class MemberService {
 
 		// determine which Payment record is active
 		const activePay = await this.getPayment(schedule.price);
-		const amount = await this.getAmount(data);				// Account balance
+		const amount = await this.attend.getAmount(data);	// Account balance
 		this.dbg('amount: %j', amount);
 		this.dbg('price: %j', schedule.price);
 
@@ -168,42 +168,6 @@ export class MemberService {
 
 		// TODO:  also create a bonusTrack document
 		return this.data.batch(creates, updates);
-	}
-
-	/** Current Account status */
-	async getAccount(date?: TDate) {
-		return this.state.getAccountData(date)
-			.pipe(take(1))
-			.toPromise()
-	}
-
-	async getAmount(data?: IAccountState) {
-		data = data || await this.getAccount();
-		const { bank = 0, pend = 0, paid = 0, spend = 0 } = data.account.summary;
-		return { bank, pend, paid, spend, credit: bank + pend + paid - spend, funds: bank + paid - spend };
-	}
-
-	async	getPlan(data?: IAccountState) {
-		data = data || await this.getAccount();
-		return data.member.plan[0];
-	}
-
-	// TODO: apply bonus-tracking to determine discount price
-	async getEventPrice(event: string, data?: IAccountState) {
-		data = data || (await this.getAccount());
-		const profile = data.member.plan[0];						// the member's plan
-		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
-
-		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
-			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;
-	}
-
-	/** Determine the member's topUp amount */
-	async getPayPrice(data?: IAccountState) {
-		data = data || await this.getAccount();
-
-		return data.client.price
-			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 	}
 
 	/** check for change of User.additionalInfo */

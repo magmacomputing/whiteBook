@@ -62,32 +62,6 @@ export const paymentDue = () => {
 	return true;
 }
 
-/** loop back up-to-seven days to find when className was last scheduled */
-export const lkpDate = async (state: StateService, className: string, location?: string, date?: number) => {
-	const timetable = await state.getTimetableData(date).toPromise();
-	let now = getDate(date);													// start with date-argument
-	let ctr = 0;
-
-	if (!location)
-		location = state.getDefault(timetable, STORE.location);
-
-	for (ctr; ctr < 7; ctr++) {
-		const classes = timetable.client.schedule!			// loop through schedule
-			.filter(row => row.day === now.ww)						// finding a match in 'day'
-			.filter(row => row[FIELD.key] === className)	// and match in 'class'
-			.filter(row => row.location === location)			// and match in 'location'
-
-		if (classes.length)															// is this class offered on this 'day'   
-			break;
-		now = now.add(-1, 'day');												// move pointer to previous day
-	}
-
-	if (ctr >= 7)																			// cannot find className on timetable
-		now = getDate(date);														// so default back to today's date	
-
-	return now.ts;																		// timestamp
-}
-
 /** A Member's payment will auto-expire (i.e. unused funds are reversed) after a number of months */
 export const calcExpiry = (stamp: number, paidAmount: number, state: IAccountState) => {
 	const plan = state.client.plan[0] || {};					// description of Member's current Plan
