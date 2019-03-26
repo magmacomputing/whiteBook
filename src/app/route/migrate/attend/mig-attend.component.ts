@@ -9,7 +9,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend } from '@dbase/data/data.schema';
+import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend, IClass, ISpan } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { NewAttend } from '@dbase/state/state.action';
@@ -21,7 +21,8 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
-import { deDup } from '@lib/array.library';
+import { isUndefined } from '@lib/type.library';
+import { deDup, asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -42,6 +43,8 @@ export class MigAttendComponent implements OnInit {
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: IEvent[];
+	private class!: IClass[];
+	private spans!: ISpan[];
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
@@ -79,6 +82,10 @@ export class MigAttendComponent implements OnInit {
 			.then(calendar => this.calendar = calendar);
 		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
 			.then(events => this.events = events);
+		this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) })
+			.then(klass => this.class = klass);
+		this.data.getFire<ISpan>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.span) })
+			.then(spans => this.spans = spans);
 		this.state.getAuthData()																	// stash the current Auth'd user
 			.pipe(take(1))
 			.toPromise()
@@ -139,7 +146,6 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
-					// bank: row.bank,															// bank will be auto-calculated
 				} as IPayment
 
 				if (row.note)
@@ -153,7 +159,6 @@ export class MigAttendComponent implements OnInit {
 		this.data.batch(creates)
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
-
 
 	// TODO: if a colour is wrong at source, might have been Event.
 	// TODO: if Event*1, then is it zumba? step? etc?
@@ -178,30 +183,43 @@ export class MigAttendComponent implements OnInit {
 		]
 
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+		const [prefix, suffix, ...none] = what.split('*');
 		let sched: ISchedule;
-		// if (this.special.includes(prefix)) {					// dummy-up a Schedule
-		if (caldr && caldr[FIELD.type]) {
-			const [prefix, suffix, ...none] = what.split('*');
-			const event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-			const cnt = parseInt(suffix.split(' ')[0], 10);
+		let event: IEvent;
 
-			if (!caldr)
-				throw new Error(`Cannot determine calendar: ${row.date}`);
+		switch (true) {
+			case this.special.includes(prefix):						// special event match by <type>
+				if (!caldr)
+					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-			sched = {
-				[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[cnt < 0 ? Math.abs(cnt) : 0],
-				day: getDate(caldr.key).ww, start: caldr.start || '09:00', location: caldr.location, instructor: caldr.instructor
-			};
+				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+				const spans = asAt(this.)
+				const cnt = suffix ? parseInt(suffix.split(' ')[0], 10) : 1;
 
-			for (let nbr = 1; nbr < cnt; nbr++) {				// stack additional attends
-				row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount
-				rest.splice(0, 0, row);
-				this.dbg('splice: %j', rest);
-			}
-		} else {
-			sched = asAt(this.schedule, where, row.date)[0];
-			if (!sched)
-				throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
+				sched = {
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[cnt < 0 ? Math.abs(cnt) : 0],
+					day: getDate(caldr.key).ww, start: caldr.start || '09:00', location: caldr.location, instructor: caldr.instructor
+				};
+
+				for (let nbr = 1; nbr < cnt; nbr++) {				// stack additional attends
+					row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
+					rest.splice(0, 0, row);
+					this.dbg('splice: %j', rest);
+				}
+				break;
+
+			case (!isUndefined(caldr)):										// special event match by <date>
+				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+
+				sched = {
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[cnt < 0 ? Math.abs(cnt) : 0],
+					day: getDate(caldr.key).ww, start: caldr.start || '09:00', location: caldr.location, instructor: caldr.instructor
+				}; break;
+
+			default:
+				sched = asAt(this.schedule, where, row.date)[0];
+				if (!sched)
+					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
 		}
 
 		const sub = this.actions.pipe(
@@ -215,6 +233,14 @@ export class MigAttendComponent implements OnInit {
 					this.newAttend(rest[0], ...rest.slice(1));
 			});
 		return this.service.setAttend(sched, row.note, row.stamp);
+	}
+
+	private getEvent(type: string, start: string = '09:00') {
+		const event = asAt(this.events, addWhere(FIELD.key, type))[0];
+		const res: [] = [];
+		asArray(event.classes).forEach(klass => {
+
+		})
 	}
 
 	async delPayment() {

@@ -277,7 +277,7 @@ export const buildTimetable = (source: ITimetableState) => {
 	} = source.client;
 	const {
 		price: prices = [],
-	} = source.member;														// the prices as per member's plan
+	} = source.client;														// the prices as per member's plan
 
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));
