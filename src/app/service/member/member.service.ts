@@ -46,7 +46,7 @@ export class MemberService {
 	 */
 	async setPayment(amount?: number) {
 		const data = await this.getAccount();
-		const price = data.member.price								// find the topUp price for this Member
+		const price = data.client.price								// find the topUp price for this Member
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 
 		return {
@@ -191,10 +191,10 @@ export class MemberService {
 	// TODO: apply bonus-tracking to determine discount price
 	async getEventPrice(event: string, data?: IAccountState) {
 		data = data || (await this.getAccount());
-		const profile = data.member.profile.plan[0];						// the member's plan
+		const profile = data.member.plan[0];						// the member's plan
 		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
 
-		return data.member.price												// look in member's prices for a match in 'span' and 'plan'
+		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
 			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
 
@@ -202,7 +202,7 @@ export class MemberService {
 	async getPayPrice(data?: IAccountState) {
 		data = data || await this.getAccount();
 
-		return data.member.price
+		return data.client.price
 			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
 	}
 

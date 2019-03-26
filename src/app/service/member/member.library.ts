@@ -90,10 +90,10 @@ export const lkpDate = async (state: StateService, className: string, location?:
 
 /** A Member's payment will auto-expire (i.e. unused funds are reversed) after a number of months */
 export const calcExpiry = (stamp: number, paidAmount: number, state: IAccountState) => {
-	const plan = state.member.plan[0] || {};
-	const topUp = state.member.price.find(row => row[FIELD.type] === 'topUp');
+	const plan = state.client.plan[0] || {};					// description of Member's current Plan
+	const topUp = state.client.price.find(row => row[FIELD.type] === 'topUp');
 
-	if (topUp && plan.active) {															// limit.amount is usually six-months
+	if (topUp && plan.active) {												// plan.active is usually six-months
 		const offset = Math.round(paidAmount / (topUp.amount / plan.active)) || 1;
 		return getDate(stamp).add(offset, 'months').startOf('day').ts;
 	}

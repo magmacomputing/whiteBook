@@ -58,7 +58,7 @@ const maxTS = new Date('9999-12-31').valueOf() / 1000;
 const minTS = new Date('1000-01-01').valueOf() / 1000;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/** shortcut functions to common DateTime properties / methods */
+/** shortcut functions to common Instant class properties / methods */
 const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get ms Timestamp*/export const getStamp = (dt?: TDate) => (isInstant(dt) ? dt : new Instant(dt)).ts;
@@ -129,11 +129,11 @@ class Instant {
 		];
 		if (!ww && !isNaN(ww)) ww = DAY.Sun;											// ISO weekday
 		mm += 1;																									// ISO month
-		this.format(DATE_FMT.HHmm)
+
 		return { yy, mm, dd, ww, HH, MI, SS, ts, mn: MONTH[mm], dn: DAY[ww] } as IInstant;
 	}
 
-	/** calculate a Date mutation */
+	/** mutate an Instant */
 	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, offset?: number) => {
 		const date = { ...this.date };														// clone the current Instant
 		if (mutate !== 'add')

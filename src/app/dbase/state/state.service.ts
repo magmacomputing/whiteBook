@@ -126,11 +126,11 @@ export class StateService {
 	/**
 	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
 	 * application._default -> has the current defaults to be used where join-fields are undefined
-	 * member.profile.plan  -> has the asAt ProfilePlan for the user.uid  
-	 * member.profile.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
-	 * member.profile.pref	-> has an array of member preferences  
-	 * member.price -> has an array of IPrice that match the Member's plan-type
-	 * member.plan  -> has an array of IPlan description that match the Member's plan-type
+	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
+	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
+	 * member.pref	-> has an array of member preferences  
+	 * client.price -> has an array of IPrice that match the Member's plan-type
+	 * client.plan  -> has array of the asAt IPlan description
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 */
@@ -139,15 +139,15 @@ export class StateService {
 			addWhere(FIELD.type, ['plan', 'info', 'pref']),   // where the <type> is either 'plan', 'info', or 'pref'
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),  		// and the <uid> is current active User
 		]
-		const filterPlan = addWhere(FIELD.key, '{{member.profile.plan[0].plan}}');
+		const filterPlan = addWhere(FIELD.key, '{{member.plan[0].plan}}');
 		const filterMessage = addWhere(FIELD.type, 'alert');
 
 		return this.getAuthData().pipe(
 			joinDoc(this.states, 'application', STORE.default, undefined, date),
-			joinDoc(this.states, 'member.profile', STORE.profile, filterProfile, date),
-			joinDoc(this.states, 'member', STORE.price, filterPlan, date),
-			joinDoc(this.states, 'member', STORE.plan, filterPlan, date),
+			joinDoc(this.states, 'member', STORE.profile, filterProfile, date),
 			joinDoc(this.states, 'member.message', STORE.message, filterMessage, date),
+			joinDoc(this.states, 'client', STORE.price, filterPlan, date),
+			joinDoc(this.states, 'client', STORE.plan, filterPlan, date),
 		)
 	}
 
