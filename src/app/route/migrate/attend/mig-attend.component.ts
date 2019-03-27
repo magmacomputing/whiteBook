@@ -5,6 +5,7 @@ import { take, map, debounce } from 'rxjs/operators';
 import { Actions, ofActionDispatched, Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
+import { SnackService } from '@service/snack/snack.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
@@ -65,7 +66,7 @@ export class MigAttendComponent implements OnInit {
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService,
+	constructor(private http: HttpClient, private data: DataService, private state: StateService, private snack: SnackService,
 		private sync: SyncService, private service: MemberService, private store: Store, private actions: Actions) {
 		this.current = null;
 		this.register$ = this.state.getAdminData()
@@ -83,7 +84,7 @@ export class MigAttendComponent implements OnInit {
 			.then(events => this.events = events);
 		this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) })
 			.then(klass => this.class = klass);
-		
+
 		this.state.getAuthData()																	// stash the current Auth'd user
 			.pipe(take(1))
 			.toPromise()
@@ -166,7 +167,7 @@ export class MigAttendComponent implements OnInit {
 	async addAttend() {
 		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			.slice(0, 15)																		// for testing: just the first few Attends
+			.slice(0, 10)																		// for testing: just the first few Attends
 		this.newAttend(table[0], ...table.slice(1));
 	}
 
@@ -183,20 +184,27 @@ export class MigAttendComponent implements OnInit {
 		const [prefix, suffix, ...none] = what.split('*');
 		let sched: ISchedule;
 		let event: IEvent;
+		let idx: number;
 
 		switch (true) {
 			case this.special.includes(prefix):						// special event match by <type>, so we need to guess the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
+				const cnt = suffix ? parseInt(suffix.split(' ')[0], 10) : 1;
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 
-				const cnt = suffix ? parseInt(suffix.split(' ')[0], 10) : 1;
-
+				for (idx = 0; idx < event.classes.length; idx++) {
+					if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+						break;
+				}
+				if (idx === event.classes.length)
+					throw new Error('Cannot determine class');
+				
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[cnt < 0 ? Math.abs(cnt) : 0],
-					day: getDate(caldr.key).ww, start: caldr.start || '09:00', location: caldr.location, instructor: caldr.instructor
-				};
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
+					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor
+				}
 
 				for (let nbr = 1; nbr < cnt; nbr++) {				// stack additional attends
 					row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
@@ -208,10 +216,17 @@ export class MigAttendComponent implements OnInit {
 			case (!isUndefined(caldr)):										// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 
+				for (idx = 0; idx < event.classes.length; idx++) {
+					if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+						break;
+				}
+				if (idx === event.classes.length)
+					throw new Error('Cannot determine class');
+				
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
 					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor
-				};
+				}
 				break;
 
 			default:
