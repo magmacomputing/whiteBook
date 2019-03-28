@@ -60,8 +60,8 @@ const minStamp = new Date('1000-01-01').valueOf() / 1000;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** shortcut functions to common Instant class properties / methods */
-const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
-/** get new Instant */export const getDate = (dt?: TDate) => isInstant(dt) ? dt : new Instant(dt);
+export const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
+/** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get ms Timestamp*/export const getStamp = (dt?: TDate) => getDate(dt).ts;
 /** format Instant  */export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 

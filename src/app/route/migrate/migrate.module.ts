@@ -5,6 +5,7 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@route/material.module';
 import { MigAttendComponent } from '@route/migrate/attend/mig-attend.component';
+import { MigEventComponent } from './event/mig-event.component';
 
 const routes: Routes = [
   { path: 'migAttend', component: MigAttendComponent },
@@ -13,6 +14,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     MigAttendComponent,
+    MigEventComponent,
   ],
   imports: [
     CommonModule, MaterialModule, RouterModule.forChild(routes), HttpClientModule,

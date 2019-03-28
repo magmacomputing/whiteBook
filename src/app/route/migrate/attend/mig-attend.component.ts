@@ -20,7 +20,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, fmtDate } from '@lib/date.library';
+import { DATE_FMT, getDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { deDup } from '@lib/array.library';
