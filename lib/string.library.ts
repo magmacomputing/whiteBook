@@ -26,6 +26,7 @@ export const asTemplate = (templateString: string) =>
 	() =>
 		new Function('return `' + templateString + '`;')();
 
-export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);
+// export const asString = (str: any = '') => isString(str) ? str : JSON.stringify(str);
+export const asString = (str: any = '') => isString(str) ? str : (str.toString ? str.toString() : JSON.stringify(str));
 export const toLower = (str: string) => isString(str) ? str.toLowerCase() : str;
 export const toUpper = (str: string) => isString(str) ? str.toUpperCase() : str;
