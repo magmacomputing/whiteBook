@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, timer } from 'rxjs';
-import { take, map, debounce } from 'rxjs/operators';
+import { take, map, debounce, timeout } from 'rxjs/operators';
 import { Actions, ofActionDispatched, Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
@@ -167,7 +167,7 @@ export class MigAttendComponent implements OnInit {
 	async addAttend() {
 		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			.slice(0, 10)																		// for testing: just the first few Attends
+			// .slice(0, 10)																		// for testing: just the first few Attends
 		this.newAttend(table[0], ...table.slice(1));
 	}
 
@@ -200,7 +200,7 @@ export class MigAttendComponent implements OnInit {
 				}
 				if (idx === event.classes.length)
 					throw new Error('Cannot determine class');
-				
+
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
 					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
@@ -222,7 +222,7 @@ export class MigAttendComponent implements OnInit {
 				}
 				if (idx === event.classes.length)
 					throw new Error('Cannot determine class');
-				
+
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
 					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
@@ -238,13 +238,16 @@ export class MigAttendComponent implements OnInit {
 		const sub = this.actions.pipe(
 			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get latest account-details
 			debounce(_ => timer(500)),									// wait to have State settle
+			timeout(2000),															// throw an Error if no sync after two-seconds
 		)																							// wait for new Attend to sync into State
 			.subscribe(row => {
 				this.dbg('sync: %j', row);
 				sub.unsubscribe();
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1));
-			});
+			},
+				(err => { throw new Error('timeout: ' + err.message) })
+			)
 		return this.service.setAttend(sched, row.note, row.stamp);
 	}
 

@@ -83,6 +83,7 @@ class Instant {
 /** weekday number */	get wd() { return this.date.wd }
 /** number of weeks*/	get ww() { return this.date.ww }
 /** unix timestamp */	get ts() { return this.date.ts }
+/** another tstamp */ get stamp() { return this.date.ts }
 
 /** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 /** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(dt2, unit);
