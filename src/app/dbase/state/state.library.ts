@@ -222,7 +222,7 @@ export const buildAttend = (source: IAttendState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => Object.assign({ ...row, day: fmtDate(DATE_FMT.weekDay, row[FIELD.key]) }))
+			.map(row => ({ ...row, day: getDate(row[FIELD.key]).wd }))
 	}
 	return { ...source };
 }
@@ -309,7 +309,7 @@ export const buildTimetable = (source: ITimetableState) => {
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHmm),
+				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHmi),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				icon: classDoc.icon,

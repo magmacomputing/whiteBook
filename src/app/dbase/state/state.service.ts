@@ -201,7 +201,7 @@ export class StateService {
 	 */
 	getScheduleData(date?: TDate) {
 		const now = getDate(date);
-		const filterSchedule = addWhere('day', now.format(DATE_FMT.weekDay));
+		const filterSchedule = addWhere('day', now.wd);
 		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);

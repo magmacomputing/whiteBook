@@ -174,7 +174,7 @@ export class MigAttendComponent implements OnInit {
 	newAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
 		const what = this.lookup[row.type] || row.type;
-		const dow = fmtDate(DATE_FMT.weekDay, row.date);
+		const dow = getDate(row.date).wd;
 		const where = [
 			addWhere(FIELD.key, what),
 			addWhere('day', dow),
@@ -203,7 +203,7 @@ export class MigAttendComponent implements OnInit {
 				
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
-					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor
+					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 
 				for (let nbr = 1; nbr < cnt; nbr++) {				// stack additional attends
@@ -225,7 +225,7 @@ export class MigAttendComponent implements OnInit {
 				
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
-					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor
+					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
 
