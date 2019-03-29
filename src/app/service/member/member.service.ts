@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { timer } from 'rxjs';
-import { debounce } from 'rxjs/operators';
+import { debounce, switchMapTo } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
@@ -134,8 +134,11 @@ export class MemberService {
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
 					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0].amount, data), ...payments[0] });
-				if (amount.credit === schedule.price)					// no funds left on Active Payment
+				if (amount.credit === schedule.price) {				// no funds left on Active Payment
 					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
+					if (payments[1] && payments[1][FIELD.type] === 'close' && payments[1].approve)
+						updates.push({ [FIELD.effect]: payments[1].approve.stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
+				}
 				break;
 
 			// Next pre-payment is to become Active, rollover unused Funds

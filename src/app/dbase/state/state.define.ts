@@ -56,11 +56,9 @@ export interface IApplicationState {		// application-wide settings
 
 export interface IMemberState extends IUserState, IApplicationState {
 	member: {
-		// profile: {
-			plan: IProfilePlan[];             // member's effective plan
-			info: IProfileInfo[];             // array of AdditionalUserInfo documents
-			pref: IProfilePref[];							// member's preferences
-		// }
+		plan: IProfilePlan[];             	// member's effective plan
+		info: IProfileInfo[];             	// array of AdditionalUserInfo documents
+		pref: IProfilePref[];								// member's preferences
 		// price: IPrice[];                   	// member's effective prices
 		// plan: IPlan[];											// Plan description
 		message: IMessage[];								// array of messages to a Member

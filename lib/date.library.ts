@@ -22,6 +22,7 @@ interface IDateFmt {
 	display: string;
 	dayMonth: string;
 	dateTime: string;
+	week: number;
 	Date: Date;
 	Instant: IInstant;
 }
@@ -32,6 +33,7 @@ export enum DATE_FMT {
 	display = 'display',
 	dayMonth = 'dayMonth',
 	dateTime = 'dateTime',
+	week = 'weeks',
 	Date = 'Date',
 	Instant = 'Instant',
 }
@@ -97,14 +99,15 @@ export class Instant {
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 	/** is Instant valid*/isValid = () => !isNaN(this.date.ts);
 
-	/** parse a Date, return components and methods */
+	/** parse a Date, return components */
 	private parseDate = (dt?: TDate) => {
+		let date: Date;
+
 		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
 		if ((isString(dt) || isNumber(dt)) && Instant.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
 			dt = asString(dt).replace(Instant.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
 
-		let date: Date;
 		switch (getType(dt)) {																		// translate supplied parameter into a Date
 			case 'Undefined':																				// set to 'now'
 				date = new Date();
@@ -126,7 +129,8 @@ export class Instant {
 			default:																								// unexpected input
 				date = new Date();
 		}
-		if (isNaN(date.getTime()))
+
+		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
 		let [yy, mm, dd, wd, HH, MI, SS, ts] = [
@@ -217,6 +221,9 @@ export class Instant {
 
 			case DATE_FMT.dateTime:
 				return `${date.yy}-${date.mn}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
+			
+			case DATE_FMT.week:
+				return parseInt(`${date.yy}${date.ww}`);
 
 			case DATE_FMT.Date:
 				return new Date(`${date.yy}-${date.mm}-${date.dd} ${date.HH}:${date.MI}:${date.SS}`);

@@ -131,6 +131,7 @@ export class MigAttendComponent implements OnInit {
 			.filter(row => row.type === 'Debit' || row.type === 'Credit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
+				const payType = row.type !== 'Debit' ? 'close' : 'topUp';
 
 				if (row.title.startsWith('Approved: ')) {
 					approve.stamp = row.approved!;
@@ -141,7 +142,7 @@ export class MigAttendComponent implements OnInit {
 				const paym = {
 					[FIELD.id]: this.data.newId,
 					[FIELD.store]: STORE.payment,
-					[FIELD.type]: 'topUp',
+					[FIELD.type]: payType,
 					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
 					amount: parseFloat(row.credit!),
@@ -149,8 +150,13 @@ export class MigAttendComponent implements OnInit {
 
 				if (row.note)
 					paym.note = row.note;
-				if (approve.stamp)
+				if (approve.stamp) {
+					// if (payType === 'close') {
+					// 	paym[FIELD.effect] = approve.stamp;
+					// 	paym[FIELD.expire] = approve.stamp;
+					// }
 					paym.approve = approve;
+				}
 
 				return paym;
 			});
@@ -167,7 +173,7 @@ export class MigAttendComponent implements OnInit {
 	async addAttend() {
 		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			// .slice(0, 10)																		// for testing: just the first few Attends
+		// .slice(0, 10)																		// for testing: just the first few Attends
 		this.newAttend(table[0], ...table.slice(1));
 	}
 
