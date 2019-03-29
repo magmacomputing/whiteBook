@@ -69,7 +69,6 @@ export const calcExpiry = (stamp: number, paidAmount: number, state: IAccountSta
 
 	if (topUp && plan.expiry) {												// plan.active is usually six-months
 		const offset = Math.round(paidAmount / (topUp.amount / plan.expiry)) || 1;
-		console.log('expiry: ', getDate(stamp).add(offset, 'months').startOf('day').ts);
 		return getDate(stamp).add(offset, 'months').startOf('day').ts;
 	}
 	return undefined;

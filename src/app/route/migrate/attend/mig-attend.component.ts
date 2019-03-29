@@ -145,18 +145,16 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.type]: payType,
 					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
-					amount: parseFloat(row.credit!),
+					// amount: parseFloat(row.credit!),
 				} as IPayment
 
 				if (row.note)
 					paym.note = row.note;
-				if (approve.stamp) {
-					// if (payType === 'close') {
-					// 	paym[FIELD.effect] = approve.stamp;
-					// 	paym[FIELD.expire] = approve.stamp;
-					// }
+				if (approve.stamp)
 					paym.approve = approve;
-				}
+				if (payType === 'close')
+					paym.bank = parseFloat(row.credit!)
+				else paym.amount = parseFloat(row.credit!)
 
 				return paym;
 			});
@@ -290,12 +288,13 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	private async fetch(action: string, query: string) {
-		this.dbg('fetch: %j, %j', action, query);
+		const urlParams = `${this.url}?${query}&action=${action}&prefix=${this.prefix}`;
 		const res = await this.http
-			.get(`${this.url}?${query}&action=${action}&prefix=${this.prefix}`, { responseType: 'text' })
+			.get(urlParams, { responseType: 'text' })
 			.toPromise()
 		const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
 
+		this.dbg('fetch: %j', urlParams);
 		try {
 			const obj = JSON.parse(json);
 			return obj[action];

@@ -183,7 +183,9 @@ export const sumPayment = (source: IAccountState) => {
 					sum.bank += payment.bank || 0;
 					sum.paid += payment.amount || 0;
 				}
-				else sum.pend += payment.amount
+				else {
+					sum.pend += (payment.amount || 0) + (payment.bank || 0);
+				}
 
 				return sum;
 			}, { paid: 0, bank: 0, pend: 0, spend: 0 })
@@ -214,7 +216,7 @@ export const buildAttend = (source: IAttendState) => {
 			})
 		// source.attend = slice;
 	}
-	
+
 	return { ...source };
 }
 
