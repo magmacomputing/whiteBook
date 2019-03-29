@@ -28,5 +28,4 @@ export const suffix = (idx: number) => {
 	return str + sfx;
 }
 
-export const fix = (nbr: number, max = 2, fill = '0') =>
-	nbr.toString().padStart(max, fill);
+export const fix = (nbr: number, max = 2, fill = '0') => nbr.toString().padStart(max, fill);

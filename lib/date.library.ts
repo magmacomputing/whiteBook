@@ -33,7 +33,7 @@ export enum DATE_FMT {
 	display = 'display',
 	dayMonth = 'dayMonth',
 	dateTime = 'dateTime',
-	week = 'weeks',
+	week = 'week',
 	Date = 'Date',
 	Instant = 'Instant',
 }
@@ -223,7 +223,8 @@ export class Instant {
 				return `${date.yy}-${date.mn}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
 			
 			case DATE_FMT.week:
-				return parseInt(`${date.yy}${date.ww}`);
+				const offset = date.ww === 1 && date.mm === 12;
+				return parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 
 			case DATE_FMT.Date:
 				return new Date(`${date.yy}-${date.mm}-${date.dd} ${date.HH}:${date.MI}:${date.SS}`);
