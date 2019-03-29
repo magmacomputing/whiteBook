@@ -58,7 +58,7 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 	/** format Instant  */export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 
 export class Instant {
-	static hhmi = /^\d\d:\d\d$/;									// regex to match HH:MI
+	static hhmi = /^\d\d:\d\d$/;								// regex to match HH:MI
 	static yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD
 	static maxStamp = new Date('9999-12-31').valueOf() / 1000;
 	static minStamp = new Date('1000-01-01').valueOf() / 1000;
@@ -76,7 +76,7 @@ export class Instant {
 
 	constructor(dt?: TDate) { this.date = this.parseDate(dt); }
 
-	// Public getters
+	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.date.yy }
 	/** month number */		get mm() { return this.date.mm }
 	/** short month name*/get mn() { return this.date.mn }
@@ -90,7 +90,7 @@ export class Instant {
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** unix timestamp */	get ts() { return this.date.ts }
 
-	// Public methods
+	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(dt2, unit);
 	/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
@@ -99,6 +99,7 @@ export class Instant {
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 	/** is Instant valid*/isValid = () => !isNaN(this.date.ts);
 
+	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
 	private parseDate = (dt?: TDate) => {
 		let date: Date;
