@@ -143,7 +143,7 @@ export class Instant {
 
 		const thu = date.setDate(dd - wd + DAY.Thu) / 1000;				// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf() / 1000;	// NewYears Day
-		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// calc Week Number
+		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
 		return { yy, mm, dd, wd, ww, HH, MI, SS, ts, mn: MONTH[mm], dn: DAY[wd] } as IInstant;
 	}
@@ -221,9 +221,9 @@ export class Instant {
 
 			case DATE_FMT.dateTime:
 				return `${date.yy}-${date.mn}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
-			
+
 			case DATE_FMT.week:
-				const offset = date.ww === 1 && date.mm === 12;
+				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yy
 				return parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 
 			case DATE_FMT.Date:

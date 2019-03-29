@@ -67,8 +67,9 @@ export const calcExpiry = (stamp: number, paidAmount: number, state: IAccountSta
 	const plan = state.client.plan[0] || {};					// description of Member's current Plan
 	const topUp = state.client.price.find(row => row[FIELD.type] === 'topUp');
 
-	if (topUp && plan.active) {												// plan.active is usually six-months
-		const offset = Math.round(paidAmount / (topUp.amount / plan.active)) || 1;
+	if (topUp && plan.expiry) {												// plan.active is usually six-months
+		const offset = Math.round(paidAmount / (topUp.amount / plan.expiry)) || 1;
+		console.log('expiry: ', getDate(stamp).add(offset, 'months').startOf('day').ts);
 		return getDate(stamp).add(offset, 'months').startOf('day').ts;
 	}
 	return undefined;
