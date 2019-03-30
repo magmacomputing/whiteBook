@@ -20,7 +20,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, fmtDate } from '@lib/date.library';
+import { DATE_FMT, getDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { deDup } from '@lib/array.library';
@@ -38,6 +38,7 @@ export class MigAttendComponent implements OnInit {
 	private register$: Observable<IRegister[]>;
 	private account$!: Observable<IAccountState>;
 	private history!: Promise<MHistory[]>;
+	private status!: { [key: string]: any };
 	private current: IRegister | null;
 	private user!: firebase.UserInfo | null;
 
@@ -103,11 +104,14 @@ export class MigAttendComponent implements OnInit {
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);
 
-				const action = 'history';
+				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
 				this.history = this.fetch(action, `provider=${provider}&id=${id}`)
-					.then((resp: { history: MHistory[] }) => (resp.history || []).sort(sortKeys(FIELD.stamp)));
-				this.history.then(hist => this.dbg('history: %s', hist.length));
+					.then((resp: { history: MHistory[], status: {} }) => {
+						this.status = resp.status;
+						return (resp.history || []).sort(sortKeys(FIELD.stamp));
+					})
+				this.history.then(hist => this.dbg('history: %s, %j', hist.length, this.status));
 
 				this.account$ = this.state.getAccountData()
 			});
@@ -248,7 +252,18 @@ export class MigAttendComponent implements OnInit {
 				this.dbg('sync: %j', row);
 				sub.unsubscribe();
 				if (rest.length)
-					this.newAttend(rest[0], ...rest.slice(1));
+					this.newAttend(rest[0], ...rest.slice(1))
+				else {
+					const closed = getDate(this.status.creditExpires.split('>')[1]).ts;
+					const active = this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid))
+						.then(active => {
+							active.sort(sortKeys('-' + FIELD.stamp));
+							this.dbg('closed: %j', closed);
+							this.dbg('active: %j', active);
+							if (closed < getDate().ts)
+								this.data.updDoc(STORE.payment, active[0][FIELD.id], { [FIELD.expire]: closed, ...active[0] })
+						})
+				}
 			},
 				(err => { throw new Error('timeout: ' + err.message) })
 			)
@@ -297,7 +312,9 @@ export class MigAttendComponent implements OnInit {
 		this.dbg('fetch: %j', urlParams);
 		try {
 			const obj = JSON.parse(json);
-			return obj[action];
+			return (action === 'history,status')
+				? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
+				: obj[action];
 		} catch (err) {
 			this.dbg('not a valid JSON');
 			return {}

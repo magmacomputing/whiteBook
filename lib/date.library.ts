@@ -17,22 +17,22 @@ interface IInstant {											// Date components
 }
 
 interface IDateFmt {
-	yyyymmdd: number;
-	HHMI: string;
 	"ddd, dd mmm yyyy": string;
 	"dd-mmm": string;
 	"yyyy-mm-dd HH:MI": string;
+	yyyymmdd: number;
+	HHMI: string;
 	yyyyww: number;
 	Date: Date;
 	Object: IInstant;
 }
 
 export enum DATE_FMT {
-	yearMonthDay = 'yyyymmdd',
-	HHmi = 'HHMI',
 	display = 'ddd, dd mmm yyyy',
 	dayMonth = 'dd-mmm',
 	dateTime = 'yyyy-mm-dd HH:MI',
+	yearMonthDay = 'yyyymmdd',
+	HHmi = 'HHMI',
 	week = 'yyyyww',
 	Date = 'Date',
 	Object = 'Object',
