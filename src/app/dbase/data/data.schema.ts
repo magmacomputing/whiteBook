@@ -6,6 +6,7 @@ export type TStoreAdmin = '_schema_' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
 export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
 export type TStoreAttend = 'attend';
+export type TStoreMigrate = 'migrate';
 export type TTypeDefault = TStoreClient | 'icon';
 
 export type TMeta = IMeta | IMeta[];
@@ -82,7 +83,7 @@ export interface IMeta {
  * One for 'client' & 'local', keyed by 'store/type/key',  
  * the other for 'member' & 'attend', keyed by 'store/type/uid'
  */
-export type TStoreBase = IClientBase | IMemberBase | IAttendBase;
+export type TStoreBase = IClientBase | IMemberBase | IAttendBase | IMigrateBase;
 interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreAdmin;
 	[FIELD.key]: string | number;
@@ -96,12 +97,20 @@ interface IAttendBase extends IMeta {
 	[FIELD.store]: TStoreAttend;
 	[FIELD.uid]: string;
 }
+export interface IMigrateBase extends IMeta {
+	[FIELD.store]: TStoreMigrate;
+	[FIELD.type]: STORE.event;
+	[FIELD.uid]: string;
+	[FIELD.key]: string;
+	class: string;
+	order: number;
+}
 export interface IStoreMeta extends IMeta {
 	[key: string]: any;											// add in index-signature
 }
 // client documents have a '<key>' field, member documents have a '<uid>' field
 export const isClientStore = (store: TStoreBase): store is IClientBase =>
-	(<IClientBase>store)[FIELD.key] !== undefined;
+(<IClientBase>store)[FIELD.key] !== undefined;
 
 //	/client/_default_
 export interface IDefault extends IClientBase {

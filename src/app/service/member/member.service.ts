@@ -133,11 +133,11 @@ export class MemberService {
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
 					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0].amount, data), ...payments[0] });
-				if (amount.credit === schedule.price) 				// no funds left on Active Payment
+				if (amount.credit === schedule.price && schedule.price) 				// no funds left on Active Payment
 					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				if (payments[1] && payments[1][FIELD.type] === 'close' && payments[1].approve && amount.credit === schedule.price) {
 					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-					updates.push({ [FIELD.effect]: payments[1].approve.stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
+					updates.push({ [FIELD.effect]: payments[1].stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
 				}
 				break;
 
@@ -147,7 +147,7 @@ export class MemberService {
 				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1].amount, data), ...payments[1] });
 				if (payments[2] && payments[2][FIELD.type] === 'close' && payments[2].approve && amount.credit === schedule.price) {
 					updates.push({ [FIELD.expire]: stamp, ...payments[1] });
-					updates.push({ [FIELD.effect]: payments[2].approve.stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
+					updates.push({ [FIELD.effect]: payments[2].stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
 				}
 				break;
 

@@ -30,6 +30,7 @@ export enum STORE {
 	config = '_config_',
 	schema = '_schema_',
 	register = 'register',
+	migrate = 'migrate',
 	log = 'log',
 }
 

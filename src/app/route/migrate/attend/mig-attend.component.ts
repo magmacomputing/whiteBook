@@ -10,7 +10,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend, IClass } from '@dbase/data/data.schema';
+import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { NewAttend } from '@dbase/state/state.action';
@@ -20,9 +20,10 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate, getStamp } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
+import { asString } from '@lib/string.library';
 import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -39,6 +40,7 @@ export class MigAttendComponent implements OnInit {
 	private account$!: Observable<IAccountState>;
 	private history!: Promise<MHistory[]>;
 	private status!: { [key: string]: any };
+	private migrate!: IMigrateBase[];
 	private current: IRegister | null;
 	private user!: firebase.UserInfo | null;
 
@@ -103,6 +105,10 @@ export class MigAttendComponent implements OnInit {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);
+
+				this.data.getFire<IMigrateBase>(STORE.migrate, { where: [addWhere(FIELD.uid, this.current!.uid), addWhere(FIELD.type, STORE.event)] })
+					.then(migrate => this.migrate = migrate)
+					.then(res => this.dbg('migrate: %s', res.length))
 
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
@@ -192,7 +198,7 @@ export class MigAttendComponent implements OnInit {
 		const [prefix, suffix, ...none] = what.split('*');
 		let sched: ISchedule;
 		let event: IEvent;
-		let idx: number;
+		let idx: number = 0;
 
 		switch (true) {
 			case this.special.includes(prefix):						// special event match by <type>, so we need to guess the 'class'
@@ -201,16 +207,22 @@ export class MigAttendComponent implements OnInit {
 
 				const cnt = suffix ? parseInt(suffix.split(' ')[0], 10) : 1;
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-
-				for (idx = 0; idx < event.classes.length; idx++) {
-					if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
-						break;
+				const migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', cnt)])[0];
+				if (!migrate) {
+					for (idx = 0; idx < event.classes.length; idx++) {
+						if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+							break;
+					}
+					if (idx === event.classes.length)
+						throw new Error('Cannot determine class');
+					this.data.setDoc(STORE.migrate, {
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: cnt,
+						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
+					});
 				}
-				if (idx === event.classes.length)
-					throw new Error('Cannot determine class');
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: (migrate && migrate.class) || event.classes[idx],
 					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 
@@ -246,7 +258,7 @@ export class MigAttendComponent implements OnInit {
 		const sub = this.actions.pipe(
 			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get latest account-details
 			debounce(_ => timer(500)),									// wait to have State settle
-			timeout(2000),															// throw an Error if no sync after two-seconds
+			timeout(5000),															// throw an Error if no sync after five-seconds
 		)																							// wait for new Attend to sync into State
 			.subscribe(row => {
 				this.dbg('sync: %j', row);
@@ -254,15 +266,19 @@ export class MigAttendComponent implements OnInit {
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1))
 				else {
-					const closed = getDate(this.status.creditExpires.split('>')[1]).ts;
-					const active = this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid))
+					// if (this.status.creditExpires) {
+					// const closed = getDate(this.status.creditExpires.split('>')[1]).ts;
+					this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid))
 						.then(active => {
 							active.sort(sortKeys('-' + FIELD.stamp));
-							this.dbg('closed: %j', closed);
-							this.dbg('active: %j', active);
-							if (closed < getDate().ts)
+							const closed = active[0].expiry;
+							if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
+								this.dbg('closed: %j, %s', closed, getDate(closed).format(DATE_FMT.display));
+								this.dbg('active: %j', active[0]);
 								this.data.updDoc(STORE.payment, active[0][FIELD.id], { [FIELD.expire]: closed, ...active[0] })
+							}
 						})
+					// }
 				}
 			},
 				(err => { throw new Error('timeout: ' + err.message) })
