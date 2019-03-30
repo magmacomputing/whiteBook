@@ -3,12 +3,12 @@ import { asString } from '@lib/string.library';
 import { isString, isNumber, getType } from '@lib/type.library';
 
 interface IInstant {											// Date components
-	yy: number;															// year[4]
+	yyyy: number;														// year[4]
+	mmm: string;														// short month-name
+	ddd: string;														// short day-name
+	dow: number;														// weekday; Mon=1, Sun=7
 	mm: number;															// month; Jan=1, Dec=12
-	mn: string;															// short month-name
 	dd: number;															// day; 1-31
-	dn: string;															// short day-name
-	wd: number;															// weekday; Mon=1, Sun=7
 	ww: number;															// number of weeks
 	HH: number;															// hour[24]
 	MI: number;															// minute
@@ -17,31 +17,27 @@ interface IInstant {											// Date components
 }
 
 interface IDateFmt {
-	yearMonthDay: number;
-	HHmi: string;
-	display: string;
-	dayMonth: string;
-	dateTime: string;
-	week: number;
+	yyyymmdd: number;
+	HHMI: string;
+	"ddd, dd mmm yyyy": string;
+	"dd-mmm": string;
+	"yyyy-mm-dd HH:MI": string;
+	yyyyww: number;
 	Date: Date;
-	Instant: IInstant;
+	Object: IInstant;
 }
 
 export enum DATE_FMT {
-	yearMonthDay = 'yearMonthDay',
-	HHmi = 'HHmi',
-	display = 'display',
-	dayMonth = 'dayMonth',
-	dateTime = 'dateTime',
-	week = 'week',
+	yearMonthDay = 'yyyymmdd',
+	HHmi = 'HHMI',
+	display = 'ddd, dd mmm yyyy',
+	dayMonth = 'dd-mmm',
+	dateTime = 'yyyy-mm-dd HH:MI',
+	week = 'yyyyww',
 	Date = 'Date',
-	Instant = 'Instant',
+	Object = 'Object',
 }
 
-export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
-export enum WEEKDAY { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
-export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
-export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
 export type TDate = string | number | Date | Instant;
 
 type TMutate = 'add' | 'start' | 'mid' | 'end';
@@ -49,46 +45,32 @@ type TUnitTime = 'month' | 'months' | 'day' | 'days' | 'minute' | 'minutes' | 'h
 type TUnitOffset = 'day' | 'week' | 'month';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
 
-	/** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
-	/** get ms Timestamp*/export const getStamp = (dt?: TDate) => getDate(dt).ts;
-	/** format Instant  */export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
+/** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
+/** get ms Timestamp*/export const getStamp = (dt?: TDate) => getDate(dt).ts;
+/** format Instant  */export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 
 export class Instant {
-	static hhmi = /^\d\d:\d\d$/;								// regex to match HH:MI
-	static yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD
-	static maxStamp = new Date('9999-12-31').valueOf() / 1000;
-	static minStamp = new Date('1000-01-01').valueOf() / 1000;
-	static divideBy = {													// approx date-offset divisors (unix-timestamp precision)
-		years: 31536000,
-		months: 2628000,
-		weeks: 604800,
-		days: 86400,
-		hours: 3600,
-		minutes: 60,
-		seconds: 1,
-	}
-
 	private date: IInstant;											// Date parsed into components
 
 	constructor(dt?: TDate) { this.date = this.parseDate(dt); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** 4-digit year */		get yy() { return this.date.yy }
+	/** 4-digit year */		get yyyy() { return this.date.yyyy }
 	/** month number */		get mm() { return this.date.mm }
-	/** short month name*/get mn() { return this.date.mn }
 	/** day number */			get dd() { return this.date.dd }
-	/** short day name */	get dn() { return this.date.dn }
 	/** 24-hour format */	get HH() { return this.date.HH }
 	/** minute */					get MM() { return this.date.MI }
 	/** minute copy */		get MI() { return this.date.MI }
 	/** seconds */				get SS() { return this.date.SS }
-	/** weekday number */	get wd() { return this.date.wd }
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** unix timestamp */	get ts() { return this.date.ts }
+	/** weekday number */	get dow() { return this.date.dow }
+	/** short day name */	get ddd() { return this.date.ddd }
+	/** short month name*/get mmm() { return this.date.mmm }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
@@ -113,11 +95,11 @@ export class Instant {
 			case 'Undefined':																				// set to 'now'
 				date = new Date();
 				break;
-			case 'Date':																						// already a valid Date
+			case 'Date':																						// already is a valid Date
 				date = dt as Date;
 				break;
-			case 'Instant':																					// turn Instant back into a date-string
-				date = new Date((dt as Instant).format(DATE_FMT.dateTime));
+			case 'Instant':																					// already have a valid Date
+				date = (dt as Instant).format(DATE_FMT.Date);
 				break;
 			case 'String':
 				date = new Date(dt as string);												// attempt to parse date-string
@@ -134,19 +116,19 @@ export class Instant {
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
-		let [yy, mm, dd, wd, HH, MI, SS, ts] = [
+		let [yyyy, mm, dd, dow, HH, MI, SS, ts] = [
 			date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
 			date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
 		];
 
 		mm += 1;																									// ISO month
-		if (!wd && !isNaN(wd)) wd = DAY.Sun;											// ISO weekday
+		if (!dow && !isNaN(dow)) dow = Instant.DAY.Sun;										// ISO weekday
 
-		const thu = date.setDate(dd - wd + DAY.Thu) / 1000;				// set to nearest Thursday
+		const thu = date.setDate(dd - dow + Instant.DAY.Thu) / 1000;			// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf() / 1000;	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, wd, ww, HH, MI, SS, ts, mn: MONTH[mm], dn: DAY[wd] } as IInstant;
+		return { yyyy, mm, dd, dow, ww, HH, MI, SS, ts, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
 	}
 
 	/** mutate an Instant */
@@ -159,7 +141,7 @@ export class Instant {
 			case 'start.day':
 				break;
 			case 'start.week':
-				date.dd -= date.wd + DAY.Mon;
+				date.dd -= date.dow + Instant.DAY.Mon;
 				break;
 			case 'start.month':
 				date.dd = 1;
@@ -168,7 +150,7 @@ export class Instant {
 				[date.HH, date.MI, date.SS] = [12, 0, 0];
 				break;
 			case 'mid.week':
-				date.dd -= date.wd + DAY.Thu;
+				date.dd -= date.dow + Instant.DAY.Thu;
 				break;
 			case 'mid.month':
 				date.dd = 15;
@@ -177,7 +159,7 @@ export class Instant {
 				[date.HH, date.MI, date.SS] = [23, 59, 59];
 				break;
 			case 'end.week':
-				date.dd -= date.wd + DAY.Sun;
+				date.dd -= date.dow + Instant.DAY.Sun;
 				break;
 			case 'end.month':
 				date.mm += 1;
@@ -201,44 +183,77 @@ export class Instant {
 				break;
 		}
 
-		return new Instant(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
+		return new Instant(new Date(date.yyyy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
 	}
 
-	/** combine Instant components to apply some standard format rules */
-	private formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
+	/** combine Instant components to apply some standard / free-format rules */
+	private formatDate = <K extends keyof IDateFmt>(fmt: K, code?: string): IDateFmt[K] => {
 		const date = { ...this.date };													// clone current Instant
 		switch (fmt) {
 			case DATE_FMT.HHmi:
 				return `${fix(date.HH)}:${fix(date.MI)}`;
 
 			case DATE_FMT.yearMonthDay:
-				return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
+				return parseInt(`${date.yyyy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 			case DATE_FMT.display:
-				return `${date.dn}, ${fix(date.dd)} ${date.mn} ${date.yy}`;
+				return `${date.ddd}, ${fix(date.dd)} ${date.mmm} ${date.yyyy}`;
 
 			case DATE_FMT.dayMonth:
-				return `${fix(date.dd)}-${date.mn}`;
+				return `${fix(date.dd)}-${date.mmm}`;
 
 			case DATE_FMT.dateTime:
-				return `${date.yy}-${date.mn}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
+				return `${date.yyyy}-${date.mmm}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
 
 			case DATE_FMT.week:
-				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yy
-				return parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
+				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yyyy
+				return parseInt(`${date.yyyy + Number(offset)}${fix(date.ww)}`);
 
 			case DATE_FMT.Date:
-				return new Date(`${date.yy}-${date.mm}-${date.dd} ${date.HH}:${date.MI}:${date.SS}`);
+				return new Date(`${date.yyyy}-${date.mmm}-${date.dd} ${date.HH}:${date.MI}:${date.SS}`);
 
-			case DATE_FMT.Instant:
+			case DATE_FMT.Object:
 				return date;
 
 			default:
-				return '';
+				return fmt
+					.replace(/y{4}/g, fix(date.yyyy))
+					.replace(/y{2}/g, fix(date.yyyy).substring(2, 4))
+					.replace(/m{3}/g, date.mmm)
+					.replace(/m{2}/g, fix(date.mm))
+					.replace(/d{3}/g, date.ddd)
+					.replace(/d{2}/g, fix(date.dd))
+					.replace(/H{2}/g, fix(date.HH))
+					.replace(/M{2}/g, fix(date.MI))
+					.replace(/MI/g, fix(date.MI))
+					.replace(/S{2}/g, fix(date.SS))
+					.replace(/w{2}/g, asString(date.ww))
+					.replace(/dow/g, asString(date.dow)) as string;
 		}
 	}
 
 	/** calculate the difference between dates */
 	private diffDate = (dt2?: TDate, unit: TUnitDiff = 'years') =>
 		Math.floor((this.parseDate(dt2).ts - this.date.ts) / Instant.divideBy[unit]);
+}
+
+export namespace Instant {
+	export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
+	export enum WEEKDAY { Monday = 1, Tuesday, Wedddesday, Thursday, Friday, Saturday, Sunday }
+	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
+	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
+
+	export const hhmi = /^\d\d:\d\d$/;								// regex to match HH:MI
+	export const yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD
+	export const maxStamp = new Date('9999-12-31').valueOf() / 1000;
+	export const minStamp = new Date('1000-01-01').valueOf() / 1000;
+	export const divideBy = {													// approx date-offset divisors (unix-timestamp precision)
+		years: 31536000,
+		months: 2628000,
+		weeks: 604800,
+		days: 86400,
+		hours: 3600,
+		minutes: 60,
+		seconds: 1,
+	}
 }

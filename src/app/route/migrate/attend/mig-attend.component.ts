@@ -20,7 +20,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined } from '@lib/type.library';
 import { deDup } from '@lib/array.library';
@@ -178,7 +178,7 @@ export class MigAttendComponent implements OnInit {
 	newAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
 		const what = this.lookup[row.type] || row.type;
-		const dow = getDate(row.date).wd;
+		const dow = getDate(row.date).dow;
 		const where = [
 			addWhere(FIELD.key, what),
 			addWhere('day', dow),

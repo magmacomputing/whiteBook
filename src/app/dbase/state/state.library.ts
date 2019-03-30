@@ -224,7 +224,7 @@ export const buildAttend = (source: IAttendState) => {
 export const calendarDay = (source: ITimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => ({ ...row, day: getDate(row[FIELD.key]).wd }))
+			.map(row => ({ ...row, day: getDate(row[FIELD.key]).dow }))
 	}
 	return { ...source };
 }
