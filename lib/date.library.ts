@@ -56,7 +56,7 @@ export class Instant {
 	constructor(dt?: TDate, fmt?: TString) { this.date = this.parseDate(dt, fmt); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** 4-digit year */		get yyyy() { return this.date.yy }
+	/** 4-digit year */		get yy() { return this.date.yy }
 	/** month number */		get mm() { return this.date.mm }
 	/** day number */			get dd() { return this.date.dd }
 	/** 24-hour format */	get HH() { return this.date.HH }
@@ -73,11 +73,13 @@ export class Instant {
 	/** apply formatting*/format = <K extends string | keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(dt2, unit);
 	/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
+
 	/** start offset */		startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
 	/** middle offset */	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
+	
 	/** as Date object */	getDate = () => new Date(this.date.ts * 1000);
-	/** get raw object */	getObject = () => this.date;
+	/** get raw object */	getObject = () => ({ ...this.date });
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
