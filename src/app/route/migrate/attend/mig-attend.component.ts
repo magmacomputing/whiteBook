@@ -117,7 +117,9 @@ export class MigAttendComponent implements OnInit {
 						this.status = resp.status;
 						return (resp.history || []).sort(sortKeys(FIELD.stamp));
 					})
-				this.history.then(hist => this.dbg('history: %s, %j', hist.length, this.status));
+				this.history
+					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
+					.catch(err => this.dbg('err: %j', err.message))
 
 				this.account$ = this.state.getAccountData()
 			});
@@ -141,7 +143,7 @@ export class MigAttendComponent implements OnInit {
 			.filter(row => row.type === 'Debit' || row.type === 'Credit')
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
-				const payType = row.type !== 'Debit' ? 'close' : 'topUp';
+				const payType = row.type !== 'Debit' || (row.note && row.note.startsWith('Write-off')) ? 'debit' : 'topUp';
 
 				if (row.title.startsWith('Approved: ')) {
 					approve.stamp = row.approved!;
@@ -155,16 +157,13 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.type]: payType,
 					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
-					// amount: parseFloat(row.credit!),
+					amount: parseFloat(row.credit!),
 				} as IPayment
 
 				if (row.note)
 					paym.note = row.note;
 				if (approve.stamp)
 					paym.approve = approve;
-				if (payType === 'close')
-					paym.bank = parseFloat(row.credit!)
-				else paym.amount = parseFloat(row.credit!)
 
 				return paym;
 			});
@@ -216,7 +215,7 @@ export class MigAttendComponent implements OnInit {
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: cnt,
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: asString(cnt),
 						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
 					});
 				}

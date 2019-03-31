@@ -13,7 +13,7 @@ export type TMeta = IMeta | IMeta[];
 
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
-type TPayment = 'topUp' | 'hold' | 'credit' | 'close';
+type TPayment = 'topUp' | 'hold' | 'credit' | 'debit';
 type TProfile = 'plan' | 'claim' | 'info' | 'pref';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
@@ -103,7 +103,7 @@ export interface IMigrateBase extends IMeta {
 	[FIELD.uid]: string;
 	[FIELD.key]: string;
 	class: string;
-	order: number;
+	order: string;
 }
 export interface IStoreMeta extends IMeta {
 	[key: string]: any;											// add in index-signature
