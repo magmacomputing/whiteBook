@@ -23,13 +23,13 @@ export class TrackService {
 		const uid = await this.auth.current
 			.then(user => user && user.uid)
 
-		const trackCol = `/${STORE.log}/${now.yyyy}${fix(now.mm)}/${fix(now.dd)}`;
+		const trackCol = `/${STORE.log}/${now.yy}${fix(now.mm)}/${fix(now.dd)}`;
 		const trackDoc: ITrack = {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
 			[FIELD.uid]: uid || 'anonymous',
 			stamp: now.ts,
-			date: { year: now.yyyy, month: now.mm, day: now.dd },
+			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
 		}
 

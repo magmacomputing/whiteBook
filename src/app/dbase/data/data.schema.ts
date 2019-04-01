@@ -338,6 +338,7 @@ export interface IPayment extends IMemberBase {
 	[FIELD.stamp]: number;						// create-date
 	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
 	bank?: number;										// un-used credit from previous payment
+	hold?: number;										// number of days to extend expiry
 	expiry?: number;									// six-months from _effect
 	approve?: {												// acknowledge receipt of payment
 		[FIELD.uid]: string;

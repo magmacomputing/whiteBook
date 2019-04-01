@@ -17,6 +17,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DATE_FMT, getStamp, getDate, fmtDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { getPath } from '@lib/object.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -65,7 +66,7 @@ export class MemberService {
    * -> if they've exceeded 99 Attends against the active Payment  
    * -> if their intro-pass has expired (auto bump them to 'member' plan)  
   */
-	async getPayment(price: number) {
+	async getPayment(price: number, ts: number) {
 		const data = await this.attend.getAccount();
 		const summary = await this.attend.getAmount(data);
 
@@ -83,6 +84,9 @@ export class MemberService {
 				return data.account.payment[1] || this.setPayment();
 
 			default:
+				if (data.account.payment.length >= 2 && data.account.payment[0].expiry && data.account.payment[0].expiry < ts)
+					return data.account.payment[1];
+
 				return data.account.payment[0] || this.setPayment();
 		}
 	}
@@ -124,7 +128,7 @@ export class MemberService {
 		const payments = data.account.payment;						// the list of current and prepaid payments
 
 		// determine which Payment record is active
-		const activePay = await this.getPayment(schedule.price);
+		const activePay = await this.getPayment(schedule.price, now.ts);
 		const amount = await this.attend.getAmount(data);	// Account balance
 
 		// TODO: dont set early <expire> when plan === 'gratis'
@@ -132,7 +136,7 @@ export class MemberService {
 			// Current payment is still Active
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
-					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0].amount, data), ...payments[0] });
+					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0], data), ...payments[0] });
 				if (amount.credit === schedule.price && schedule.price) 				// no funds left on Active Payment
 					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				if (payments[1] && payments[1][FIELD.type] === 'debit' && payments[1].approve && amount.credit === schedule.price) {
@@ -144,7 +148,7 @@ export class MemberService {
 			// Next pre-payment is to become Active, rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1].amount, data), ...payments[1] });
+				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data), ...payments[1] });
 				if (payments[2] && payments[2][FIELD.type] === 'debit' && payments[2].approve && amount.credit === schedule.price) {
 					updates.push({ [FIELD.expire]: stamp, ...payments[1] });
 					updates.push({ [FIELD.effect]: payments[2].stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
@@ -154,7 +158,7 @@ export class MemberService {
 			// New payment to become Active, rollover unused Funds
 			default:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay.amount, data), ...activePay });
+				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data), ...activePay });
 				break;
 		}
 

@@ -3,7 +3,7 @@ import * as firebase from 'firebase/app';
 import { StateService } from '@dbase/state/state.service';
 import { IMemberState, IAccountState } from '@dbase/state/state.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfileInfo, IMemberInfo, IPrice } from '@dbase/data/data.schema';
+import { IProfileInfo, IMemberInfo, IPrice, IPayment } from '@dbase/data/data.schema';
 
 import { isString, isObject, isNumber } from '@lib/type.library';
 import { getStamp, getDate } from '@lib/date.library';
@@ -63,13 +63,14 @@ export const paymentDue = () => {
 }
 
 /** A Member's payment will auto-expire (i.e. unused funds are reversed) after a number of months */
-export const calcExpiry = (stamp: number, paidAmount: number, state: IAccountState) => {
+export const calcExpiry = (stamp: number, payment: IPayment, state: IAccountState) => {
 	const plan = state.client.plan[0] || {};					// description of Member's current Plan
 	const topUp = state.client.price.find(row => row[FIELD.type] === 'topUp');
+	const hold = payment.hold || 0;
 
 	if (topUp && plan.expiry) {												// plan.active is usually six-months
-		const offset = Math.round(paidAmount / (topUp.amount / plan.expiry)) || 1;
-		return getDate(stamp).add(offset, 'months').startOf('day').ts;
+		const offset = Math.round(payment.amount / (topUp.amount / plan.expiry)) || 1;
+		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
 	}
 	return undefined;
 }

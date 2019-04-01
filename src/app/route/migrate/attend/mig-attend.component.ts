@@ -26,6 +26,7 @@ import { isUndefined } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { isNumber } from 'util';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -157,6 +158,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.type]: payType,
 					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
+					hold: row.hold,
 					amount: parseFloat(row.credit!),
 				} as IPayment
 
@@ -198,24 +200,26 @@ export class MigAttendComponent implements OnInit {
 		let sched: ISchedule;
 		let event: IEvent;
 		let idx: number = 0;
+		let migrate: IMigrateBase;
 
 		switch (true) {
 			case this.special.includes(prefix):						// special event match by <type>, so we need to guess the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-				const cnt = suffix ? parseInt(suffix.split(' ')[0], 10) : 1;
+				const sfx = suffix ? suffix.split(' ')[0] : '1';
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-				const migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', cnt)])[0];
+				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', sfx)])[0];
 				if (!migrate) {
 					for (idx = 0; idx < event.classes.length; idx++) {
-						if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
 					}
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
+
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: asString(cnt),
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: asString(sfx),
 						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
 					});
 				}
@@ -225,26 +229,34 @@ export class MigAttendComponent implements OnInit {
 					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 
-				for (let nbr = 1; nbr < cnt; nbr++) {				// stack additional attends
-					row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
-					rest.splice(0, 0, row);
-					this.dbg('splice: %j', rest);
+				if (isNumber(sfx)) {
+					for (let nbr = 1; nbr < sfx; nbr++) {				// insert additional attends
+						row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
+						rest.splice(0, 0, row);
+						this.dbg('splice: %j', rest);
+					}
 				}
 				break;
 
 			case (!isUndefined(caldr)):										// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-
-				for (idx = 0; idx < event.classes.length; idx++) {
-					if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
-						break;
+				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', event.name)])[0];
+				if (!migrate) {
+					for (idx = 0; idx < event.classes.length; idx++) {
+						if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+							break;
+					}
+					if (idx === event.classes.length)
+						throw new Error('Cannot determine class');
+					this.data.setDoc(STORE.migrate, {
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: event.name,
+						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
+					});
 				}
-				if (idx === event.classes.length)
-					throw new Error('Cannot determine class');
 
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
-					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
+					day: getDate(caldr.key).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
 
@@ -265,8 +277,6 @@ export class MigAttendComponent implements OnInit {
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1))
 				else {
-					// if (this.status.creditExpires) {
-					// const closed = getDate(this.status.creditExpires.split('>')[1]).ts;
 					this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid))
 						.then(active => {
 							active.sort(sortKeys('-' + FIELD.stamp));
@@ -277,7 +287,6 @@ export class MigAttendComponent implements OnInit {
 								this.data.updDoc(STORE.payment, active[0][FIELD.id], { [FIELD.expire]: closed, ...active[0] })
 							}
 						})
-					// }
 				}
 			},
 				(err => { throw new Error('timeout: ' + err.message) })
@@ -306,7 +315,7 @@ export class MigAttendComponent implements OnInit {
 			addWhere(FIELD.uid, this.current!.user.uid),
 			addWhere(FIELD.id, pays),											// get any Payment which is referenced by the Attend documents
 		])
-		const updates = payments.map(row => ({
+		const updates = payments.map(row => ({					// reset the calculated-fields
 			...row, [FIELD.effect]: Number.MIN_SAFE_INTEGER, [FIELD.expire]: Number.MIN_SAFE_INTEGER,
 			bank: Number.MIN_SAFE_INTEGER, expiry: Number.MIN_SAFE_INTEGER
 		})
