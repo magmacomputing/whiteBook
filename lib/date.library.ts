@@ -79,7 +79,7 @@ export class Instant {
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 	
 	/** as Date object */	getDate = () => new Date(this.date.ts * 1000);
-	/** get raw object */	getObject = () => ({ ...this.date });
+	/** get raw object */	valueOf = () => ({ ...this.date });
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
