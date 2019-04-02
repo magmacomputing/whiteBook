@@ -181,14 +181,17 @@ export const sumPayment = (source: IAccountState) => {
 			.reduce((sum, payment, indx) => {
 				if (indx === 0 && payment[FIELD.effect]) {
 					sum.bank += payment.bank || 0;
-					sum.paid += payment.amount || 0;
+					if (payment[FIELD.type] === 'debit')
+						sum.adjust += payment.amount || 0
+					else sum.paid += payment.amount || 0;
+					// sum.paid += payment.amount || 0;
 				}
 				else {
 					sum.pend += (payment.amount || 0) + (payment.bank || 0);
 				}
 
 				return sum;
-			}, { paid: 0, bank: 0, pend: 0, spend: 0 })
+			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0 })
 	}
 
 	return source;

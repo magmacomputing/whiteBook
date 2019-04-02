@@ -75,9 +75,10 @@ export interface IAccountState extends IMemberState, IPlanState {
 		payment: IPayment[];								// array of open payment documents, sorted by <stamp>
 		attend: IAttend[];
 		summary: {
-			paid: number;
 			bank: number;
+			paid: number;
 			pend: number;
+			adjust: number;
 			spend: number;
 		};
 	}

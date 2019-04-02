@@ -127,34 +127,43 @@ export class MemberService {
 		const payments = data.account.payment;						// the list of current and prepaid payments
 
 		// determine which Payment record is active
-		const activePay = await this.getPayment(schedule.price, now.ts);
-		const amount = await this.attend.getAmount(data);	// Account balance
+		let activePay = await this.getPayment(schedule.price, now.ts);
+		let amount = await this.attend.getAmount(data);	// Account balance
 
 		// TODO: dont set early <expire> when plan === 'gratis'
 		switch (true) {
 			// Current payment is still Active
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
 				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
-					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0], data), ...payments[0] });
+					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0], data), ...activePay });
 				if (amount.credit === schedule.price && schedule.price) 				// no funds left on Active Payment
-					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
+					updates.push({ [FIELD.expire]: stamp, ...activePay });
 				// if (payments[1] && payments[1][FIELD.type] === 'debit' && payments[1].approve && amount.credit === schedule.price) {
 				// 	updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				// 	updates.push({ [FIELD.effect]: payments[1].stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
 				// }
 				break;
 
-			// Next pre-payment is to become Active, rollover unused Funds
+			// Next pre-payment is to become Active; rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
+				let idx = 1;
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data), ...payments[1] });
+				do {
+					updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data), ...activePay });
+					data.account.summary.adjust -= amount.funds;
+					amount = await this.attend.getAmount(data);								// calc new account summary
+				} while (schedule.price > amount.funds) {
+					idx += 1;
+					updates.push({ [FIELD.expire]: stamp, ...activePay });	// expire the negative value
+					activePay = payments[idx] || this.setPayment();
+				};
 				// if (payments[2] && payments[2][FIELD.type] === 'debit' && payments[2].approve && amount.credit === schedule.price) {
 				// 	updates.push({ [FIELD.expire]: stamp, ...payments[1] });
 				// 	updates.push({ [FIELD.effect]: payments[2].stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
 				// }
 				break;
 
-			// New payment to become Active, rollover unused Funds
+			// New payment to become Active; rollover unused Funds
 			default:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data), ...activePay });
