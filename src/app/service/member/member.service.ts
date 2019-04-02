@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { timer } from 'rxjs';
-import { debounce, switchMapTo } from 'rxjs/operators';
+import { debounce } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
@@ -14,10 +14,9 @@ import { DataService } from '@dbase/data/data.service';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { DATE_FMT, getStamp, getDate, fmtDate } from '@lib/date.library';
+import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { getPath } from '@lib/object.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -139,20 +138,20 @@ export class MemberService {
 					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0], data), ...payments[0] });
 				if (amount.credit === schedule.price && schedule.price) 				// no funds left on Active Payment
 					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				if (payments[1] && payments[1][FIELD.type] === 'debit' && payments[1].approve && amount.credit === schedule.price) {
-					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-					updates.push({ [FIELD.effect]: payments[1].stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
-				}
+				// if (payments[1] && payments[1][FIELD.type] === 'debit' && payments[1].approve && amount.credit === schedule.price) {
+				// 	updates.push({ [FIELD.expire]: stamp, ...payments[0] });
+				// 	updates.push({ [FIELD.effect]: payments[1].stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
+				// }
 				break;
 
 			// Next pre-payment is to become Active, rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data), ...payments[1] });
-				if (payments[2] && payments[2][FIELD.type] === 'debit' && payments[2].approve && amount.credit === schedule.price) {
-					updates.push({ [FIELD.expire]: stamp, ...payments[1] });
-					updates.push({ [FIELD.effect]: payments[2].stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
-				}
+				// if (payments[2] && payments[2][FIELD.type] === 'debit' && payments[2].approve && amount.credit === schedule.price) {
+				// 	updates.push({ [FIELD.expire]: stamp, ...payments[1] });
+				// 	updates.push({ [FIELD.effect]: payments[2].stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
+				// }
 				break;
 
 			// New payment to become Active, rollover unused Funds

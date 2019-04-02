@@ -345,7 +345,7 @@ export interface IPayment extends IMemberBase {
 		[FIELD.stamp]: number;
 		[FIELD.note]?: TString;
 	},
-	plan?: string;										// the Plan-type this payment covers
+	// plan?: string;										// the Plan-type this payment covers
 }
 
 //	/member/bonus

@@ -44,7 +44,6 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-const isInstant = (dt?: TDate): dt is Instant => getType(dt) === 'Instant';
 
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get ms Timestamp*/export const getStamp = (dt?: TDate) => getDate(dt).ts;

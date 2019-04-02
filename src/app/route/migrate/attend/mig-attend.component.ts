@@ -5,12 +5,13 @@ import { take, map, debounce, timeout } from 'rxjs/operators';
 import { Actions, ofActionDispatched, Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
+import { AttendService } from '@service/member/attend.service';
 import { SnackService } from '@service/snack/snack.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, TStoreBase, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase, TStoreBase } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { NewAttend } from '@dbase/state/state.action';
@@ -22,11 +23,10 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
-import { isUndefined } from '@lib/type.library';
+import { isUndefined, isNumber } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { isNumber } from 'util';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -71,7 +71,7 @@ export class MigAttendComponent implements OnInit {
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private snack: SnackService,
-		private sync: SyncService, private service: MemberService, private store: Store, private actions: Actions) {
+		private sync: SyncService, private service: MemberService, private store: Store, private actions: Actions, private attend: AttendService) {
 		this.current = null;
 		this.register$ = this.state.getAdminData()
 			.pipe(
@@ -272,20 +272,40 @@ export class MigAttendComponent implements OnInit {
 			timeout(5000),															// throw an Error if no sync after five-seconds
 		)																							// wait for new Attend to sync into State
 			.subscribe(row => {
-				this.dbg('sync: %j', row);
+				this.dbg('sync: ');
 				sub.unsubscribe();
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1))
-				else {
-					this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid))
-						.then(active => {
+				else {																		// after all Attends, wrap-up final Payment
+					Promise.all([
+						this.attend.getAmount(),							// get closing balance
+						this.attend.getPlan(),								// get final Plan
+						this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+					])
+						.then(([account, profile, active]) => {
+							const updates: any[] = [];
+							let closed: number;
+
 							active.sort(sortKeys('-' + FIELD.stamp));
-							const closed = active[0].expiry;
-							if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
-								this.dbg('closed: %j, %s', closed, getDate(closed).format(DATE_FMT.display));
-								this.dbg('active: %j', active[0]);
-								this.data.updDoc(STORE.payment, active[0][FIELD.id], { [FIELD.expire]: closed, ...active[0] })
+							this.dbg('final: %j', account);
+							if (active[0][FIELD.type] === 'debit' && active[0].approve) {
+								closed = active[0].approve[FIELD.stamp];
+								if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
+									this.dbg('closed: %j, %s', closed, getDate(closed).format(DATE_FMT.display));
+									updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -account.credit, });
+									updates.push({ ...active[1], [FIELD.expire]: active[0].stamp, });
+								}
 							}
+							if (active[0][FIELD.type] === 'topUp' && profile.plan === 'gratis' && active[0].expiry) {
+								closed = active[0].expiry;
+								if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
+									this.dbg('closed: %j, %s', closed, getDate(closed).format(DATE_FMT.display));
+									updates.push({ ...active[0], [FIELD.expire]: closed });
+								}
+							}
+
+							if (updates.length)
+								this.data.batch(undefined, updates);
 						})
 				}
 			},
@@ -310,11 +330,7 @@ export class MigAttendComponent implements OnInit {
 
 	async delAttend() {
 		const deletes = await this.data.getFire<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.current!.user.uid) });
-		const pays = deDup(...deletes.map(row => row.payment));
-		const payments = await this.data.getStore<IPayment>(STORE.payment, [
-			addWhere(FIELD.uid, this.current!.user.uid),
-			addWhere(FIELD.id, pays),											// get any Payment which is referenced by the Attend documents
-		])
+		const payments = await this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.user.uid));
 		const updates = payments.map(row => ({					// reset the calculated-fields
 			...row, [FIELD.effect]: Number.MIN_SAFE_INTEGER, [FIELD.expire]: Number.MIN_SAFE_INTEGER,
 			bank: Number.MIN_SAFE_INTEGER, expiry: Number.MIN_SAFE_INTEGER
