@@ -1,9 +1,8 @@
 import * as firebase from 'firebase/app';
 
-import { StateService } from '@dbase/state/state.service';
-import { IMemberState, IAccountState } from '@dbase/state/state.define';
-import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfileInfo, IMemberInfo, IPrice, IPayment } from '@dbase/data/data.schema';
+import { IAccountState } from '@dbase/state/state.define';
+import { FIELD } from '@dbase/data/data.define';
+import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
 import { isString, isObject, isNumber } from '@lib/type.library';
 import { getStamp, getDate } from '@lib/date.library';
