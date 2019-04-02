@@ -71,7 +71,7 @@ export const calcExpiry = (stamp: number, payment: IPayment, state: IAccountStat
 	if (topUp && plan.expiry) {												// plan.active is usually six-months
 		const offset = topUp.amount
 			? Math.round(payment.amount / (topUp.amount / plan.expiry)) || 1
-			: plan.expiry;																// allow for gratis expiry
+			: plan.expiry;																// allow for gratis account expiry
 		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
 	}
 	return undefined;

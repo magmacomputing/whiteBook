@@ -25,7 +25,6 @@ import { DATE_FMT, getDate, getStamp } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNumber } from '@lib/type.library';
 import { asString } from '@lib/string.library';
-import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -272,27 +271,28 @@ export class MigAttendComponent implements OnInit {
 			timeout(5000),															// throw an Error if no sync after five-seconds
 		)																							// wait for new Attend to sync into State
 			.subscribe(row => {
-				this.dbg('sync: ');
+				// this.dbg('sync: ');
 				sub.unsubscribe();
 				if (rest.length)
 					this.newAttend(rest[0], ...rest.slice(1))
 				else {																		// after all Attends, wrap-up final Payment
 					Promise.all([
 						this.attend.getAmount(),							// get closing balance
+						this.attend.getAccount(),							// Account status
 						this.attend.getPlan(),								// get final Plan
 						this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 					])
-						.then(([account, profile, active]) => {
+						.then(([summary, account, profile, active]) => {
 							const updates: any[] = [];
 							let closed: number;
 
 							active.sort(sortKeys('-' + FIELD.stamp));
-							this.dbg('final: %j', account);
+							this.dbg('final: %j', summary);
 							if (active[0][FIELD.type] === 'debit' && active[0].approve) {
 								closed = active[0].approve[FIELD.stamp];
 								if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
 									this.dbg('closed: %j, %s', closed, getDate(closed).format(DATE_FMT.display));
-									updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -account.credit, });
+									updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -summary.credit });
 									updates.push({ ...active[1], [FIELD.expire]: active[0].stamp, });
 								}
 							}
