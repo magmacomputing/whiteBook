@@ -70,7 +70,7 @@ export interface IMeta {
 	[FIELD.update]?: number;							// the time when last updated
 	[FIELD.access]?: number;							// the time when last accessed
 	[FIELD.effect]?: number;							// the time from which (greater-than-or-equal) this row is effective
-	[FIELD.expire]?: number;							// the time before which (less-than) this row is expired, or '0' for un-expired
+	[FIELD.expire]?: number | null;				// the time before which (less-than) this row is expired, or '0' for un-expired
 	[FIELD.hidden]?: boolean;							// valid value, but not to be displayed to the client
 	[FIELD.disable]?: boolean;						// valid value, greyed-out to the client
 
@@ -111,7 +111,7 @@ export interface IStoreMeta extends IMeta {
 }
 // client documents have a '<key>' field, member documents have a '<uid>' field
 export const isClientStore = (store: TStoreBase): store is IClientBase =>
-(<IClientBase>store)[FIELD.key] !== undefined;
+	(<IClientBase>store)[FIELD.key] !== undefined;
 
 //	/client/_default_
 export interface IDefault extends IClientBase {

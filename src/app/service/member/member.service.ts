@@ -17,7 +17,6 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { summaryFileName } from '@angular/compiler/src/aot/util';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -52,6 +51,7 @@ export class MemberService {
 
 		return {
 			[FIELD.id]: this.data.newId,
+			[FIELD.expire]: null,
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
 			[FIELD.uid]: data.auth.current!.uid,
@@ -64,36 +64,34 @@ export class MemberService {
    * Determine if a new payment is due.  
    * -> if the price of the class is greater than their current funds  
    * -> if they've exceeded 99 Attends against the active Payment  
-   * -> if their intro-pass has expired (auto bump them to 'member' plan)  
+	 * -> if this check-in is later than the expiry-date
+   * -> TODO: if their intro-pass has expired (auto bump them to 'member' plan)  
   */
 	async getPayment(price: number, ts: number) {
 		const data = await this.attend.getAccount();
 		const summary = await this.attend.getAmount(data);
+		const payments = data.account.payment;
 
 		switch (true) {
-			// more than 99-attendances against the activePayment
 			case data.account.attend.length > 99:
-				return data.account.payment[1] || this.setPayment();
+				return payments[1] || this.setPayment();									// more than 99-attendances against the activePayment
+			
+			case payments[0] && !payments[0][FIELD.effect]:
+				return payments[0];																				// new account not-yet-activated
 
-			// new account not-yet-activated
-			case data.account.payment[0] && !data.account.payment[0][FIELD.effect]:
-				return data.account.payment[0];
-
-			// time for a new activePayment
 			case price > summary.funds:
-				return data.account.payment[1] || this.setPayment();
+				return payments[1] || this.setPayment();									// time for a new activePayment
+
+			case payments[0].expiry && payments[0].expiry < ts:
+				return payments[1] || this.setPayment();									// current Payment has expired
 
 			default:
-				if (data.account.payment.length >= 2 && data.account.payment[0].expiry && data.account.payment[0].expiry < ts)
-					return data.account.payment[1];
-
 				return data.account.payment[0] || this.setPayment();
 		}
 	}
 
 	/**
-	 * Insert an Attendance record, matched to an <active> Account Payment,  
-	 * else create new Payment as well
+	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.attend.getAccount(date);	// get Member's current account details
@@ -104,7 +102,7 @@ export class MemberService {
 
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
-			date = await this.attend.lkpDate(schedule[FIELD.key], schedule.location, date)
+			date = await this.attend.lkpDate(schedule[FIELD.key], schedule.location);
 
 		const now = getDate(date);
 		const stamp = now.ts;
@@ -125,21 +123,19 @@ export class MemberService {
 
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
-		const payments = data.account.payment;						// the list of current and prepaid payments
+		const payments = data.account.payment;												// the list of current and pre-paid Payments
 
-		// determine which Payment record is active
-		let activePay = await this.getPayment(schedule.price, now.ts);
-		let amount = await this.attend.getAmount(data);	// Account balance
+		let activePay = await this.getPayment(schedule.price, now.ts);// determine which Payment record is active
+		let amount = await this.attend.getAmount(data);								// Account balance
 
-		// TODO: dont set early <expire> when plan === 'gratis'
 		switch (true) {
 			// Current payment is still Active
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
-				if (!activePay[FIELD.effect]) {								// add effective date to Active Payment on first use
-					activePay[FIELD.effect] = stamp;												// add startDate to row
+				if (!activePay[FIELD.effect]) {
+					activePay[FIELD.effect] = stamp;												// add effective date to Active Payment on first use
 					activePay.expiry = calcExpiry(stamp, activePay, data);	// determine when this Payment will lapse
 				}
-				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment
+				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment (except $0 classes)
 					activePay[FIELD.expire] = stamp;												// auto-close Payment
 				updates.push({ ...activePay, summary: amount });					// add current account summary to Payment
 				break;
@@ -149,19 +145,20 @@ export class MemberService {
 				let idx = 1;
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				do {
-					updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data), ...activePay });
+					updates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data) });
 					data.account.summary.adjust -= amount.funds;
-					amount = await this.attend.getAmount(data);								// calc new account summary
+					amount = await this.attend.getAmount(data);							// calc new account summary
 				} while (schedule.price > amount.funds) {
 					idx += 1;
-					updates.push({ [FIELD.expire]: stamp, ...activePay });	// expire the negative value
+					updates.push({ ...activePay, [FIELD.expire]: stamp });	// expire the negative value
 					activePay = payments[idx] || this.setPayment();
 				};
 				break;
 
 			// New payment to become Active; rollover unused Funds
 			default:
-				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
+				if (payments[0])
+					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				creates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data) });
 				break;
 		}

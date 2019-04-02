@@ -153,6 +153,7 @@ export class MigAttendComponent implements OnInit {
 				this.dbg('row: %j', row);
 				const paym = {
 					[FIELD.id]: this.data.newId,
+					[FIELD.expire]: null,
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: payType,
 					[FIELD.uid]: this.current!.uid,

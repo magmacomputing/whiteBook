@@ -44,6 +44,7 @@ export interface IUserState {
 
 export interface IAdminState {
 	register: IRegister[];								// register collection
+	payments: IPayment[];									// active Payment documents
 }
 
 export interface IApplicationState {		// application-wide settings

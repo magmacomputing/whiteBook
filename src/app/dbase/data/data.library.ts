@@ -18,7 +18,6 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	const collection = getSlice(nextDoc[FIELD.store]);
 	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
-	if (filters.length === 0) debugger;
 	filters.forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
 			where.push(addWhere(field, nextDoc[field]));
@@ -89,7 +88,6 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
-	if (discards.includes('birthDay') && !currDocs.length) debugger;
 	const isMatch = currDocs
 		.map(currDoc => 															// for each current document
 			asArray(discards)														// for each of the field-names to match...

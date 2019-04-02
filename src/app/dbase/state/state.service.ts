@@ -89,8 +89,11 @@ export class StateService {
 	 * auth.register	-> has an array of the current state of /register
 	 */
 	getAdminData(): Observable<IAdminState> {
+		const filterPayment = addWhere(FIELD.store, STORE.payment);
+	
 		return this.admin$.pipe(
 			joinDoc(this.states, 'register', STORE.register),
+			joinDoc(this.states, 'payments', STORE.payment, filterPayment),
 		)
 	}
 
