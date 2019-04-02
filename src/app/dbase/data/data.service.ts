@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, ICustomClaims } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, ICustomClaims, IStoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -138,12 +138,12 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Batch */
-	batch(creates?: TStoreBase[], updates?: TStoreBase[], deletes?: TStoreBase[]) {
+	batch(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[]) {
 		return this.fire.batch(creates, updates, deletes);
 	}
 
 	/** Wrap writes in a Transaction */
-	runTxn(creates?: TStoreBase[], updates?: TStoreBase[], deletes?: TStoreBase[], selects?: DocumentReference[]) {
+	runTxn(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[], selects?: DocumentReference[]) {
 		return this.fire.runTxn(creates, updates, deletes, selects);
 	}
 }

@@ -70,17 +70,21 @@ export interface IPlanState extends IMemberState {
 	}
 }
 
+export interface ISummary {
+	bank: number;													// rollover from previous Payment
+	paid: number;													// topUp Amount
+	pend: number;													// sum of not-yet-Active Payments
+	adjust: number;												// debits
+	spend: number;												// sum of Attends' amount
+
+	credit: number;												// bank + pend + paid + adjust - spend
+	funds: number;												// bank + paid + adjust - spend
+}
 export interface IAccountState extends IMemberState, IPlanState {
 	account: {
 		payment: IPayment[];								// array of open payment documents, sorted by <stamp>
 		attend: IAttend[];
-		summary: {
-			bank: number;
-			paid: number;
-			pend: number;
-			adjust: number;
-			spend: number;
-		};
+		summary: ISummary;
 	}
 }
 

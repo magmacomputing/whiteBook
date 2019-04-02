@@ -1,6 +1,7 @@
 import { UserInfo } from 'firebase';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
+import { ISummary } from '@dbase/state/state.define';
 
 export type TStoreAdmin = '_schema_' | '_config_' | '_default_';
 export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
@@ -337,7 +338,7 @@ export interface IPayment extends IMemberBase {
 	[FIELD.type]: TPayment;
 	[FIELD.stamp]: number;						// create-date
 	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
-	bank?: number;										// un-used credit from previous payment
+	bank?: number;										// un-used funds from previous payment
 	hold?: number;										// number of days to extend expiry
 	expiry?: number;									// six-months from _effect
 	approve?: {												// acknowledge receipt of payment
@@ -345,6 +346,7 @@ export interface IPayment extends IMemberBase {
 		[FIELD.stamp]: number;
 		[FIELD.note]?: TString;
 	},
+	account?: ISummary;
 }
 
 //	/member/bonus

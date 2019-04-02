@@ -77,7 +77,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Batch */
-	batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
+	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const bat = this.afs.firestore.batch();
 
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
@@ -88,7 +88,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
-	runTxn(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = [], selects: DocumentReference[] = []) {
+	runTxn(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], selects: DocumentReference[] = []) {
 		return this.afs.firestore.runTransaction(txn => {
 			asArray(selects).forEach(ref => txn.get(ref));
 			asArray(creates).forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));

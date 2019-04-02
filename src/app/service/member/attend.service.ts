@@ -53,8 +53,7 @@ export class AttendService {
 
 	getAmount = async (data?: IAccountState) => {
 		data = data || await this.getAccount();
-		const { bank = 0, pend = 0, paid = 0, adjust = 0, spend = 0 } = data.account.summary;
-		return { bank, pend, paid, adjust, spend, credit: bank + pend + paid - spend, funds: bank + paid + adjust - spend };
+		return data.account.summary;
 	}
 
 	getPlan = async (data?: IAccountState) => {
