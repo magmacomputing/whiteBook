@@ -3,16 +3,19 @@ import { timer } from 'rxjs';
 import { debounce } from 'rxjs/operators';
 import { Store, Actions, ofAction } from '@ngxs/store';
 
+import { DBaseModule } from '@dbase/dbase.module';
+import { getMemberInfo, calcExpiry } from '@service/member/member.library';
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
-import { MemberInfo } from '@dbase/state/auth.action';
-import { addWhere } from '@dbase/fire/fire.library';
-import { getMemberInfo, calcExpiry } from '@service/member/member.library';
-import { AttendService } from '@service/member/attend.service';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { SyncService } from '@dbase/sync/sync.service';
 import { DataService } from '@dbase/data/data.service';
+import { AttendService } from '@service/member/attend.service';
+
+import { MemberInfo } from '@dbase/state/auth.action';
+import { NewAttend } from '@dbase/state/state.action';
+import { addWhere } from '@dbase/fire/fire.library';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAttend, TClass, IStoreMeta } from '@dbase/data/data.schema';
-import { DBaseModule } from '@dbase/dbase.module';
 
 import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -23,7 +26,7 @@ export class MemberService {
 	private dbg = dbg(this);
 
 	constructor(private readonly data: DataService, private readonly store: Store, private attend: AttendService,
-		private state: StateService, private action: Actions, private snack: SnackService) {
+		private state: StateService, private action: Actions, private snack: SnackService, private sync: SyncService) {
 		this.dbg('new');
 
 		this.action.pipe(															// special: listen for changes of the auth.info
@@ -117,7 +120,7 @@ export class MemberService {
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error('Already attended this class');
-			return;
+			return Promise.resolve(false);															// discard Attend
 		}
 
 		const creates: IStoreMeta[] = [];
@@ -163,6 +166,7 @@ export class MemberService {
 		}
 
 		// build the Attend document
+		// TODO:  also create a bonusTrack document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
@@ -175,12 +179,18 @@ export class MemberService {
 			payment: activePay[FIELD.id],									// <id> of Account's current active document
 			amount: schedule.price,												// calculated price of the Attend
 		}
-		creates.push(attendDoc as TStoreBase);
+		creates.push(attendDoc as TStoreBase);					// batch the new Attend
 
-		// TODO:  also create a bonusTrack document
-		return this.data.batch(creates, updates)				// process the Payments / Attends
-			.then(_ => this.attend.getAmount())						// re-calc the new Account summary
-			.then(summary => this.data.writeAccount(summary))
+		return new Promise((resolve, reject) => {
+			this.sync.wait(NewAttend, _evt => {						// wait for NewAttend to fire
+				return this.attend.getAmount()							// re-calc the new Account summary
+					.then(sum => this.data.writeAccount(sum))	// update Admin summary
+					.then(_ => resolve(true))
+					.catch(err => reject(err.message))
+			});
+
+			this.data.batch(creates, updates)							// process the Payments / Attends
+		})
 	}
 
 	/** check for change of User.additionalInfo */

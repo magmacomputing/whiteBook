@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { map } from 'rxjs/operators';
+import { timer } from 'rxjs';
+import { map, debounce, timeout, take } from 'rxjs/operators';
+
+import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { Store } from '@ngxs/store';
 import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
@@ -21,6 +23,7 @@ import { IObject } from '@lib/object.library';
 import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
+import { NewAttend } from '@dbase/state/state.action';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -28,20 +31,15 @@ export class SyncService {
 	private listener: IObject<IListen> = {};
 	private uid: string | null = null;
 
-	constructor(private fire: FireService, private store: Store, private navigate: NavigateService) { this.dbg('new'); }
+	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
+	// TODO: make smarter call-syntax to allow for multi-stream merge
 	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
 		const ready = createPromise<boolean>();
 		this.getAuthUID();																// make sure we stash the Auth User's ID
 
-		const refs =// (collection === COLLECTION.admin)		// TODO: make smarter call-syntax to allow for multi-stream merge
-			// ? [
-			// 	this.fire.colRef<IStoreMeta>(collection)[0],
-			// 	this.fire.colRef<IStoreMeta>(COLLECTION.member, { where: [addWhere(FIELD.store, STORE.payment), addWhere(FIELD.expire, null)] })[0]
-			// ]
-			// 	:
-				this.fire.colRef<IStoreMeta>(collection, query);
+		const refs = this.fire.colRef<IStoreMeta>(collection, query);
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, collection);
 
@@ -71,6 +69,24 @@ export class SyncService {
 	public status(collection: string) {
 		const { cnt, ready: { promise: ready } } = this.listener[collection];
 		return { collection, cnt, ready };
+	}
+
+	/** Wait for a named-event to occur */
+	public wait<T>(event: any, callBack?: (row: T) => any) {			// TODO: replace <any> with correct Action Type
+		const timeOut = 5000;															// wait up-to 5 seconds
+		const sub = this.actions.pipe(
+			ofActionDispatched(event), 											// wait for an NGXS event
+			debounce(_ => timer(500)), 											// wait to have State settle
+			take(1), 																				// unsubscribe after first occurence
+			timeout(timeOut)
+		)
+			.subscribe(row => {
+				if (isFunction(callBack))
+					callBack(row);
+				return row;
+			},
+				_ => this.dbg('timeOut: %s', timeOut)					// notify event not detected
+			)
 	}
 
 	/** detach an existing snapshot listener */

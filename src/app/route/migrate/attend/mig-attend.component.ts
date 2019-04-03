@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, timer } from 'rxjs';
-import { take, map, debounce, timeout } from 'rxjs/operators';
-import { Actions, ofActionDispatched, Store } from '@ngxs/store';
+import { Observable } from 'rxjs';
+import { take, map } from 'rxjs/operators';
+import { Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { SnackService } from '@service/snack/snack.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
@@ -14,8 +13,7 @@ import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase, TStoreBase } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
-import { NewAttend } from '@dbase/state/state.action';
-import { IAccountState, IAdminState } from '@dbase/state/state.define';
+import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -26,6 +24,7 @@ import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNumber } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
+import { SetMember } from '@dbase/state/state.action';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -70,8 +69,8 @@ export class MigAttendComponent implements OnInit {
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService, private snack: SnackService,
-		private sync: SyncService, private service: MemberService, private store: Store, private actions: Actions, private attend: AttendService) {
+	constructor(private http: HttpClient, private data: DataService, private state: StateService,
+		private sync: SyncService, private service: MemberService, private store: Store, private attend: AttendService) {
 		this.current = null;
 		this.register$ = this.state.getAdminData()
 			.pipe(
@@ -179,14 +178,15 @@ export class MigAttendComponent implements OnInit {
 	/**
 	 * Add Attendance records for a Member
 	 */
-	async addAttend() {
-		const table = (await this.history)								// a sorted-list of Attendance check-ins / account payments
-			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-		// .slice(0, 10)																		// for testing: just the first few Attends
-		this.newAttend(table[0], ...table.slice(1));
+	addAttend() {
+		this.history																			// a sorted-list of Attendance check-ins / account payments
+			.then(history => {
+				const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
+				this.nextAttend(table[0], ...table.slice(1));	// fire initial Attendance
+			})
 	}
 
-	newAttend(row: MHistory, ...rest: MHistory[]) {
+	nextAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
 		const what = this.lookup[row.type] || row.type;
 		const dow = getDate(row.date).dow;
@@ -266,51 +266,49 @@ export class MigAttendComponent implements OnInit {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
 		}
 
-		const sub = this.actions.pipe(
-			ofActionDispatched(NewAttend),							// we have to wait for FireStore to sync with NGXS, so we get latest account-details
-			debounce(_ => timer(500)),									// wait to have State settle
-			timeout(5000),															// throw an Error if no sync after five-seconds
-		)																							// wait for new Attend to sync into State
-			.subscribe(row => {
-				sub.unsubscribe();
-				if (rest.length)
-					this.newAttend(rest[0], ...rest.slice(1))
-				else {																		// after all Attends, wrap-up final Payment
-					Promise.all([
-						this.attend.getAmount(),							// get closing balance
-						this.attend.getPlan(),								// get final Plan
-						this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
-					])
-						.then(([summary, profile, active]) => {
-							const updates: any[] = [];
-							let closed: number;
+		this.service.setAttend(sched, row.note, row.stamp)
+			.then(_ => {
+				if (rest.length)  										// fire next Attend
+					this.nextAttend(rest[0], ...rest.slice(1));
+				else this.finalAttend();							// wrap-up final Payment
+			})
+	}
 
-							active.sort(sortKeys('-' + FIELD.stamp));
-							this.dbg('final: %j', summary);
-							if (active[0][FIELD.type] === 'debit' && active[0].approve) {
-								closed = active[0].approve[FIELD.stamp];
-								if (closed < getStamp() && !active[0][FIELD.expire]) {
-									this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
-									updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -summary.pend });
-									updates.push({ ...active[1], [FIELD.expire]: active[0].stamp, });
-								}
-							}
-							if (active[0][FIELD.type] === 'topUp' && profile.plan === 'gratis' && active[0].expiry) {
-								closed = active[0].expiry;
-								if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
-									this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
-									updates.push({ ...active[0], [FIELD.expire]: closed });
-								}
-							}
+	private async finalAttend() {
+		const [summary, profile, active] = await Promise.all([
+			this.attend.getAmount(),								// get closing balance
+			this.attend.getPlan(),									// get final Plan
+			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+		]);
 
-							if (updates.length)
-								this.data.batch(undefined, updates);
-						})
-				}
-			},
-				(err => { throw new Error('timeout: ' + err.message) })
-			)
-		return this.service.setAttend(sched, row.note, row.stamp);
+		const updates: any[] = [];
+		let closed: number;
+
+		active.sort(sortKeys('-' + FIELD.stamp));
+		this.dbg('final: %j', summary);
+
+		if (active[0][FIELD.type] === 'debit' && active[0].approve) {
+			closed = active[0].approve[FIELD.stamp];
+			if (closed < getStamp() && !active[0][FIELD.expire]) {
+				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
+				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -summary.pend });
+				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp, });
+			}
+		}
+
+		if (active[0][FIELD.type] === 'topUp' && profile.plan === 'gratis' && active[0].expiry) {
+			closed = active[0].expiry;
+			if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
+				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
+				updates.push({ ...active[0], [FIELD.expire]: closed });
+			}
+		}
+
+		this.sync.wait(SetMember, _evt => {						// wait for SetMember to fire
+			this.attend.getAmount()											// re-calc the new Account summary
+				.then(sum => this.data.writeAccount(sum))	// update Admin summary
+		});
+		this.data.batch(undefined, updates);					// expire last Payment, if required
 	}
 
 	async delPayment() {

@@ -3,7 +3,7 @@ import { TStateSlice, SLICE } from '@dbase/state/state.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -30,6 +30,9 @@ export class MemberState implements NgxsOnInit {
 		state[payload.store] = store;
 		if (debug) this.dbg('setMember: %j', payload);
 		patchState({ ...state });
+
+		// if (payload[FIELD.store] === STORE.payment)
+		// 	dispatch(new NewPayment(payload));									// tell any listener we have sync'd
 	}
 
 	@Action(DelMember)
