@@ -74,7 +74,7 @@ export class MemberService {
 		switch (true) {
 			case data.account.attend.length > 99:
 				return payments[1] || this.setPayment();									// more than 99-attendances against the activePayment
-			
+
 			case payments[0] && !payments[0][FIELD.effect]:
 				return payments[0];																				// new account not-yet-activated
 
@@ -136,7 +136,7 @@ export class MemberService {
 				}
 				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment (except $0 classes)
 					activePay[FIELD.expire] = stamp;												// auto-close Payment
-				updates.push({ ...activePay, summary: amount });					// add current account summary to Payment
+				updates.push({ ...activePay });														// add current account summary to Payment
 				break;
 
 			// Next pre-payment is to become Active; rollover unused Funds

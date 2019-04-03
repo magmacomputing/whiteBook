@@ -308,7 +308,6 @@ export interface IPayment extends IMemberBase {
 		[FIELD.stamp]: number;
 		[FIELD.note]?: TString;
 	},
-	account?: ISummary;
 }
 
 //	/member/bonus
