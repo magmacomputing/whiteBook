@@ -284,9 +284,8 @@ export class MigAttendComponent implements OnInit {
 		const updates: any[] = [];
 		let closed: number;
 
+		this.dbg('account: %j', summary);					// the current account summary
 		active.sort(sortKeys('-' + FIELD.stamp));
-		this.dbg('final: %j', summary);
-
 		if (active[0][FIELD.type] === 'debit' && active[0].approve) {
 			closed = active[0].approve[FIELD.stamp];
 			if (closed < getStamp() && !active[0][FIELD.expire]) {
@@ -304,11 +303,14 @@ export class MigAttendComponent implements OnInit {
 			}
 		}
 
-		this.sync.wait(SetMember, _evt => {						// wait for SetMember to fire
-			this.attend.getAmount()											// re-calc the new Account summary
-				.then(sum => this.data.writeAccount(sum))	// update Admin summary
-		});
-		this.data.batch(undefined, updates);					// expire last Payment, if required
+		this.data.batch(undefined, updates, undefined, SetMember,
+			_evt => {																			// wait for SetMember to fire
+				this.attend.getAmount()											// re-calc the new Account summary
+					.then(sum => {
+						this.dbg('final: %j', sum);
+						this.data.writeAccount(sum);						// update Admin summary
+					})
+			});																						// expire last Payment, if required
 	}
 
 	async delPayment() {

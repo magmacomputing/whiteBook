@@ -25,6 +25,7 @@ import { getStamp } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 import { ISummary } from '@dbase/state/state.define';
+import { isFunction } from 'util';
 
 /**
  * The DataService is responsible for managing the syncing between
@@ -146,7 +147,10 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Batch */
-	batch(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[]) {
+	batch(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[], event?: any, callBack?: (evt: any) => any) {
+		if (event)																							// an Event that this batch will fire
+			this.sync.wait(event, callBack);											// start an optional listener
+
 		return this.fire.batch(creates, updates, deletes);
 	}
 
