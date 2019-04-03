@@ -32,8 +32,8 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	return where;
 }
 
-export const docPrep = async (doc: TStoreBase, state: Promise<IUserState>) => {
-	const uid = (await state).auth.user!.uid;			// get the current user's uid
+export const docPrep = async (doc: TStoreBase, uid: string) => {
+	// const uid = (await state).auth.current!.uid;	// get the current user's uid
 
 	if (!isClientStore(doc))											// if not a /client document
 		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document

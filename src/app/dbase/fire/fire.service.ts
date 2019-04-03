@@ -17,6 +17,7 @@ import { fnQuery } from '@dbase/fire/fire.library';
 import { isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { ISummary } from '@dbase/state/state.define';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -129,6 +130,10 @@ export class FireService {
 
 	writeClaim(claim: ICustomClaims) {
 		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
+	}
+
+	writeAccount(uid: string, summary: ISummary) {
+		return this.callHttps('writeAccount', { uid, summary });
 	}
 
 	createToken(uid: string) {

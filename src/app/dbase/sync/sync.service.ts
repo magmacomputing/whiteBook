@@ -11,7 +11,7 @@ import { IListen } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { AuthToken, IAuthState } from '@dbase/state/auth.action';
 
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -21,7 +21,6 @@ import { IObject } from '@lib/object.library';
 import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
-import { addWhere } from '@dbase/fire/fire.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -36,12 +35,13 @@ export class SyncService {
 		const ready = createPromise<boolean>();
 		this.getAuthUID();																// make sure we stash the Auth User's ID
 
-		const refs = (collection === COLLECTION.admin)		// TODO: make smarter call-syntax to allow for multi-stream merge
-			? [
-				this.fire.colRef<IStoreMeta>(collection)[0],
-				this.fire.colRef<IStoreMeta>(COLLECTION.member, { where: [addWhere(FIELD.store, STORE.payment), addWhere(FIELD.expire, null)] })[0]
-			]
-			: this.fire.colRef<IStoreMeta>(collection, query);
+		const refs =// (collection === COLLECTION.admin)		// TODO: make smarter call-syntax to allow for multi-stream merge
+			// ? [
+			// 	this.fire.colRef<IStoreMeta>(collection)[0],
+			// 	this.fire.colRef<IStoreMeta>(COLLECTION.member, { where: [addWhere(FIELD.store, STORE.payment), addWhere(FIELD.expire, null)] })[0]
+			// ]
+			// 	:
+				this.fire.colRef<IStoreMeta>(collection, query);
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, collection);
 

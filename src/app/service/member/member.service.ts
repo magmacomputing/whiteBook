@@ -51,7 +51,6 @@ export class MemberService {
 
 		return {
 			[FIELD.id]: this.data.newId,
-			[FIELD.expire]: null,
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
 			[FIELD.uid]: data.auth.current!.uid,
@@ -179,7 +178,9 @@ export class MemberService {
 		creates.push(attendDoc as TStoreBase);
 
 		// TODO:  also create a bonusTrack document
-		return this.data.batch(creates, updates);
+		return this.data.batch(creates, updates)				// process the Payments / Attends
+			.then(_ => this.attend.getAmount())						// re-calc the new Account summary
+			.then(summary => this.data.writeAccount(summary))
 	}
 
 	/** check for change of User.additionalInfo */
