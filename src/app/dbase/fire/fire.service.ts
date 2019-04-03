@@ -17,6 +17,7 @@ import { fnQuery } from '@dbase/fire/fire.library';
 import { isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { ISummary } from '@dbase/state/state.define';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -77,7 +78,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Batch */
-	batch(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = []) {
+	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const bat = this.afs.firestore.batch();
 
 		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
@@ -88,7 +89,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
-	runTxn(creates: TStoreBase[] = [], updates: TStoreBase[] = [], deletes: TStoreBase[] = [], selects: DocumentReference[] = []) {
+	runTxn(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], selects: DocumentReference[] = []) {
 		return this.afs.firestore.runTransaction(txn => {
 			asArray(selects).forEach(ref => txn.get(ref));
 			asArray(creates).forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
@@ -129,6 +130,10 @@ export class FireService {
 
 	writeClaim(claim: ICustomClaims) {
 		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
+	}
+
+	writeAccount(uid: string, summary: ISummary) {
+		return this.callHttps('writeAccount', { uid, summary });
 	}
 
 	createToken(uid: string) {

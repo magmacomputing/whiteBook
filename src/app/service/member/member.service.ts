@@ -11,7 +11,7 @@ import { getMemberInfo, calcExpiry } from '@service/member/member.library';
 import { AttendService } from '@service/member/attend.service';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAttend, TClass } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAttend, TClass, IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
@@ -63,36 +63,34 @@ export class MemberService {
    * Determine if a new payment is due.  
    * -> if the price of the class is greater than their current funds  
    * -> if they've exceeded 99 Attends against the active Payment  
-   * -> if their intro-pass has expired (auto bump them to 'member' plan)  
+	 * -> if this check-in is later than the expiry-date
+   * -> TODO: if their intro-pass has expired (auto bump them to 'member' plan)  
   */
 	async getPayment(price: number, ts: number) {
 		const data = await this.attend.getAccount();
 		const summary = await this.attend.getAmount(data);
+		const payments = data.account.payment;
 
 		switch (true) {
-			// more than 99-attendances against the activePayment
 			case data.account.attend.length > 99:
-				return data.account.payment[1] || this.setPayment();
+				return payments[1] || this.setPayment();									// more than 99-attendances against the activePayment
 
-			// new account not-yet-activated
-			case data.account.payment[0] && !data.account.payment[0][FIELD.effect]:
-				return data.account.payment[0];
+			case payments[0] && !payments[0][FIELD.effect]:
+				return payments[0];																				// new account not-yet-activated
 
-			// time for a new activePayment
 			case price > summary.funds:
-				return data.account.payment[1] || this.setPayment();
+				return payments[1] || this.setPayment();									// time for a new activePayment
+
+			case payments[0].expiry && payments[0].expiry < ts:
+				return payments[1] || this.setPayment();									// current Payment has expired
 
 			default:
-				if (data.account.payment.length >= 2 && data.account.payment[0].expiry && data.account.payment[0].expiry < ts)
-					return data.account.payment[1];
-
 				return data.account.payment[0] || this.setPayment();
 		}
 	}
 
 	/**
-	 * Insert an Attendance record, matched to an <active> Account Payment,  
-	 * else create new Payment as well
+	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.attend.getAccount(date);	// get Member's current account details
@@ -103,7 +101,7 @@ export class MemberService {
 
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
-			date = await this.attend.lkpDate(schedule[FIELD.key], schedule.location, date)
+			date = await this.attend.lkpDate(schedule[FIELD.key], schedule.location);
 
 		const now = getDate(date);
 		const stamp = now.ts;
@@ -122,26 +120,23 @@ export class MemberService {
 			return;
 		}
 
-		const creates: TStoreBase[] = [];
-		const updates: TStoreBase[] = [];
-		const payments = data.account.payment;						// the list of current and prepaid payments
+		const creates: IStoreMeta[] = [];
+		const updates: IStoreMeta[] = [];
+		const payments = data.account.payment;												// the list of current and pre-paid Payments
 
-		// determine which Payment record is active
-		let activePay = await this.getPayment(schedule.price, now.ts);
-		let amount = await this.attend.getAmount(data);	// Account balance
+		let activePay = await this.getPayment(schedule.price, now.ts);// determine which Payment record is active
+		let amount = await this.attend.getAmount(data);								// Account balance
 
-		// TODO: dont set early <expire> when plan === 'gratis'
 		switch (true) {
 			// Current payment is still Active
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
-				if (!activePay[FIELD.effect])									// add effective date to Active Payment on first use
-					updates.push({ [FIELD.effect]: stamp, expiry: calcExpiry(stamp, payments[0], data), ...activePay });
-				if (amount.credit === schedule.price && schedule.price) 				// no funds left on Active Payment
-					updates.push({ [FIELD.expire]: stamp, ...activePay });
-				// if (payments[1] && payments[1][FIELD.type] === 'debit' && payments[1].approve && amount.credit === schedule.price) {
-				// 	updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				// 	updates.push({ [FIELD.effect]: payments[1].stamp, [FIELD.expire]: payments[1].approve.stamp, ...payments[1] });
-				// }
+				if (!activePay[FIELD.effect]) {
+					activePay[FIELD.effect] = stamp;												// add effective date to Active Payment on first use
+					activePay.expiry = calcExpiry(stamp, activePay, data);	// determine when this Payment will lapse
+				}
+				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment (except $0 classes)
+					activePay[FIELD.expire] = stamp;												// auto-close Payment
+				updates.push({ ...activePay });														// add current account summary to Payment
 				break;
 
 			// Next pre-payment is to become Active; rollover unused Funds
@@ -149,24 +144,21 @@ export class MemberService {
 				let idx = 1;
 				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
 				do {
-					updates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data), ...activePay });
+					updates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data) });
 					data.account.summary.adjust -= amount.funds;
-					amount = await this.attend.getAmount(data);								// calc new account summary
+					amount = await this.attend.getAmount(data);							// calc new account summary
 				} while (schedule.price > amount.funds) {
 					idx += 1;
-					updates.push({ [FIELD.expire]: stamp, ...activePay });	// expire the negative value
+					updates.push({ ...activePay, [FIELD.expire]: stamp });	// expire the negative value
 					activePay = payments[idx] || this.setPayment();
 				};
-				// if (payments[2] && payments[2][FIELD.type] === 'debit' && payments[2].approve && amount.credit === schedule.price) {
-				// 	updates.push({ [FIELD.expire]: stamp, ...payments[1] });
-				// 	updates.push({ [FIELD.effect]: payments[2].stamp, [FIELD.expire]: payments[2].approve.stamp, ...payments[2] });
-				// }
 				break;
 
 			// New payment to become Active; rollover unused Funds
 			default:
-				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				creates.push({ [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data), ...activePay });
+				if (payments[0])
+					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
+				creates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data) });
 				break;
 		}
 
@@ -186,7 +178,9 @@ export class MemberService {
 		creates.push(attendDoc as TStoreBase);
 
 		// TODO:  also create a bonusTrack document
-		return this.data.batch(creates, updates);
+		return this.data.batch(creates, updates)				// process the Payments / Attends
+			.then(_ => this.attend.getAmount())						// re-calc the new Account summary
+			.then(summary => this.data.writeAccount(summary))
 	}
 
 	/** check for change of User.additionalInfo */

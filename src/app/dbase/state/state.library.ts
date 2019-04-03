@@ -13,7 +13,7 @@ import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 import { asArray, deDup } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { DATE_FMT, getDate, TDate, fmtDate } from '@lib/date.library';
+import { DATE_FMT, getDate, TDate } from '@lib/date.library';
 import { addWhere } from '@dbase/fire/fire.library';
 
 /**
@@ -190,8 +190,11 @@ export const sumPayment = (source: IAccountState) => {
 					sum.pend += (payment.amount || 0) + (payment.bank || 0);
 				}
 
+				sum.credit = sum.bank + sum.paid + sum.pend + sum.adjust - sum.spend;
+				sum.funds = sum.bank + sum.paid + sum.adjust - sum.spend;
+
 				return sum;
-			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0 })
+			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0, credit: 0, funds: 0 })
 	}
 
 	return source;

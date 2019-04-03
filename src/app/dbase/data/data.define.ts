@@ -30,6 +30,7 @@ export enum STORE {
 	config = '_config_',
 	schema = '_schema_',
 	register = 'register',
+	account = 'account',
 	migrate = 'migrate',
 	log = 'log',
 }
@@ -64,7 +65,7 @@ export enum FIELD {								// common Field names
 	key = 'key',
 };
 
-/** These variables should be built in ClientState */
+/** These variables should now be built in ClientState */
 export let SLICES: IObject<string[]> = {
 	// auth: ['credential', 'info', 'token', 'user'],
 	// client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],

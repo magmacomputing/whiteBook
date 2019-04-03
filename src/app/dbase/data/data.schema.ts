@@ -1,15 +1,15 @@
 import { UserInfo } from 'firebase';
 import { FIELD, STORE } from '@dbase/data/data.define';
+import { ISummary } from '@dbase/state/state.define';
 import { TString } from '@lib/type.library';
 
-export type TStoreAdmin = '_schema_' | '_config_' | '_default_';
-export type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
-export type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
-export type TStoreAttend = 'attend';
-export type TStoreMigrate = 'migrate';
-export type TTypeDefault = TStoreClient | 'icon';
-
-export type TMeta = IMeta | IMeta[];
+type TStoreConfig = '_schema_' | '_config_' | '_default_';
+type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
+type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
+type TStoreAttend = 'attend';
+type TStoreAdmin = 'register' | 'account';
+type TStoreMigrate = 'migrate';
+type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
@@ -20,47 +20,6 @@ type TCalendar = 'event' | 'special'
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
-
-//	/admin/register
-type TRole = 'admin' | 'member' | 'guest';
-export interface ICustomClaims {				// a special sub-set of fields from the User Token
-	roles?: TRole[];
-	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
-	memberName?: string;
-	memberAllow?: string[];
-	memberDeny?: string[];
-}
-export type TUser = UserInfo & {
-	customClaims?: ICustomClaims;
-}
-export interface IRegister {
-	[FIELD.id]: string;
-	[FIELD.uid]: string;
-	[FIELD.store]: string;
-	[FIELD.expire]?: number;
-	[FIELD.disable]?: boolean;
-	[FIELD.hidden]?: boolean;
-	user: TUser;
-	migrate?: {
-		credit: number;
-		email: string;
-		picture: string;
-		plan: string;
-		sheetName: string;
-		uid: string;
-		userName: string;
-		providers: {
-			id: string;
-			provider: 'fb' | 'g+' | 'gh' | 'tw' | 'li';
-			firstName: string;
-			lastName: string;
-			userName: string;
-			email: string;
-			gender?: 'male' | 'female';
-			isAdmin?: boolean;
-		}[]
-	};
-}
 
 // These are the meta- and common-fields for a standard collection document
 export interface IMeta {
@@ -83,9 +42,9 @@ export interface IMeta {
  * One for 'client' & 'local', keyed by 'store/type/key',  
  * the other for 'member' & 'attend', keyed by 'store/type/uid'
  */
-export type TStoreBase = IClientBase | IMemberBase | IAttendBase | IMigrateBase;
+export type TStoreBase = IClientBase | IMemberBase | IAttendBase | IAdminBase | IMigrateBase;
 interface IClientBase extends IMeta {
-	[FIELD.store]: TStoreClient | TStoreAdmin;
+	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
 	[FIELD.icon]?: string;									// an optional icon for the UI
 }
@@ -95,6 +54,10 @@ interface IMemberBase extends IMeta {
 }
 interface IAttendBase extends IMeta {
 	[FIELD.store]: TStoreAttend;
+	[FIELD.uid]: string;
+}
+interface IAdminBase extends IMeta {
+	[FIELD.store]: TStoreAdmin;
 	[FIELD.uid]: string;
 }
 export interface IMigrateBase extends IMeta {
@@ -110,7 +73,7 @@ export interface IStoreMeta extends IMeta {
 }
 // client documents have a '<key>' field, member documents have a '<uid>' field
 export const isClientStore = (store: TStoreBase): store is IClientBase =>
-(<IClientBase>store)[FIELD.key] !== undefined;
+	(<IClientBase>store)[FIELD.key] !== undefined;
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
@@ -337,7 +300,7 @@ export interface IPayment extends IMemberBase {
 	[FIELD.type]: TPayment;
 	[FIELD.stamp]: number;						// create-date
 	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
-	bank?: number;										// un-used credit from previous payment
+	bank?: number;										// un-used funds from previous payment
 	hold?: number;										// number of days to extend expiry
 	expiry?: number;									// six-months from _effect
 	approve?: {												// acknowledge receipt of payment
@@ -370,4 +333,47 @@ export interface IAttend extends IAttendBase {
 		week: number;										// yearWeek attended
 		month: number;									// yearMonth attended
 	}
+}
+
+//	/admin/register
+type TRole = 'admin' | 'member' | 'guest';
+export interface ICustomClaims {				// a special sub-set of fields from the User Token
+	roles?: TRole[];
+	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
+	memberName?: string;
+	memberAllow?: string[];
+	memberDeny?: string[];
+}
+export type TUser = UserInfo & {
+	customClaims?: ICustomClaims;
+}
+export interface IRegister extends IAdminBase {
+	[FIELD.store]: STORE.register;
+	user: TUser;
+	migrate?: {
+		credit: number;
+		email: string;
+		picture: string;
+		plan: string;
+		sheetName: string;
+		uid: string;
+		userName: string;
+		providers: {
+			id: string;
+			provider: 'fb' | 'g+' | 'gh' | 'tw' | 'li';
+			firstName: string;
+			lastName: string;
+			userName: string;
+			email: string;
+			gender?: 'male' | 'female';
+			isAdmin?: boolean;
+		}[]
+	};
+}
+
+//	/admin/account
+export interface IAccount extends IAdminBase {
+	[FIELD.store]: STORE.account;
+	stamp: number;																	// date last updated
+	summary: ISummary;
 }

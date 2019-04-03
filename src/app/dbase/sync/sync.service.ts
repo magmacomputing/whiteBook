@@ -35,7 +35,13 @@ export class SyncService {
 		const ready = createPromise<boolean>();
 		this.getAuthUID();																// make sure we stash the Auth User's ID
 
-		const refs = this.fire.colRef<IStoreMeta>(collection, query);
+		const refs =// (collection === COLLECTION.admin)		// TODO: make smarter call-syntax to allow for multi-stream merge
+			// ? [
+			// 	this.fire.colRef<IStoreMeta>(collection)[0],
+			// 	this.fire.colRef<IStoreMeta>(COLLECTION.member, { where: [addWhere(FIELD.store, STORE.payment), addWhere(FIELD.expire, null)] })[0]
+			// ]
+			// 	:
+				this.fire.colRef<IStoreMeta>(collection, query);
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, collection);
 

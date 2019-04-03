@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, ICustomClaims } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, ICustomClaims, IStoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -24,6 +24,7 @@ import { TString } from '@lib/type.library';
 import { getStamp } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { ISummary } from '@dbase/state/state.define';
 
 /**
  * The DataService is responsible for managing the syncing between
@@ -64,6 +65,11 @@ export class DataService {
 		return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
 	}
 
+	async writeAccount(summary: ISummary) {
+		const uid = (await this.auth.current)!.uid;
+		return this.fire.writeAccount(uid, summary);
+	}
+
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
 	}
@@ -81,7 +87,8 @@ export class DataService {
 	}
 
 	async setDoc(store: string, doc: TStoreBase) {
-		doc = await docPrep(doc, this.auth.user)								// make sure we have a <key/uid> field
+		const uid = (await this.auth.current)!.uid;
+		doc = await docPrep(doc, uid)							// make sure we have a <key/uid> field
 		return this.fire.setDoc(store, doc);
 	}
 
@@ -104,13 +111,14 @@ export class DataService {
 		const creates: TStoreBase[] = [];												// array of documents to Create
 		const updates: TStoreBase[] = [];												// array of documents to Update
 		const stamp = getStamp();																// the timestamp of the Insert
+		const uid = (await this.auth.current)!.uid;
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.effect] || stamp;	    		// the position in the date-range to Create
 			let where: TWhere;
 
 			try {
-				nextDoc = await docPrep(nextDoc, this.auth.user)		// make sure we have a <key/uid>
+				nextDoc = await docPrep(nextDoc, uid)								// make sure we have a <key/uid>
 				where = getWhere(nextDoc as IMeta, filter);
 			} catch (error) {
 				this.snack.open(error.message);                     // show the error to the User
@@ -138,12 +146,12 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Batch */
-	batch(creates?: TStoreBase[], updates?: TStoreBase[], deletes?: TStoreBase[]) {
+	batch(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[]) {
 		return this.fire.batch(creates, updates, deletes);
 	}
 
 	/** Wrap writes in a Transaction */
-	runTxn(creates?: TStoreBase[], updates?: TStoreBase[], deletes?: TStoreBase[], selects?: DocumentReference[]) {
+	runTxn(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[], selects?: DocumentReference[]) {
 		return this.fire.runTxn(creates, updates, deletes, selects);
 	}
 }
