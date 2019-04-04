@@ -96,7 +96,8 @@ export class MemberService {
 	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
-		const data = await this.attend.getAccount(date);	// get Member's current account details
+		const data = await this.attend.getAccount(date);							// get Member's current account details
+		this.dbg('start: %j', data.account.summary);
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
@@ -165,8 +166,8 @@ export class MemberService {
 				break;
 		}
 
-		// build the Attend document
 		// TODO:  also create a bonusTrack document
+		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
@@ -182,12 +183,12 @@ export class MemberService {
 		creates.push(attendDoc as TStoreBase);					// batch the new Attend
 
 		return new Promise((resolve, reject) => {
-			this.sync.wait(NewAttend, _evt => {						// wait for NewAttend to fire
-				return this.attend.getAmount()							// re-calc the new Account summary
+			this.sync.wait(NewAttend, _evt => 						// wait for NewAttend to fire
+				this.attend.getAmount()											// re-calc the new Account summary
 					.then(sum => this.data.writeAccount(sum))	// update Admin summary
 					.then(_ => resolve(true))
 					.catch(err => reject(err.message))
-			});
+			);
 
 			this.data.batch(creates, updates)							// process the Payments / Attends
 		})

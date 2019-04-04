@@ -74,7 +74,7 @@ export class SyncService {
 	/** Wait for a named-event to occur */
 	public wait<T>(event: any, callBack?: (row: T) => any) {			// TODO: replace <any> with correct Action Type
 		const timeOut = 5000;															// wait up-to 5 seconds
-		const sub = this.actions.pipe(
+		this.actions.pipe(
 			ofActionDispatched(event), 											// wait for an NGXS event
 			debounce(_ => timer(500)), 											// wait to have State settle
 			take(1), 																				// unsubscribe after first occurence
@@ -85,7 +85,7 @@ export class SyncService {
 					callBack(row);
 				return row;
 			},
-				_ => this.dbg('timeOut: %s', timeOut)					// notify event not detected
+				_ => this.dbg('timeOut: %s', timeOut)					// log the event not detected
 			)
 	}
 
