@@ -97,7 +97,6 @@ export class MemberService {
 	 */
 	async setAttend(schedule: ISchedule, note?: string, date?: number) {
 		const data = await this.attend.getAccount(date);							// get Member's current account details
-		this.dbg('start: %j', data.account.summary);
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))

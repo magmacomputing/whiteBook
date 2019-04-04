@@ -184,14 +184,11 @@ export const sumPayment = (source: IAccountState) => {
 					if (payment[FIELD.type] === 'debit')
 						sum.adjust += payment.amount || 0
 					else sum.paid += payment.amount || 0;
-					// sum.paid += payment.amount || 0;
-				}
-				else {
+				} else
 					sum.pend += (payment.amount || 0) + (payment.bank || 0);
-				}
 
-				sum.credit = sum.bank + sum.paid + sum.pend + sum.adjust - sum.spend;
-				sum.funds = sum.bank + sum.paid + sum.adjust - sum.spend;
+				sum.credit = sum.bank + sum.paid + sum.pend + sum.adjust;
+				sum.funds = sum.bank + sum.paid + sum.adjust;
 
 				return sum;
 			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0, credit: 0, funds: 0 })
@@ -203,8 +200,13 @@ export const sumPayment = (source: IAccountState) => {
 /** Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment */
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
-		source.account.summary.spend = source.account.attend
-			.reduce((spend, attend) => spend + attend.amount, 0);
+		source.account.summary = source.account.attend
+			.reduce((sum, attend) => {
+				sum.spend += attend.amount;
+				sum.credit -= attend.amount;
+				sum.funds -= attend.amount;
+				return sum;
+			}, source.account.summary);
 	}
 
 	return source;

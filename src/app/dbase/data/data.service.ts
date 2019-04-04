@@ -147,8 +147,9 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Batch */
-	batch(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[], event?: any, callBack?: (evt: any) => any) {
-		if (event)																							// an Event that this batch will fire
+	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], event?: any, callBack?: (evt: any) => any) {
+		const writes = creates.length + updates.length + deletes.length;
+		if (event && writes)																		// an Event that this batch will fire
 			this.sync.wait(event, callBack);											// start an optional listener
 
 		return this.fire.batch(creates, updates, deletes);

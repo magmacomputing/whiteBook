@@ -85,7 +85,7 @@ export class SyncService {
 					callBack(row);
 				return row;
 			},
-				_ => this.dbg('timeOut: %s', timeOut)					// log the event not detected
+				_ => this.dbg('timeOut: %s', event.name)			// log the event not detected
 			)
 	}
 
