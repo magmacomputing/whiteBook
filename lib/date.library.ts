@@ -10,7 +10,8 @@ interface IInstant {											// Date components
 	HH: number;															// hour[24]
 	MI: number;															// minute
 	SS: number;															// second
-	ts: number;															// unix timestamp
+	ts: number;															// Unix timestamp
+	ms: number;															// milliseconds
 	mmm: string;														// short month-name
 	ddd: string;														// short day-name
 	dow: number;														// weekday; Mon=1, Sun=7
@@ -64,6 +65,7 @@ export class Instant {
 	/** seconds */				get SS() { return this.date.SS }
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** unix timestamp */	get ts() { return this.date.ts }
+	/** milliseconds */		get ms() { return this.date.ms }
 	/** weekday number */	get dow() { return this.date.dow }
 	/** short day name */	get ddd() { return this.date.ddd }
 	/** short month name*/get mmm() { return this.date.mmm }
@@ -76,7 +78,7 @@ export class Instant {
 	/** start offset */		startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
 	/** middle offset */	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
-	
+
 	/** as Date object */	getDate = () => new Date(this.date.ts * 1000);
 	/** get raw object */	valueOf = () => ({ ...this.date });
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
@@ -110,15 +112,16 @@ export class Instant {
 				date = new Date(val);
 				break;
 			default:																								// unexpected input
-				date = new Date();
+				date = new	 Date();
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
-		let [yy, mm, dd, dow, HH, MI, SS, ts] = [
+		let [yy, mm, dd, dow, HH, MI, SS, ts, ms] = [
 			date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
-			date.getHours(), date.getMinutes(), date.getSeconds(), Math.round(date.getTime() / 1000),
+			date.getHours(), date.getMinutes(), date.getSeconds(),
+			Math.round(date.getTime() / 1000), date.getTime(),
 		];
 
 		mm += 1;																									// ISO month
@@ -128,7 +131,7 @@ export class Instant {
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf() / 1000;	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, dow, ww, HH, MI, SS, ts, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
+		return { yy, mm, dd, dow, ww, HH, MI, SS, ts, ms, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
 	}
 
 	/** mutate an Instant */

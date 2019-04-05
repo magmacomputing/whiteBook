@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
-import { timer } from 'rxjs';
-import { debounce } from 'rxjs/operators';
-import { Store, Actions, ofAction } from '@ngxs/store';
+import { Store } from '@ngxs/store';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo, calcExpiry } from '@service/member/member.library';
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
-import { SyncService } from '@dbase/sync/sync.service';
+import { sumPayment } from '@dbase/state/state.library';
 import { DataService } from '@dbase/data/data.service';
+import { SyncService } from '@dbase/sync/sync.service';
 import { AttendService } from '@service/member/attend.service';
 
 import { MemberInfo } from '@dbase/state/auth.action';
@@ -20,19 +19,17 @@ import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAt
 import { DATE_FMT, getStamp, getDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { ISummary } from '@dbase/state/state.define';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg = dbg(this);
 
 	constructor(private readonly data: DataService, private readonly store: Store, private attend: AttendService,
-		private state: StateService, private action: Actions, private snack: SnackService, private sync: SyncService) {
+		private state: StateService, private snack: SnackService, private sync: SyncService) {
 		this.dbg('new');
 
-		this.action.pipe(															// special: listen for changes of the auth.info
-			ofAction(MemberInfo),												// when MemberInfo is fired by AuthState (on user-login)
-			debounce(_ => timer(2000)),									// wait a few seconds to have State settle
-		).subscribe(_ => this.getAuthProfile());			// check to see if auth.info has changed.
+		this.sync.wait(MemberInfo, _ => this.getAuthProfile());
 		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}
 
@@ -125,6 +122,7 @@ export class MemberService {
 
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
+		const deletes: IStoreMeta[] = [];
 		const payments = data.account.payment;												// the list of current and pre-paid Payments
 
 		let activePay = await this.getPayment(schedule.price, now.ts);// determine which Payment record is active
@@ -133,35 +131,42 @@ export class MemberService {
 		switch (true) {
 			// Current payment is still Active
 			case payments[0] && payments[0][FIELD.id] === activePay[FIELD.id]:
-				if (!activePay[FIELD.effect]) {
-					activePay[FIELD.effect] = stamp;												// add effective date to Active Payment on first use
-					activePay.expiry = calcExpiry(stamp, activePay, data);	// determine when this Payment will lapse
-				}
-				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment (except $0 classes)
-					activePay[FIELD.expire] = stamp;												// auto-close Payment
-				updates.push({ ...activePay });														// add current account summary to Payment
+				if (!activePay[FIELD.effect])															// mark the Active Payment on first use
+					updates.push({ ...activePay, [FIELD.effect]: stamp, expiry: calcExpiry(stamp, activePay, data.client) });
+
+				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment
+					updates.push({ ...activePay, [FIELD.expire]: stamp });	// so, auto-close Payment (except $0 classes)
+
 				break;
 
 			// Next pre-payment is to become Active; rollover unused Funds
 			case payments[1] && payments[1][FIELD.id] === activePay[FIELD.id]:
-				let idx = 1;
-				updates.push({ [FIELD.expire]: stamp, ...payments[0] });
+				debugger;
+				let sum: ISummary;
 				do {
-					updates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data) });
-					data.account.summary.adjust -= amount.funds;
-					amount = await this.attend.getAmount(data);							// calc new account summary
-				} while (schedule.price > amount.funds) {
-					idx += 1;
-					updates.push({ ...activePay, [FIELD.expire]: stamp });	// expire the negative value
-					activePay = payments[idx] || this.setPayment();
-				};
+					updates.push({ ...payments[0], [FIELD.expire]: stamp });// close previous Payment
+					updates.push({ ...payments[1], [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, payments[1], data.client) });
+
+					data.account.payment.length = 0;												// reset
+					data.account.payment.push(...payments.slice(1));				// drop previous Payment
+					sum = sumPayment(data).account.summary;									// re-calc Account summary
+
+				} while (schedule.price > sum.funds) {										// current Payment value too low
+
+					payments.length = 0;
+					payments.push(...data.account.payment);
+					if (data.account.payment.length < 2)
+						creates.push(await this.setPayment());								// create new Payment
+				}
+
+				activePay = payments[1];																	// point to latest Active Payment
 				break;
 
 			// New payment to become Active; rollover unused Funds
 			default:
 				if (payments[0])
-					updates.push({ [FIELD.expire]: stamp, ...payments[0] });
-				creates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data) });
+					updates.push({ ...payments[0], [FIELD.expire]: stamp });
+				creates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data.client) });
 				break;
 		}
 
@@ -181,16 +186,9 @@ export class MemberService {
 		}
 		creates.push(attendDoc as TStoreBase);					// batch the new Attend
 
-		return new Promise((resolve, reject) => {
-			this.sync.wait(NewAttend, _evt => 						// wait for NewAttend to fire
-				this.attend.getAmount()											// re-calc the new Account summary
-					.then(sum => this.data.writeAccount(sum))	// update Admin summary
-					.then(_ => resolve(true))
-					.catch(err => reject(err.message))
-			);
-
-			this.data.batch(creates, updates)							// process the Payments / Attends
-		})
+		return this.data.batch(creates, updates, deletes, NewAttend)
+			.then(_ => this.attend.getAmount())						// re-calc the new Account summary
+			.then(sum => this.data.writeAccount(sum))			// update Admin summary
 	}
 
 	/** check for change of User.additionalInfo */

@@ -1,6 +1,6 @@
 import * as firebase from 'firebase/app';
 
-import { IAccountState } from '@dbase/state/state.define';
+import { IAccountState, IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
@@ -61,10 +61,10 @@ export const paymentDue = () => {
 	return true;
 }
 
-/** A Member's payment will auto-expire (i.e. unused funds are reversed) after a number of months */
-export const calcExpiry = (stamp: number, payment: IPayment, state: IAccountState) => {
-	const plan = state.client.plan[0] || {};					// description of Member's current Plan
-	const topUp = state.client.price.find(row => row[FIELD.type] === 'topUp');
+/** A Member's payment will auto-expire (i.e. unused funds lapse) after a number of months */
+export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState["client"]) => {
+	const plan = client.plan[0] || {};								// description of Member's current Plan
+	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
 	const hold = payment.hold || 0;
 
 	if (topUp && plan.expiry) {												// plan.active is usually six-months
@@ -73,5 +73,6 @@ export const calcExpiry = (stamp: number, payment: IPayment, state: IAccountStat
 			: plan.expiry;																// allow for gratis account expiry
 		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
 	}
+	
 	return undefined;
 }

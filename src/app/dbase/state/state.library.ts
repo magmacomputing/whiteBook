@@ -169,11 +169,12 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 }
 
 /**
- * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, etc.).  
- * The IPayment array is pre-sorted by 'stamp', meaning payment[0] is the 'active' value.  
- * paid		: is amount from active payment  
- * bank		: is any unspent credit on active payment (brought forward from previous payment)  
- * pend 	: is amount from future payments (not 'active')  
+ * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
+ * The IPayment array is reverse-sorted by 'stamp', meaning payment[0] is the 'active' value.  
+ * paid		: is amount from active payment, if topUp
+ * adjust : is amount from active payment, if debit  
+ * bank		: is any unspent funds (brought forward from previous payment)  
+ * pend 	: is amount from future payments (not yet 'active')  
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account && isArray(source.account.payment)) {

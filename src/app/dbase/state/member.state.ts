@@ -30,9 +30,6 @@ export class MemberState implements NgxsOnInit {
 		state[payload.store] = store;
 		if (debug) this.dbg('setMember: %j', payload);
 		patchState({ ...state });
-
-		// if (payload[FIELD.store] === STORE.payment)
-		// 	dispatch(new NewPayment(payload));									// tell any listener we have sync'd
 	}
 
 	@Action(DelMember)

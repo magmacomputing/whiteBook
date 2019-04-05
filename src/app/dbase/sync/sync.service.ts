@@ -23,7 +23,6 @@ import { IObject } from '@lib/object.library';
 import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
-import { NewAttend } from '@dbase/state/state.action';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
@@ -71,22 +70,32 @@ export class SyncService {
 		return { collection, cnt, ready };
 	}
 
-	/** Wait for a named-event to occur */
-	public wait<T>(event: any, callBack?: (row: T) => any) {			// TODO: replace <any> with correct Action Type
-		const timeOut = 5000;															// wait up-to 5 seconds
-		this.actions.pipe(
-			ofActionDispatched(event), 											// wait for an NGXS event
-			debounce(_ => timer(500)), 											// wait to have State settle
-			take(1), 																				// unsubscribe after first occurence
-			timeout(timeOut)
-		)
-			.subscribe(row => {
-				if (isFunction(callBack))
-					callBack(row);
-				return row;
-			},
-				_ => this.dbg('timeOut: %s', event.name)			// log the event not detected
+	/**
+	 * Wait for an NGXS-event to occur,  
+	 * and optionally povide a callback function to process after the event
+	 */
+	public wait<T>(event: any, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
+		const timeOut = 5000;																// wait up-to 5 seconds
+
+		return new Promise<T>((resolve, reject) => {
+			this.actions.pipe(
+				ofActionDispatched(event), 											// listen for an NGXS event
+				debounce(_ => timer(500)), 											// let State settle
+				take(1), 																				// unsubscribe after first occurence
+				timeout(timeOut)
 			)
+				.subscribe(
+					payload => {
+						isFunction(callBack)
+							? callBack(payload).then(resolve)
+							: resolve(payload)
+					},
+					err => {
+						reject(err);
+						this.dbg('timeOut: %s', event.name);				// log the event not detected
+					}
+				)
+		})
 	}
 
 	/** detach an existing snapshot listener */

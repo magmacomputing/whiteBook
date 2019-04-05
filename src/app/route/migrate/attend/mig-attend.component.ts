@@ -10,7 +10,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase, TStoreBase } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState } from '@dbase/state/state.define';
@@ -270,18 +270,18 @@ export class MigAttendComponent implements OnInit {
 			.then(_ => {
 				if (rest.length)  										// fire next Attend
 					this.nextAttend(rest[0], ...rest.slice(1));
-				else this.finalAttend();							// wrap-up final Payment
+				else this.postAttend();								// wrap-up final Payment
 			})
 	}
 
-	private async finalAttend() {
+	private async postAttend() {
 		const [summary, profile, active] = await Promise.all([
 			this.attend.getAmount(),								// get closing balance
 			this.attend.getPlan(),									// get final Plan
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 		]);
 
-		const updates: any[] = [];
+		const updates: IStoreMeta[] = [];
 		let closed: number;
 
 		this.dbg('account: %j', summary);					// the current account summary
@@ -303,14 +303,13 @@ export class MigAttendComponent implements OnInit {
 			}
 		}
 
-		this.data.batch(undefined, updates, undefined, SetMember,
-			_evt => {																			// wait for SetMember to fire
-				this.attend.getAmount()											// re-calc the new Account summary
-					.then(sum => {
-						this.dbg('final: %j', sum);
-						this.data.writeAccount(sum);						// update Admin summary
-					})
-			});																						// expire last Payment, if required
+		this.data.batch(undefined, updates, undefined, SetMember)
+			.then(_ => this.attend.getAmount())		// re-calc the new Account summary
+			.then(sum => {
+				this.dbg('final: %j', sum);
+				this.data.writeAccount(sum);				// update Admin summary
+			})
+			.then(_ => this.dbg('done'))
 	}
 
 	async delPayment() {
