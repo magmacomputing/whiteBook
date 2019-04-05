@@ -6,10 +6,10 @@ interface IInstant {											// Date components
 	yy: number;															// year[4]
 	mm: number;															// month; Jan=1, Dec=12
 	dd: number;															// day; 1-31
-	ww: number;															// number of weeks
 	HH: number;															// hour[24]
 	MI: number;															// minute
 	SS: number;															// second
+	ww: number;															// number of weeks
 	ts: number;															// Unix timestamp
 	ms: number;															// milliseconds
 	mmm: string;														// short month-name
@@ -72,7 +72,7 @@ export class Instant {
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting*/format = <K extends string | keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
-	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(dt2, unit);
+	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(unit, dt2);
 	/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
 
 	/** start offset */		startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
@@ -112,26 +112,26 @@ export class Instant {
 				date = new Date(val);
 				break;
 			default:																								// unexpected input
-				date = new	 Date();
+				date = new Date();
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
-		let [yy, mm, dd, dow, HH, MI, SS, ts, ms] = [
-			date.getFullYear(), date.getMonth(), date.getDate(), date.getDay(),
+		let [yy, mm, dd, HH, MI, SS, ts, ms, dow] = [
+			date.getFullYear(), date.getMonth(), date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
-			Math.round(date.getTime() / 1000), date.getTime(),
+			Math.round(date.getTime() / 1000), date.getTime(), date.getDay(),
 		];
 
 		mm += 1;																									// ISO month
-		if (!dow && !isNaN(dow)) dow = Instant.DAY.Sun;										// ISO weekday
+		if (!dow && !isNaN(dow)) dow = Instant.DAY.Sun;						// ISO weekday
 
-		const thu = date.setDate(dd - dow + Instant.DAY.Thu) / 1000;			// set to nearest Thursday
+		const thu = date.setDate(dd - dow + Instant.DAY.Thu) / 1000;		// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf() / 1000;	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, dow, ww, HH, MI, SS, ts, ms, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
+		return { yy, mm, dd, HH, MI, SS, ww, ts, ms, dow, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
 	}
 
 	/** mutate an Instant */
@@ -233,7 +233,9 @@ export class Instant {
 					.replace(/MI/g, fix(date.MI))
 					.replace(/S{2}/g, fix(date.SS))
 					.replace(/w{2}/g, asString(date.ww))
-					.replace(/dow/g, asString(date.dow)) as string;
+					.replace(/dow/g, asString(date.dow))
+					.replace(/ts/g, asString(date.ts))
+					.replace(/ms/g, asString(date.ms))
 				break;
 		}
 		// @ts-ignore			TODO: set return-type according to IDateFmt[K] | string
@@ -241,7 +243,7 @@ export class Instant {
 	}
 
 	/** calculate the difference between dates */
-	private diffDate = (dt2?: TDate, unit: TUnitDiff = 'years') =>
+	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate) =>
 		Math.floor((this.parseDate(dt2).ts - this.date.ts) / Instant.divideBy[unit]);
 }
 
