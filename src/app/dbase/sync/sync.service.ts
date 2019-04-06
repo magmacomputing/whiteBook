@@ -36,7 +36,7 @@ export class SyncService {
 	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
 		const ready = createPromise<boolean>();
-		this.getAuthUID();																// make sure we stash the Auth User's ID
+		// this.getAuthUID();																// make sure we stash the Auth User's ID
 
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
 		const stream = this.fire.merge('stateChanges', refs);
@@ -56,13 +56,17 @@ export class SyncService {
 	}
 
 	private getAuthUID() {															// Useful for matching sync-events to the Auth'd User
-		if (!this.uid) {
-			this.store
-				.selectOnce<IAuthState>(state => state[SLICE.auth])
-				.pipe(map(auth => auth.user && auth.user.uid))// if logged-in, return the UserId
-				.toPromise()
-				.then(uid => this.uid = uid)
-		}
+		return new Promise<boolean>(resolve => {
+			if (!this.uid) {
+				this.store
+					.selectOnce<IAuthState>(state => state[SLICE.auth])
+					.pipe(map(auth => auth.user && auth.user.uid))// if logged-in, return the UserId
+					.toPromise()
+					.then(uid => this.uid = uid)
+					.then(_ => resolve(true))
+			}
+			else resolve(false);
+		})
 	}
 
 	public status(collection: string) {
@@ -109,7 +113,7 @@ export class SyncService {
 			}
 		}
 
-		if (trunc)
+		if (trunc && listen)
 			this.store.dispatch(new listen.method.truncStore());
 
 		delete this.listener[collection];
@@ -134,6 +138,7 @@ export class SyncService {
 			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
 		if (listen.cnt === 0) {                           // initial snapshot
+			await this.getAuthUID();												// try again to determine authenticated User
 			if (await checkStorage(listen, snaps))
 				return;																				// storage already sync'd... skip the initial snapshot
 

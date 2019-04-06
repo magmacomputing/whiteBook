@@ -1,10 +1,10 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
-import { SetAttend, DelAttend, TruncAttend, NewAttend } from '@dbase/state/state.action';
+import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/state.action';
 
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
-import { IStoreMeta } from '@dbase/data/data.schema';
 
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.attend,
@@ -30,11 +30,11 @@ export class AttendState implements NgxsOnInit {
 		state[payload.payment] = attend;
 		if (debug) this.dbg('setAttend: %j', payload);
 		patchState({ ...state });
-		dispatch(new NewAttend(payload));									// tell any listener we have sync'd
+		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
 	}
 
-	@Action(DelAttend)
-	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
+	@Action(DelAttend)																	// very rare Event
+	delStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
 		const attend = this.filterAttend(state, payload);
 
@@ -43,6 +43,7 @@ export class AttendState implements NgxsOnInit {
 		else state[payload.payment] = attend;
 		if (debug) this.dbg('delAttend: %j', payload);
 		patchState({ ...state });
+		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
 	}
 
 	@Action(TruncAttend)

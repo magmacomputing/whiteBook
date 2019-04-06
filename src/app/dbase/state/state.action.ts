@@ -61,8 +61,8 @@ export class TruncAttend {								// Truncate Attend object from the Store
 	constructor(public debug: boolean = true) { }
 }
 
-export class NewAttend {									// new Attend written
-	static type = 'Sync Service] New Attend';
+export class SyncAttend {									// new Attend written
+	static type = 'Sync Service] Sync Attend';
 	constructor(public payload: IStoreMeta) { }
 }
 

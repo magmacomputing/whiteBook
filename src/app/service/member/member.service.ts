@@ -11,7 +11,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { AttendService } from '@service/member/attend.service';
 
 import { MemberInfo } from '@dbase/state/auth.action';
-import { NewAttend } from '@dbase/state/state.action';
+import { SyncAttend } from '@dbase/state/state.action';
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, ISchedule, TStoreBase, IAttend, TClass, IStoreMeta } from '@dbase/data/data.schema';
@@ -34,7 +34,11 @@ export class MemberService {
 	}
 
 	async setPlan(plan: TPlan) {
-		const doc = { [FIELD.store]: STORE.profile, [FIELD.type]: 'plan', plan } as IProfilePlan;
+		const doc = {
+			[FIELD.store]: STORE.profile,
+			[FIELD.type]: 'plan',
+			plan
+		} as IProfilePlan;
 		this.dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
@@ -46,15 +50,12 @@ export class MemberService {
 	 */
 	async setPayment(amount?: number) {
 		const data = await this.attend.getAccount();
-		const price = data.client.price								// find the topUp price for this Member
-			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
+		const topUp = await this.attend.getPayPrice(data);			// find the topUp price for this Member
 
 		return {
-			[FIELD.id]: this.data.newId,
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
-			[FIELD.uid]: data.auth.current!.uid,
-			amount: isUndefined(amount) ? price : amount,
+			amount: isUndefined(amount) ? topUp : amount,
 		} as IPayment
 	}
 
@@ -68,25 +69,32 @@ export class MemberService {
   */
 	async getPayment(price: number, ts: number) {
 		const data = await this.attend.getAccount();
-		const summary = await this.attend.getAmount(data);
 		const payments = data.account.payment;
+		let idx = 0;
 
 		switch (true) {
 			case data.account.attend.length > 99:
-				return payments[1] || this.setPayment();									// more than 99-attendances against the activePayment
+				idx = 1									// more than 99-attendances against the activePayment
+				break;
 
-			case payments[0] && !payments[0][FIELD.effect]:
-				return payments[0];																				// new account not-yet-activated
+			case !payments[0][FIELD.effect]:
+				idx = 0									// new account not-yet-activated
+				break;
 
-			case price > summary.funds:
-				return payments[1] || this.setPayment();									// time for a new activePayment
+			case price > data.account.summary.funds:
+				idx = 1;								// time for a new activePayment
+				break;
 
 			case payments[0].expiry && payments[0].expiry < ts:
-				return payments[1] || this.setPayment();									// current Payment has expired
+				idx = 1;									// current Payment has expired
+				break;
 
 			default:
-				return data.account.payment[0] || this.setPayment();
+				idx = 0;
+				break;
 		}
+
+		return data.account.payment[idx];
 	}
 
 	/**
@@ -107,24 +115,39 @@ export class MemberService {
 		const stamp = now.ts;
 		const when = now.format(DATE_FMT.yearMonthDay);
 
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day
+		// TODO: what if same class is offered at different times?
 		const attendFilter = [
 			addWhere(FIELD.type, schedule[FIELD.key]),
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.note, note),
+			addWhere('location', schedule.location),
 			addWhere('date', when),
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
-			this.snack.error('Already attended this class');
+			this.snack.error(`Already attended this class on ${now.format(DATE_FMT.display)}`);
 			return Promise.resolve(false);															// discard Attend
 		}
 
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		// ensure we have enough credit to cover the price of the check-in
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
-		const deletes: IStoreMeta[] = [];
-		const payments = data.account.payment;												// the list of current and pre-paid Payments
 
+		if (schedule.price > data.account.summary.credit) {
+			const gap = schedule.price - data.account.summary.credit;
+			const topUp = await this.attend.getPayPrice(data);
+			const payment = await this.setPayment(Math.max(gap, topUp));
+
+			creates.push(payment);																			// stack the topUp Payment
+			data.account.payment.push(payment);													// append to the Payment array
+			// data.account.summary
+		}
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		const payments = data.account.payment;												// the list of current and pre-paid Payments
 		let activePay = await this.getPayment(schedule.price, now.ts);// determine which Payment record is active
 		let amount = await this.attend.getAmount(data);								// Account balance
 
@@ -176,7 +199,6 @@ export class MemberService {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
-			[FIELD.uid]: data.auth.current!.uid,					// the current User
 			[FIELD.stamp]: stamp,													// createDate
 			[FIELD.date]: when,														// yyyymmdd of the Attend
 			[FIELD.note]: note,														// optional 'note'
@@ -186,7 +208,7 @@ export class MemberService {
 		}
 		creates.push(attendDoc as TStoreBase);					// batch the new Attend
 
-		return this.data.batch(creates, updates, deletes, NewAttend)
+		return this.data.batch(creates, updates, undefined, SyncAttend)
 			.then(_ => this.attend.getAmount())						// re-calc the new Account summary
 			.then(sum => this.data.writeAccount(sum))			// update Admin summary
 	}

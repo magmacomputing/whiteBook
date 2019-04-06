@@ -177,7 +177,8 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
  * pend 	: is amount from future payments (not yet 'active')  
  */
 export const sumPayment = (source: IAccountState) => {
-	if (source.account && isArray(source.account.payment)) {
+	if (source.account) {
+		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
 			.reduce((sum, payment, indx) => {
 				if (indx === 0 && payment[FIELD.effect]) {
@@ -193,6 +194,7 @@ export const sumPayment = (source: IAccountState) => {
 
 				return sum;
 			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0, credit: 0, funds: 0 })
+
 	}
 
 	return { ...source };
@@ -347,10 +349,10 @@ export const buildTimetable = (source: ITimetableState) => {
 
 export const getDash = (source: IAdminState) => {
 	source.admin.dashBoard = source.admin.register
-	.map(register => ({
-		register,
-		account: source.admin.summary!.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
-	}))
-	
+		.map(register => ({
+			register,
+			account: source.admin.summary!.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
+		}))
+
 	return { ...source }
 }

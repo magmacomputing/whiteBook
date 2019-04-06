@@ -48,7 +48,7 @@ export class ProfileGuard implements CanActivate {
 		const localState = getLocalStore<LState>(StoreStorage) || {};
 		const profile = getPath<IProfilePlan[]>(localState, 'member.profile') || [];
 		const planProfile = asAt(profile, addWhere(FIELD.type, 'plan'))[0];
-		if (planProfile.plan)
+		if (getPath<string>(planProfile, 'plan'))
 			return true;															// found a current 'plan' in localStorage
 
 		const state = await this.auth.user;

@@ -32,9 +32,7 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	return where;
 }
 
-export const docPrep = async (doc: TStoreBase, uid: string) => {
-	// const uid = (await state).auth.current!.uid;	// get the current user's uid
-
+export const docPrep = (doc: TStoreBase, uid: string) => {
 	if (!isClientStore(doc))											// if not a /client document
 		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
 			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
@@ -50,12 +48,9 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
 			const currStore = currDoc[FIELD.store];
 			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as TStoreBase;
 			const currExpire = currDoc[FIELD.expire];
-			let currEffect = currDoc[FIELD.effect];
-
-			if (!currEffect) {                        // _create is only available from server
-				currEffect = await fire.callMeta(currStore, currDoc[FIELD.id] as string)
-					.then(meta => meta[FIELD.create] || Number.MIN_SAFE_INTEGER);
-			}
+			const currEffect: number = currDoc[FIELD.effect] ||
+				await (fire.callMeta(currStore, currDoc[FIELD.id])		// _create is only available from server
+					.then(meta => meta[FIELD.create] || Number.MIN_SAFE_INTEGER));
 
 			switch (true) {
 				case tstamp === currEffect:             // anomaly; do nothing?

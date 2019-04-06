@@ -10,7 +10,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -37,7 +37,7 @@ export class MigAttendComponent implements OnInit {
 	public hidden = false;
 
 	private account$!: Observable<IAccountState>;
-	private dash$: Observable<IAdminState["admin"]["dashBoard"]>;
+	private dash$!: Observable<IAdminState["admin"]["dashBoard"]>;
 	private history!: Promise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
@@ -172,7 +172,7 @@ export class MigAttendComponent implements OnInit {
 				return paym;
 			});
 
-		this.data.batch(creates)
+		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
 			.then(_ => this.attend.getAmount())							// re-calc Account summary
 			.then(summary => this.data.writeAccount(summary))
@@ -273,11 +273,11 @@ export class MigAttendComponent implements OnInit {
 			.then(_ => {
 				if (rest.length)  										// fire next Attend
 					this.nextAttend(rest[0], ...rest.slice(1));
-				else this.postAttend();								// wrap-up final Payment
+				else this.lastAttend();								// wrap-up final Payment
 			})
 	}
 
-	private async postAttend() {
+	private async lastAttend() {
 		const [summary, profile, active] = await Promise.all([
 			this.attend.getAmount(),								// get closing balance
 			this.attend.getPlan(),									// get final Plan
@@ -307,11 +307,8 @@ export class MigAttendComponent implements OnInit {
 		}
 
 		this.data.batch(undefined, updates, undefined, SetMember)
-			.then(_ => this.attend.getAmount())		// re-calc the new Account summary
-			.then(sum => {
-				this.dbg('final: %j', sum);
-				this.data.writeAccount(sum);				// update Admin summary
-			})
+			.then(_ => this.attend.getAmount())				// re-calc the new Account summary
+			.then(sum => this.data.writeAccount(sum))	// update Admin summary
 			.then(_ => this.dbg('done'))
 	}
 
@@ -335,14 +332,16 @@ export class MigAttendComponent implements OnInit {
 		const deletes = await this.data.getFire<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.current!.user.uid) });
 		const payments = await this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.user.uid));
 		const updates = payments.map(row => ({					// reset the calculated-fields
-			...row, [FIELD.effect]: Number.MIN_SAFE_INTEGER, [FIELD.expire]: Number.MIN_SAFE_INTEGER,
-			bank: Number.MIN_SAFE_INTEGER, expiry: Number.MIN_SAFE_INTEGER
-		})
-		);
+			...row,
+			[FIELD.effect]: Number.MIN_SAFE_INTEGER,
+			[FIELD.expire]: Number.MIN_SAFE_INTEGER,
+			bank: Number.MIN_SAFE_INTEGER,
+			expiry: Number.MIN_SAFE_INTEGER
+		}));
 
 		this.dbg('payments: %j', payments);
 		this.dbg('updates: %j', updates);
-		return this.data.batch(undefined, updates, deletes)
+		return this.data.batch(undefined, updates, deletes, SetMember)
 			.then(_ => this.attend.getAmount())
 			.then(sum => this.data.writeAccount(sum))
 	}

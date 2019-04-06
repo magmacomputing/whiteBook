@@ -66,7 +66,7 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private remMeta(doc: Partial<IStoreMeta>) {
+	private removeMeta(doc: Partial<IStoreMeta>) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
@@ -81,8 +81,8 @@ export class FireService {
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const bat = this.afs.firestore.batch();
 
-		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
-		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remMeta(upd)));
+		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
+		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
 		return bat.commit();
@@ -92,8 +92,8 @@ export class FireService {
 	runTxn(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], selects: DocumentReference[] = []) {
 		return this.afs.firestore.runTransaction(txn => {
 			asArray(selects).forEach(ref => txn.get(ref));
-			asArray(creates).forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.remMeta(ins)));
-			asArray(updates).forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.remMeta(upd)));
+			asArray(creates).forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
+			asArray(updates).forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 			asArray(deletes).forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
 			return Promise.resolve(true);					// if any change fails, the Transaction rejects
@@ -103,13 +103,13 @@ export class FireService {
 	async setDoc(store: string, doc: Partial<IStoreMeta>) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
-		doc = this.remMeta(doc);								// remove the meta-fields from the document
+		doc = this.removeMeta(doc);								// remove the meta-fields from the document
 		await this.docRef(store, docId).set(doc);
 		return docId;
 	}
 
 	async updDoc(store: string, docId: string, data: Partial<IStoreMeta>) {
-		data = this.remMeta(data);
+		data = this.removeMeta(data);
 		await this.docRef(store, docId).update(data)
 		return docId;
 	}

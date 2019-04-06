@@ -6,17 +6,17 @@ import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, ICustomClaims, IStoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getSlice } from '@dbase/state/state.library';
+import { ISummary } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { addWhere } from '@dbase/fire/fire.library';
 import { AuthService } from '@service/auth/auth.service';
 import { asAt } from '@dbase/library/app.library';
 
@@ -24,8 +24,7 @@ import { TString } from '@lib/type.library';
 import { getStamp } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { ISummary } from '@dbase/state/state.define';
-import { isFunction } from 'util';
+
 
 /**
  * The DataService is responsible for managing the syncing between
@@ -67,12 +66,16 @@ export class DataService {
 	}
 
 	async writeAccount(summary: ISummary) {
-		const uid = (await this.auth.current)!.uid;
-		return this.fire.writeAccount(uid, summary);
+		return this.fire.writeAccount(await this.getUID(), summary);
 	}
 
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
+	}
+
+	getUID() {
+		return this.auth.current
+			.then(current => current!.uid);
 	}
 
 	async getFire<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
@@ -88,8 +91,7 @@ export class DataService {
 	}
 
 	async setDoc(store: string, doc: TStoreBase) {
-		const uid = (await this.auth.current)!.uid;
-		doc = await docPrep(doc, uid)							// make sure we have a <key/uid> field
+		doc = docPrep(doc, await this.getUID())									// make sure we have a <key/uid> field
 		return this.fire.setDoc(store, doc);
 	}
 
@@ -97,29 +99,19 @@ export class DataService {
 		return this.fire.updDoc(store, docId, data);
 	}
 
-	async	updPlan(plan: string) {															// this is no longer used
-		const state = await this.auth.user;
-		const where = [
-			addWhere(FIELD.store, STORE.register),
-			addWhere(FIELD.uid, state.auth.user!.uid),
-		]
-		const docIds = await this.fire.getAll(COLLECTION.admin, { where });
-		return this.fire.updDoc(COLLECTION.admin, docIds[0][FIELD.id], { user: { customClaims: { plan } } })
-	}
-
 	/** Expire any current matching docs, and Create new doc */
 	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
 		const creates: TStoreBase[] = [];												// array of documents to Create
 		const updates: TStoreBase[] = [];												// array of documents to Update
 		const stamp = getStamp();																// the timestamp of the Insert
-		const uid = (await this.auth.current)!.uid;
+		const uid = await this.getUID();
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.effect] || stamp;	    		// the position in the date-range to Create
 			let where: TWhere;
 
 			try {
-				nextDoc = await docPrep(nextDoc, uid)								// make sure we have a <key/uid>
+				nextDoc = docPrep(nextDoc, await this.getUID())											// make sure we have a <key/uid>
 				where = getWhere(nextDoc as IMeta, filter);
 			} catch (error) {
 				this.snack.open(error.message);                     // show the error to the User
@@ -150,8 +142,14 @@ export class DataService {
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], event?: any, callBack?: (evt: any) => any) {
 		const writes = creates.length + updates.length + deletes.length;
 		const sync = (event && writes)													// an Event that this batch will fire
-			? this.sync.wait(event, callBack)											// start an optional listener
-			: Promise.resolve()																		// no need to wait
+			? this.sync.wait(event, callBack)											// start a listener for 1st occurence of Event
+			: Promise.resolve()																		// else, no need to wait
+
+		this.getUID().then(uid => {															// ensure we have a <uid> in all Member-releated documents
+			creates = asArray(creates).map(doc => docPrep(doc as TStoreBase, uid));
+			updates = asArray(updates).map(doc => docPrep(doc as TStoreBase, uid));
+			deletes = asArray(deletes).map(doc => docPrep(doc as TStoreBase, uid));
+		})
 
 		return this.fire.batch(creates, updates, deletes)				// batch the writes
 			.then(_ => sync)																			// wait for callback to resolve
