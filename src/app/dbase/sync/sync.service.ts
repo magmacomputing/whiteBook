@@ -103,10 +103,10 @@ export class SyncService {
 				listen.subscribe.unsubscribe();
 				this.dbg('off: %s', collection);
 			}
-		}
 
-		if (trunc && listen)
-			this.store.dispatch(new listen.method.truncStore());
+			if (trunc && listen.method)
+				this.store.dispatch(new listen.method.truncStore());
+		}
 
 		delete this.listener[collection];
 	}
