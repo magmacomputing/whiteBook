@@ -1,16 +1,18 @@
-<div *ngFor="let reg of register$ | async">
+<button color="accent" click="hidden=!hidden">Hidden</button>
+<div *ngFor="let dash of dash$ | async">
 	<p>
-		{{ reg.migrate.sheetName }}
-		<button color="primary" (click)="signIn(reg)" [disabled]="current" [hidden]="current && current.migrate.sheetName == reg.migrate.sheetName">
+		{{ dash.register.migrate.sheetName }} ${{ !dash.account && 'none' || dash.account.summary.credit | json}}
+		<button color="primary" (click)="signIn(dash.register)" [disabled]="current"
+			[hidden]="current && current.migrate.sheetName == dash.register.migrate.sheetName">
 			SignIn </button>
-		<div *ngIf="current && current.migrate.sheetName == reg.migrate.sheetName">
+		<div *ngIf="current && current.migrate.sheetName == dash.register.migrate.sheetName">
 			<div *ngIf="account$ | async as data">
 				<button color="accent" (click)="signOut()">SignOut</button>
-				<button (click)="addPayment()" [disabled]="1 == 0 && data.account.payment.length">Add Payments</button>
-				<button (click)="addAttend()" [disabled]="1 == 0 && !data.account.payment.length || data.account.attend.length">Add Attends</button>
-				<button (click)="delPayment()" [disabled]="1 == 0 && !data.account.payment.length">Del Payments</button>
-				<button (click)="delAttend()" [disabled]="1 == 0 && !data.account.attend.length && data.account.payment.length">Del Attends</button>
-				<button (click)="delPayment()" >Reset</button>
+				<button (click)="addPayment()" [disabled]="data.account.payment.length">Add Payments</button>
+				<button (click)="addAttend()"  [disabled]="!data.account.payment.length || data.account.attend.length">Add Attends</button>
+				<button (click)="delPayment()" [disabled]="!data.account.payment.length">Del Payments</button>
+				<button (click)="delAttend()"  [disabled]="!data.account.attend.length">Del Attends</button>
+				<button (click)="delPayment()">Reset</button>
 				<p *ngIf="data.account"> {{ data.account.summary | json }} </p>
 			</div>
 		</div>

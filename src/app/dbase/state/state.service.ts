@@ -6,7 +6,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.action';
 import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -85,15 +85,16 @@ export class StateService {
 	}
 
 	/**
-	 * Assemble an AdminState Object describing stores only available to Members with 'admin' roles
-	 * auth.register	-> has an array of the current state of /register
+	 * Assemble an AdminState Object describing stores only available to Members with 'admin' role
+	 * admin.register	-> has an array of the current state of /admin/register
+	 * admin.account	=> has an array of the current value of /admin/account
 	 */
 	getAdminData(): Observable<IAdminState> {
-		const filterPayment = addWhere(FIELD.store, STORE.payment);
-	
-		return this.admin$.pipe(
-			joinDoc(this.states, 'register', STORE.register),
-			joinDoc(this.states, 'payments', STORE.payment, filterPayment),
+		const filterAccount = addWhere(FIELD.type, 'summary');
+
+		return of({}).pipe(
+			joinDoc(this.states, 'admin', STORE.register),
+			joinDoc(this.states, 'admin', STORE.account, filterAccount, undefined, getDash),
 		)
 	}
 
@@ -171,7 +172,7 @@ export class StateService {
 	 * Add Account details to the Member Profile Observable  
 	 * account.payment-> has an array of open (not asAt) details about the Member's account payments  
 	 * account.attend	-> has an array of attendances against the <active> payment  
-	 * account.summary-> has an object summarising the Member's account value as { pay: $, bank: $, pend: $, cost: $ }
+	 * account.summary-> has an object summarising the Member's account value as { paid: $, bank: $, adjust: $, spend: $, credit: $, funds: $ }
 	 */
 	getAccountData(date?: TDate): Observable<IAccountState> {
 		const filterPayment = [

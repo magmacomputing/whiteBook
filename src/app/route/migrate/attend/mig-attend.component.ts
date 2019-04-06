@@ -13,7 +13,8 @@ import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IClass, IMigrateBase, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
-import { IAccountState } from '@dbase/state/state.define';
+import { IAccountState, IAdminState } from '@dbase/state/state.define';
+import { SetMember } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -24,7 +25,6 @@ import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNumber } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
-import { SetMember } from '@dbase/state/state.action';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -34,10 +34,11 @@ export class MigAttendComponent implements OnInit {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
+	public hidden = false;
 
-	private register$: Observable<IRegister[]>;
+	// private register$: Observable<IRegister[]>;
 	private account$!: Observable<IAccountState>;
-	private admin = this.state.getAdminData();
+	private dash$: Observable<IAdminState["admin"]["dashBoard"]>;
 	private history!: Promise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
@@ -47,7 +48,7 @@ export class MigAttendComponent implements OnInit {
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: IEvent[];
-	private class!: IClass[];
+	// private class!: IClass[];
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
@@ -72,12 +73,13 @@ export class MigAttendComponent implements OnInit {
 	constructor(private http: HttpClient, private data: DataService, private state: StateService,
 		private sync: SyncService, private service: MemberService, private store: Store, private attend: AttendService) {
 		this.current = null;
-		this.register$ = this.state.getAdminData()
-			.pipe(
-				map(admin => admin[STORE.register]),								// get 'register' store
-				map(reg => (reg || []).filter(row => row.migrate)),	// only return 'migrated' members
-				map(reg => reg.sort(sortKeys('user.customClaims.memberName'))),
-			)
+
+		this.dash$ = this.state.getAdminData().pipe(
+			map(data => data.admin.dashBoard!
+				.filter(row => row.register.migrate)
+				// .filter(row => row.register[FIELD.hidden] === this.hidden)
+			),
+		)
 
 		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
 			.then(schedule => this.schedule = schedule);
@@ -85,8 +87,8 @@ export class MigAttendComponent implements OnInit {
 			.then(calendar => this.calendar = calendar);
 		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
 			.then(events => this.events = events);
-		this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) })
-			.then(klass => this.class = klass);
+		// this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) })
+		// 	.then(klass => this.class = klass);
 
 		this.state.getAuthData()																	// stash the current Auth'd user
 			.pipe(take(1))

@@ -4,7 +4,7 @@ import { IAuthState } from './auth.action';
 import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig
+	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IAccount
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -43,8 +43,14 @@ export interface IUserState {
 }
 
 export interface IAdminState {
-	register: IRegister[];								// register collection
-	payments: IPayment[];									// active Payment documents
+	admin: {
+		register: IRegister[];
+		summary?: IAccount[];
+		dashBoard?: {
+			register: IRegister;
+			account?: IAccount;
+		}[];
+	}
 }
 
 export interface IApplicationState {		// application-wide settings

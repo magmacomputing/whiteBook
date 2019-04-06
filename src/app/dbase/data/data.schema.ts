@@ -374,6 +374,7 @@ export interface IRegister extends IAdminBase {
 //	/admin/account
 export interface IAccount extends IAdminBase {
 	[FIELD.store]: STORE.account;
+	[FIELD.type]: 'summary';
 	stamp: number;																	// date last updated
 	summary: ISummary;
 }

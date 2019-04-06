@@ -6,7 +6,7 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, IAttendState, TStateSlice, IApplicationState } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, IAttendState, TStateSlice, IApplicationState, IAdminState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IAttend } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
@@ -195,7 +195,7 @@ export const sumPayment = (source: IAccountState) => {
 			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0, credit: 0, funds: 0 })
 	}
 
-	return source;
+	return { ...source };
 }
 
 /** Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment */
@@ -208,22 +208,6 @@ export const sumAttend = (source: IAccountState) => {
 				sum.funds -= attend.amount;
 				return sum;
 			}, source.account.summary);
-	}
-
-	return source;
-}
-
-/** Build an Attend slice */
-export const buildAttend = (source: IAttendState) => {
-	if (source.attend) {
-		const slice: TStateSlice<IAttend> = {};
-		source.attend
-			.forEach(attend => {
-				if (!slice[attend.payment])
-					slice[attend.payment] = [];
-				slice[attend.payment].push(attend);
-			})
-		// source.attend = slice;
 	}
 
 	return { ...source };
@@ -358,5 +342,15 @@ export const buildTimetable = (source: ITimetableState) => {
 		 */
 		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
 
-	return { ...source };
+	return { ...source }
+}
+
+export const getDash = (source: IAdminState) => {
+	source.admin.dashBoard = source.admin.register
+	.map(register => ({
+		register,
+		account: source.admin.summary!.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
+	}))
+	
+	return { ...source }
 }

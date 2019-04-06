@@ -17,7 +17,7 @@ interface IInstant {											// Date components
 	dow: number;														// weekday; Mon=1, Sun=7
 }
 
-interface IDateFmt {
+interface IDateFmt {											// pre-configured format strings
 	"ddd, dd mmm yyyy": string;
 	"yyyy-mm-dd HH:MI": string;
 	"dd-mmm": string;
@@ -26,7 +26,7 @@ interface IDateFmt {
 	"yyyyww": number;
 }
 
-export enum DATE_FMT {
+export enum DATE_FMT {										// pre-configured format names
 	display = 'ddd, dd mmm yyyy',
 	dateTime = 'yyyy-mm-dd HH:MI',
 	dayMonth = 'dd-mmm',
@@ -47,8 +47,8 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 // shortcut functions to common Instant class properties / methods.
 
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
-/** get ms Timestamp*/export const getStamp = (dt?: TDate) => getDate(dt).ts;
-/** format Instant  */export const fmtDate = <K extends string | keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
+/** get Timestamp */	export const getStamp = (dt?: TDate) => getDate(dt).ts;
+/** format Instant */	export const fmtDate = <K extends string | keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 
 export class Instant {
 	private date: IInstant;											// Date parsed into components
@@ -79,7 +79,7 @@ export class Instant {
 	/** middle offset */	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 
-	/** as Date object */	getDate = () => new Date(this.date.ts * 1000);
+	/** as Date object */	asDate = () => new Date(this.date.ms);
 	/** get raw object */	valueOf = () => ({ ...this.date });
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 
@@ -101,7 +101,7 @@ export class Instant {
 				date = dt as Date;
 				break;
 			case 'Instant':																					// already have a valid Date
-				date = new Date((dt as Instant).ts);
+				date = new Date((dt as Instant).ms);
 				break;
 			case 'String':																					// TODO: use fmt to parse date-string
 				date = new Date(dt as string);												// attempt to parse date-string
@@ -142,6 +142,7 @@ export class Instant {
 
 		switch (`${mutate}.${unit}`) {
 			case 'start.day':
+				[date.HH, date.MI, date.SS] = [0, 0, 0];
 				break;
 			case 'start.week':
 				date.dd -= date.dow + Instant.DAY.Mon;
