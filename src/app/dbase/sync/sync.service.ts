@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { timer } from 'rxjs';
-import { map, debounce, timeout, take } from 'rxjs/operators';
+import { map, debounce, timeout, take, tap } from 'rxjs/operators';
 
 import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 import { DocumentChangeAction } from '@angular/fire/firestore';
@@ -28,7 +28,6 @@ import { dbg } from '@lib/logger.library';
 export class SyncService {
 	private dbg = dbg(this);
 	private listener: IObject<IListen> = {};
-	private uid: string | null = null;
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
@@ -36,7 +35,6 @@ export class SyncService {
 	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
 	public async on(collection: string, query?: IQuery) {
 		const ready = createPromise<boolean>();
-		// this.getAuthUID();																// make sure we stash the Auth User's ID
 
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
 		const stream = this.fire.merge('stateChanges', refs);
@@ -46,6 +44,7 @@ export class SyncService {
 		this.listener[collection] = {
 			collection,
 			ready,
+			uid: await this.getAuthUID(),
 			cnt: -1,																				// '-1' is not-yet-snapped, '0' is first snapshot
 			method: getMethod(collection),
 			subscribe: stream.subscribe(sync)
@@ -56,17 +55,10 @@ export class SyncService {
 	}
 
 	private getAuthUID() {															// Useful for matching sync-events to the Auth'd User
-		return new Promise<boolean>(resolve => {
-			if (!this.uid) {
-				this.store
-					.selectOnce<IAuthState>(state => state[SLICE.auth])
-					.pipe(map(auth => auth.user && auth.user.uid))// if logged-in, return the UserId
-					.toPromise()
-					.then(uid => this.uid = uid)
-					.then(_ => resolve(true))
-			}
-			else resolve(false);
-		})
+		return this.store
+			.selectOnce<IAuthState>(state => state[SLICE.auth])
+			.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
+			.toPromise()
 	}
 
 	public status(collection: string) {
@@ -138,7 +130,7 @@ export class SyncService {
 			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
 
 		if (listen.cnt === 0) {                           // initial snapshot
-			await this.getAuthUID();												// try again to determine authenticated User
+			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps))
 				return;																				// storage already sync'd... skip the initial snapshot
 
@@ -149,7 +141,7 @@ export class SyncService {
 
 		snaps.forEach(async snap => {
 			const data = addMeta(snap);
-			const check = listen.cnt !== 0 && data[FIELD.uid] === this.uid;
+			const check = listen.cnt !== 0 && data[FIELD.uid] === listen.uid;
 
 			switch (snap.type) {
 				case 'added':

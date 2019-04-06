@@ -351,7 +351,7 @@ export const getDash = (source: IAdminState) => {
 	source.admin.dashBoard = source.admin.register
 		.map(register => ({
 			register,
-			account: source.admin.summary!.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
+			account: source.admin.summary && source.admin.summary.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
 		}))
 
 	return { ...source }

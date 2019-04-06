@@ -5,6 +5,7 @@ import { TruncAttend, TruncClient, TruncMember, DelMember, DelAttend, DelClient,
 export interface IListen {
 	collection: string;										// Firestore collection
 	cnt: number;													// count of snapshots received
+	uid: string | null;										// authenticated User
 	ready: IPromise<boolean>;							// indicate when snap0 is received
 	subscribe: Subscription;							// used for turning off Subscription
 	method: {
