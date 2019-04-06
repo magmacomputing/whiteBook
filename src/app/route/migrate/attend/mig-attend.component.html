@@ -1,4 +1,4 @@
-<button color="accent" click="hidden=!hidden">Hidden</button>
+<button color="accent" (click)="toggleHide()">Hidden</button> {{ hidden }}
 <div *ngFor="let dash of dash$ | async">
 	<p>
 		{{ dash.register.migrate.sheetName }} ${{ !dash.account && 'none' || dash.account.summary.credit | json}}

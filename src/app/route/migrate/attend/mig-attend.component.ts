@@ -36,7 +36,6 @@ export class MigAttendComponent implements OnInit {
 	private prefix = 'alert';
 	public hidden = false;
 
-	// private register$: Observable<IRegister[]>;
 	private account$!: Observable<IAccountState>;
 	private dash$: Observable<IAdminState["admin"]["dashBoard"]>;
 	private history!: Promise<MHistory[]>;
@@ -48,7 +47,6 @@ export class MigAttendComponent implements OnInit {
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: IEvent[];
-	// private class!: IClass[];
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
@@ -74,12 +72,7 @@ export class MigAttendComponent implements OnInit {
 		private sync: SyncService, private service: MemberService, private store: Store, private attend: AttendService) {
 		this.current = null;
 
-		this.dash$ = this.state.getAdminData().pipe(
-			map(data => data.admin.dashBoard!
-				.filter(row => row.register.migrate)
-				// .filter(row => row.register[FIELD.hidden] === this.hidden)
-			),
-		)
+		this.toggleHide();
 
 		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
 			.then(schedule => this.schedule = schedule);
@@ -87,8 +80,6 @@ export class MigAttendComponent implements OnInit {
 			.then(calendar => this.calendar = calendar);
 		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
 			.then(events => this.events = events);
-		// this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) })
-		// 	.then(klass => this.class = klass);
 
 		this.state.getAuthData()																	// stash the current Auth'd user
 			.pipe(take(1))
@@ -97,6 +88,16 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	ngOnInit() { }
+
+	toggleHide() {
+		this.dash$ = this.state.getAdminData().pipe(
+			map(data => data.admin.dashBoard!
+				.filter(row => row.register.migrate)
+				.filter(row => !!row.register[FIELD.hidden] === this.hidden)
+			),
+		)
+		this.hidden = !this.hidden;
+	}
 
 	async signIn(register: IRegister) {
 		this.current = register;																	// stash current Member
