@@ -57,7 +57,7 @@ export class FireService {
 
 		docId = isUndefined(docId) ? this.newId() : docId;	// use supplied Id, else generate a new Id
 
-		return this.afs.firestore.collection(col).doc(docId)
+		return this.afs.firestore.collection(col).doc(docId);
 	}
 
 	/** allocate a new meta-field _id */
@@ -81,7 +81,7 @@ export class FireService {
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const bat = this.afs.firestore.batch();
 
-		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
+		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
 		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 

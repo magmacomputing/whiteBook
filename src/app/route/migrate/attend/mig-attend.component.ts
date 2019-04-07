@@ -69,7 +69,7 @@ export class MigAttendComponent implements OnInit {
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService,
-		private sync: SyncService, private service: MemberService, private store: Store, private attend: AttendService) {
+		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
 		this.current = null;
 
 		this.toggleHide();
@@ -174,7 +174,7 @@ export class MigAttendComponent implements OnInit {
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
-			.then(_ => this.attend.getAmount())							// re-calc Account summary
+			.then(_ => this.member.getAmount())							// re-calc Account summary
 			.then(summary => this.data.writeAccount(summary))
 	}
 
@@ -269,7 +269,7 @@ export class MigAttendComponent implements OnInit {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
 		}
 
-		this.service.setAttend(sched, row.note, row.stamp)
+		this.attend.setAttend(sched, row.note, row.stamp)
 			.then(_ => {
 				if (rest.length)  										// fire next Attend
 					this.nextAttend(rest[0], ...rest.slice(1));
@@ -279,8 +279,8 @@ export class MigAttendComponent implements OnInit {
 
 	private async lastAttend() {
 		const [summary, profile, active] = await Promise.all([
-			this.attend.getAmount(),								// get closing balance
-			this.attend.getPlan(),									// get final Plan
+			this.member.getAmount(),								// get closing balance
+			this.member.getPlan(),									// get final Plan
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 		]);
 
@@ -307,7 +307,7 @@ export class MigAttendComponent implements OnInit {
 		}
 
 		this.data.batch(undefined, updates, undefined, SetMember)
-			.then(_ => this.attend.getAmount())				// re-calc the new Account summary
+			.then(_ => this.member.getAmount())				// re-calc the new Account summary
 			.then(sum => this.data.writeAccount(sum))	// update Admin summary
 			.then(_ => this.dbg('done'))
 	}
@@ -324,7 +324,7 @@ export class MigAttendComponent implements OnInit {
 		deletes.push(...await this.data.getFire<TStoreBase>(COLLECTION.attend, { where }));
 
 		return this.data.batch(undefined, undefined, deletes)
-			.then(_ => this.attend.getAmount())
+			.then(_ => this.member.getAmount())
 			.then(sum => this.data.writeAccount(sum))
 	}
 
@@ -342,7 +342,7 @@ export class MigAttendComponent implements OnInit {
 		this.dbg('payments: %j', payments);
 		this.dbg('updates: %j', updates);
 		return this.data.batch(undefined, updates, deletes, SetMember)
-			.then(_ => this.attend.getAmount())
+			.then(_ => this.member.getAmount())
 			.then(sum => this.data.writeAccount(sum))
 	}
 

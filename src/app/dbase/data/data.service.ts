@@ -142,16 +142,16 @@ export class DataService {
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], event?: any, callBack?: (evt: any) => any) {
 		const writes = creates.length + updates.length + deletes.length;
 		const sync = (event && writes)													// an Event that this batch will fire
-			? this.sync.wait(event, callBack)											// start a listener for 1st occurence of Event
+			? this.sync.wait(event, callBack)											// start a listener for 1st emit of Event
 			: Promise.resolve()																		// else, no need to wait
 
-		this.getUID().then(uid => {															// ensure we have a <uid> in all Member-releated documents
-			creates = asArray(creates).map(doc => docPrep(doc as TStoreBase, uid));
-			updates = asArray(updates).map(doc => docPrep(doc as TStoreBase, uid));
-			deletes = asArray(deletes).map(doc => docPrep(doc as TStoreBase, uid));
-		})
-
-		return this.fire.batch(creates, updates, deletes)				// batch the writes
+		return this.getUID()
+			.then(uid => {																				// ensure we have a <store>/<uid> in all Member-releated documents
+				creates = creates.map(doc => docPrep(doc as TStoreBase, uid));
+				updates = updates.map(doc => docPrep(doc as TStoreBase, uid));
+				deletes = deletes.map(doc => docPrep(doc as TStoreBase, uid));
+			})
+			.then(_ => this.fire.batch(creates, updates, deletes))// batch the writes
 			.then(_ => sync)																			// wait for callback to resolve
 	}
 

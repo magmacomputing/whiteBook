@@ -2,6 +2,7 @@ import { UserInfo } from 'firebase';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { TString } from '@lib/type.library';
+import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = '_schema_' | '_config_' | '_default_';
 type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
@@ -73,7 +74,8 @@ export interface IStoreMeta extends IMeta {
 }
 // client documents have a '<key>' field, member documents have a '<uid>' field
 export const isClientStore = (store: TStoreBase): store is IClientBase =>
-	(<IClientBase>store)[FIELD.key] !== undefined;
+	getSlice(store[FIELD.store]) === 'client' || getSlice(store[FIELD.store]) === 'local';
+// (<IClientBase>store)[FIELD.key] !== undefined;
 
 //	/client/_default_
 export interface IDefault extends IClientBase {

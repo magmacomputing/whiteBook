@@ -1,22 +1,28 @@
 import { Injectable } from '@angular/core';
-import { take } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
-import { IAccountState } from '@dbase/state/state.define';
-
+import { ISummary, IAccountState } from '@dbase/state/state.define';
+import { sumPayment } from '@dbase/state/state.library';
+import { SyncAttend } from '@dbase/state/state.action';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { DBaseModule } from '@dbase/dbase.module';
-import { IClass } from '@dbase/data/data.schema';
 
-import { getDate, TDate } from '@lib/date.library';
+import { calcExpiry } from '@service/member//member.library';
+import { MemberService } from '@service/member/member.service';
+import { SnackService } from '@service/snack/snack.service';
+import { DBaseModule } from '@dbase/dbase.module';
+import { DataService } from '@dbase/data/data.service';
+import { ISchedule, IAttend, IStoreMeta, TClass, TStoreBase } from '@dbase/data/data.schema';
+
+import { getDate, DATE_FMT } from '@lib/date.library';
+import { isUndefined, TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
 	private dbg = dbg(this);
 
-	constructor(private state: StateService) { this.dbg('new') }
+	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new') }
 
 	/** loop back up-to-seven days to find when className was last scheduled */
 	lkpDate = async (className: string, location?: string, date?: number) => {
@@ -44,38 +50,123 @@ export class AttendService {
 		return now.ts;																		// timestamp
 	}
 
-	/** Current Account status */
-	getAccount = async (date?: TDate) => {
-		return this.state.getAccountData(date)
-			.pipe(take(1))
-			.toPromise()
+	/**
+	 * get (or define a new) active Payment . 
+   * Determine if next payment is due.  
+   * -> if the price of the class is greater than their current funds  
+   * -> if they've exceeded 99 Attends against the active Payment  
+	 * -> if this check-in is later than the expiry-date  
+   * -> TODO: if their intro-pass has expired (auto bump them to 'default' plan)  
+  */
+	getPayment(data: IAccountState, price: number, ts: number) {
+		const payments = data.account.payment;
+
+		switch (true) {
+			case !payments[0][FIELD.effect]:
+				return 0;									// new account not-yet-activated
+
+			case data.account.attend.length > 99:
+				return 1;									// more than 99-attendances against the activePayment
+
+			case price > data.account.summary.funds:
+				return 1;									// time for a new activePayment
+
+			case payments[0].expiry && payments[0].expiry < ts:
+				return 1;									// current Payment has expired
+
+			default:
+				return 0;
+		}
 	}
 
-	getAmount = async (data?: IAccountState) => {
-		data = data || await this.getAccount();
-		return data.account.summary;
-	}
+	/**
+	 * Insert an Attendance record, matched to an <active> Account Payment  
+	 */
+	async setAttend(schedule: ISchedule, note?: TString, date?: number) {
+		const data = await this.member.getAccount(date);							// get Member's current account details
 
-	getPlan = async (data?: IAccountState) => {
-		data = data || await this.getAccount();
-		return data.member.plan[0];
-	}
+		// If no <price> on Schedule, then lookup based on member's plan
+		if (isUndefined(schedule.price))
+			schedule.price = await this.member.getEventPrice(schedule[FIELD.key], data);
 
-	// TODO: apply bonus-tracking to determine discount price
-	getEventPrice = async (event: string, data?: IAccountState) => {
-		data = data || (await this.getAccount());
-		const profile = data.member.plan[0];						// the member's plan
-		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
+		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
+		if (isUndefined(date))
+			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
 
-		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
-			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;
-	}
+		const now = getDate(date);
+		const stamp = now.ts;
+		const when = now.format(DATE_FMT.yearMonthDay);
 
-	/** Determine the member's topUp amount */
-	getPayPrice = async (data?: IAccountState) => {
-		data = data || await this.getAccount();
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		// check we are not re-booking same Class on same Day at same Location at same Time
+		const attendFilter = [
+			addWhere(FIELD.id, schedule[FIELD.id]),
+			addWhere(FIELD.uid, data.auth.current!.uid),
+			addWhere(FIELD.note, note),
+			addWhere('date', when),
+		]
+		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
+		if (booked.length) {
+			this.snack.error(`Already attended this class on ${now.format(DATE_FMT.display)}`);
+			return Promise.resolve(false);															// discard Attend
+		}
 
-		return data.client.price
-			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		// ensure we have enough credit to cover the price of the check-in
+		const creates: IStoreMeta[] = [];
+		const updates: IStoreMeta[] = [];
+
+		if (schedule.price > data.account.summary.credit) {
+			const gap = schedule.price - data.account.summary.credit;
+			const topUp = await this.member.getPayPrice(data);
+			const payment = await this.member.setPayment(Math.max(gap, topUp));
+
+			creates.push(payment);																			// stack the topUp Payment
+			data.account.payment.push(payment);													// append to the Payment array
+		}
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		const active = this.getPayment(data, schedule.price, now.ts);	// determine which Payment record is active
+		let amount = await this.member.getAmount(data);								// Account balance
+		const payments = data.account.payment;												// the list of current and pre-paid Payments
+		let activePay = payments[active];
+
+		switch (active) {
+			case 0:																											// Current payment is still Active
+				if (!activePay[FIELD.effect])															// enable the Active Payment on first use
+					updates.push({ ...activePay, [FIELD.effect]: stamp, expiry: calcExpiry(stamp, activePay, data.client) });
+
+				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment
+					updates.push({ ...activePay, [FIELD.expire]: stamp });	// so, auto-close Payment (except $0 classes)
+
+				break;
+
+			default:																										// Future pre-payment is to become Active; rollover unused Funds
+				for (let i = 0; i < active; i++)
+					if (payments[i].approve && !payments[i][FIELD.expire])	// close previous Payment
+						updates.push({ ...payments[i], [FIELD.expire]: stamp });
+
+				updates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data.client) });
+				break;
+		}
+
+		// TODO:  also create a bonusTrack document
+		// build the Attend document
+		const attendDoc: Partial<IAttend> = {
+			[FIELD.store]: STORE.attend,
+			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
+			[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
+			[FIELD.stamp]: stamp,													// createDate
+			[FIELD.date]: when,														// yyyymmdd of the Attend
+			[FIELD.note]: note,														// optional 'note'
+			schedule: schedule[FIELD.id],									// <id> of the Schedule
+			payment: activePay[FIELD.id],									// <id> of Account's current active document
+			amount: schedule.price,												// calculated price of the Attend
+		}
+		creates.push(attendDoc as TStoreBase);					// batch the new Attend
+
+		return this.data.batch(creates, updates, undefined, SyncAttend)
+			.then(_ => this.member.getAmount())						// re-calc the new Account summary
+			.then(sum => this.data.writeAccount(sum))			// update Admin summary
 	}
 }
