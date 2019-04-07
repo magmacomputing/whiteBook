@@ -31,32 +31,37 @@ export class ErrorSnackbarComponent {
 @Injectable({ providedIn: MaterialModule })
 export class SnackService {
   private ref?: MatSnackBarRef<{}>;
+  private timeOut = 5000;
 
   constructor(public snack: MatSnackBar) { }
 
+  private setConfig(config: MatSnackBarConfig) {
+    return {duration: this.timeOut, ...config};
+  }
+
   public open(msg: string, action?: string, config: MatSnackBarConfig = {}) {
     this.dismiss();
-    this.ref = this.snack.open(msg, action, config);
+    this.ref = this.snack.open(msg, action, this.setConfig(config));
   }
 
   public info(msg: string, action?: string, config: MatSnackBarConfig = {}) {
     this.dismiss();
-    this.ref = this.snack.openFromComponent(InfoSnackbarComponent, { ...config, data: msg });
+    this.ref = this.snack.openFromComponent(InfoSnackbarComponent, { ...this.setConfig(config), data: msg });
   }
 
   public warn(msg: string, action?: string, config: MatSnackBarConfig = {}) {
     this.dismiss();
-    this.ref = this.snack.openFromComponent(WarnSnackbarComponent, { ...config, data: msg });
+    this.ref = this.snack.openFromComponent(WarnSnackbarComponent, { ...this.setConfig(config), data: msg });
   }
 
   public error(msg: string, action?: string, config: MatSnackBarConfig = {}) {
     this.dismiss();
-    this.ref = this.snack.openFromComponent(ErrorSnackbarComponent, { ...config, data: msg });
+    this.ref = this.snack.openFromComponent(ErrorSnackbarComponent, { ...this.setConfig(config), data: msg });
   }
 
   public dismiss() {                    // dismiss any snackbar, if present
     if (this.ref) {
-      this.ref.dismiss();
+      // this.ref.dismiss();
       this.ref = undefined;
     }
   }

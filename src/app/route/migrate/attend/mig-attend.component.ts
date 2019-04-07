@@ -35,6 +35,8 @@ export class MigAttendComponent implements OnInit {
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
 	public hidden = false;
+	public creditIdx = 0;
+	public credit = ['all', 'value', 'zero'];
 
 	private account$!: Observable<IAccountState>;
 	private dash$!: Observable<IAdminState["admin"]["dashBoard"]>;
@@ -72,7 +74,7 @@ export class MigAttendComponent implements OnInit {
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
 		this.current = null;
 
-		this.toggleHide();
+		this.filter();
 
 		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
 			.then(schedule => this.schedule = schedule);
@@ -89,15 +91,36 @@ export class MigAttendComponent implements OnInit {
 
 	ngOnInit() { }
 
-	toggleHide() {
+	filter(key?: string) {
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.admin.dashBoard!
 				.filter(row => row.register.migrate)
 				.filter(row => !!row.register[FIELD.hidden] === this.hidden)
-			),
-		)
-		this.hidden = !this.hidden;
+				.filter(row => {
+					switch (this.credit[this.creditIdx]) {
+						case 'all':
+							return true;
+						case 'value':
+							return row.account && row.account.summary.credit;
+						case 'zero':
+							return row.account && !row.account.summary.credit;
+					}
+				})
+			));
+		
+		switch (key) {
+			case 'hide':
+				this.hidden = !this.hidden;
+				break;
+			case 'credit':
+				this.creditIdx += 1;
+				if (!this.credit[this.creditIdx])
+					this.creditIdx = 0;
+				break;
+		}
 	}
+
+
 
 	async signIn(register: IRegister) {
 		this.current = register;																	// stash current Member

@@ -108,5 +108,4 @@ export class MemberService {
 		const where = addWhere('providerId', user.auth.info.providerId);
 		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
 	}
-
 }

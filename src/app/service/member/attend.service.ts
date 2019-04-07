@@ -100,14 +100,14 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day at same Location at same Time
 		const attendFilter = [
-			addWhere(FIELD.id, schedule[FIELD.id]),
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.note, note),
+			addWhere('schedule', schedule[FIELD.id]),
 			addWhere('date', when),
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
-			this.snack.error(`Already attended this class on ${now.format(DATE_FMT.display)}`);
+			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 			return Promise.resolve(false);															// discard Attend
 		}
 

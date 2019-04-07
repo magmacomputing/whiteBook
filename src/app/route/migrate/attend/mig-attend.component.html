@@ -1,26 +1,30 @@
-<button color="accent" (click)="toggleHide()">Hidden</button> {{ hidden }}
-<div *ngFor="let dash of dash$ | async">
-	<p>
-		{{ dash.register.migrate.sheetName }}
-		${{ !dash.account && 'none' || dash.account.summary.credit | json}}
-		<button color="primary" (click)="signIn(dash.register)" [disabled]="current"
-			[hidden]="current && current.migrate.sheetName == dash.register.migrate.sheetName">
-			SignIn </button>
-		<div *ngIf="current && current.migrate.sheetName == dash.register.migrate.sheetName">
-			<div *ngIf="account$ | async as data">
-				<button color="accent" (click)="signOut()">SignOut</button>
-				<button (click)="addPayment()" [disabled]="data.account.payment?.length">Add Payments</button>
-				<button (click)="addAttend()" [disabled]="data.account.attend?.length">Add Attends</button>
-				<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
-				<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
-				<button (click)="delPayment()">Reset</button>
-				<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
+<button color="accent" (click)="filter('hide')">Hidden</button> {{ hidden }}
+<button color="accent" (click)="filter('credit')">Credit </button> {{ credit[creditIdx] }}
+<div *ngIf="(dash$ | async); let dash$">
+	<div *ngIf="dash$.length; else noDash"></div>
+	<div *ngFor="let dash of dash$">
+		<p>
+			{{ dash.register.migrate.sheetName }}
+			${{ !dash.account && 'none' || dash.account.summary.credit | json}}
+			<button color="primary" (click)="signIn(dash.register)" [disabled]="current"
+				[hidden]="current && current.migrate.sheetName == dash.register.migrate.sheetName">
+				SignIn </button>
+			<div *ngIf="current && current.migrate.sheetName == dash.register.migrate.sheetName">
+				<div *ngIf="account$ | async as data">
+					<button color="accent" (click)="signOut()">SignOut</button>
+					<button (click)="addPayment()" [disabled]="data.account.payment?.length">Add Payments</button>
+					<button (click)="addAttend()" [disabled]="data.account.attend?.length">Add Attends</button>
+					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
+					<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
+					<button (click)="delPayment()">Reset</button>
+					<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
+				</div>
 			</div>
-		</div>
+	</div>
 </div>
 
-<ng-template #waitAdmin>
+<ng-template #noDash>
 	<div>
-		<p>Please wait while we fetch member list...</p>
+		<p>No Members to display...</p>
 	</div>
 </ng-template>
