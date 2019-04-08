@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { getMemberInfo } from '@service/member/member.library';
+import { getMemberInfo, calcExpiry } from '@service/member/member.library';
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';

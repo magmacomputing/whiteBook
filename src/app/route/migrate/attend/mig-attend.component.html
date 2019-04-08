@@ -2,6 +2,7 @@
 <button color="accent" (click)="filter('credit')">Credit </button> {{ credit[creditIdx] }}
 <div *ngIf="(dash$ | async); let dash$">
 	<div *ngIf="dash$.length; else noDash"></div>
+	<hr>
 	<div *ngFor="let dash of dash$">
 		<p>
 			{{ dash.register.migrate.sheetName }}

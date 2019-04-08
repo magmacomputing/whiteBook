@@ -3,19 +3,20 @@ import { Injectable } from '@angular/core';
 import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { ISummary, IAccountState } from '@dbase/state/state.define';
-import { sumPayment } from '@dbase/state/state.library';
+import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
-import { calcExpiry } from '@service/member//member.library';
+import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
-import { ISchedule, IAttend, IStoreMeta, TClass, TStoreBase } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
+import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -35,7 +36,7 @@ export class AttendService {
 
 		for (ctr; ctr < 7; ctr++) {
 			const classes = timetable.client.schedule!			// loop through schedule
-				.filter(row => row.day === now.ww)						// finding a match in 'day'
+				.filter(row => row.day === now.dow)						// finding a match in 'day'
 				.filter(row => row[FIELD.key] === className)	// and match in 'class'
 				.filter(row => row.location === location)			// and match in 'location'
 
@@ -50,40 +51,51 @@ export class AttendService {
 		return now.ts;																		// timestamp
 	}
 
+	// TODO: if their intro-pass has expired (auto bump them to 'default' plan)  
 	/**
-	 * get (or define a new) active Payment . 
-   * Determine if next payment is due.  
-   * -> if the price of the class is greater than their current funds  
-   * -> if they've exceeded 99 Attends against the active Payment  
-	 * -> if this check-in is later than the expiry-date  
-   * -> TODO: if their intro-pass has expired (auto bump them to 'default' plan)  
+	 * Determine active Payment, as   
+   * -> the price of the class is less or equal to funds on a Payment  
+   * -> they've not exceeded 99 Attends against a Payment  
+	 * -> this check-in is earlier than Payment expiry-date  
   */
-	getPayment(data: IAccountState, price: number, ts: number) {
-		const payments = data.account.payment;
+	async getPayment(data: IAccountState, price: number, ts: number) {
+		let source = cloneObj(data);											// dont mutate original data
+		const payments = cloneObj(data.account.payment);
+		const tests: boolean[] = [];											// array of 'tests' to determine if <active>
+		let active = 0;																		// start at the last active Payment
 
-		switch (true) {
-			case !payments[0][FIELD.effect]:
-				return 0;									// new account not-yet-activated
+		do {
+			tests.push(source.account.attend.length < 100);	// arbitrary limit of Attends against a Payment             
+			tests.push(price < source.account.summary.funds);// enough funds to cover this Attend
+			tests.push(ts < (payments[0].expiry || Number.MAX_SAFE_INTEGER));
 
-			case data.account.attend.length > 99:
-				return 1;									// more than 99-attendances against the activePayment
+		} while (tests.some(check => check === false)) {
+			tests.length = 0;																// reset tests
+			active += 1;																		// move to next Payment
 
-			case price > data.account.summary.funds:
-				return 1;									// time for a new activePayment
+			payments.shift();																// drop off top-of-list
+			if (!payments[0][FIELD.effect]) {								// if now top-of-list Payment is not yet in-use
+				payments[0].bank = source.account.summary.funds;// do a dummy-rollover to calc <bank>
+			}
 
-			case payments[0].expiry && payments[0].expiry < ts:
-				return 1;									// current Payment has expired
+			source.account.payment = payments;							// build a new Payment array
+			source = sumPayment(source);										// calculate the Summary for this Payment
 
-			default:
-				return 0;
+			const paymentId = payments[0][FIELD.id];				//
+			const attendState = await this.state.getAttendData(paymentId)
+				.toPromise();																	// lookup Attends against this Payment
+			source.account.attend = attendState[paymentId];	// build a new Attend array
+			source = sumAttend(source);											// offset Summary by the cost of Attends
 		}
+
+		return active;
 	}
 
 	/**
 	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: TString, date?: number) {
-		const data = await this.member.getAccount(date);							// get Member's current account details
+		let data = await this.member.getAccount(date);							// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
@@ -126,30 +138,42 @@ export class AttendService {
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		const active = this.getPayment(data, schedule.price, now.ts);	// determine which Payment record is active
-		let amount = await this.member.getAmount(data);								// Account balance
-		const payments = data.account.payment;												// the list of current and pre-paid Payments
-		let activePay = payments[active];
+		// Loop through Payments to determine which is <active>
+		const tests = new Set<boolean>();									// Set of test results
+		let active: IPayment;															// Payment[0]
 
-		switch (active) {
-			case 0:																											// Current payment is still Active
-				if (!activePay[FIELD.effect])															// enable the Active Payment on first use
-					updates.push({ ...activePay, [FIELD.effect]: stamp, expiry: calcExpiry(stamp, activePay, data.client) });
+		do {
+			data = sumPayment(data);												// calc Payment summary
+			data = sumAttend(data);													// deduct Attends against this Payment
+			active = data.account.payment[0];								// current Payment
 
-				if (amount.credit === schedule.price && schedule.price) 	// no funds left on Active Payment
-					updates.push({ ...activePay, [FIELD.expire]: stamp });	// so, auto-close Payment (except $0 classes)
+			tests.add(data.account.attend.length < 100);										// arbitrary limit of Attends against a Payment             
+			tests.add(schedule.price <= data.account.summary.funds);				// enough funds to cover this Attend
+			tests.add(now.ts < (active.expiry || Number.MAX_SAFE_INTEGER));	// Payment expired
 
-				break;
+			if (!tests.has(false))
+				break;																				// all tests passed
+			tests.clear();																	// reset the test Set
+			this.dbg('test1: %j, %j', data.account.attend.length < 100, data.account.attend.length);
+			this.dbg('test2: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
+			this.dbg('test3: %j, %j, %j', now.ts < (active.expiry || Number.MAX_SAFE_INTEGER), now.ts, active.expiry);
 
-			default:																										// Future pre-payment is to become Active; rollover unused Funds
-				for (let i = 0; i < active; i++)
-					if (payments[i].approve && !payments[i][FIELD.expire])	// close previous Payment
-						updates.push({ ...payments[i], [FIELD.expire]: stamp });
+			if (active.approve)															// close previous Payment
+				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });
+			if (active.bank)																// rollover unused funds into next Payment
+				updates.push({ ...data.account.payment[1], bank: data.account.summary.funds });
 
-				updates.push({ ...activePay, [FIELD.effect]: stamp, bank: amount.funds, expiry: calcExpiry(stamp, activePay, data.client) });
-				break;
-		}
+			data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
+			data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, data.account.payment[0][FIELD.id]));
+		} while (true);
 
+		if (!active[FIELD.effect])												// enable the Active Payment on first use
+			updates.push({ ...active, [FIELD.effect]: stamp, expiry: calcExpiry(stamp, active, data.client) });
+
+		if (data.account.summary.credit === schedule.price && schedule.price) 			// no funds left on Active Payment
+			updates.push({ ...active, [FIELD.expire]: stamp });	// so, auto-close Payment (except $0 classes)
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// TODO:  also create a bonusTrack document
 		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
@@ -160,7 +184,7 @@ export class AttendService {
 			[FIELD.date]: when,														// yyyymmdd of the Attend
 			[FIELD.note]: note,														// optional 'note'
 			schedule: schedule[FIELD.id],									// <id> of the Schedule
-			payment: activePay[FIELD.id],									// <id> of Account's current active document
+			payment: active[FIELD.id],										// <id> of Account's current active document
 			amount: schedule.price,												// calculated price of the Attend
 		}
 		creates.push(attendDoc as TStoreBase);					// batch the new Attend

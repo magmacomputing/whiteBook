@@ -302,6 +302,7 @@ export interface IPayment extends IMemberBase {
 	[FIELD.type]: TPayment;
 	[FIELD.stamp]: number;						// create-date
 	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
+	adjust?: number;									// a manual adjustment to a topUp
 	bank?: number;										// un-used funds from previous payment
 	hold?: number;										// number of days to extend expiry
 	expiry?: number;									// six-months from _effect

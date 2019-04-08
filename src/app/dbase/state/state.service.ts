@@ -101,15 +101,17 @@ export class StateService {
 	/**
 	 * Watch for changes on the Member's Attendance
 	 */
-	getAttendData(): Observable<IAttendState> {
+	getAttendData(payment?: string): Observable<IAttendState> {
 		const filterAttend = [
 			addWhere(FIELD.store, STORE.attend),
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
+		if (payment)
+			filterAttend.push(addWhere(STORE.payment, payment))
 
 		return this.attend$.pipe(
 			joinDoc(this.states, 'application', STORE.default),
-			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend)//, undefined, buildAttend)
+			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend),
 		)
 	}
 

@@ -181,19 +181,25 @@ export const sumPayment = (source: IAccountState) => {
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
 			.reduce((sum, payment, indx) => {
-				if (indx === 0 && payment[FIELD.effect]) {
+				if (indx === 0/** && payment[FIELD.effect] */) {		// only 1st Payment
 					sum.bank += payment.bank || 0;
-					if (payment[FIELD.type] === 'debit')
-						sum.adjust += payment.amount || 0
-					else sum.paid += payment.amount || 0;
-				} else
-					sum.pend += (payment.amount || 0) + (payment.bank || 0);
 
-				sum.credit = sum.bank + sum.paid + sum.pend + sum.adjust;
+					if (payment[FIELD.type] === 'debit') {
+						sum.adjust += payment.amount || 0;
+						sum.paid += payment.adjust || 0;
+					} else {
+						sum.adjust += payment.adjust || 0;
+						sum.paid += payment.amount || 0;
+					}
+
+				} else
+					sum.pend += (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
+
+				sum.credit = sum.bank + sum.paid + sum.adjust + sum.pend;
 				sum.funds = sum.bank + sum.paid + sum.adjust;
 
 				return sum;
-			}, { paid: 0, bank: 0, pend: 0, adjust: 0, spend: 0, credit: 0, funds: 0 })
+			}, { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 })
 
 	}
 

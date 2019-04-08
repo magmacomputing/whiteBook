@@ -107,7 +107,7 @@ export class MigAttendComponent implements OnInit {
 					}
 				})
 			));
-		
+
 		switch (key) {
 			case 'hide':
 				this.hidden = !this.hidden;
@@ -331,7 +331,7 @@ export class MigAttendComponent implements OnInit {
 
 		this.data.batch(undefined, updates, undefined, SetMember)
 			.then(_ => this.member.getAmount())				// re-calc the new Account summary
-			.then(sum => this.data.writeAccount(sum))	// update Admin summary
+			.then(sum => { if (updates.length) this.data.writeAccount(sum) })	// update Admin summary
 			.then(_ => this.dbg('done'))
 	}
 
