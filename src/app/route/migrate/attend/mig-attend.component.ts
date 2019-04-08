@@ -132,7 +132,13 @@ export class MigAttendComponent implements OnInit {
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);
 
-				this.data.getFire<IMigrateBase>(STORE.migrate, { where: [addWhere(FIELD.uid, this.current!.uid), addWhere(FIELD.type, STORE.event)] })
+				this.data.getFire<IMigrateBase>(STORE.migrate, {
+					where: [
+						addWhere(FIELD.store, STORE.migrate),
+						addWhere(FIELD.type, STORE.event),
+						addWhere(FIELD.uid, this.current!.uid),
+					]
+				})
 					.then(migrate => this.migrate = migrate)
 					.then(res => this.dbg('migrate: %s', res.length))
 
@@ -223,6 +229,7 @@ export class MigAttendComponent implements OnInit {
 
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 		const [prefix, suffix, ...none] = what.split('*');
+		const sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
 		let idx: number = 0;
@@ -233,7 +240,6 @@ export class MigAttendComponent implements OnInit {
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-				const sfx = suffix ? suffix.split(' ')[0] : '1';
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', sfx)])[0];
 				if (!migrate) {
@@ -266,7 +272,7 @@ export class MigAttendComponent implements OnInit {
 
 			case (!isUndefined(caldr)):										// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', event.name)])[0];
+				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', sfx)])[0];
 				if (!migrate) {
 					for (idx = 0; idx < event.classes.length; idx++) {
 						if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])

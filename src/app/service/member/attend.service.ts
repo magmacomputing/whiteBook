@@ -120,7 +120,7 @@ export class AttendService {
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
 			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			return Promise.resolve(false);															// discard Attend
+			return false;																								// discard Attend
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,9 +158,13 @@ export class AttendService {
 			this.dbg('test2: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
 			this.dbg('test3: %j, %j, %j', now.ts < (active.expiry || Number.MAX_SAFE_INTEGER), now.ts, active.expiry);
 
+			if (data.account.payment.length === 1) {
+				this.snack.error(`Cannot find active Payment ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+				return false;															// discard Attend
+			}
 			if (active.approve)															// close previous Payment
 				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });
-			if (active.bank)																// rollover unused funds into next Payment
+			if (!active.bank)																// rollover unused funds into next Payment
 				updates.push({ ...data.account.payment[1], bank: data.account.summary.funds });
 
 			data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
