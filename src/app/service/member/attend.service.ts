@@ -16,7 +16,7 @@ import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment } from '@d
 
 import { getDate, DATE_FMT } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
-import { cloneObj } from '@lib/object.library';
+import { cloneObj, getPath } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -149,7 +149,7 @@ export class AttendService {
 
 			tests.add(data.account.attend.length < 100);										// arbitrary limit of Attends against a Payment             
 			tests.add(schedule.price <= data.account.summary.funds);				// enough funds to cover this Attend
-			tests.add(now.ts < (active.expiry || Number.MAX_SAFE_INTEGER));	// Payment expired
+			tests.add(now.ts < (getPath(active, 'expiry') || Number.MAX_SAFE_INTEGER));	// Payment expired
 
 			if (!tests.has(false))
 				break;																				// all tests passed
@@ -162,13 +162,18 @@ export class AttendService {
 				this.snack.error(`Cannot find active Payment ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 				return false;															// discard Attend
 			}
+
+			const next = data.account.payment[1];
+			if (!next.bank) {																// rollover unused funds into next Payment
+				data.account.payment[1].bank = data.account.summary.funds;
+				updates.push({ ...data.account.payment[1] });
+			}
+
 			if (active.approve)															// close previous Payment
 				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });
-			if (!active.bank)																// rollover unused funds into next Payment
-				updates.push({ ...data.account.payment[1], bank: data.account.summary.funds });
 
 			data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
-			data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, data.account.payment[0][FIELD.id]));
+			data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
 		} while (true);
 
 		if (!active[FIELD.effect])												// enable the Active Payment on first use

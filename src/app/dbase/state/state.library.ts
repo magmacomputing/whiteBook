@@ -184,13 +184,13 @@ export const sumPayment = (source: IAccountState) => {
 				if (indx === 0/** && payment[FIELD.effect] */) {		// only 1st Payment
 					sum.bank += payment.bank || 0;
 
-					if (payment[FIELD.type] === 'debit') {
-						sum.adjust += payment.amount || 0;
-						sum.paid += payment.adjust || 0;
-					} else {
+					// if (payment[FIELD.type] === 'debit') {
+					// 	sum.adjust += payment.amount || 0;
+					// 	sum.paid += payment.adjust || 0;
+					// } else {
 						sum.adjust += payment.adjust || 0;
 						sum.paid += payment.amount || 0;
-					}
+					// }
 
 				} else
 					sum.pend += (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);

@@ -183,22 +183,16 @@ export class MigAttendComponent implements OnInit {
 				}
 
 				this.dbg('row: %j', row);
-				const paym = {
-					[FIELD.id]: this.data.newId,
+				return {
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: payType,
-					[FIELD.uid]: this.current!.uid,
 					stamp: row.stamp,
 					hold: row.hold,
-					amount: parseFloat(row.credit!),
+					amount: payType === 'topUp' ? parseFloat(row.credit!) : 0,
+					adjust: payType === 'topUp' ? undefined : parseFloat(row.credit!),
+					approve: approve.stamp && approve,
+					note: row.note,
 				} as IPayment
-
-				if (row.note)
-					paym.note = row.note;
-				if (approve.stamp)
-					paym.approve = approve;
-
-				return paym;
 			});
 
 		this.data.batch(creates, undefined, undefined, SetMember)
@@ -251,7 +245,7 @@ export class MigAttendComponent implements OnInit {
 						throw new Error('Cannot determine class');
 
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: asString(sfx),
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: sfx,
 						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
 					});
 				}
@@ -281,7 +275,7 @@ export class MigAttendComponent implements OnInit {
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: event.name,
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: sfx,//event.name,
 						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
 					});
 				}
@@ -322,8 +316,8 @@ export class MigAttendComponent implements OnInit {
 			closed = active[0].approve[FIELD.stamp];
 			if (closed < getStamp() && !active[0][FIELD.expire]) {
 				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
-				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -summary.pend });
-				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp, });
+				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -summary.funds });
+				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp });
 			}
 		}
 
