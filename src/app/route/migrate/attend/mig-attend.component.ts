@@ -188,7 +188,7 @@ export class MigAttendComponent implements OnInit {
 					[FIELD.type]: payType,
 					stamp: row.stamp,
 					hold: row.hold,
-					amount: payType === 'topUp' ? parseFloat(row.credit!) : 0,
+					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
 					adjust: payType === 'topUp' ? undefined : parseFloat(row.credit!),
 					approve: approve.stamp && approve,
 					note: row.note,

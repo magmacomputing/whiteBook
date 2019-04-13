@@ -49,17 +49,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 }
 
 export const getMemberAge = (info: IProfileInfo[] = []) =>
-	getDate(getMemberBirthDay(info)).diff();						// diff (in years) from today
-
-/**
- * Determine if a new payment is due.  
- * -> if the price of the intended class is greater than their current credit  
- * -> if they've exceeded 99 Attends against a Payment  
- * -> if their intro-pass has expired (auto bump them to 'member' plan)  
- */
-export const paymentDue = () => {
-	return true;
-}
+	getDate(getMemberBirthDay(info)).diff('years');						// diff from today
 
 /** A Member's payment will auto-expire (i.e. unused funds lapse) after a number of months */
 export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState["client"]) => {
@@ -73,6 +63,6 @@ export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState[
 			: plan.expiry;																// allow for gratis account expiry
 		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
 	}
-	
+
 	return undefined;
 }

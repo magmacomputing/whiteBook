@@ -160,7 +160,7 @@ export class AttendService {
 
 			if (data.account.payment.length === 1) {
 				this.snack.error(`Cannot find active Payment ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-				return false;															// discard Attend
+				return false;																	// discard Attend
 			}
 
 			const next = data.account.payment[1];
@@ -176,11 +176,16 @@ export class AttendService {
 			data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
 		} while (true);
 
-		if (!active[FIELD.effect])												// enable the Active Payment on first use
-			updates.push({ ...active, [FIELD.effect]: stamp, expiry: calcExpiry(stamp, active, data.client) });
+		const upd: Partial<IPayment> = {};								// updates to the Payment
+		if (!active[FIELD.effect])
+			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
+		if (data.account.summary.credit === schedule.price && schedule.price)
+			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
+		if (!active.expiry && active.approve)							// calc an Expiry for this Payment
+			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
-		if (data.account.summary.credit === schedule.price && schedule.price) 			// no funds left on Active Payment
-			updates.push({ ...active, [FIELD.expire]: stamp });	// so, auto-close Payment (except $0 classes)
+		if (Object.keys(upd).length)
+			updates.push({ ...active, ...upd });						// batch the Payment update
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// TODO:  also create a bonusTrack document
