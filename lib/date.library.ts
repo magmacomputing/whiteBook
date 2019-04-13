@@ -9,9 +9,9 @@ interface IInstant {											// Date components
 	HH: number;															// hour[24]
 	MI: number;															// minute
 	SS: number;															// second
-	ww: number;															// number of weeks
-	ts: number;															// Unix timestamp
 	ms: number;															// milliseconds
+	ts: number;															// timestamp
+	ww: number;															// number of weeks
 	mmm: string;														// short month-name
 	ddd: string;														// short day-name
 	dow: number;														// weekday; Mon=1, Sun=7
@@ -63,9 +63,9 @@ export class Instant {
 	/** minute */					get MM() { return this.date.MI }
 	/** minute copy */		get MI() { return this.date.MI }
 	/** seconds */				get SS() { return this.date.SS }
-	/** number of weeks*/	get ww() { return this.date.ww }
-	/** unix timestamp */	get ts() { return this.date.ts }
 	/** milliseconds */		get ms() { return this.date.ms }
+	/** unix timestamp */	get ts() { return this.date.ts }
+	/** number of weeks*/	get ww() { return this.date.ww }
 	/** weekday number */	get dow() { return this.date.dow }
 	/** short day name */	get ddd() { return this.date.ddd }
 	/** short month name*/get mmm() { return this.date.mmm }
@@ -79,7 +79,7 @@ export class Instant {
 	/** middle offset */	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 
-	/** as Date object */	asDate = () => new Date(this.date.ms);
+	/** as Date object */	asDate = () => new Date(this.date.ts * 1000 + this.date.ms);
 	/** get raw object */	valueOf = () => ({ ...this.date });
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 
@@ -101,7 +101,7 @@ export class Instant {
 				date = dt as Date;
 				break;
 			case 'Instant':																					// already have a valid Date
-				date = new Date((dt as Instant).ms);
+				date = new Date((dt as Instant).ts * 1000 + (dt as Instant).ms);
 				break;
 			case 'String':																					// TODO: use fmt to parse date-string
 				date = new Date(dt as string);												// attempt to parse date-string
@@ -118,10 +118,10 @@ export class Instant {
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.log('Invalid Date: ', dt, date);								// log the Invalid Date
 
-		let [yy, mm, dd, HH, MI, SS, ts, ms, dow] = [
+		let [yy, mm, dd, HH, MI, SS, ms, ts, dow] = [
 			date.getFullYear(), date.getMonth(), date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
-			Math.round(date.getTime() / 1000), date.getTime(), date.getDay(),
+			date.getMilliseconds(), Math.round(date.getTime() / 1000), date.getDay(),
 		];
 
 		mm += 1;																									// ISO month
@@ -131,18 +131,18 @@ export class Instant {
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf() / 1000;	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, HH, MI, SS, ww, ts, ms, dow, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
+		return { yy, mm, dd, HH, MI, SS, ms, ts, ww, dow, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
 	}
 
 	/** mutate an Instant */
 	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, offset: number = 1) => {
 		const date = { ...this.date };														// clone the current Instant
 		if (mutate !== 'add')
-			[date.HH, date.MI, date.SS] = [0, 0, 0];								// discard the time-portion of the date
+			[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];		// discard the time-portion of the date
 
 		switch (`${mutate}.${unit}`) {
 			case 'start.day':
-				[date.HH, date.MI, date.SS] = [0, 0, 0];
+				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
 				break;
 			case 'start.week':
 				date.dd -= date.dow + Instant.DAY.Mon;
@@ -151,7 +151,7 @@ export class Instant {
 				date.dd = 1;
 				break;
 			case 'mid.day':
-				[date.HH, date.MI, date.SS] = [12, 0, 0];
+				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
 				break;
 			case 'mid.week':
 				date.dd -= date.dow + Instant.DAY.Thu;
@@ -160,7 +160,7 @@ export class Instant {
 				date.dd = 15;
 				break;
 			case 'end.day':
-				[date.HH, date.MI, date.SS] = [23, 59, 59];
+				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.week':
 				date.dd -= date.dow + Instant.DAY.Sun;
@@ -187,7 +187,7 @@ export class Instant {
 				break;
 		}
 
-		return new Instant(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS));
+		return new Instant(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms));
 	}
 
 	/** combine Instant components to apply some standard / free-format rules */
@@ -233,10 +233,10 @@ export class Instant {
 					.replace(/M{2}/g, fix(date.MI))
 					.replace(/MI/g, fix(date.MI))
 					.replace(/S{2}/g, fix(date.SS))
+					.replace(/ms/g, asString(date.ms))
+					.replace(/ts/g, asString(date.ts))
 					.replace(/w{2}/g, asString(date.ww))
 					.replace(/dow/g, asString(date.dow))
-					.replace(/ts/g, asString(date.ts))
-					.replace(/ms/g, asString(date.ms))
 				break;
 		}
 		// @ts-ignore			TODO: set return-type according to IDateFmt[K] | string
