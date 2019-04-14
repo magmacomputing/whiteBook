@@ -111,7 +111,7 @@ export class DataService {
 			let where: TWhere;
 
 			try {
-				nextDoc = docPrep(nextDoc, await this.getUID())											// make sure we have a <key/uid>
+				nextDoc = docPrep(nextDoc, uid);										// make sure we have a <key/uid>
 				where = getWhere(nextDoc as IMeta, filter);
 			} catch (error) {
 				this.snack.open(error.message);                     // show the error to the User

@@ -31,8 +31,9 @@ export class MemberService {
 		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}
 
-	async setPlan(plan: TPlan) {
+	async setPlan(plan: TPlan, dt?: TDate) {
 		const doc = {
+			[FIELD.effect]: getStamp(dt),
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'plan',
 			plan
@@ -103,6 +104,7 @@ export class MemberService {
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'info',
+			[FIELD.uid]: user.auth.user!.uid,
 		}
 
 		const where = addWhere('providerId', user.auth.info.providerId);

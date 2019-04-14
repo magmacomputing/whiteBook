@@ -316,7 +316,7 @@ export class MigAttendComponent implements OnInit {
 			closed = active[0].approve[FIELD.stamp];
 			if (closed < getStamp() && !active[0][FIELD.expire]) {
 				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
-				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: -summary.funds });
+				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: summary.funds });
 				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp });
 			}
 		}
