@@ -119,8 +119,13 @@ export class AttendService {
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
-			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			return false;																								// discard Attend
+			switch (true) {
+				case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:
+					break;
+				default:
+					this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+					return false;																								// discard Attend
+			}
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
