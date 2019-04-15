@@ -1,7 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 
-import { createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: 'root' })
@@ -20,5 +19,9 @@ export class NavigateService {
           .catch(err => reject(err))
       )
     )
+  }
+
+  get url() {
+    return this.router.url;
   }
 }
