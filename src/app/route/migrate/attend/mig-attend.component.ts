@@ -91,7 +91,7 @@ export class MigAttendComponent implements OnInit {
 
 	ngOnInit() { }
 
-	filter(key?: string) {
+	private filter(key?: string) {
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.admin.dashBoard!
 				.filter(row => row.register.migrate)
@@ -119,8 +119,6 @@ export class MigAttendComponent implements OnInit {
 				break;
 		}
 	}
-
-
 
 	async signIn(register: IRegister) {
 		this.current = register;																	// stash current Member
@@ -182,6 +180,20 @@ export class MigAttendComponent implements OnInit {
 					approve.uid = 'JorgeEC';
 				}
 
+				if (payType === 'topUp') {
+					row.debit = undefined;
+				} else {
+					row.debit = row.credit;
+					row.credit = undefined;
+				}
+
+				if (row.hold && row.hold <= 0) {
+					row.debit = asString(row.hold);
+					row.hold = undefined;
+					if (row.note && row.note.startsWith('Request for '))
+						row.note = 'Write-off part topUp amount';
+				}
+
 				this.dbg('row: %j', row);
 				return {
 					[FIELD.store]: STORE.payment,
@@ -189,7 +201,7 @@ export class MigAttendComponent implements OnInit {
 					stamp: row.stamp,
 					hold: row.hold,
 					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
-					adjust: payType === 'topUp' ? undefined : parseFloat(row.credit!),
+					adjust: row.debit && parseFloat(row.debit),
 					approve: approve.stamp && approve,
 					note: row.note,
 				} as IPayment
@@ -204,7 +216,7 @@ export class MigAttendComponent implements OnInit {
 	/**
 	 * Add Attendance records for a Member
 	 */
-	addAttend() {
+	public addAttend() {
 		this.history																			// a sorted-list of Attendance check-ins / account payments
 			.then(history => {
 				const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
@@ -212,7 +224,7 @@ export class MigAttendComponent implements OnInit {
 			})
 	}
 
-	nextAttend(row: MHistory, ...rest: MHistory[]) {
+	private nextAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
 		const what = this.lookup[row.type] || row.type;
 		const dow = getDate(row.date).dow;
@@ -235,8 +247,8 @@ export class MigAttendComponent implements OnInit {
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', sfx)])[0];
-				if (!migrate) {
+				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
+				if (!migrate || !migrate.attend[sfx]) {
 					for (idx = 0; idx < event.classes.length; idx++) {
 						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
@@ -244,14 +256,17 @@ export class MigAttendComponent implements OnInit {
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
 
+					const attend = migrate && migrate.attend || {};
+					attend[sfx] = event.classes[idx];
+
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: sfx,
-						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
+						[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
 					});
 				}
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: (migrate && migrate.class) || event.classes[idx],
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: (migrate && migrate.attend[sfx]) || event.classes[idx],
 					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 
@@ -266,17 +281,21 @@ export class MigAttendComponent implements OnInit {
 
 			case (!isUndefined(caldr)):										// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere('order', sfx)])[0];
-				if (!migrate) {
+				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
+				if (!migrate || !migrate.attend[sfx]) {
 					for (idx = 0; idx < event.classes.length; idx++) {
-						if (window.prompt(`This class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
 					}
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
+
+					const attend = migrate && migrate.attend || {};
+					attend[sfx] = event.classes[idx];
+
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, order: sfx,//event.name,
-						[FIELD.type]: STORE.event, [FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, class: event.classes[idx]
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
+						[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
 					});
 				}
 
@@ -335,7 +354,7 @@ export class MigAttendComponent implements OnInit {
 			.then(_ => this.dbg('done'))
 	}
 
-	async delPayment() {
+	async delPayment(full: boolean) {
 		const where = [
 			addWhere(FIELD.store, STORE.payment),
 			addWhere(FIELD.uid, this.current!.user.uid),
@@ -345,6 +364,16 @@ export class MigAttendComponent implements OnInit {
 		where.length = 0;													// truncate where-clause
 		where.push(addWhere(FIELD.uid, this.current!.user.uid));
 		deletes.push(...await this.data.getFire<TStoreBase>(COLLECTION.attend, { where }));
+
+		if (full) {
+			where.length = 0;
+			where.push(...[
+				addWhere(FIELD.store, STORE.migrate),
+				addWhere(FIELD.type, STORE.event),
+				addWhere(FIELD.uid, this.current!.user.uid),
+			]);
+			deletes.push(...await this.data.getFire<TStoreBase>(COLLECTION.migrate, { where }));
+		}
 
 		return this.data.batch(undefined, undefined, deletes)
 			.then(_ => this.member.getAmount())

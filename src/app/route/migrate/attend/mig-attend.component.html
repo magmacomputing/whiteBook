@@ -16,8 +16,8 @@
 					<button (click)="addPayment()" [disabled]="data.account.payment?.length">Add Payments</button>
 					<button (click)="addAttend()" [disabled]="1 === 0 && data.account.attend?.length">Add Attends</button>
 					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
-					<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
-					<button (click)="delPayment()">Reset</button>
+					<button (click)="delAttend()" [disabled]="1 === 0 && !data.account.attend?.length">Del Attends</button>
+					<button (click)="delPayment(true)">Reset</button>
 					<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
 				</div>
 			</div>

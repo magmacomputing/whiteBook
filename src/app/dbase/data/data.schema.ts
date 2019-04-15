@@ -66,8 +66,9 @@ export interface IMigrateBase extends IMeta {
 	[FIELD.type]: STORE.event;
 	[FIELD.uid]: string;
 	[FIELD.key]: string;
-	class: string;
-	order: string;
+	attend: {
+		[order: string]: string;
+	}
 }
 export interface IStoreMeta extends IMeta {
 	[key: string]: any;											// add in index-signature
