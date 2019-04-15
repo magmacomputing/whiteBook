@@ -5,11 +5,12 @@
 	<hr>
 	<div *ngFor="let dash of dash$">
 		<p>
+			<img (click)="signIn(dash.register)" [src]="dash.register.user.photoURL" width="50" height="50" >
 			{{ dash.register.migrate.sheetName }}
 			${{ !dash.account && 'none' || dash.account.summary.credit | json}}
-			<button color="primary" (click)="signIn(dash.register)" [disabled]="current"
+			<!-- <button color="primary" (click)="signIn(dash.register)" [disabled]="current"
 				[hidden]="current && current.migrate.sheetName == dash.register.migrate.sheetName">
-				SignIn </button>
+				SignIn </button> -->
 			<div *ngIf="current && current.migrate.sheetName == dash.register.migrate.sheetName">
 				<div *ngIf="account$ | async as data">
 					<button color="accent" (click)="signOut()">SignOut</button>
