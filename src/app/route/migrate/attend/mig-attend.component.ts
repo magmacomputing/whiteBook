@@ -25,6 +25,7 @@ import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNumber } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
+import { isNull } from 'util';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -36,7 +37,7 @@ export class MigAttendComponent implements OnInit {
 	private prefix = 'alert';
 	public hidden = false;
 	public creditIdx = 0;
-	public credit = ['all', 'value', 'zero'];
+	public credit = ['value', 'zero', 'all'];
 
 	private account$!: Observable<IAccountState>;
 	private dash$!: Observable<IAdminState["admin"]["dashBoard"]>;
@@ -143,12 +144,12 @@ export class MigAttendComponent implements OnInit {
 				this.data.getFire<IMigrateBase>(STORE.migrate, {
 					where: [
 						addWhere(FIELD.store, STORE.migrate),
-						addWhere(FIELD.type, STORE.event),
+						addWhere(FIELD.type, [STORE.class, STORE.event]),
 						addWhere(FIELD.uid, this.current!.uid),
 					]
 				})
 					.then(migrate => this.migrate = migrate)
-					.then(res => this.dbg('migrate: %s', res.length))
+					.then(_ => this.dbg('migrate: %s', this.migrate.length))
 
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
@@ -237,7 +238,8 @@ export class MigAttendComponent implements OnInit {
 	private nextAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
 		const what = this.lookup[row.type] || row.type;
-		const dow = getDate(row.date).dow;
+		const now = getDate(row.date);
+		const dow = now.dow;
 		const where = [
 			addWhere(FIELD.key, what),
 			addWhere('day', dow),
@@ -252,6 +254,24 @@ export class MigAttendComponent implements OnInit {
 		let migrate: IMigrateBase;
 
 		switch (true) {
+			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
+				migrate = asAt(this.migrate, [addWhere(FIELD.key, asString(now.format(DATE_FMT.yearMonthDay))), addWhere(FIELD.uid, this.current!.uid)])[0];
+				let klass = migrate && migrate.attend && migrate.attend.class || null;
+				if (isUndefined(migrate)) {
+					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, 'Zumba');
+					if (isNull(klass))
+						throw new Error('Cannot determine class');
+
+					const attend = { class: klass };
+					this.data.setDoc(STORE.migrate, {
+						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.class,
+						[FIELD.key]: asString(now.format(DATE_FMT.yearMonthDay)), [FIELD.uid]: this.current!.uid, attend,
+					})
+				}
+
+				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
+				break;
+
 			case this.special.includes(prefix):						// special event match by <type>, so we need to guess the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
@@ -289,7 +309,7 @@ export class MigAttendComponent implements OnInit {
 				}
 				break;
 
-			case (!isUndefined(caldr)):										// special event match by <date>, so we already know the 'class'
+			case (!isUndefined(caldr)):											// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
 				if (!migrate || !migrate.attend[sfx]) {

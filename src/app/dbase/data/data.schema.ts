@@ -63,7 +63,7 @@ interface IAdminBase extends IMeta {
 }
 export interface IMigrateBase extends IMeta {
 	[FIELD.store]: TStoreMigrate;
-	[FIELD.type]: STORE.event;
+	[FIELD.type]: STORE.event | STORE.class;
 	[FIELD.uid]: string;
 	[FIELD.key]: string;
 	attend: {

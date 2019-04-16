@@ -1,5 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
-import { merge, Observable } from 'rxjs';
+import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
 import * as firebase from 'firebase/app';
 
@@ -10,7 +10,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { TStoreBase, IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
+import { IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -44,9 +44,16 @@ export class FireService {
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
-	merge<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]):
-		Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]> {
-		return merge(...(colRefs.map(colRef => colRef[type]())))
+	merge<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+		return merge(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
+	}
+
+	combine<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+		return combineLatest(colRefs.map(colRef => colRef[type]())) as (Observable<U extends 'valueChanges' ? T[][] : DocumentChangeAction<T>[][]>);
+	}
+
+	concat<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+		return concat(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
 	}
 
 	/** Document Reference, for existing or new */

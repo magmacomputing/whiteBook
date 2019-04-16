@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
-import { ISummary, IAccountState } from '@dbase/state/state.define';
+import { IAccountState } from '@dbase/state/state.define';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
+import { MEMBER } from '@service/member/member.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/snack/snack.service';
@@ -65,7 +66,7 @@ export class AttendService {
 		let active = 0;																		// start at the last active Payment
 
 		do {
-			tests.push(source.account.attend.length < 100);	// arbitrary limit of Attends against a Payment             
+			tests.push(source.account.attend.length < MEMBER.maxColumn);	// arbitrary limit of Attends against a Payment             
 			tests.push(price < source.account.summary.funds);// enough funds to cover this Attend
 			tests.push(ts < (payments[0].expiry || Number.MAX_SAFE_INTEGER));
 

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, delay } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
@@ -78,12 +78,16 @@ export class DataService {
 			.then(current => current!.uid);
 	}
 
-	async getFire<T>(collection: string, query?: IQuery) {			// direct access to collection, rather than via state
-		const snap = await this.fire.merge('snapshotChanges', this.fire.colRef<T>(collection, query))
-			.pipe(take(1))
+	async getFire<T>(collection: string, query?: IQuery) {		// direct access to collection, rather than via state
+		const snap = await this.fire.combine('snapshotChanges', this.fire.colRef<T>(collection, query))
+			.pipe(take(1))																				// wait for all values
 			.toPromise()
 
-		return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
+		return snap																							// if query had array-of-value, then fire.combine will return an array of snapshots
+			.map(obs => obs
+				.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
+			.flat()
+		// return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
 	}
 
 	get newId() {
