@@ -66,7 +66,7 @@ export class Instant {
 	/** minute copy */		get MI() { return this.date.MI }
 	/** seconds */				get SS() { return this.date.SS }
 	/** milliseconds */		get ms() { return this.date.ms }
-	/** unix timestamp */	get ts() { return this.date.ts }
+	/** seconds */				get ts() { return this.date.ts }
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** weekday number */	get dow() { return this.date.dow }
 	/** short day name */	get ddd() { return this.date.ddd }
