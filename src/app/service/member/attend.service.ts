@@ -193,7 +193,6 @@ export class AttendService {
 			updates.push({ ...active, ...upd });						// batch the Payment update
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// TODO:  also create a bonusTrack document
 		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
@@ -205,6 +204,11 @@ export class AttendService {
 			schedule: schedule[FIELD.id],									// <id> of the Schedule
 			payment: active[FIELD.id],										// <id> of Account's current active document
 			amount: schedule.price,												// calculated price of the Attend
+			track: {
+				day: now.dow,																// day of week
+				week: now.format(DATE_FMT.week),						// week-number of year
+				month: now.format(DATE_FMT.yearMonth),			// month-number of year
+			}
 		}
 		creates.push(attendDoc as TStoreBase);					// batch the new Attend
 

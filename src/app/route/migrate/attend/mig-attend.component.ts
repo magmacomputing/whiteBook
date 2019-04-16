@@ -18,7 +18,7 @@ import { SetMember } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
-import { IQuery } from '@dbase/fire/fire.interface';
+import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
@@ -90,6 +90,16 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	ngOnInit() { }
+
+	async delUser() {
+		const where: TWhere = [addWhere(FIELD.uid, this.current!.user.uid)];
+		const deletes: IStoreMeta[] = [];
+
+		deletes.push(...await this.data.getFire<IStoreMeta>(COLLECTION.member, { where }));
+		deletes.push(...await this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }));
+		deletes.push(...await this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }));
+		return this.data.batch(undefined, undefined, deletes);
+	}
 
 	private filter(key?: string) {
 		this.dash$ = this.state.getAdminData().pipe(

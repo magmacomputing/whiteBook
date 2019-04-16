@@ -5,9 +5,10 @@
 	<hr>
 	<div *ngFor="let dash of dash$">
 		<p>
-			<img (click)="signIn(dash.register)" [src]="dash.register.user.photoURL" width="50" height="50" title="{{dash.register | json}}" >
+				<img (click)="signIn(dash.register)" [src]="dash.register.user.photoURL" width="50" height="50"
+					altSrc="'https://source.unsplash.com/random/200x200'" title="{{dash.register | json}}">
 			{{ dash.register.migrate.sheetName }}
-			${{ !dash.account && 'none' || dash.account.summary.credit | json}}
+			${{ !dash.account && ' none' || dash.account.summary.credit | json}}
 			<!-- <button color="primary" (click)="signIn(dash.register)" [disabled]="current"
 				[hidden]="current && current.migrate.sheetName == dash.register.migrate.sheetName">
 				SignIn </button> -->
@@ -18,7 +19,9 @@
 					<button (click)="addAttend()" [disabled]="1 === 0 && data.account.attend?.length">Add Attends</button>
 					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
 					<button (click)="delAttend()" [disabled]="1 === 0 && !data.account.attend?.length">Del Attends</button>
-					<button (click)="delPayment(true)">Reset</button>
+					<br>
+					<button (click)="delPayment(true)">Reset Account</button>
+					<button (click)="delUser()">Delete User</button>
 					<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
 				</div>
 			</div>

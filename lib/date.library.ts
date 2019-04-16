@@ -22,8 +22,9 @@ interface IDateFmt {											// pre-configured format strings
 	"yyyy-mm-dd HH:MI": string;
 	"dd-mmm": string;
 	"HH:MI": string;
-	"yyyymmdd": number;
 	"yyyyww": number;
+	"yyyymm": number;
+	"yyyymmdd": number;
 }
 
 export enum DATE_FMT {										// pre-configured format names
@@ -31,8 +32,9 @@ export enum DATE_FMT {										// pre-configured format names
 	dateTime = 'yyyy-mm-dd HH:MI',
 	dayMonth = 'dd-mmm',
 	HHmi = 'HH:MI',
-	yearMonthDay = 'yyyymmdd',
 	week = 'yyyyww',
+	yearMonth = 'yyyymm',
+	yearMonthDay = 'yyyymmdd',
 }
 
 export type TDate = string | number | Date | Instant;
@@ -219,6 +221,10 @@ export class Instant {
 			case DATE_FMT.week:
 				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yyyy
 				result = parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
+				break;
+			
+			case DATE_FMT.yearMonth:
+				result = parseInt(`${fix(date.yy)}${fix(date.mm)}`);
 				break;
 
 			default:
