@@ -80,14 +80,13 @@ export class DataService {
 
 	async getFire<T>(collection: string, query?: IQuery) {		// direct access to collection, rather than via state
 		const snap = await this.fire.combine('snapshotChanges', this.fire.colRef<T>(collection, query))
-			.pipe(take(1))																				// wait for all values
+			.pipe(take(1))																				// wait for first emit from each Observable in value-array
 			.toPromise()
 
 		return snap																							// if query had array-of-value, then fire.combine will return an array of snapshots
 			.map(obs => obs
 				.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
-			.flat()
-		// return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
+			.flat()																								// flatten the array-of-values results
 	}
 
 	get newId() {
