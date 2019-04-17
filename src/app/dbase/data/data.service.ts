@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take, delay } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
@@ -82,11 +82,10 @@ export class DataService {
 		const snap = await this.fire.combine('snapshotChanges', this.fire.colRef<T>(collection, query))
 			.pipe(take(1))																				// wait for first emit from each Observable in value-array
 			.toPromise()
+			.then(obs => obs.flat())															// flatten the array-of-values results
 
-		return snap																							// if query had array-of-value, then fire.combine will return an array of snapshots
-			.map(obs => obs
-				.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
-			.flat()																								// flatten the array-of-values results
+		return snap
+			.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }))
 	}
 
 	get newId() {
