@@ -96,12 +96,20 @@ export class AttendService {
 	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: TString, date?: number) {
-		let data = await this.member.getAccount(date);							// get Member's current account details
+		let data = await this.member.getAccount(date);		// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
 		if (isUndefined(schedule.price))
 			schedule.price = await this.member.getEventPrice(schedule[FIELD.key], data);
 
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		// TODO: check if <price> should be overridden with Bonus
+		let bonus: string | undefined;										// reference the Bonus that applies to this attend
+		if (schedule.price === 0) {
+
+		}
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
@@ -122,10 +130,10 @@ export class AttendService {
 		if (booked.length) {
 			switch (true) {
 				case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:
-					break;
+					break;																			// we dont already have an Attend with no note
 				default:
 					this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-					return false;																								// discard Attend
+					return false;																// discard Attend
 			}
 		}
 
@@ -139,8 +147,8 @@ export class AttendService {
 			const topUp = await this.member.getPayPrice(data);
 			const payment = await this.member.setPayment(Math.max(gap, topUp));
 
-			creates.push(payment);																			// stack the topUp Payment
-			data.account.payment.push(payment);													// append to the Payment array
+			creates.push(payment);													// stack the topUp Payment
+			data.account.payment.push(payment);							// append to the Payment array
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -197,24 +205,25 @@ export class AttendService {
 		// build the Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
-			[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
-			[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
-			[FIELD.stamp]: stamp,													// createDate
-			[FIELD.date]: when,														// yyyymmdd of the Attend
-			[FIELD.note]: note,														// optional 'note'
-			schedule: schedule[FIELD.id],									// <id> of the Schedule
-			payment: active[FIELD.id],										// <id> of Account's current active document
-			amount: schedule.price,												// calculated price of the Attend
+			[FIELD.type]: schedule[FIELD.type],							// the type of Attend ('class','event','special')
+			[FIELD.key]: schedule[FIELD.key] as TClass,			// the Attend's class
+			[FIELD.stamp]: stamp,														// createDate
+			[FIELD.date]: when,															// yyyymmdd of the Attend
+			[FIELD.note]: note,															// optional 'note'
+			schedule: schedule[FIELD.id],										// <id> of the Schedule
+			payment: active[FIELD.id],											// <id> of Account's current active document
+			bonus: bonus,																		// <id> of the Bonus
+			amount: schedule.price,													// calculated price of the Attend
 			track: {
-				day: now.dow,																// day of week
-				week: now.format(DATE_FMT.week),						// week-number of year
-				month: now.format(DATE_FMT.yearMonth),			// month-number of year
+				day: now.dow,																	// day of week
+				week: now.format(DATE_FMT.week),							// week-number of year
+				month: now.format(DATE_FMT.yearMonth),				// month-number of year
 			}
 		}
-		creates.push(attendDoc as TStoreBase);					// batch the new Attend
+		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 
 		return this.data.batch(creates, updates, undefined, SyncAttend)
-			.then(_ => this.member.getAmount())						// re-calc the new Account summary
-			.then(sum => this.data.writeAccount(sum))			// update Admin summary
+			.then(_ => this.member.getAmount())							// re-calc the new Account summary
+			.then(sum => this.data.writeAccount(sum))				// update Admin summary
 	}
 }

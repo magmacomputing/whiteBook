@@ -94,12 +94,13 @@ export class MigAttendComponent implements OnInit {
 
 	async delUser() {
 		const where: TWhere = [addWhere(FIELD.uid, this.current!.user.uid)];
-		const deletes: IStoreMeta[] = [];
+		const deletes = await Promise.all([
+			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
+		]);
 
-		deletes.push(...await this.data.getFire<IStoreMeta>(COLLECTION.member, { where }));
-		deletes.push(...await this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }));
-		deletes.push(...await this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }));
-		return this.data.batch(undefined, undefined, deletes);
+		return this.data.batch(undefined, undefined, deletes.flat());
 	}
 
 	private filter(key?: string) {
@@ -181,7 +182,7 @@ export class MigAttendComponent implements OnInit {
 	async addPayment() {
 		const hist = (await this.history) || [];
 		const creates = hist
-			.filter(row => row.type === 'Debit' || row.type === 'Credit')
+			.filter(row => (row.type === 'Debit' && !(row.note && row.note.startsWith('Auto-Approve Credit ')) || row.type === 'Credit'))
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.startsWith('Write-off')) ? 'debit' : 'topUp';
