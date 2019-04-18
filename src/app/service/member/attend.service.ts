@@ -142,14 +142,14 @@ export class AttendService {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
-		if (schedule.price > data.account.summary.credit) {
-			const gap = schedule.price - data.account.summary.credit;
-			const topUp = await this.member.getPayPrice(data);
-			const payment = await this.member.setPayment(Math.max(gap, topUp));
+		// if (!data.account.payment[0] || schedule.price > data.account.summary.credit) {
+		// 	const gap = schedule.price - data.account.summary.credit;
+		// 	const topUp = await this.member.getPayPrice(data);
+		// 	const payment = await this.member.setPayment(Math.max(gap, topUp));
 
-			creates.push(payment);													// stack the topUp Payment
-			data.account.payment.push(payment);							// append to the Payment array
-		}
+		// 	creates.push(payment);													// stack the topUp Payment
+		// 	data.account.payment.push(payment);							// append to the Payment array
+		// }
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Loop through Payments to determine which is <active>
@@ -172,9 +172,18 @@ export class AttendService {
 			this.dbg('test2: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
 			this.dbg('test3: %j, %j, %j', now.ts < (active.expiry || Number.MAX_SAFE_INTEGER), now.ts, active.expiry);
 
-			if (data.account.payment.length === 1) {
-				this.snack.error(`Cannot find active Payment ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-				return false;																	// discard Attend
+			if (data.account.payment.length === 1) {				// create a new Payment
+				// this.snack.error(`Cannot find active Payment ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+				// return false;																	// discard Attend
+				const gap = schedule.price - data.account.summary.credit;
+				const topUp = await this.member.getPayPrice(data);
+				const payment = await this.member.setPayment(Math.max(gap, topUp));
+
+				if (topUp === 0)
+					payment.approve = { uid: 'Auto-Approve', stamp: now.ts }
+
+				creates.push(payment);												// stack the topUp Payment into the batch
+				data.account.payment.push(payment);						// append to the Payment array
 			}
 
 			const next = data.account.payment[1];

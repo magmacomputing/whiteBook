@@ -54,6 +54,7 @@ export class MemberService {
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
 			amount: isUndefined(amount) ? topUp : amount,
+			stamp: getStamp(),
 		} as IPayment
 	}
 
