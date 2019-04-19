@@ -170,21 +170,21 @@ export class Instant {
 				date.mm += 1;
 				date.dd = 0;
 				break;
-			case 'add.month':
-			case 'add.months':
-				date.mm += offset;
-				break;
-			case 'add.day':
-			case 'add.days':
-				date.dd += offset;
+			case 'add.minute':
+			case 'add.minutes':
+				date.MI += offset;
 				break;
 			case 'add.hour':
 			case 'add.hours':
 				date.HH += offset;
 				break;
-			case 'add.minute':
-			case 'add.minutes':
-				date.MI += offset;
+			case 'add.day':
+			case 'add.days':
+				date.dd += offset;
+				break;
+			case 'add.month':
+			case 'add.months':
+				date.mm += offset;
 				break;
 		}
 
@@ -200,31 +200,31 @@ export class Instant {
 			case DATE_FMT.HHMI:
 				result = `${fix(date.HH)}:${fix(date.MI)}`;
 				break;
-		
-				case DATE_FMT.display:
+
+			case DATE_FMT.display:
 				result = `${date.ddd}, ${fix(date.dd)} ${date.mmm} ${date.yy}`;
 				break;
-				
-				case DATE_FMT.dayMonth:
+
+			case DATE_FMT.dayMonth:
 				result = `${fix(date.dd)}-${date.mmm}`;
 				break;
-				
-				case DATE_FMT.dateTime:
+
+			case DATE_FMT.dateTime:
 				result = `${date.yy}-${date.mmm}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
 				break;
-				
-				case DATE_FMT.yearWeek:
+
+			case DATE_FMT.yearWeek:
 				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yyyy
 				result = parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 				break;
-				
-				case DATE_FMT.yearMonth:
+
+			case DATE_FMT.yearMonth:
 				result = parseInt(`${fix(date.yy)}${fix(date.mm)}`);
 				break;
-		
-				case DATE_FMT.yearMonthDay:
-					result = parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
-					break;
+
+			case DATE_FMT.yearMonthDay:
+				result = parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
+				break;
 
 			default:
 				result = fmt
