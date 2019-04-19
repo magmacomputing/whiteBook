@@ -31,7 +31,7 @@ export enum DATE_FMT {										// pre-configured format names
 	display = 'ddd, dd mmm yyyy',
 	dateTime = 'yyyy-mm-dd HH:MI',
 	dayMonth = 'dd-mmm',
-	HHmi = 'HH:MI',
+	HHMI = 'HH:MI',
 	yearWeek = 'yyyyww',
 	yearMonth = 'yyyymm',
 	yearMonthDay = 'yyyymmdd',
@@ -62,11 +62,10 @@ export class Instant {
 	/** month number */		get mm() { return this.date.mm }
 	/** day number */			get dd() { return this.date.dd }
 	/** 24-hour format */	get HH() { return this.date.HH }
-	/** minute */					get MM() { return this.date.MI }
-	/** minute copy */		get MI() { return this.date.MI }
+	/** minutes */				get MI() { return this.date.MI }
 	/** seconds */				get SS() { return this.date.SS }
 	/** milliseconds */		get ms() { return this.date.ms }
-	/** seconds */				get ts() { return this.date.ts }
+	/** timestamp */			get ts() { return this.date.ts }
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** weekday number */	get dow() { return this.date.dow }
 	/** short day name */	get ddd() { return this.date.ddd }
@@ -198,7 +197,7 @@ export class Instant {
 		let result: string | number;
 
 		switch (fmt) {
-			case DATE_FMT.HHmi:
+			case DATE_FMT.HHMI:
 				result = `${fix(date.HH)}:${fix(date.MI)}`;
 				break;
 		

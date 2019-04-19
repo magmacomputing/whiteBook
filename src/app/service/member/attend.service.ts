@@ -225,7 +225,7 @@ export class AttendService {
 			amount: schedule.price,													// calculated price of the Attend
 			track: {
 				day: now.dow,																	// day of week
-				week: now.format(DATE_FMT.week),							// week-number of year
+				week: now.format(DATE_FMT.yearWeek),					// week-number of year
 				month: now.format(DATE_FMT.yearMonth),				// month-number of year
 			}
 		}

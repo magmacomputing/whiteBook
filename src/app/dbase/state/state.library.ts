@@ -312,7 +312,7 @@ export const buildTimetable = (source: ITimetableState) => {
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHmi),
+				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				icon: classDoc.icon,
