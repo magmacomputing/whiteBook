@@ -55,6 +55,11 @@ export class DataService {
 		return this.state.asPromise(this.state.getStore(store, where) as Observable<T[]>);
 	}
 
+	getState(store: string, where: TWhere = []) {
+		return this.state.asPromise(this.state.getState(store, where));
+		// return this.state.getState(store, where);
+	}
+
 	getMeta(store: string, docId: string) {
 		return store
 			? this.fire.callMeta(store, docId)										// get server to respond with document meta-data

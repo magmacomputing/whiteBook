@@ -214,7 +214,7 @@ export class Instant {
 				break;
 
 			case DATE_FMT.yearWeek:
-				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yyyy
+				const offset = date.ww === 1 && date.mm === 12;	// if late-Dec, add 1 to yyyy
 				result = parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 				break;
 

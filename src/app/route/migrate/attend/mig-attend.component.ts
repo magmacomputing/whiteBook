@@ -142,9 +142,11 @@ export class MigAttendComponent implements OnInit {
 			.subscribe(_other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
 				this.sync.on(COLLECTION.member, query);
-				this.sync.on(COLLECTION.attend, query);
+				this.sync.on(COLLECTION.attend, query)
+					.then(_ => this.data.getState(STORE.attend))
+					.then(att => this.dbg('ATTEND: %s', att.length))
 
-				this.data.getFire<IMigrateBase>(STORE.migrate, {
+				this.data.getFire<IMigrateBase>(STORE.migrate, {			// /migrate is not synced to NGXS
 					where: [
 						addWhere(FIELD.store, STORE.migrate),
 						addWhere(FIELD.type, [STORE.class, STORE.event]),

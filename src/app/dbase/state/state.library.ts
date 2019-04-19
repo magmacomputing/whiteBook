@@ -6,8 +6,8 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, IAttendState, TStateSlice, IApplicationState, IAdminState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IAttend } from '@dbase/data/data.schema';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IAdminState } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
@@ -45,8 +45,18 @@ export const getStore = <T extends IStoreMeta>(states: IState, store: string, fi
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		// tap(state => console.log('state: ', state)),
-		map(state => filterTable<T>(state[index || store], filter))
+		map(state => filterTable<T>(state[index || store], filter)),
+	)
+}
+export const getState = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
+	const state: Observable<TStateSlice<T>> = states[store] as any;
+
+	if (!state)
+		throw new Error(`Cannot resolve state from ${store}`);
+
+	const res: T[] = []
+	return state.pipe(
+		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
 	)
 }
 
@@ -188,8 +198,8 @@ export const sumPayment = (source: IAccountState) => {
 					// 	sum.adjust += payment.amount || 0;
 					// 	sum.paid += payment.adjust || 0;
 					// } else {
-						sum.adjust += payment.adjust || 0;
-						sum.paid += payment.amount || 0;
+					sum.adjust += payment.adjust || 0;
+					sum.paid += payment.amount || 0;
 					// }
 
 				} else

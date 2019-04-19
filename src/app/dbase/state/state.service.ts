@@ -6,7 +6,7 @@ import { Select } from '@ngxs/store';
 import { IAuthState } from '@dbase/state/auth.action';
 import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash, getState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -58,6 +58,10 @@ export class StateService {
 
 	getStore<T>(store: string, where?: TWhere) {
 		return getStore<T & TStoreBase>(this.states, store, where);
+	}
+
+	getState(store: string, where?: TWhere) {
+		return getState(this.states, store, where);
 	}
 
 	getSingle<T>(store: string, filter: TWhere) {
