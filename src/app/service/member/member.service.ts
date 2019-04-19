@@ -118,7 +118,7 @@ export class MemberService {
 		const now = getDate(date);
 		const where: TWhere = [
 			addWhere(FIELD.store, STORE.attend),
-			addWhere('track', [`week.${now.format(DATE_FMT.week)}`, `month.${now.format(DATE_FMT.yearMonth)}`])
+			addWhere('track', [`week.${now.format(DATE_FMT.yearWeek)}`, `month.${now.format(DATE_FMT.yearMonth)}`])
 		]
 		const [schemes, tracking] = await Promise.all([
 			this.data.getStore(STORE.bonus),

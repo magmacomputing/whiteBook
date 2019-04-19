@@ -32,7 +32,7 @@ export enum DATE_FMT {										// pre-configured format names
 	dateTime = 'yyyy-mm-dd HH:MI',
 	dayMonth = 'dd-mmm',
 	HHmi = 'HH:MI',
-	week = 'yyyyww',
+	yearWeek = 'yyyyww',
 	yearMonth = 'yyyymm',
 	yearMonthDay = 'yyyymmdd',
 }
@@ -201,31 +201,31 @@ export class Instant {
 			case DATE_FMT.HHmi:
 				result = `${fix(date.HH)}:${fix(date.MI)}`;
 				break;
-
-			case DATE_FMT.yearMonthDay:
-				result = parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
-				break;
-
-			case DATE_FMT.display:
+		
+				case DATE_FMT.display:
 				result = `${date.ddd}, ${fix(date.dd)} ${date.mmm} ${date.yy}`;
 				break;
-
-			case DATE_FMT.dayMonth:
+				
+				case DATE_FMT.dayMonth:
 				result = `${fix(date.dd)}-${date.mmm}`;
 				break;
-
-			case DATE_FMT.dateTime:
+				
+				case DATE_FMT.dateTime:
 				result = `${date.yy}-${date.mmm}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
 				break;
-
-			case DATE_FMT.week:
+				
+				case DATE_FMT.yearWeek:
 				const offset = date.ww === 1 && date.mm === 12;	// if Dec, add 1 to yyyy
 				result = parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 				break;
-			
-			case DATE_FMT.yearMonth:
+				
+				case DATE_FMT.yearMonth:
 				result = parseInt(`${fix(date.yy)}${fix(date.mm)}`);
 				break;
+		
+				case DATE_FMT.yearMonthDay:
+					result = parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
+					break;
 
 			default:
 				result = fmt
