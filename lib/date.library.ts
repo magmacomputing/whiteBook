@@ -53,7 +53,7 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 /** format Instant */	export const fmtDate = <K extends string | keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 
 export class Instant {
-	private date: IInstant;											// Date parsed into components
+	private date: IInstant;																			// Date parsed into components
 
 	constructor(dt?: TDate, fmt?: TString) { this.date = this.parseDate(dt, fmt); }
 
@@ -122,7 +122,7 @@ export class Instant {
 		let [yy, mm, dd, HH, MI, SS, ms, ts, dow] = [
 			date.getFullYear(), date.getMonth(), date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
-			date.getMilliseconds(), Math.round(date.getTime() / 1000), date.getDay(),
+			date.getMilliseconds(), Math.floor(date.getTime() / 1000), date.getDay(),
 		];
 
 		mm += 1;																									// ISO month
