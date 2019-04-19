@@ -1,7 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
-import * as firebase from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
@@ -30,8 +29,6 @@ export class FireService {
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) { this.dbg('new'); }
 
-	// TODO: does it make more sense to pass multiple 'wheres' to a Observable(pipe(filter))?
-	// this would allow for a single subscription
 	/**
 	 * Collection References, with optional query.  
 	 * If a 'logical-or' is detected in the 'value' of any Where-clause,
@@ -78,8 +75,8 @@ export class FireService {
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
 				delete rest[key];										// TODO: recurse?
-			if (value === Number.MIN_SAFE_INTEGER)// special: to remove a numeric field on update, mark it as low-value
-				rest[key] = firebase.firestore.FieldValue.delete();
+			// if (value === Number.MIN_SAFE_INTEGER)// special: to remove a numeric field on update, mark it as low-value
+			// 	rest[key] = firestore.FieldValue.delete();
 		})
 		return rest;
 	}

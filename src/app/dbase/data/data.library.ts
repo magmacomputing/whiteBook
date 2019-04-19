@@ -2,7 +2,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { FILTER, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, isClientStore, IStoreMeta } from '@dbase/data/data.schema';
+import { TStoreBase, isClientStore, IStoreMeta, FType, FNumber } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
@@ -49,10 +49,10 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
 		currDocs.map(async currDoc => {             // loop through existing-docs first, to determine currEffect/currExpire range
 			const currStore = currDoc[FIELD.store];
 			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as TStoreBase;
-			const currExpire = currDoc[FIELD.expire];
-			const currEffect: number = currDoc[FIELD.effect] ||
-				await (fire.callMeta(currStore, currDoc[FIELD.id])		// _create is only available from server
-					.then(meta => meta[FIELD.create] || Number.MIN_SAFE_INTEGER));
+			const currExpire = currDoc[FIELD.expire] as FType<FNumber>;
+			const currEffect = currDoc[FIELD.effect] as FType<FNumber>
+				|| await fire.callMeta(currStore, currDoc[FIELD.id]).then(meta => meta[FIELD.create])
+				|| Number.MIN_SAFE_INTEGER
 
 			switch (true) {
 				case tstamp === currEffect:             // anomaly; do nothing?

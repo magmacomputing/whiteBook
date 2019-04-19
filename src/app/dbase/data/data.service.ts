@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, ICustomClaims, IStoreMeta } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, ICustomClaims, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -109,7 +109,7 @@ export class DataService {
 		const uid = await this.getUID();
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
-			let tstamp = nextDoc[FIELD.effect] || stamp;	    		// the position in the date-range to Create
+			let tstamp = nextDoc[FIELD.effect] as FType<FNumber> || stamp;
 			let where: TWhere;
 
 			try {

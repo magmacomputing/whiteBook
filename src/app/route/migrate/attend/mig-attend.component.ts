@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { take, map } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
+import { firestore } from 'firebase/app';
 
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
@@ -22,10 +23,9 @@ import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
-import { isUndefined, isNumber } from '@lib/type.library';
+import { isUndefined, isNumber, isNull } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
-import { isNull } from 'util';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -46,6 +46,8 @@ export class MigAttendComponent implements OnInit {
 	private migrate!: IMigrateBase[];
 	private current: IRegister | null;
 	private user!: firebase.UserInfo | null;
+	private dflt!: string;
+	public hide = 'Un';
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
@@ -163,7 +165,11 @@ export class MigAttendComponent implements OnInit {
 					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
 					.catch(err => this.dbg('err: %j', err.message))
 
-				this.account$ = this.state.getAccountData()
+				this.account$ = this.state.getAccountData();
+				this.dflt = 'Zumba';
+				this.hide = register[FIELD.hidden]
+					? 'Un'
+					: ''
 			});
 	}
 
@@ -177,6 +183,17 @@ export class MigAttendComponent implements OnInit {
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 			})
+	}
+
+	async hideUser() {
+		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.user.uid)))[0];
+		reg[FIELD.hidden] = reg[FIELD.hidden]
+			? firestore.FieldValue.delete()
+			: true;
+		this.hide = reg[FIELD.hidden]
+			? 'Un'
+			: ''
+		this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
 	}
 
 	async addPayment() {
@@ -253,17 +270,19 @@ export class MigAttendComponent implements OnInit {
 		let event: IEvent;
 		let idx: number = 0;
 		let migrate: IMigrateBase;
+		let attend: IMigrateBase["attend"] = {};
 
 		switch (true) {
 			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
 				migrate = asAt(this.migrate, [addWhere(FIELD.key, asString(now.format(DATE_FMT.yearMonthDay))), addWhere(FIELD.uid, this.current!.uid)])[0];
 				let klass = migrate && migrate.attend && migrate.attend.class || null;
 				if (isUndefined(migrate)) {
-					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, 'Zumba');
+					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt);
 					if (isNull(klass))
 						throw new Error('Cannot determine class');
+					this.dflt = klass;
 
-					const attend = { class: klass };
+					attend = { class: klass };
 					this.data.setDoc(STORE.migrate, {
 						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.class,
 						[FIELD.key]: asString(now.format(DATE_FMT.yearMonthDay)), [FIELD.uid]: this.current!.uid, attend,
@@ -279,7 +298,9 @@ export class MigAttendComponent implements OnInit {
 
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
-				if (!migrate || !migrate.attend[sfx]) {
+				attend = migrate && migrate.attend || {};
+				if (!migrate || !attend[sfx]) {
+					debugger;
 					for (idx = 0; idx < event.classes.length; idx++) {
 						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
@@ -287,7 +308,6 @@ export class MigAttendComponent implements OnInit {
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
 
-					const attend = migrate && migrate.attend || {};
 					attend[sfx] = event.classes[idx];
 
 					this.data.setDoc(STORE.migrate, {
@@ -313,7 +333,8 @@ export class MigAttendComponent implements OnInit {
 			case (!isUndefined(caldr)):											// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
-				if (!migrate || !migrate.attend[sfx]) {
+				attend = migrate && migrate.attend || {};
+				if (!migrate || !attend[sfx]) {
 					for (idx = 0; idx < event.classes.length; idx++) {
 						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
@@ -321,7 +342,6 @@ export class MigAttendComponent implements OnInit {
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine class');
 
-					const attend = migrate && migrate.attend || {};
 					attend[sfx] = event.classes[idx];
 
 					this.data.setDoc(STORE.migrate, {
@@ -416,10 +436,10 @@ export class MigAttendComponent implements OnInit {
 		const payments = await this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.user.uid));
 		const updates = payments.map(row => ({					// reset the calculated-fields
 			...row,
-			[FIELD.effect]: Number.MIN_SAFE_INTEGER,
-			[FIELD.expire]: Number.MIN_SAFE_INTEGER,
-			bank: Number.MIN_SAFE_INTEGER,
-			expiry: Number.MIN_SAFE_INTEGER
+			[FIELD.effect]: firestore.FieldValue.delete(),
+			[FIELD.expire]: firestore.FieldValue.delete(),
+			bank: firestore.FieldValue.delete(),
+			expiry: firestore.FieldValue.delete()
 		}));
 
 		this.dbg('payments: %j', payments);
