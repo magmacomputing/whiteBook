@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
-import { DocumentReference } from '@angular/fire/firestore';
-
-import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
+import { DocumentReference } from '@angular/fire/firestore';
 
 import { SnackService } from '@service/snack/snack.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
@@ -25,10 +23,9 @@ import { getStamp } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
-
 /**
- * The DataService is responsible for managing the syncing between
- * the local State (ngxs 'Store') and the remote DataBase (Firebase 'Cloud Firestore').  
+ * The DataService is a go-between for the local State (ngxs 'Store')
+ * and the remote DataBase (Firebase 'Cloud Firestore').  
  * The intention is that all 'reads' are from State, and all 'writes' are to a persisted
  * local cache of the Database (which FireStore will sync back to the server).
  */
@@ -51,13 +48,16 @@ export class DataService {
 			.toPromise()
 	}
 
-	getStore<T>(store: string, where: TWhere = []) {
-		return this.state.asPromise(this.state.getStore(store, where) as Observable<T[]>);
+	getCurrent<T>(store: string, where: TWhere = []) {
+		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getState(store: string, where: TWhere = []) {
-		return this.state.asPromise(this.state.getState(store, where));
-		// return this.state.getState(store, where);
+	getStore<T>(store: string, where: TWhere = []) {
+		return this.state.asPromise(this.state.getStore<T>(store, where));
+	}
+
+	getState<T>(store: string, where: TWhere = []) {
+		return this.state.asPromise(this.state.getState<T>(store, where));
 	}
 
 	getMeta(store: string, docId: string) {

@@ -53,15 +53,15 @@ export class StateService {
 		filters.push(addWhere(FIELD.expire, 0));
 		filters.push(addWhere(FIELD.hidden, false));
 
-		return getCurrent<T & TStoreBase>(this.states, store, filters);
+		return getCurrent<T>(this.states, store, filters);
 	}
 
 	getStore<T>(store: string, where?: TWhere) {
-		return getStore<T & TStoreBase>(this.states, store, where);
+		return getStore<T>(this.states, store, where);
 	}
 
-	getState(store: string, where?: TWhere) {
-		return getState(this.states, store, where);
+	getState<T>(store: string, where?: TWhere) {
+		return getState<T>(this.states, store, where);
 	}
 
 	getSingle<T>(store: string, filter: TWhere) {

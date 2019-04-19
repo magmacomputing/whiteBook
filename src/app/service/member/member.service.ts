@@ -12,7 +12,7 @@ import { MemberInfo } from '@dbase/state/auth.action';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IBonus, IAttend } from '@dbase/data/data.schema';
 
 import { getStamp, TDate, getDate, DATE_FMT } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -114,16 +114,16 @@ export class MemberService {
 	}
 
 	/** Calculate tracking against Bonus schemes */
-	async calcBonus(date: TDate) {
+	async calcBonus(date?: TDate) {
 		const now = getDate(date);
-		const where: TWhere = [
-			addWhere(FIELD.store, STORE.attend),
-			// addWhere('track', [`week.${now.format(DATE_FMT.yearWeek)}`, `month.${now.format(DATE_FMT.yearMonth)}`])
-			addWhere('track.week', now.format(DATE_FMT.yearWeek)),
-		]
-		// const [schemes, trackWeek, trackMonth] = await Promise.all([
-		// 	this.data.getStore(STORE.bonus),
-		// 	this.data.getFire(COLLECTION.attend)
-		// ])
+		const [schemes, trackWeek, trackMonth] = await Promise.all([
+			this.data.getCurrent<IBonus>(STORE.bonus),
+			this.data.getStore<IAttend>(STORE.attend, addWhere('track.week', now.format(DATE_FMT.yearWeek))),
+			this.data.getStore<IAttend>(STORE.attend, addWhere('track.month', now.format(DATE_FMT.yearMonth))),
+		])
+
+		this.dbg('schemes: %j', schemes);
+		this.dbg('trackWeek: %s, %j', now.format(DATE_FMT.yearWeek), trackWeek);
+		this.dbg('trackMonth: %s, %j', now.format(DATE_FMT.yearMonth), trackMonth);
 	}
 }

@@ -47,6 +47,7 @@ export class MigAttendComponent implements OnInit {
 	private current: IRegister | null;
 	private user!: firebase.UserInfo | null;
 	private dflt!: string;
+	private ready!: Promise<boolean[]>;
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -141,10 +142,10 @@ export class MigAttendComponent implements OnInit {
 			.pipe(take(1))
 			.subscribe(_other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
-				this.sync.on(COLLECTION.member, query);
-				this.sync.on(COLLECTION.attend, query)
-					.then(_ => this.data.getState(STORE.attend))
-					.then(att => this.dbg('ATTEND: %s', att.length))
+				this.ready = Promise.all([														// initial sync complete
+					this.sync.on(COLLECTION.member, query),
+					this.sync.on(COLLECTION.attend, query),
+				]);
 
 				this.data.getFire<IMigrateBase>(STORE.migrate, {			// /migrate is not synced to NGXS
 					where: [
@@ -173,6 +174,9 @@ export class MigAttendComponent implements OnInit {
 					? 'Un'
 					: ''
 			});
+
+		this.ready
+			.then(_ok => this.member.calcBonus(20140701))
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode

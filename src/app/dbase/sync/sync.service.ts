@@ -132,7 +132,7 @@ export class SyncService {
 		if (listen.cnt === 0) {                           // initial snapshot
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps))
-				return;																				// storage already sync'd... skip the initial snapshot
+				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
 
 			await this.store
 				.dispatch(new truncStore(debug))							// suspected tampering, reset Store

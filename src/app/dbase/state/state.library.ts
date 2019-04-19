@@ -7,7 +7,7 @@ import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IAdminState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IMeta } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
 import { asArray, deDup } from '@lib/array.library';
@@ -20,7 +20,7 @@ import { addWhere } from '@dbase/fire/fire.library';
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
-export const getCurrent = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
+export const getCurrent = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -37,18 +37,21 @@ export const getCurrent = <T extends IStoreMeta>(states: IState, store: string, 
 /**
  * Get all documents by filter, do not exclude _expire
  */
-export const getStore = <T extends IStoreMeta>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
+export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
-	const state = states[slice] as Observable<IStoreMeta>;
+	if (store === slice)													// top-level slice
+		return getState<T>(states, store, filter, date);
+
+	const state: Observable<T[]> = states[slice] as any;
 
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(state => filterTable<T>(state[index || store], filter)),
+		map(table => filterTable<T>(table, filter)),
 	)
 }
-export const getState = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
+export const getState = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate) => {
 	const state: Observable<TStateSlice<T>> = states[store] as any;
 
 	if (!state)
@@ -57,6 +60,7 @@ export const getState = <T>(states: IState, store: string, filter: TWhere = [], 
 	const res: T[] = []
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
+		map(table => filterTable<T>(table, filter))
 	)
 }
 
