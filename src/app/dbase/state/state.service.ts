@@ -4,18 +4,19 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState } from '@dbase/state/state.define';
+import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState, IBonusState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash, getState } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash, getState, calcBonus } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
+import { TString } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';
@@ -264,6 +265,27 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),
 			take(1),
+		)
+	}
+
+	/**
+	 * Assemble a Object describing the eligibility of a Member for special pricing
+	 */
+	getBonusData(date?: TDate, event?: TString): Observable<IBonusState> {
+		const now = getDate(date);																							// create a new Instant
+		const filterUser: TWhere = [addWhere(FIELD.uid, '{{auth.current.uid}}'),];
+		const filterBonus: TWhere = [addWhere(FIELD.disable, true, '!=')];
+		const filterGift: TWhere = [addWhere('bonus', `{{member.gift[*].${FIELD.id}}}`), ...filterUser];
+		const filterWeek: TWhere = [addWhere('track.week', now.format(DATE_FMT.yearWeek)), ...filterUser];
+		const filterMonth: TWhere = [addWhere('track.month', now.format(DATE_FMT.yearMonth)), ...filterUser];
+
+		return this.getAuthData().pipe(
+			joinDoc(this.states, 'application', STORE.default, undefined, date),	// default values
+			joinDoc(this.states, 'client', STORE.bonus, filterBonus, date),				// active /client/bonus scheme rules
+			joinDoc(this.states, 'member', STORE.gift, filterUser, date),					// current /member/gift docs
+			joinDoc(this.states, 'track.gift', STORE.attend, filterGift, date),		// attends against those gifts
+			joinDoc(this.states, 'track.week', STORE.attend, filterWeek, date),		// attends against current week
+			joinDoc(this.states, 'track.month', STORE.attend, filterMonth, date, calcBonus),
 		)
 	}
 }

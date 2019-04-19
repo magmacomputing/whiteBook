@@ -4,7 +4,7 @@ import { IAuthState } from './auth.action';
 import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IAccount
+	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IAccount, IGift, IBonus
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -67,6 +67,7 @@ export interface IMemberState extends IUserState, IApplicationState {
 		info: IProfileInfo[];             	// array of AdditionalUserInfo documents
 		pref: IProfilePref[];								// member's preferences
 		message: IMessage[];								// array of messages to a Member
+		gift: IGift[];											// array of gifts for a Member
 	}
 }
 
@@ -74,6 +75,20 @@ export interface IPlanState extends IMemberState {
 	client: {
 		plan: IPlan[];                      // array of effective Plan documents
 		price: IPrice[];                    // array of effective Price documents
+	}
+}
+
+export interface IBonusState extends IUserState, IApplicationState {
+	client: {
+		bonus: IBonus[];										// array of Bonus scheme rules
+	}
+	member: {
+		gift: IGift[];											// array of gifts to a Member
+	}
+	track: {
+		gift: IAttend[];										// array of Attends against their gifts
+		week: IAttend[];										// array of Attends against the current week
+		month: IAttend[];										// array of Attends against the current month
 	}
 }
 

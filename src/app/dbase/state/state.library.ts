@@ -6,7 +6,7 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IAdminState } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IAdminState, IBonusState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IMeta } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
@@ -374,5 +374,17 @@ export const getDash = (source: IAdminState) => {
 			account: source.admin.summary && source.admin.summary.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
 		}))
 
+	return { ...source }
+}
+
+/** Calculate tracking against Bonus schemes */
+export const calcBonus = (source: IBonusState) => {
+
+	console.log('bonus: ', source);
+	// console.log('schemes: ', schemes);
+	// console.log('gifts: ', gifts);
+	// console.log('trackGift: ', trackGift);
+	// console.log('trackWeek: ', now.format(DATE_FMT.yearWeek), trackWeek);
+	// console.log('trackMonth: ', now.format(DATE_FMT.yearMonth), trackMonth);
 	return { ...source }
 }

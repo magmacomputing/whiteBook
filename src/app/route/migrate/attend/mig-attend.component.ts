@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { take, map } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { firestore } from 'firebase/app';
@@ -48,6 +48,7 @@ export class MigAttendComponent implements OnInit {
 	private user!: firebase.UserInfo | null;
 	private dflt!: string;
 	private ready!: Promise<boolean[]>;
+	private bonus?: Subscription;
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -175,11 +176,15 @@ export class MigAttendComponent implements OnInit {
 					: ''
 			});
 
-		this.ready
-			.then(_ok => this.member.calcBonus())
+		// this.ready.then(_ => {
+		// 	this.bonus = this.state.getBonusData()
+		// 		.subscribe(data => this.dbg('bonus: %j', data));
+		// })
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode
+		// this.bonus && this.bonus.unsubscribe();
+		// this.bonus = undefined;
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
 			.subscribe(_other => {

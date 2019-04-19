@@ -113,24 +113,4 @@ export class MemberService {
 		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
 	}
 
-	/** Calculate tracking against Bonus schemes */
-	async calcBonus(date?: TDate) {
-		const now = getDate(date);
-		const user = await this.state.asPromise(this.state.getAuthData());
-		const mine: TWhere = addWhere(FIELD.uid, user.auth.current!.uid);
-
-		const [schemes, gifts, trackWeek, trackMonth] = await Promise.all([
-			this.data.getCurrent<IBonus>(STORE.bonus),
-			this.data.getCurrent<IGift>(MEMBER.gift, mine),
-			this.data.getStore<IAttend>(STORE.attend, [mine, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
-			this.data.getStore<IAttend>(STORE.attend, [mine, addWhere('track.month', now.format(DATE_FMT.yearMonth))]),
-		])
-		const trackGift = await this.data.getStore<IAttend>(STORE.attend, [mine, addWhere('bonus', gifts)]);
-
-		this.dbg('schemes: %j', schemes);
-		this.dbg('gifts: %j', gifts);
-		this.dbg('trackGift: %j', trackGift);
-		this.dbg('trackWeek: %s, %j', now.format(DATE_FMT.yearWeek), trackWeek);
-		this.dbg('trackMonth: %s, %j', now.format(DATE_FMT.yearMonth), trackMonth);
-	}
 }

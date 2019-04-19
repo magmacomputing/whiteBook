@@ -324,7 +324,7 @@ export interface IPayment extends IMemberBase {
 //	/member/gift
 export interface IGift extends IMemberBase {
 	[FIELD.store]: STORE.gift,
-	[FIELD.type]: string;
+	// [FIELD.type]: string;
 	[FIELD.stamp]: number;
 	count: number;
 	desc?: TString;
@@ -337,9 +337,9 @@ export interface IAttend extends IAttendBase {
 	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass;
 	[FIELD.stamp]: number;						// the timestamp of the check-in
-	payment: string;									// the /member/payment _id
-	schedule: string;									// the /client/schedule or /client/event _id
-	bonus?: string;										// the /client/bonus or /member/gift _id for this payment
+	payment: TString;									// the /member/payment _id
+	schedule: TString;								// the /client/schedule or /client/event _id
+	bonus?: TString;									// the /client/bonus or /member/gift _id for this payment
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
 	track?: {													// to use in bonus-checking
