@@ -11,8 +11,8 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { MemberInfo } from '@dbase/state/auth.action';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IBonus, IAttend } from '@dbase/data/data.schema';
+import { FIELD, STORE, COLLECTION, MEMBER } from '@dbase/data/data.define';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IBonus, IAttend, IGift } from '@dbase/data/data.schema';
 
 import { getStamp, TDate, getDate, DATE_FMT } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -116,13 +116,20 @@ export class MemberService {
 	/** Calculate tracking against Bonus schemes */
 	async calcBonus(date?: TDate) {
 		const now = getDate(date);
-		const [schemes, trackWeek, trackMonth] = await Promise.all([
+		const user = await this.state.asPromise(this.state.getAuthData());
+		const mine: TWhere = addWhere(FIELD.uid, user.auth.current!.uid);
+
+		const [schemes, gifts, trackWeek, trackMonth] = await Promise.all([
 			this.data.getCurrent<IBonus>(STORE.bonus),
-			this.data.getStore<IAttend>(STORE.attend, addWhere('track.week', now.format(DATE_FMT.yearWeek))),
-			this.data.getStore<IAttend>(STORE.attend, addWhere('track.month', now.format(DATE_FMT.yearMonth))),
+			this.data.getCurrent<IGift>(MEMBER.gift, mine),
+			this.data.getStore<IAttend>(STORE.attend, [mine, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
+			this.data.getStore<IAttend>(STORE.attend, [mine, addWhere('track.month', now.format(DATE_FMT.yearMonth))]),
 		])
+		const trackGift = await this.data.getStore<IAttend>(STORE.attend, [mine, addWhere('bonus', gifts)]);
 
 		this.dbg('schemes: %j', schemes);
+		this.dbg('gifts: %j', gifts);
+		this.dbg('trackGift: %j', trackGift);
 		this.dbg('trackWeek: %s, %j', now.format(DATE_FMT.yearWeek), trackWeek);
 		this.dbg('trackMonth: %s, %j', now.format(DATE_FMT.yearMonth), trackMonth);
 	}

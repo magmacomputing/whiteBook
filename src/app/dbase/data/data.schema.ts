@@ -7,7 +7,7 @@ import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = '_schema_' | '_config_' | '_default_';
 type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
-type TStoreMember = 'profile' | 'payment' | 'bonus' | 'message';
+type TStoreMember = 'profile' | 'payment' | 'gift' | 'message';
 type TStoreAttend = 'attend';
 type TStoreAdmin = 'register' | 'account';
 type TStoreMigrate = 'migrate';
@@ -264,15 +264,17 @@ export interface IProvider extends IClientBase {
 	}
 }
 
-//	/member/profile
-export interface IProfile extends IMemberBase {
-	[FIELD.store]: STORE.profile;
-	[FIELD.type]: TProfile;
-}
+//	/member
 export interface IMessage extends IMemberBase {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: 'diary' | 'alert';
 	[FIELD.note]: TString;
+}
+
+//	/member/profile
+export interface IProfile extends IMemberBase {
+	[FIELD.store]: STORE.profile;
+	[FIELD.type]: TProfile;
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: STORE.plan;
@@ -319,11 +321,13 @@ export interface IPayment extends IMemberBase {
 	},
 }
 
-//	/member/bonus
-export interface IBonus extends IMemberBase {
-	[FIELD.store]: STORE.bonus,
+//	/member/gift
+export interface IGift extends IMemberBase {
+	[FIELD.store]: STORE.gift,
 	[FIELD.type]: string;
 	[FIELD.stamp]: number;
+	count: number;
+	desc?: TString;
 	expiry?: number;
 }
 
@@ -335,7 +339,7 @@ export interface IAttend extends IAttendBase {
 	[FIELD.stamp]: number;						// the timestamp of the check-in
 	payment: string;									// the /member/payment _id
 	schedule: string;									// the /client/schedule or /client/event _id
-	bonus?: string;										// the /client/bonus _id for this payment
+	bonus?: string;										// the /client/bonus or /member/gift _id for this payment
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
 	track?: {													// to use in bonus-checking

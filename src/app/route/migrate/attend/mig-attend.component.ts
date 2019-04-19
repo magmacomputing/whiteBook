@@ -176,7 +176,7 @@ export class MigAttendComponent implements OnInit {
 			});
 
 		this.ready
-			.then(_ok => this.member.calcBonus(20140701))
+			.then(_ok => this.member.calcBonus())
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode

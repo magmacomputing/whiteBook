@@ -26,6 +26,7 @@ export enum STORE {
 	instructor = 'instructor',
 	message = 'message',
 	bonus = 'bonus',
+	gift = 'gift',
 	span = 'span',
 	default = '_default_',
 	config = '_config_',
@@ -40,7 +41,7 @@ export enum MEMBER {
 	profile = 'profile',
 	payment = 'payment',
 	diary = 'diary',
-	bonus = 'bonus',
+	gift = 'gift',
 }
 
 export enum LOCAL {
