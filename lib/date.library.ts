@@ -197,21 +197,21 @@ export class Instant {
 		let result: string | number;
 
 		switch (fmt) {
-			case DATE_FMT.HHMI:
-				result = `${fix(date.HH)}:${fix(date.MI)}`;
-				break;
+			// case DATE_FMT.HHMI:
+			// 	result = `${fix(date.HH)}:${fix(date.MI)}`;
+			// 	break;
 
-			case DATE_FMT.display:
-				result = `${date.ddd}, ${fix(date.dd)} ${date.mmm} ${date.yy}`;
-				break;
+			// case DATE_FMT.display:
+			// 	result = `${date.ddd}, ${fix(date.dd)} ${date.mmm} ${date.yy}`;
+			// 	break;
 
-			case DATE_FMT.dayMonth:
-				result = `${fix(date.dd)}-${date.mmm}`;
-				break;
+			// case DATE_FMT.dayMonth:
+			// 	result = `${fix(date.dd)}-${date.mmm}`;
+			// 	break;
 
-			case DATE_FMT.dateTime:
-				result = `${date.yy}-${date.mmm}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
-				break;
+			// case DATE_FMT.dateTime:
+			// 	result = `${date.yy}-${date.mmm}-${fix(date.dd)} ${fix(date.HH)}:${fix(date.MI)}`;
+			// 	break;
 
 			case DATE_FMT.yearWeek:
 				const offset = date.ww === 1 && date.mm === 12;	// if late-Dec, add 1 to yyyy

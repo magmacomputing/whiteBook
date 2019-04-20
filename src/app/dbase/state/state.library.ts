@@ -42,13 +42,13 @@ export const getStore = <T>(states: IState, store: string, filter: TWhere = [], 
 	if (store === slice)													// top-level slice
 		return getState<T>(states, store, filter, date);
 
-	const state: Observable<T[]> = states[slice] as any;
+	const state: Observable<TStateSlice<T>> = states[slice] as any;
 
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(table => filterTable<T>(table, filter)),
+		map(obs => filterTable<T>(obs[store], filter)),
 	)
 }
 export const getState = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate) => {

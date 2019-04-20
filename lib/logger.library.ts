@@ -3,10 +3,10 @@ import { isString, isObject } from '@lib/type.library';
 
 /** setup a copy for debug(), bind the current component name */
 export const dbg = (self: any) =>
-	fmtLog.bind(self, self.constructor.name);
+	lprintf.bind(self, self.constructor.name);
 
 /** console.log() formatter */
-export const fmtLog = (name: string = '', fmt?: any, ...msg: any[]): void => {
+export const lprintf = (name: string = '', fmt?: any, ...msg: any[]): void => {
 	const sep = isString(fmt) && (fmt.includes(':') || msg.length === 0)
 		? '.' : ': ';
 

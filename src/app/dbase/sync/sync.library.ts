@@ -14,7 +14,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys } from '@lib/object.library';
 import { getLocalStore } from '@lib/window.library';
-import { fmtLog } from '@lib/logger.library';
+import { lprintf } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firebase.firestore.SnapshotMetadata;
@@ -42,9 +42,9 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 		return true;                                  // ok, already sync'd
 	}
 
-	fmtLog('SyncLibrary', '%s: %s / %s', listen.collection, localHash, storeHash);
-	// fmtLog('SyncLibrary', 'local: %j', localSort);
-	// fmtLog('SyncLibrary', 'store: %j', snapSort);
+	lprintf('SyncLibrary', '%s: %s / %s', listen.collection, localHash, storeHash);
+	// lprintf('SyncLibrary', 'local: %j', localSort);
+	// lprintf('SyncLibrary', 'store: %j', snapSort);
 	return false;
 }
 
