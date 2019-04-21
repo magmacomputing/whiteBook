@@ -17,6 +17,7 @@ import { isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 import { ISummary } from '@dbase/state/state.define';
+import { cloneObj } from '@lib/object.library';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -75,21 +76,33 @@ export class FireService {
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
 				delete rest[key];										// TODO: recurse?
-			// if (value === Number.MIN_SAFE_INTEGER)// special: to remove a numeric field on update, mark it as low-value
-			// 	rest[key] = firestore.FieldValue.delete();
 		})
 		return rest;
 	}
 
-	/** Wrap a set of database-writes within a Batch */
+	/**
+	 * Wrap a set of database-writes within a set of Batches
+	 *  (limited to 500 documents per).  
+	 * These documents are assumed to have a <store> field and (except for creates) an <id> field
+	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
-		const bat = this.afs.firestore.batch();
+		const cloneCreate = asArray(cloneObj(creates));
+		const cloneUpdate = asArray(cloneObj(updates));
+		const cloneDelete = asArray(cloneObj(deletes));
+		const limit = 500;
 
-		asArray(creates).forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
-		asArray(updates).forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-		asArray(deletes).forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+		while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
+			const c = cloneCreate.splice(0, limit);
+			const u = cloneUpdate.splice(0, limit - c.length);
+			const d = cloneDelete.splice(0, limit - c.length - u.length);
+			const bat = this.afs.firestore.batch();
 
-		return bat.commit();
+			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
+			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
+			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+
+			return bat.commit();
+		}
 	}
 
 	/** Wrap a set of database-writes within a Transaction */

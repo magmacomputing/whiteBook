@@ -255,6 +255,7 @@ export class MigAttendComponent implements OnInit {
 		this.history																			// a sorted-list of Attendance check-ins / account payments
 			.then(history => {
 				const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
+					.filter(row => row.date = 20150215)
 				this.nextAttend(table[0], ...table.slice(1));	// fire initial Attendance
 			})
 	}
