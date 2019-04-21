@@ -14,9 +14,10 @@
 				SignIn </button> -->
 			<div *ngIf="current && current.migrate.sheetName == dash.register.migrate.sheetName">
 				<div *ngIf="account$ | async as data">
-					<button color="accent" (click)="signOut()">SignOut</button>
+					<!-- <button color="accent" (click)="signOut()">SignOut</button> -->
 					<button (click)="addPayment()" [disabled]="data.account.payment?.length">Add Payments</button>
 					<button (click)="addAttend()" [disabled]="1 === 0 && data.account.attend?.length">Add Attends</button>
+					<br>
 					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
 					<button (click)="delAttend()" [disabled]="1 === 0 && !data.account.attend?.length">Del Attends</button>
 					<br>

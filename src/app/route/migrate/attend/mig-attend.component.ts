@@ -11,7 +11,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, TStoreBase, IStoreMeta } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, TStoreBase, IStoreMeta, TClass } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -21,7 +21,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
+import { DATE_FMT, getDate, getStamp, fmtDate, Instant } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNumber, isNull } from '@lib/type.library';
 import { asString } from '@lib/string.library';
@@ -48,7 +48,6 @@ export class MigAttendComponent implements OnInit {
 	private user!: firebase.UserInfo | null;
 	private dflt!: string;
 	private ready!: Promise<boolean[]>;
-	private bonus?: Subscription;
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -137,6 +136,8 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async signIn(register: IRegister) {
+		if (this.current && this.current!.user.customClaims!.memberName === register.user.customClaims!.memberName)
+			return this.signOut();
 		this.current = register;																	// stash current Member
 
 		this.store.dispatch(new AuthOther(register.uid))
@@ -163,6 +164,7 @@ export class MigAttendComponent implements OnInit {
 				this.history = this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
+						// this.dbg('history: %j', (resp.history || []).sort(sortKeys(FIELD.stamp)));
 						return (resp.history || []).sort(sortKeys(FIELD.stamp));
 					})
 				this.history
@@ -175,16 +177,9 @@ export class MigAttendComponent implements OnInit {
 					? 'Un'
 					: ''
 			});
-
-		// this.ready.then(_ => {
-		// 	this.bonus = this.state.getBonusData()
-		// 		.subscribe(data => this.dbg('bonus: %j', data));
-		// })
 	}
 
 	async	signOut() {																					// signOut of 'impersonate' mode
-		// this.bonus && this.bonus.unsubscribe();
-		// this.bonus = undefined;
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
 			.subscribe(_other => {
@@ -275,13 +270,24 @@ export class MigAttendComponent implements OnInit {
 		]
 
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix, ...none] = what.split('*');
-		const sfx = suffix ? suffix.split(' ')[0] : '1';
+		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
 		let idx: number = 0;
 		let migrate: IMigrateBase;
 		let attend: IMigrateBase["attend"] = {};
+
+		if (suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
+			this.dbg(`${prefix}: need to resolve ${sfx} classes`);
+			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {				// insert additional attends
+				row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
+				rest.splice(0, 0, row);
+				this.dbg('splice: %j', row.type);
+			}
+			sfx = '1';
+		}
 
 		switch (true) {
 			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
@@ -303,67 +309,63 @@ export class MigAttendComponent implements OnInit {
 				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
 				break;
 
-			case this.special.includes(prefix):						// special event match by <type>, so we need to guess the 'class'
+			case this.special.includes(prefix):						// special event match by <type>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
 				attend = migrate && migrate.attend || {};
+
 				if (!migrate || !attend[sfx]) {
-					debugger;
 					for (idx = 0; idx < event.classes.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
 					}
 					if (idx === event.classes.length)
-						throw new Error('Cannot determine class');
+						throw new Error('Cannot determine event');
 
 					attend[sfx] = event.classes[idx];
 
 					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
+						[FIELD.id]: migrate[FIELD.id] || this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
 						[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
 					});
 				}
 
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: (migrate && migrate.attend[sfx]) || event.classes[idx],
-					day: getDate(caldr.key).ww, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
-				}
-
-				if (isNumber(sfx)) {
-					for (let nbr = 1; nbr < sfx; nbr++) {				// insert additional attends
-						row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
-						rest.splice(0, 0, row);
-						this.dbg('splice: %j', rest);
-					}
+					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
 
 			case (!isUndefined(caldr)):											// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
-				attend = migrate && migrate.attend || {};
-				if (!migrate || !attend[sfx]) {
-					for (idx = 0; idx < event.classes.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${getDate(caldr.key).format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
-							break;
+
+				if (!event.classes.includes(what as TClass)) {
+					migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
+					attend = migrate && migrate.attend || {};
+					if (!migrate || !attend[what]) {
+						for (idx = 0; idx < event.classes.length; idx++) {
+							if (window.prompt(`This ${row.type} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+								break;
+						}
+						if (idx === event.classes.length)
+							throw new Error('Cannot determine class');
+
+						attend[row.type] = event.classes[idx];
+						row.type = event.classes[idx];
+
+						this.data.setDoc(STORE.migrate, {
+							[FIELD.id]: migrate[FIELD.id] || this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
+							[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
+						});
 					}
-					if (idx === event.classes.length)
-						throw new Error('Cannot determine class');
-
-					attend[sfx] = event.classes[idx];
-
-					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
-						[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
-					});
 				}
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: event.classes[idx],
-					day: getDate(caldr.key).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: row.note ? [row.note, caldr.name] : caldr.name,
 				}
 				break;
 

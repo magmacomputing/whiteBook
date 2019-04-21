@@ -160,21 +160,20 @@ export class AttendService {
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
+			const expiry = getPath(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
-			tests.add(data.account.attend.length < 100);										// arbitrary limit of Attends against a Payment             
-			tests.add(schedule.price <= data.account.summary.funds);				// enough funds to cover this Attend
-			tests.add(now.ts < (getPath(active, 'expiry') || Number.MAX_SAFE_INTEGER));	// Payment expired
+			tests.add(data.account.attend.length < 100);						// arbitrary limit of Attends against a Payment             
+			tests.add(schedule.price <= data.account.summary.funds);// enough funds to cover this Attend
+			tests.add(now.ts < expiry);															// Payment expired
 
 			if (!tests.has(false))
 				break;																				// all tests passed
 			tests.clear();																	// reset the test Set
 			this.dbg('test1: %j, %j', data.account.attend.length < 100, data.account.attend.length);
 			this.dbg('test2: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
-			this.dbg('test3: %j, %j, %j', now.ts < (active.expiry || Number.MAX_SAFE_INTEGER), now.ts, active.expiry);
+			this.dbg('test3: %j, %j, %j', now.ts < expiry, now.ts, expiry);
 
 			if (data.account.payment.length === 1) {				// create a new Payment
-				// this.snack.error(`Cannot find active Payment ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-				// return false;																	// discard Attend
 				const gap = schedule.price - data.account.summary.credit;
 				const topUp = await this.member.getPayPrice(data);
 				const payment = await this.member.setPayment(Math.max(gap, topUp));

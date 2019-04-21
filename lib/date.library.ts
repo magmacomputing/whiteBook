@@ -80,9 +80,9 @@ export class Instant {
 	/** middle offset */	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
 	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 
-	/** as Date object */	asDate = () => new Date(this.date.ts * 1000 + this.date.ms);
-	/** get raw object */	valueOf = () => ({ ...this.date });
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
+	/** get raw object */	toObject = () => ({ ...this.date });
+	/** as Date object */	asDate = () => new Date(this.date.ts * 1000 + this.date.ms);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
