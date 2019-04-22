@@ -8,6 +8,7 @@ import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { SLICE, LState } from '@dbase/state/state.define';
 import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
+import { SetMigrate, DelMigrate, TruncMigrate } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
@@ -62,7 +63,7 @@ export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: any
 
 /** These fields do not exist in the snapshot data() */
 const remMeta = (doc: IStoreMeta) => {
-	const { [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
+	const { [FIELD.create]: c, [FIELD.update]: u, [FIELD.access]: a, ...rest } = doc;
 	return rest;
 }
 export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
@@ -85,6 +86,9 @@ export const getMethod = (slice: string) => {
 
 		case SLICE.admin:
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
+
+		case SLICE.migrate:
+			return { setStore: SetMigrate, delStore: DelMigrate, truncStore: TruncMigrate }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

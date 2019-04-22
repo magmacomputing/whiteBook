@@ -15,7 +15,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT } from '@lib/date.library';
+import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
 import { cloneObj, getPath } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
@@ -27,7 +27,7 @@ export class AttendService {
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new') }
 
 	/** loop back up-to-seven days to find when className was last scheduled */
-	lkpDate = async (className: string, location?: string, date?: number) => {
+	lkpDate = async (className: string, location?: string, date?: TDate) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
 		let now = getDate(date);													// start with date-argument
 		let ctr = 0;
@@ -52,50 +52,10 @@ export class AttendService {
 		return now.ts;																		// timestamp
 	}
 
-	// TODO: if their intro-pass has expired (auto bump them to 'default' plan)  
-	/**
-	 * Determine active Payment, as   
-   * -> the price of the class is less or equal to funds on a Payment  
-   * -> they've not exceeded 99 Attends against a Payment  
-	 * -> this check-in is earlier than Payment expiry-date  
-  */
-	async getPayment(data: IAccountState, price: number, ts: number) {
-		let source = cloneObj(data);											// dont mutate original data
-		const payments = cloneObj(data.account.payment);
-		const tests: boolean[] = [];											// array of 'tests' to determine if <active>
-		let active = 0;																		// start at the last active Payment
-
-		do {
-			tests.push(source.account.attend.length < MEMBER.maxColumn);	// arbitrary limit of Attends against a Payment             
-			tests.push(price < source.account.summary.funds);// enough funds to cover this Attend
-			tests.push(ts < (payments[0].expiry || Number.MAX_SAFE_INTEGER));
-
-		} while (tests.some(check => check === false)) {
-			tests.length = 0;																// reset tests
-			active += 1;																		// move to next Payment
-
-			payments.shift();																// drop off top-of-list
-			if (!payments[0][FIELD.effect]) {								// if now top-of-list Payment is not yet in-use
-				payments[0].bank = source.account.summary.funds;// do a dummy-rollover to calc <bank>
-			}
-
-			source.account.payment = payments;							// build a new Payment array
-			source = sumPayment(source);										// calculate the Summary for this Payment
-
-			const paymentId = payments[0][FIELD.id];				//
-			const attendState = await this.state.getAttendData(paymentId)
-				.toPromise();																	// lookup Attends against this Payment
-			source.account.attend = attendState[paymentId];	// build a new Attend array
-			source = sumAttend(source);											// offset Summary by the cost of Attends
-		}
-
-		return active;
-	}
-
 	/**
 	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
-	async setAttend(schedule: ISchedule, note?: TString, date?: number) {
+	async setAttend(schedule: ISchedule, note?: TString, date?: TDate) {
 		let data = await this.member.getAccount(date);		// get Member's current account details
 
 		// If no <price> on Schedule, then lookup based on member's plan
@@ -122,6 +82,7 @@ export class AttendService {
 		// check we are not re-booking same Class on same Day at same Location at same Time
 		const attendFilter = [
 			addWhere(FIELD.uid, data.auth.current!.uid),
+			addWhere(FIELD.key, schedule[FIELD.key]),
 			addWhere(FIELD.note, note),
 			addWhere('schedule', schedule[FIELD.id]),
 			addWhere('date', when),
@@ -138,25 +99,13 @@ export class AttendService {
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// ensure we have enough credit to cover the price of the check-in
+		// Loop through Payments to determine which is <active>
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
-
-		// if (!data.account.payment[0] || schedule.price > data.account.summary.credit) {
-		// 	const gap = schedule.price - data.account.summary.credit;
-		// 	const topUp = await this.member.getPayPrice(data);
-		// 	const payment = await this.member.setPayment(Math.max(gap, topUp));
-
-		// 	creates.push(payment);													// stack the topUp Payment
-		// 	data.account.payment.push(payment);							// append to the Payment array
-		// }
-
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// Loop through Payments to determine which is <active>
 		const tests = new Set<boolean>();									// Set of test results
 		let active: IPayment;															// Payment[0]
 
-		do {
+		while (true) {
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
@@ -196,7 +145,7 @@ export class AttendService {
 
 			data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
 			data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
-		} while (true);
+		}
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])

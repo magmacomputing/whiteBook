@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
+import { firestore } from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
@@ -10,14 +11,15 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
+import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined } from '@lib/type.library';
+import { isUndefined, isObject } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
-import { ISummary } from '@dbase/state/state.define';
 import { cloneObj } from '@lib/object.library';
+import { dbg } from '@lib/logger.library';
+
 
 /**
  * This private service will communicate with the FireStore database,
@@ -76,13 +78,14 @@ export class FireService {
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
 				delete rest[key];										// TODO: recurse?
+			if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
+				rest[key] = firestore.FieldValue.delete();	// TODO: workaround
 		})
 		return rest;
 	}
 
 	/**
-	 * Wrap a set of database-writes within a set of Batches
-	 *  (limited to 500 documents per).  
+	 * Wrap a set of database-writes within a set of Batches (limited to 500 documents per).  
 	 * These documents are assumed to have a <store> field and (except for creates) an <id> field
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
@@ -91,29 +94,51 @@ export class FireService {
 		const cloneDelete = asArray(cloneObj(deletes));
 		const limit = 500;
 
-		while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
-			const c = cloneCreate.splice(0, limit);
-			const u = cloneUpdate.splice(0, limit - c.length);
-			const d = cloneDelete.splice(0, limit - c.length - u.length);
-			const bat = this.afs.firestore.batch();
+		return new Promise<boolean>((resolve, reject) => {
 
-			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
-			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+			while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
+				const c = cloneCreate.splice(0, limit);
+				const u = cloneUpdate.splice(0, limit - c.length);
+				const d = cloneDelete.splice(0, limit - c.length - u.length);
+				// this.dbg('batch: c: %s, u: %s, d: %s', c.length, u.length, d.length);
 
-			return bat.commit();
-		}
+				const bat = this.afs.firestore.batch();
+
+				c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
+				u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
+				d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+
+				bat.commit()
+					.then(_res => resolve(true))								// the first batch's result
+					.catch(err => reject(err))
+			}
+		})
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
 	runTxn(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], selects: DocumentReference[] = []) {
-		return this.afs.firestore.runTransaction(txn => {
-			asArray(selects).forEach(ref => txn.get(ref));
-			asArray(creates).forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
-			asArray(updates).forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-			asArray(deletes).forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+		const cloneCreate = asArray(cloneObj(creates));
+		const cloneUpdate = asArray(cloneObj(updates));
+		const cloneDelete = asArray(cloneObj(deletes));
+		const limit = 500;
 
-			return Promise.resolve(true);					// if any change fails, the Transaction rejects
+		return new Promise<boolean>((resolve, reject) => {
+
+			while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
+				const c = cloneCreate.splice(0, limit);
+				const u = cloneUpdate.splice(0, limit - c.length);
+				const d = cloneDelete.splice(0, limit - c.length - u.length);
+
+				this.afs.firestore.runTransaction(txn => {
+					asArray(selects).forEach(ref => txn.get(ref));
+					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
+					u.forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
+					d.forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+
+					return Promise.resolve(true);					// if any change fails, the Transaction rejects
+				})
+			}
+			resolve(true);
 		})
 	}
 

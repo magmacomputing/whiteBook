@@ -15,6 +15,7 @@ export enum SLICE {
 	attend = 'attend',
 	admin = 'admin',
 	local = 'local',
+	migrate = 'migrate',
 }
 
 /**

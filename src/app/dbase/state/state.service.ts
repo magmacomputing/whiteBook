@@ -34,6 +34,7 @@ export class StateService {
 	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private migrate$!: Observable<TStateSlice<IStoreMeta>>;
 
 	private dbg = dbg(this);
 	public states: IState;
@@ -45,6 +46,7 @@ export class StateService {
 			'attend': this.attend$,
 			'admin': this.admin$,
 			'local': this.local$,
+			'migrate': this.migrate$,
 		}
 	}
 

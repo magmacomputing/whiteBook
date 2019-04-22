@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
 import { take, map } from 'rxjs/operators';
-import { Store } from '@ngxs/store';
 import { firestore } from 'firebase/app';
+import { Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
@@ -21,11 +21,12 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, getStamp, fmtDate, Instant } from '@lib/date.library';
+import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
-import { isUndefined, isNumber, isNull } from '@lib/type.library';
+import { isUndefined, isNull } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
+import { type } from 'os';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -44,7 +45,7 @@ export class MigAttendComponent implements OnInit {
 	private history!: Promise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
-	private current: IRegister | null;
+	private current: IRegister | null = null;
 	private user!: firebase.UserInfo | null;
 	private dflt!: string;
 	private ready!: Promise<boolean[]>;
@@ -74,9 +75,8 @@ export class MigAttendComponent implements OnInit {
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
-	constructor(private http: HttpClient, private data: DataService, private state: StateService,
+	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
-		this.current = null;
 
 		this.filter();
 
@@ -142,22 +142,13 @@ export class MigAttendComponent implements OnInit {
 
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
-			.subscribe(_other => {
+			.subscribe(async _other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
-				this.ready = Promise.all([														// initial sync complete
+				await Promise.all([														// initial sync complete
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
+					this.sync.on(COLLECTION.migrate, query),
 				]);
-
-				this.data.getFire<IMigrateBase>(STORE.migrate, {			// /migrate is not synced to NGXS
-					where: [
-						addWhere(FIELD.store, STORE.migrate),
-						addWhere(FIELD.type, [STORE.class, STORE.event]),
-						addWhere(FIELD.uid, this.current!.uid),
-					]
-				})
-					.then(migrate => this.migrate = migrate)
-					.then(_ => this.dbg('migrate: %s', this.migrate.length))
 
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
@@ -176,6 +167,7 @@ export class MigAttendComponent implements OnInit {
 				this.hide = register[FIELD.hidden]
 					? 'Un'
 					: ''
+				this.change.detectChanges();
 			});
 	}
 
@@ -186,6 +178,7 @@ export class MigAttendComponent implements OnInit {
 				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
 				this.current = null;
+				this.sync.off(COLLECTION.migrate);
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 			})
@@ -252,23 +245,20 @@ export class MigAttendComponent implements OnInit {
 	 * Add Attendance records for a Member
 	 */
 	public addAttend() {
-		this.history																			// a sorted-list of Attendance check-ins / account payments
+		this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.user.uid))
+			.then(res => this.migrate = res)
+			.then(_ => this.history)												// a sorted-list of Attendance check-ins / account payments	
 			.then(history => {
 				const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-					.filter(row => row.date = 20150215)
+				// .filter(row => row.date === 20150215)
 				this.nextAttend(table[0], ...table.slice(1));	// fire initial Attendance
 			})
 	}
 
 	private nextAttend(row: MHistory, ...rest: MHistory[]) {
 		this.dbg('hist: %j', row);
-		const what = this.lookup[row.type] || row.type;
+		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
-		const dow = now.dow;
-		const where = [
-			addWhere(FIELD.key, what),
-			addWhere('day', dow),
-		]
 
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
@@ -277,48 +267,27 @@ export class MigAttendComponent implements OnInit {
 		let sched: ISchedule;
 		let event: IEvent;
 		let idx: number = 0;
-		let migrate: IMigrateBase;
-		let attend: IMigrateBase["attend"] = {};
+		let migrate: IMigrateBase | undefined;
 
-		if (suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
+		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			this.dbg(`${prefix}: need to resolve ${sfx} classes`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {				// insert additional attends
-				row.type = prefix + '*-' + nbr;						// TODO: determine if ZumbaStep via the row.amount?  startTime
-				rest.splice(0, 0, row);
+				row.type = prefix + `*-${nbr}.${sfx}`;						// TODO: determine if ZumbaStep via the row.amount?  startTime
+				rest.splice(0, 0, { ...row });
 				this.dbg('splice: %j', row.type);
 			}
-			sfx = '1';
+			sfx = `-1.${sfx}`;
 		}
 
 		switch (true) {
-			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
-				migrate = asAt(this.migrate, [addWhere(FIELD.key, asString(now.format(DATE_FMT.yearMonthDay))), addWhere(FIELD.uid, this.current!.uid)])[0];
-				let klass = migrate && migrate.attend && migrate.attend.class || null;
-				if (isUndefined(migrate)) {
-					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt);
-					if (isNull(klass))
-						throw new Error('Cannot determine class');
-					this.dflt = klass;
-
-					attend = { class: klass };
-					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.class,
-						[FIELD.key]: asString(now.format(DATE_FMT.yearMonthDay)), [FIELD.uid]: this.current!.uid, attend,
-					})
-				}
-
-				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
-				break;
-
 			case this.special.includes(prefix):						// special event match by <type>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-				migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
-				attend = migrate && migrate.attend || {};
+				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
-				if (!migrate || !attend[sfx]) {
+				if (!migrate.attend[sfx]) {
 					for (idx = 0; idx < event.classes.length; idx++) {
 						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 							break;
@@ -326,16 +295,12 @@ export class MigAttendComponent implements OnInit {
 					if (idx === event.classes.length)
 						throw new Error('Cannot determine event');
 
-					attend[sfx] = event.classes[idx];
-
-					this.data.setDoc(STORE.migrate, {
-						[FIELD.id]: migrate[FIELD.id] || this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
-						[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
-					});
+					migrate.attend[sfx] = event.classes[idx];
+					this.writeMigrate(migrate);
 				}
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: (migrate && migrate.attend[sfx]) || event.classes[idx],
+					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: migrate.attend[sfx],
 					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
@@ -344,33 +309,47 @@ export class MigAttendComponent implements OnInit {
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 
 				if (!event.classes.includes(what as TClass)) {
-					migrate = asAt(this.migrate, [addWhere(FIELD.key, caldr[FIELD.key]), addWhere(FIELD.uid, this.current!.uid)])[0];
-					attend = migrate && migrate.attend || {};
-					if (!migrate || !attend[what]) {
+					migrate = this.lookupMigrate(caldr[FIELD.key]);
+					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.classes.length; idx++) {
-							if (window.prompt(`This ${row.type} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+							if (window.prompt(`This ${what} event on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
 								break;
 						}
 						if (idx === event.classes.length)
-							throw new Error('Cannot determine class');
+							throw new Error('Cannot determine event');
 
-						attend[row.type] = event.classes[idx];
-						row.type = event.classes[idx];
-
-						this.data.setDoc(STORE.migrate, {
-							[FIELD.id]: migrate[FIELD.id] || this.data.newId, [FIELD.store]: STORE.migrate, [FIELD.type]: STORE.event,
-							[FIELD.key]: asString(caldr[FIELD.key]), [FIELD.uid]: this.current!.uid, attend,
-						});
+						migrate.attend[what] = event.classes[idx];
+						this.writeMigrate(migrate);
 					}
+					what = migrate.attend[what];
 				}
 
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
-					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: row.note ? [row.note, caldr.name] : caldr.name,
+					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
+					note: row.note ? [row.note, caldr.name] : caldr.name,
 				}
 				break;
 
+			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
+				migrate = this.lookupMigrate(now.format(DATE_FMT.yearMonthDay));
+				let klass = migrate.attend.class || null;
+
+				if (isUndefined(klass)) {
+					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt);
+					if (isNull(klass))
+						throw new Error('Cannot determine class');
+					this.dflt = klass;
+
+					migrate.attend = { class: klass };
+					this.writeMigrate(migrate);
+				}
+
+				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
+				break;
+
 			default:
+				const where = [addWhere(FIELD.key, what), addWhere('day', now.dow)];
 				sched = asAt(this.schedule, where, row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
@@ -382,6 +361,32 @@ export class MigAttendComponent implements OnInit {
 					this.nextAttend(rest[0], ...rest.slice(1));
 				else this.lastAttend();								// wrap-up final Payment
 			})
+	}
+
+	private lookupMigrate(key: string | number, type: string = 'event') {
+		let migrate = this.migrate
+			.find(row => row[FIELD.key] === asString(key))
+
+		if (isUndefined(migrate)) {
+			migrate = {
+				[FIELD.id]: this.data.newId,
+				[FIELD.store]: STORE.migrate,
+				[FIELD.type]: type as STORE.class | STORE.event,
+				[FIELD.key]: asString(key),
+				[FIELD.uid]: this.current!.uid,
+				attend: {}
+			}
+		}
+
+		return migrate;
+	}
+
+	private writeMigrate(migrate: IMigrateBase) {
+		const where = addWhere(FIELD.uid, this.current!.user.uid);
+
+		return this.data.setDoc(STORE.migrate, migrate)
+			.then(_ => this.data.getStore<IMigrateBase>(STORE.migrate, where))
+			.then(res => this.migrate = res);
 	}
 
 	private async lastAttend() {
@@ -424,20 +429,20 @@ export class MigAttendComponent implements OnInit {
 			addWhere(FIELD.store, STORE.payment),
 			addWhere(FIELD.uid, this.current!.user.uid),
 		]
-		const deletes = await this.data.getFire<TStoreBase>(COLLECTION.member, { where });
+		const deletes = await this.data.getStore<TStoreBase>(STORE.payment, where);
 
 		where.length = 0;													// truncate where-clause
 		where.push(addWhere(FIELD.uid, this.current!.user.uid));
-		deletes.push(...await this.data.getFire<TStoreBase>(COLLECTION.attend, { where }));
+		deletes.push(...await this.data.getStore<TStoreBase>(STORE.attend, where));
 
 		if (full) {
 			where.length = 0;
 			where.push(...[
 				addWhere(FIELD.store, STORE.migrate),
-				addWhere(FIELD.type, STORE.event),
+				addWhere(FIELD.type, [STORE.event, STORE.class]),
 				addWhere(FIELD.uid, this.current!.user.uid),
 			]);
-			deletes.push(...await this.data.getFire<TStoreBase>(COLLECTION.migrate, { where }));
+			deletes.push(...await this.data.getStore<TStoreBase>(STORE.migrate, where));
 		}
 
 		return this.data.batch(undefined, undefined, deletes)
@@ -446,18 +451,22 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async delAttend() {
-		const deletes = await this.data.getFire<IAttend>(COLLECTION.attend, { where: addWhere(FIELD.uid, this.current!.user.uid) });
-		const payments = await this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.user.uid));
-		const updates = payments.map(row => ({					// reset the calculated-fields
-			...row,
-			[FIELD.effect]: firestore.FieldValue.delete(),
-			[FIELD.expire]: firestore.FieldValue.delete(),
-			bank: firestore.FieldValue.delete(),
-			expiry: firestore.FieldValue.delete()
-		}));
+		const [deletes, payments] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.user.uid)),
+			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.user.uid)),
+		])
+		const updates = payments
+			.filter(row => row[FIELD.effect])
+			.map(row => ({					// reset the calculated-fields
+				...row,
+				[FIELD.effect]: firestore.FieldValue.delete(),
+				[FIELD.expire]: firestore.FieldValue.delete(),
+				bank: firestore.FieldValue.delete(),
+				expiry: firestore.FieldValue.delete(),
+			}));
+		if (!deletes.length && !updates.length)
+			this.dbg('attends: Nothing to do');
 
-		this.dbg('payments: %j', payments);
-		this.dbg('updates: %j', updates);
 		return this.data.batch(undefined, updates, deletes, SetMember)
 			.then(_ => this.member.getAmount())
 			.then(sum => this.data.writeAccount(sum))

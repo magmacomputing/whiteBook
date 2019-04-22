@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { timer } from 'rxjs';
-import { map, debounce, timeout, take, tap } from 'rxjs/operators';
+import { map, debounce, timeout, take } from 'rxjs/operators';
 
 import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 import { DocumentChangeAction } from '@angular/fire/firestore';
