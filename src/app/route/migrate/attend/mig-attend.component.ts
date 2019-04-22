@@ -26,7 +26,6 @@ import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
-import { type } from 'os';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -147,7 +146,7 @@ export class MigAttendComponent implements OnInit {
 				await Promise.all([														// initial sync complete
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
-					this.sync.on(COLLECTION.migrate, query),
+					// this.sync.on(COLLECTION.migrate, query),
 				]);
 
 				const action = 'history,status';
@@ -364,21 +363,15 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	private lookupMigrate(key: string | number, type: string = 'event') {
-		let migrate = this.migrate
-			.find(row => row[FIELD.key] === asString(key))
-
-		if (isUndefined(migrate)) {
-			migrate = {
+		return this.migrate
+			.find(row => row[FIELD.key] === asString(key)) || {
 				[FIELD.id]: this.data.newId,
 				[FIELD.store]: STORE.migrate,
 				[FIELD.type]: type as STORE.class | STORE.event,
 				[FIELD.key]: asString(key),
 				[FIELD.uid]: this.current!.uid,
 				attend: {}
-			}
-		}
-
-		return migrate;
+			} as IMigrateBase
 	}
 
 	private writeMigrate(migrate: IMigrateBase) {
@@ -420,8 +413,8 @@ export class MigAttendComponent implements OnInit {
 
 		this.data.batch(undefined, updates, undefined, SetMember)
 			.then(_ => this.member.getAmount())				// re-calc the new Account summary
-			.then(sum => { if (updates.length) this.data.writeAccount(sum) })	// update Admin summary
-			.then(_ => this.dbg('done'))
+			.then(sum => updates.length ? this.data.writeAccount(sum) : {})	// update Admin summary
+			.finally(() => this.dbg('done'))
 	}
 
 	async delPayment(full: boolean) {
