@@ -4,7 +4,7 @@ import { IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
-import { isString, isObject, isNumber } from '@lib/type.library';
+import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
 import { getStamp, getDate } from '@lib/date.library';
 
 // Library of member-related functions
@@ -57,7 +57,7 @@ export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState[
 	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
 	const hold = payment.hold || 0;
 
-	if (topUp && plan.expiry) {												// plan.active is usually six-months
+	if (topUp && !isUndefined(plan.expiry)) {									// plan.expiry is usually six-months
 		const offset = topUp.amount
 			? Math.round(payment.amount / (topUp.amount / plan.expiry)) || 1
 			: plan.expiry;																// allow for gratis account expiry
