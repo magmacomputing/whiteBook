@@ -2,4 +2,4 @@ This folder can be removed after the WhiteBook sheets have been migrated to Clou
 
 It is lazy-loaded, so it should not impact UX in the meantime.
 
-It is included in this project, so that it can re-use the existing CheckIn processes.
+It is included in this project, so that it can leverage the existing CheckIn processes.

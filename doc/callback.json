@@ -1,114 +1,25 @@
 {
-	"signIn": {
-		"track": {
-			"register": "81514191d1d101511191618101f10181"
-		},
-		"register": {
-			"id": "100000138474102",
-			"provider": "fb",
-			"sheetName": "MichaelM",
-			"userName": "Michael McRae",
-			"firstName": "Michael",
-			"lastName": "McRae",
-			"birthDay": "2018-05-19T14:00:00.000Z",
-			"gender": "male",
-			"email": "michael@magmacomputing.com.au",
-			"picture": "https://graph.facebook.com/100000138474102/picture",
-			"isAdmin": true,
-			"rowNum": 4
-		},
-		"state": {
-			"isAdmin": true,
-			"timeOut": 1200,
-			"expires": 1552031725930,
-			"url": "https://script.google.com/a/magmacomputing.com.au/macros/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/usercallback",
-			"token": "ADEpC8yovNsz4E75gFt2QGiT37Su1D7cU0ZRYCxy8rUT_tJ1ksTHCQgjEAuXMgKLxF8jLD-Wbe93_43mKwi_afbagzfaNk5yO-ylG8jwTVgcj6h9bUJQmWHpkh2wKLP30QajKa5HFyMwW7_AIET0qTDSvX-c8YJ-dxFZ5QPimMfbcHe3_O-EZ64byBaSprdLFVnVaEa3swAa"
+	"uid": "MichelleZ",
+	"sheetName": "MichelleZ",
+	"email": "michelle_zhao@nomail.com",
+	"picture": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xpf1/t1.0-1/p50x50/971206_10203611276505405_1675186406_n.jpg",
+	"credit": 0,
+	"plans": [
+		{
+			"plan": "member",
+			"effect": 1400668857
 		}
-	}
-}
-
-{
-	"signIn": {
-		"track": {
-			"register": "e181313121211041418121f17110f131"
-		},
-		"register": {
-			"id": "10206981332156694",
+	],
+	"providers": [
+		{
+			"id": "1320692280",
 			"provider": "fb",
-			"sheetName": "PatriciaC",
-			"userName": "Patricia Cachia",
-			"firstName": "Patricia",
-			"lastName": "Cachia",
-			"birthDay": "",
+			"firstName": "Michelle",
+			"lastName": "Zhao",
 			"gender": "female",
-			"email": "pcachia@live.com.au",
-			"picture": "https://graph.facebook.com/10206981332156694/picture",
-			"isAdmin": "",
-			"rowNum": 74
-		},
-		"state": {
-			"isAdmin": "",
-			"timeOut": 1200,
-			"expires": 1551430689558,
-			"url": "https://script.google.com/a/magmacomputing.com.au/macros/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/usercallback",
-			"token": "ADEpC8zVSD-SIrK8EoJ1oMJfP0Mj6ddYOscEk6f72lQvGlrP5dRtgcgyGRvRSzHuww_q_zkF3YBMfMt_ieZ2CXnO_ylu3VHSqSYvbLctmshqtlh2dCHwMiHzC7_AzEfSKeWMa1Zi7PDhvGNpgFzZPm1TVl7bULqK4nI-uZfT8zFqqpUx-XYA_D4"
+			"email": "michelle_zhao@nomail.com",
+			"picture": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xpf1/t1.0-1/p50x50/971206_10203611276505405_1675186406_n.jpg",
+			"isAdmin": false
 		}
-	},
-	"status": {
-		"track": {
-			"history": 0
-		},
-		"history": [],
-		"status": {
-			"lastVisit": "Fri, 2019-Mar-01  (19:35:26)",
-			"eventType": "<font style=\"color:#ff02ff;\">Zumba",
-			"eventPrice": "$ 10.00",
-			"hr1": "<hr style=\"border: 1px dashed black;\">",
-			"creditExpires": "Mon, 2019-Jun-10",
-			"creditRemaining": "$ <font style=\"color:red;\">-60.00",
-			"visitsPrePaid": "$ 60.00",
-			"trackDaysThisWeek": 1,
-			"_week": "201909.5.1",
-			"trackDaysThisMonth": 1,
-			"_month": "201903.1.1"
-		}
-	},
-	"detail": {
-		"track": {
-			"detail": "e101c1d181114181e1c1b18191411181"
-		},
-		"detail": {
-			"type": "member",
-			"plan": 100,
-			"price": 100,
-			"nextType": "member",
-			"nextPlan": "Member",
-			"nextPrice": 100
-		}
-	}
-}
-{
-	"table[holds]": "1433818825",
-	"lastName": "McRae",
-	"table[spans]": "1422331427",
-	"admin[members]": "d1613111b1f1713121c11191015131b1",
-	"prefix": "jQuery21103530272447892142_1552030516257",
-	"table[price]": "1456114329",
-	"table[dates]": "1550266980",
-	"table[event]": "1540884347",
-	"fullName": "Michael McRae",
-	"userName": "Michael McRae",
-	"version": "v2.61",
-	"picture": "https://graph.facebook.com/100000138474102/picture",
-	"table[plans]": "1519365616",
-	"isScan": "false",
-	"table[bonus]": "1433371661",
-	"firstName": "Michael",
-	"table[idb]": "1436415639",
-	"provider": "fb",
-	"table[times]": "1543437585",
-	"action": "signIn,status,detail",
-	"id": "100000138474102",
-	"email": "michael@magmacomputing.com.au",
-	"_": "1552030516258"
+	]
 }

@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
 
 import { MemberService } from '@service/member/member.service';
 import { IAccountState } from '@dbase/state/state.define';
@@ -16,7 +15,7 @@ export class AccountComponent implements OnInit {
 	public data$!: Observable<IAccountState>;
 	private dbg = dbg(this);
 
-	constructor(readonly state: StateService, readonly member: MemberService) { }
+	constructor(readonly state: StateService, readonly member: MemberService) { 	}
 
 	ngOnInit() {
 		// this.data$ = this.state.getAccountData().pipe(

@@ -1,0 +1,25 @@
+{
+	"uid": "MichelleZ",
+	"sheetName": "MichelleZ",
+	"email": "michelle_zhao@nomail.com",
+	"picture": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xpf1/t1.0-1/p50x50/971206_10203611276505405_1675186406_n.jpg",
+	"credit": 0,
+	"plans": [
+		{
+			"plan": "member",
+			"effect": 1400668857
+		}
+	],
+	"providers": [
+		{
+			"id": "1320692280",
+			"provider": "fb",
+			"firstName": "Michelle",
+			"lastName": "Zhao",
+			"gender": "female",
+			"email": "michelle_zhao@nomail.com",
+			"picture": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xpf1/t1.0-1/p50x50/971206_10203611276505405_1675186406_n.jpg",
+			"isAdmin": false
+		}
+	]
+}
