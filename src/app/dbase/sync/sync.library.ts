@@ -8,7 +8,6 @@ import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { SLICE, LState } from '@dbase/state/state.define';
 import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
-import { SetMigrate, DelMigrate, TruncMigrate } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
@@ -86,9 +85,6 @@ export const getMethod = (slice: string) => {
 
 		case SLICE.admin:
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
-
-		case SLICE.migrate:
-			return { setStore: SetMigrate, delStore: DelMigrate, truncStore: TruncMigrate }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

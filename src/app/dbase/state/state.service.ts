@@ -13,8 +13,6 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
-import { FireService } from '@dbase/fire/fire.service';
-import { SyncService } from '@dbase/sync/sync.service';
 
 import { TString } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
@@ -34,19 +32,18 @@ export class StateService {
 	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private migrate$!: Observable<TStateSlice<IStoreMeta>>;
 
 	private dbg = dbg(this);
 	public states: IState;
 
-	constructor(private fire: FireService, private sync: SyncService) {
+	// constructor(private fire: FireService, private sync: SyncService) {
+	constructor() {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
 			'member': this.member$,
 			'attend': this.attend$,
 			'admin': this.admin$,
 			'local': this.local$,
-			'migrate': this.migrate$,
 		}
 	}
 

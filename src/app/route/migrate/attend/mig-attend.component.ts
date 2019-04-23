@@ -146,7 +146,6 @@ export class MigAttendComponent implements OnInit {
 				await Promise.all([														// initial sync complete
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
-					// this.sync.on(COLLECTION.migrate, query),
 				]);
 
 				const action = 'history,status';
@@ -177,7 +176,6 @@ export class MigAttendComponent implements OnInit {
 				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
 				this.current = null;
-				this.sync.off(COLLECTION.migrate);
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 			})
@@ -244,14 +242,14 @@ export class MigAttendComponent implements OnInit {
 	 * Add Attendance records for a Member
 	 */
 	public addAttend() {
-		this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.user.uid))
-			.then(res => this.migrate = res)
-			.then(_ => this.history)												// a sorted-list of Attendance check-ins / account payments	
-			.then(history => {
-				const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-				// .filter(row => row.date === 20150215)
-				this.nextAttend(table[0], ...table.slice(1));	// fire initial Attendance
-			})
+		Promise.all([
+			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
+			this.history,
+		]).then(([migrate, history]) => {
+			this.migrate = migrate;
+			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
+			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
+		})
 	}
 
 	private nextAttend(row: MHistory, ...rest: MHistory[]) {
@@ -334,7 +332,7 @@ export class MigAttendComponent implements OnInit {
 				migrate = this.lookupMigrate(now.format(DATE_FMT.yearMonthDay));
 				let klass = migrate.attend.class || null;
 
-				if (isUndefined(klass)) {
+				if (isNull(klass)) {
 					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt);
 					if (isNull(klass))
 						throw new Error('Cannot determine class');
@@ -465,22 +463,25 @@ export class MigAttendComponent implements OnInit {
 			.then(sum => this.data.writeAccount(sum))
 	}
 
-	private async fetch(action: string, query: string) {
+	private fetch(action: string, query: string) {
 		const urlParams = `${this.url}?${query}&action=${action}&prefix=${this.prefix}`;
-		const res = await this.http
+		return this.http
 			.get(urlParams, { responseType: 'text' })
 			.toPromise()
-		const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
+			.then(res => {
+				const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
 
-		this.dbg('fetch: %j', urlParams);
-		try {
-			const obj = JSON.parse(json);
-			return (action === 'history,status')
-				? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
-				: obj[action];
-		} catch (err) {
-			this.dbg('not a valid JSON');
-			return {}
-		}
+				this.dbg('fetch: %j', urlParams);
+				try {
+					const obj = JSON.parse(json);
+					return (action === 'history,status')
+						? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
+						: obj[action];
+				} catch (err) {
+					this.dbg('not a valid JSON');
+					return {}
+				}
+			})
+			.catch(err => this.dbg('cannot fetch: %s', err.message))
 	}
 }

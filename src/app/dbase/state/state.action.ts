@@ -80,18 +80,3 @@ export class TruncAdmin {									// Truncate Admin object from the Store
 	static type = '[Sync Service] Truncate Admin';
 	constructor(public debug: boolean = true) { }
 }
-
-export class SetMigrate {										// Add Migrate object into the Store
-	static type = '[Sync Service] Set Migrate';
-	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
-}
-
-export class DelMigrate {										// Remove Migrate object from the Store
-	static type = '[Sync Service] Delete Migrate';
-	constructor(public payload: IStoreMeta, public debug: boolean = true) { }
-}
-
-export class TruncMigrate {									// Truncate Migrate object from the Store
-	static type = '[Sync Service] Truncate Migrate';
-	constructor(public debug: boolean = true) { }
-}

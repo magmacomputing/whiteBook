@@ -12,7 +12,6 @@ import { MemberState } from '@dbase/state/member.state';
 import { AttendState } from '@dbase/state/attend.state';
 import { LocalState } from '@dbase/state/local.state';
 import { AdminState } from '@dbase/state/admin.state';
-import { MigrateState } from '@dbase/state/migrate.state';
 
 import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/snack/snack.service';
 
@@ -21,7 +20,7 @@ const fb = environment.firebase || {};
 @NgModule({
 	imports: [
 		CommonModule,
-		NgxsModule.forFeature([ClientState, MemberState, AttendState, LocalState, AdminState, MigrateState]),
+		NgxsModule.forFeature([ClientState, MemberState, AttendState, LocalState, AdminState]),
 		AngularFireModule.initializeApp(fb.app, fb.config),
 		AngularFirestoreModule.enablePersistence({ experimentalTabSynchronization: true }),
 		AngularFireFunctionsModule,

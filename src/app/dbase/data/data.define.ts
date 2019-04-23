@@ -7,7 +7,7 @@ export enum COLLECTION {
 	attend = 'attend',
 	client = 'client',
 	admin = 'admin',
-	migrate = 'migrate',
+	// migrate = 'migrate',
 }
 
 export enum STORE {

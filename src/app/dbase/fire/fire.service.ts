@@ -85,8 +85,8 @@ export class FireService {
 	}
 
 	/**
-	 * Wrap a set of database-writes within a set of Batches (limited to 500 documents per).  
-	 * These documents are assumed to have a <store> field and (except for creates) an <id> field
+	 * Wrap database-writes within a set of Batches (limited to 500 documents per).  
+	 * These documents are assumed to have a <store> field and (except for 'creates') an <id> field
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const cloneCreate = asArray(cloneObj(creates));

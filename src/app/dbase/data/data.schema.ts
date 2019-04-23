@@ -7,10 +7,9 @@ import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = '_schema_' | '_config_' | '_default_';
 type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
-type TStoreMember = 'profile' | 'payment' | 'gift' | 'message';
+type TStoreMember = 'profile' | 'payment' | 'gift' | 'message' | 'migrate';
 type TStoreAttend = 'attend';
 type TStoreAdmin = 'register' | 'account';
-type TStoreMigrate = 'migrate';
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
@@ -67,7 +66,7 @@ interface IAdminBase extends IMeta {
 	[FIELD.uid]: string;
 }
 export interface IMigrateBase extends IMeta {
-	[FIELD.store]: TStoreMigrate;
+	[FIELD.store]: STORE.migrate;
 	[FIELD.type]: STORE.event | STORE.class;
 	[FIELD.uid]: string;
 	[FIELD.key]: string;
