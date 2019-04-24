@@ -315,10 +315,15 @@ export const buildTimetable = (source: ITimetableState) => {
 
 		asArray(eventList.classes).forEach(className => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, className));
-			const span = firstRow<ISpan>(spans, [
-				addWhere(FIELD.key, classDoc[FIELD.type]),
+			const spanClass = firstRow<ISpan>(spans, [
+				addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
 				addWhere(FIELD.type, STORE.event),
 			])
+			const span = firstRow<ISpan>(spans, [
+				addWhere(FIELD.key, classDoc[FIELD.type]),// is there a span keyed by the type ('full'/'half') of the Class?
+				addWhere(FIELD.type, STORE.event),
+			])
+			const duration = spanClass.duration || span.duration;
 
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
@@ -332,7 +337,7 @@ export const buildTimetable = (source: ITimetableState) => {
 				icon: classDoc.icon,
 			}
 
-			offset += span.duration;									// update offset to next class start-time
+			offset += duration;												// update offset to next class start-time
 			times.push(time as ISchedule);						// add the Event to the timetable
 		})
 	})
