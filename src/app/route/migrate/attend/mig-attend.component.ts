@@ -417,16 +417,15 @@ export class MigAttendComponent implements OnInit {
 
 	async delPayment(full: boolean) {
 		const where = addWhere(FIELD.uid, this.current!.uid);
-		const [payments, gifts, migrates, attends] = await Promise.all([
+		const [payments, gifts, attends] = await Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, [where, addWhere(FIELD.store, STORE.payment)]),
 			this.data.getStore<IGift>(STORE.gift, [where, addWhere(FIELD.store, STORE.gift)]),
-			this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]),
 			this.data.getStore<IAttend>(STORE.attend, where),
 		])
 		const deletes: IStoreMeta[] = [...payments, ...gifts, ...attends];
 
 		if (full)
-			deletes.push(...migrates)
+			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
 		return this.data.batch(undefined, undefined, deletes)
 			.then(_ => this.member.getAmount())
