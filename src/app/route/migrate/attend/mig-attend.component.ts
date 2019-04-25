@@ -11,7 +11,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, TStoreBase, IStoreMeta, TClass } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, TStoreBase, IStoreMeta, TClass, IGift } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -95,7 +95,7 @@ export class MigAttendComponent implements OnInit {
 	ngOnInit() { }
 
 	async delUser() {
-		const where: TWhere = [addWhere(FIELD.uid, this.current!.user.uid)];
+		const where: TWhere = [addWhere(FIELD.uid, this.current!.uid)];
 		const deletes = await Promise.all([
 			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
 			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
@@ -182,7 +182,7 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async hideUser() {
-		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.user.uid)))[0];
+		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
 		reg[FIELD.hidden] = reg[FIELD.hidden]
 			? firestore.FieldValue.delete()
 			: true;
@@ -373,7 +373,7 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	private writeMigrate(migrate: IMigrateBase) {
-		const where = addWhere(FIELD.uid, this.current!.user.uid);
+		const where = addWhere(FIELD.uid, this.current!.uid);
 
 		return this.data.setDoc(STORE.migrate, migrate)
 			.then(_ => this.data.getStore<IMigrateBase>(STORE.migrate, where))
@@ -416,25 +416,17 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async delPayment(full: boolean) {
-		const where = [
-			addWhere(FIELD.store, STORE.payment),
-			addWhere(FIELD.uid, this.current!.user.uid),
-		]
-		const deletes = await this.data.getStore<TStoreBase>(STORE.payment, where);
+		const where = addWhere(FIELD.uid, this.current!.uid);
+		const [payments, gifts, migrates, attends] = await Promise.all([
+			this.data.getStore<IPayment>(STORE.payment, [where, addWhere(FIELD.store, STORE.payment)]),
+			this.data.getStore<IGift>(STORE.gift, [where, addWhere(FIELD.store, STORE.gift)]),
+			this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]),
+			this.data.getStore<IAttend>(STORE.attend, where),
+		])
+		const deletes: IStoreMeta[] = [...payments, ...gifts, ...attends];
 
-		where.length = 0;													// truncate where-clause
-		where.push(addWhere(FIELD.uid, this.current!.user.uid));
-		deletes.push(...await this.data.getStore<TStoreBase>(STORE.attend, where));
-
-		if (full) {
-			where.length = 0;
-			where.push(...[
-				addWhere(FIELD.store, STORE.migrate),
-				addWhere(FIELD.type, [STORE.event, STORE.class]),
-				addWhere(FIELD.uid, this.current!.user.uid),
-			]);
-			deletes.push(...await this.data.getStore<TStoreBase>(STORE.migrate, where));
-		}
+		if (full)
+			deletes.push(...migrates)
 
 		return this.data.batch(undefined, undefined, deletes)
 			.then(_ => this.member.getAmount())
@@ -442,11 +434,12 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async delAttend() {
-		const [deletes, payments] = await Promise.all([
-			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.user.uid)),
-			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.user.uid)),
+		const [deletes, payments, gifts] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
 		])
-		const updates = payments
+		const updates: IStoreMeta[] = payments
 			.filter(row => row[FIELD.effect])
 			.map(row => ({					// reset the calculated-fields
 				...row,
@@ -455,6 +448,14 @@ export class MigAttendComponent implements OnInit {
 				bank: firestore.FieldValue.delete(),
 				expiry: firestore.FieldValue.delete(),
 			}));
+		updates.push(...gifts
+			.filter(row => row[FIELD.effect])
+			.map(row => ({
+				...row,
+				[FIELD.effect]: firestore.FieldValue.delete(),
+				[FIELD.expire]: firestore.FieldValue.delete(),
+			}))
+		);
 		if (!deletes.length && !updates.length)
 			this.dbg('attends: Nothing to do');
 
