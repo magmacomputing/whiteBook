@@ -56,8 +56,8 @@ export class StateService {
 		return getCurrent<T>(this.states, store, filters);
 	}
 
-	getStore<T>(store: string, where?: TWhere) {
-		return getStore<T>(this.states, store, where);
+	getStore<T>(store: string, where?: TWhere, date?: TDate) {
+		return getStore<T>(this.states, store, where, date);
 	}
 
 	getState<T>(store: string, where?: TWhere) {
@@ -138,7 +138,7 @@ export class StateService {
 	 * application._default -> has the current defaults to be used where join-fields are undefined
 	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
 	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
-	 * member.pref	-> has an array of member preferences  
+	 * member.gift	-> has an array of Member gifts  
 	 * client.price -> has an array of IPrice that match the Member's plan-type
 	 * client.plan  -> has array of the asAt IPlan description
 	 * 
@@ -146,7 +146,7 @@ export class StateService {
 	 */
 	getMemberData(date?: TDate): Observable<IMemberState> {
 		const filterProfile = [
-			addWhere(FIELD.type, ['plan', 'info', 'pref']),   // where the <type> is either 'plan', 'info', or 'pref'
+			addWhere(FIELD.type, ['plan', 'info', 'gift']),   // where the <type> is either 'plan', 'info', or 'gift'
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),  		// and the <uid> is current active User
 		]
 		const filterPlan = addWhere(FIELD.key, '{{member.plan[0].plan}}');

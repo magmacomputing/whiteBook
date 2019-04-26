@@ -115,6 +115,12 @@ export interface IPrice extends IClientBase {
 //	/client/bonus
 export interface IBonus extends IClientBase {
 	[FIELD.store]: STORE.bonus;
+	[FIELD.key]: 'week' | 'month' | 'sunday';
+	free: number | TString;
+	limit: number;
+	rule: TString;
+	desc?: TString;
+	sort?: number;
 }
 
 //	/client/plan
@@ -341,7 +347,7 @@ export interface IAttend extends IAttendBase {
 	bonus?: TString;									// the /client/bonus or /member/gift _id for this payment
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
-	track?: {													// to use in bonus-checking
+	track: {													// to use in bonus-checking
 		day: number;										// weekDay attended
 		week: number;										// yearWeek attended
 		month: number;									// yearMonth attended

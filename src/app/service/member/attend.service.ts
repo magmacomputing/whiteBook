@@ -1,23 +1,23 @@
 import { Injectable } from '@angular/core';
 
 import { addWhere } from '@dbase/fire/fire.library';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { StateService } from '@dbase/state/state.service';
-import { IAccountState } from '@dbase/state/state.define';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
-import { MEMBER } from '@service/member/member.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
-import { cloneObj, getPath } from '@lib/object.library';
+import { getPath } from '@lib/object.library';
+import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -38,6 +38,7 @@ export class AttendService {
 		for (ctr; ctr < 7; ctr++) {
 			const classes = timetable.client.schedule!			// loop through schedule
 				.filter(row => row.day === now.dow)						// finding a match in 'day'
+				// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times
 				.filter(row => row[FIELD.key] === className)	// and match in 'class'
 				.filter(row => row.location === location)			// and match in 'location'
 
@@ -52,31 +53,90 @@ export class AttendService {
 		return now.ts;																		// timestamp
 	}
 
+	async getBonus(uid: string, event: string, date: TDate) {
+		const now = getDate(date);
+		let bonus = {} as IBonus | IGift;
+		let [gift, scheme] = await Promise.all([
+			this.data.getStore<IGift>(STORE.gift, undefined, date),					// any active Gifts
+			this.data.getStore<IBonus>(STORE.bonus, undefined, date)
+				.then(bonus => ({
+					'week': bonus.find(row => row[FIELD.key] === 'week') || {} as IBonus,
+					'month': bonus.find(row => row[FIELD.key] === 'month') || {} as IBonus,
+					'sunday': bonus.find(row => row[FIELD.key] === 'sunday') || {} as IBonus,
+				}))
+		]);
+
+		const where = addWhere(FIELD.uid, uid);
+		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('bonus', gift[0][FIELD.id])]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth))]),
+		]);
+
+		switch (true) {
+			case !!gift.length:																// qualify for a Gift bonus
+				bonus = gift[0];																// use Gift as the Bonus
+				if (!bonus[FIELD.effect])
+					bonus[FIELD.effect] = now.ts;									// mark this gift as 'now in-effect'
+				if (bonusGift.length + 1 >= bonus.count)
+					bonus[FIELD.expire] = now.ts;									// mark this gift as 'now complete'
+				break;
+
+			case scheme.week
+				&& deDup(...attendWeek.map(row => row.date)).length + 1 > scheme.week.limit
+				&& deDup(...attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).map(row => row.date)).length < scheme.week.free:
+				bonus = scheme.week;
+				break;
+
+			case scheme.week
+				&& scheme.sunday
+				&& deDup(...attendWeek.map(row => row.date)).length + 1 > scheme.week.limit
+				&& deDup(...attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).map(row => row.date)).length >= scheme.week.free
+				&& (scheme.sunday.free as TString).includes(event):
+				bonus = scheme.sunday;
+				break;
+
+			case scheme.month
+				&& deDup(...attendMonth.map(row => row.date)).length + 1 > scheme.month.limit
+				&& deDup(...attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).map(row => row.date)).length < scheme.month.free:
+				bonus = scheme.month;
+				break;
+		}
+
+		return bonus;
+	}
+
 	/**
 	 * Insert an Attendance record, matched to an <active> Account Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: TString, date?: TDate) {
-		let data = await this.member.getAccount(date);		// get Member's current account details
-
-		// If no <price> on Schedule, then lookup based on member's plan
-		if (isUndefined(schedule.price))
-			schedule.price = await this.member.getEventPrice(schedule[FIELD.key], data);
-
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// TODO: check if <price> should be overridden with Bonus
-		let bonus: string | undefined;										// reference the Bonus that applies to this attend
-		if (schedule.price === 0) {
-
-		}
+		const creates: IStoreMeta[] = [];
+		const updates: IStoreMeta[] = [];
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
-
 		const now = getDate(date);
 		const stamp = now.ts;
 		const when = now.format(DATE_FMT.yearMonthDay);
+
+		let data = await this.member.getAccount(date);		// get Member's current account details
+		const uid = data.auth.current!.uid;
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		let calcPrice = await this.member.getEventPrice(schedule[FIELD.key], data);
+		const bonus = await this.getBonus(uid, schedule[FIELD.key], date);			// any bonus entitlement
+		if (bonus[FIELD.id]) {
+			calcPrice = 0;																	// this Attend is free
+			if ((<IGift>bonus).count)
+				updates.push(bonus);													// update Gift date-range
+		}
+
+		if (isUndefined(schedule.price))									// if no <price> on Schedule, then use calculated value
+			schedule.price = calcPrice;
+		else if (schedule.price !== calcPrice)						// calculation mis-match
+			throw new Error(`Price discrepancy: wanted ${schedule.price}, should be ${calcPrice}`);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day at same Location at same Time
@@ -100,8 +160,6 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Loop through Payments to determine which is <active>
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
 		const tests = new Set<boolean>();									// Set of test results
 		let active: IPayment;															// Payment[0]
 
@@ -122,7 +180,7 @@ export class AttendService {
 			this.dbg('test2: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
 			this.dbg('test3: %j, %j, %j', now.ts < expiry, now.ts, expiry);
 
-			if (data.account.payment.length === 1) {				// create a new Payment
+			if (data.account.payment.length <= 1) {					// create a new Payment
 				const gap = schedule.price - data.account.summary.credit;
 				const topUp = await this.member.getPayPrice(data);
 				const payment = await this.member.setPayment(Math.max(gap, topUp));
@@ -135,16 +193,16 @@ export class AttendService {
 			}
 
 			const next = data.account.payment[1];
-			if (!next.bank) {																// rollover unused funds into next Payment
+			if (next && !next.bank) {												// rollover unused funds into next Payment
 				data.account.payment[1].bank = data.account.summary.funds;
 				updates.push({ ...data.account.payment[1] });
+
+				if (active.approve)															// close previous Payment
+					updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });
+
+				data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
+				data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
 			}
-
-			if (active.approve)															// close previous Payment
-				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });
-
-			data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
-			data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
 		}
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
@@ -169,7 +227,7 @@ export class AttendService {
 			[FIELD.note]: note,															// optional 'note'
 			schedule: schedule[FIELD.id],										// <id> of the Schedule
 			payment: active[FIELD.id],											// <id> of Account's current active document
-			bonus: bonus,																		// <id> of the Bonus
+			bonus: bonus[FIELD.id],													// <id> of the Bonus
 			amount: schedule.price,													// calculated price of the Attend
 			track: {
 				day: now.dow,																	// day of week

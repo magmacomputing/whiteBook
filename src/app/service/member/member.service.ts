@@ -1,24 +1,23 @@
 import { Injectable } from '@angular/core';
+import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { getMemberInfo, calcExpiry } from '@service/member/member.library';
+import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/snack/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
 import { MemberInfo } from '@dbase/state/auth.action';
-import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
-import { FIELD, STORE, COLLECTION, MEMBER } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IBonus, IAttend, IGift } from '@dbase/data/data.schema';
+import { FIELD, STORE } from '@dbase/data/data.define';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass } from '@dbase/data/data.schema';
 
-import { getStamp, TDate, getDate, DATE_FMT } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
-import { dbg } from '@lib/logger.library';
-import { take } from 'rxjs/operators';
 import { IAccountState } from '@dbase/state/state.define';
+import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {

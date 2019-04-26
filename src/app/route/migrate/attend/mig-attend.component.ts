@@ -5,6 +5,7 @@ import { take, map } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
+import { AdminService } from '@service/admin/admin.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory } from '@route/migrate/attend/mig.interface';
@@ -26,6 +27,7 @@ import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
+import { start } from 'repl';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -75,7 +77,7 @@ export class MigAttendComponent implements OnInit {
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
+		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
 
 		this.filter();
 
@@ -193,9 +195,14 @@ export class MigAttendComponent implements OnInit {
 	}
 
 	async addPayment() {
-		const hist = (await this.history) || [];
-		const creates = hist
+		const [pays, gifts, hist = []] = await Promise.all([
+			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
+			this.history,
+		])
+		const creates: IStoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note && row.note.startsWith('Auto-Approve Credit ')) || row.type === 'Credit'))
+			.filter(row => isUndefined(pays.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.startsWith('Write-off')) ? 'debit' : 'topUp';
@@ -219,7 +226,7 @@ export class MigAttendComponent implements OnInit {
 						row.note = 'Write-off part topUp amount';
 				}
 
-				this.dbg('row: %j', row);
+				// this.dbg('row: %j', row);
 				return {
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: payType,
@@ -232,10 +239,43 @@ export class MigAttendComponent implements OnInit {
 				} as IPayment
 			});
 
+		let gift = 0;
+		let start = 0;
+		hist
+			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
+			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
+			.forEach(row => {
+				const str = row.note!.substring(row.note!.search('Gift #') + 6).match(/\d+/g);
+				if (str) {
+					const nbr = parseInt(str[0]);
+					if (nbr === 1) {
+						if (gift && start) {
+							creates.push(this.addGift(gift, start));
+							gift = 0;
+						}
+						start = getDate(row.stamp).startOf('day').ts;
+					}
+					if (nbr > gift)
+						gift = nbr;
+				}
+			})
+		if (gift)
+			creates.push(this.addGift(gift, start));
+
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
 			.then(_ => this.member.getAmount())							// re-calc Account summary
 			.then(summary => this.data.writeAccount(summary))
+	}
+
+	private addGift(gift: number, start: number) {
+		let obj = {
+			[FIELD.store]: STORE.gift,
+			stamp: start,
+			count: gift,
+		} as IGift;
+		this.dbg('gift: %s, %j', getDate(start).format(DATE_FMT.display), obj);
+		return obj;
 	}
 
 	/**
@@ -388,21 +428,20 @@ export class MigAttendComponent implements OnInit {
 		]);
 
 		const updates: IStoreMeta[] = [];
-		let closed: number;
+		const closed = active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
 		active.sort(sortKeys('-' + FIELD.stamp));
-		if (active[0][FIELD.type] === 'debit' && active[0].approve) {
-			closed = active[0].approve[FIELD.stamp];
-			if (closed < getStamp() && !active[0][FIELD.expire]) {
-				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
-				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: closed, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
+		if (active[0][FIELD.type] === 'debit' && active[0].approve && !active[0][FIELD.expire]) {
+			if (active[0].expiry && active[0].expiry < getStamp()) {
+				const when = active[0].approve[FIELD.stamp];
+				this.dbg('closed: %j, %s', when, fmtDate(DATE_FMT.display, when));
+				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: when, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
 				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp });
 			}
 		}
 
 		if (active[0][FIELD.type] === 'topUp' && profile.plan === 'gratis' && active[0].expiry) {
-			closed = active[0].expiry;
 			if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
 				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
 				updates.push({ ...active[0], [FIELD.expire]: closed });

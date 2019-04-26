@@ -19,7 +19,7 @@ import { AuthService } from '@service/auth/auth.service';
 import { asAt } from '@dbase/library/app.library';
 
 import { TString } from '@lib/type.library';
-import { getStamp } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -52,8 +52,8 @@ export class DataService {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getStore<T>(store: string, where: TWhere = []) {
-		return this.state.asPromise(this.state.getStore<T>(store, where));
+	getStore<T>(store: string, where: TWhere = [], date?: TDate) {
+		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 
 	getState<T>(store: string, where: TWhere = []) {
@@ -89,8 +89,6 @@ export class DataService {
 			.toPromise()
 			.then(obs => obs.flat())															// flatten the array-of-values results
 			.then(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
-		// return snap
-		// 	.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }))
 	}
 
 	get newId() {
