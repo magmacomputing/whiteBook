@@ -78,7 +78,7 @@ export let SLICES: IObject<string[]> = {
 }
 
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
-export let FILTER: IObject<string[]> = {
+export let FILTER: IObject<TString> = {
 	[COLLECTION.client]: [FIELD.store, FIELD.key],
 	[COLLECTION.member]: [FIELD.store, FIELD.type, FIELD.uid],
 	[COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],

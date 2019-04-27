@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { DataService } from '@dbase/data/data.service';
-
-import { dbg } from '@lib/logger.library';
 import { MemberService } from '@service/member/member.service';
-import { IStoreMeta } from '@dbase/data/data.schema';
-import { getStamp } from '@lib/date.library';
-import { FIELD } from '@dbase/data/data.define';
+
+import { FIELD, STORE } from '@dbase/data/data.define';
+import { IStoreMeta, IGift } from '@dbase/data/data.schema';
+
+import { getStamp, TDate, getDate } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
+import { dbg } from '@lib/logger.library';
 
 /**
  * Maintain the /client Collection.  
@@ -40,6 +41,19 @@ export class AdminService {
 		});
 
 		return this.data.batch(creates, updates);
+	}
+
+	/** Add a Gift to a Member's account to use in future check-ins */
+	addGift = async (uid: string, count: number, type?: string, start?: TDate, expiry?: TDate) => {
+		return this.data.setDoc(STORE.gift, {
+			[FIELD.effect]: getDate(start).startOf('day').ts,
+			[FIELD.store]: STORE.gift,
+			[FIELD.type]: type,
+			[FIELD.uid]: uid,
+			stamp: getStamp(),
+			expiry: expiry,
+			count: count,
+		} as IGift)
 	}
 
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
+import { asAt } from '@dbase/library/app.library';
 import { addWhere } from '@dbase/fire/fire.library';
-import { TWhere } from '@dbase/fire/fire.interface';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
@@ -14,10 +14,9 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT, TDate } from '@lib/date.library';
+import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
 import { getPath } from '@lib/object.library';
-import { deDup } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -56,9 +55,15 @@ export class AttendService {
 	async getBonus(uid: string, event: string, date: TDate) {
 		const now = getDate(date);
 		let bonus = {} as IBonus | IGift;
+
+		/**
+		 * gift is array of Gifts effective (not expired) on this date
+		 * scheme is definition of Bonus schemes effective on this date
+		 */
 		let [gift, scheme] = await Promise.all([
-			this.data.getStore<IGift>(STORE.gift, undefined, date),					// any active Gifts
-			this.data.getStore<IBonus>(STORE.bonus, undefined, date)
+			this.data.getStore<IGift>(STORE.gift, undefined, date)					// any active Gifts
+				.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
+			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
 				.then(bonus => ({
 					'week': bonus.find(row => row[FIELD.key] === 'week') || {} as IBonus,
 					'month': bonus.find(row => row[FIELD.key] === 'month') || {} as IBonus,
@@ -66,39 +71,60 @@ export class AttendService {
 				}))
 		]);
 
+		/**
+		 * bonusGift	is array of Attends so far against 1st available Gift
+		 * attendWeek	is array of Attends so far in the current week
+		 * attendMonth is array of Attends so far in the current month
+		 */
 		const where = addWhere(FIELD.uid, uid);
 		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('bonus', gift[0][FIELD.id])]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('bonus', (gift[0] || {})[FIELD.id])]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth))]),
 		]);
 
+		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a day do not count towards a Bonus
 		switch (true) {
-			case !!gift.length:																// qualify for a Gift bonus
-				bonus = gift[0];																// use Gift as the Bonus
-				if (!bonus[FIELD.effect])
-					bonus[FIELD.effect] = now.ts;									// mark this gift as 'now in-effect'
+			/**
+			 * Admin adds 'Gift' records to a Member's account which will detail
+			 * the start-date, and count of free classes (and an optional expiry for the Gift).  
+			 * This bonus will be used in preference to any other bonus-pricing scheme.
+			 */
+			case !!gift.length:																// qualify for a Gift bonus?
+				bonus = gift[0];																// use 1st effective Gift as the Bonus
 				if (bonusGift.length + 1 >= bonus.count)
 					bonus[FIELD.expire] = now.ts;									// mark this gift as 'now complete'
 				break;
 
+			/**
+			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.week.level).  
+			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
+			 */
 			case scheme.week
-				&& deDup(...attendWeek.map(row => row.date)).length + 1 > scheme.week.limit
-				&& deDup(...attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).map(row => row.date)).length < scheme.week.free:
+				&& attendWeek.filter(row => isUndefined(row.bonus)).deDup(row => row.date).length + 1 > scheme.week.level
+				&& attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).deDup(row => row.date).length < scheme.week.free:
 				bonus = scheme.week;
 				break;
 
-			case scheme.week
-				&& scheme.sunday
-				&& deDup(...attendWeek.map(row => row.date)).length + 1 > scheme.week.limit
-				&& deDup(...attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).map(row => row.date)).length >= scheme.week.free
+			/**
+			 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.sunday.level),
+			 * but does not qualify for the Week scheme (already claimed yesterday?).    
+			 * The class must be in the free list (scheme.week.free) to claim this bonus
+			 */
+			case scheme.sunday
+				&& attendWeek.filter(row => isUndefined(row.bonus)).deDup(row => row.date).length + 1 > scheme.sunday.level
+				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
 				bonus = scheme.sunday;
 				break;
 
+			/**
+			 * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
+			 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
+			 */
 			case scheme.month
-				&& deDup(...attendMonth.map(row => row.date)).length + 1 > scheme.month.limit
-				&& deDup(...attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).map(row => row.date)).length < scheme.month.free:
+				&& attendMonth.filter(row => isUndefined(row.bonus)).deDup(row => row.date).length + 1 > scheme.month.level
+				&& attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).deDup(row => row.date).length < scheme.month.free:
 				bonus = scheme.month;
 				break;
 		}
@@ -126,8 +152,10 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		let calcPrice = await this.member.getEventPrice(schedule[FIELD.key], data);
-		const bonus = await this.getBonus(uid, schedule[FIELD.key], date);			// any bonus entitlement
-		if (bonus[FIELD.id]) {
+		const bonus = calcPrice
+			? await this.getBonus(uid, schedule[FIELD.key], date)			// any bonus entitlement
+			: {} as IBonus;
+		if (bonus[FIELD.id]) {														// if an applicable Bonus was found,
 			calcPrice = 0;																	// this Attend is free
 			if ((<IGift>bonus).count)
 				updates.push(bonus);													// update Gift date-range

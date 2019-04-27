@@ -250,17 +250,17 @@ export class MigAttendComponent implements OnInit {
 					const nbr = parseInt(str[0]);
 					if (nbr === 1) {
 						if (gift && start) {
-							creates.push(this.addGift(gift, start));
+							creates.push(this.setGift(gift, start));
 							gift = 0;
 						}
-						start = getDate(row.stamp).startOf('day').ts;
+						start = row.stamp;
 					}
 					if (nbr > gift)
 						gift = nbr;
 				}
 			})
 		if (gift)
-			creates.push(this.addGift(gift, start));
+			creates.push(this.setGift(gift, start));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
@@ -268,14 +268,13 @@ export class MigAttendComponent implements OnInit {
 			.then(summary => this.data.writeAccount(summary))
 	}
 
-	private addGift(gift: number, start: number) {
-		let obj = {
+	private setGift(gift: number, start: number) {
+		return {
+			[FIELD.effect]: getDate(start).startOf('day').ts,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			count: gift,
-		} as IGift;
-		this.dbg('gift: %s, %j', getDate(start).format(DATE_FMT.display), obj);
-		return obj;
+		} as IGift
 	}
 
 	/**
@@ -344,7 +343,8 @@ export class MigAttendComponent implements OnInit {
 
 			case (!isUndefined(caldr)):											// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
-
+				if (what === 'MultiStep' && !event.classes.includes(what))
+					what = 'SingleStep';
 				if (!event.classes.includes(what as TClass)) {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {

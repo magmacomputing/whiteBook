@@ -17,7 +17,7 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 	const collection = getSlice(nextDoc[FIELD.store]);
 	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
-	filters.forEach(field => {
+	asArray(filters).forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
 			where.push(addWhere(field, nextDoc[field]));
 		else throw new Error(`missing required field: ${field}`)

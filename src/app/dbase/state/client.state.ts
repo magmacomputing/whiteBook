@@ -82,7 +82,7 @@ export class ClientState implements NgxsOnInit {
 		const acc = {
 			slices: {} as IObject<string[]>,
 			sortby: {} as IObject<TString>,
-			filter: {} as IObject<string[]>,
+			filter: {} as IObject<TString>,
 		}
 
 		this.store
@@ -115,10 +115,6 @@ export class ClientState implements NgxsOnInit {
 				Object.keys(acc.slices).forEach(type => SLICES[type] = acc.slices[type]);
 				Object.keys(acc.sortby).forEach(type => SORTBY[type] = acc.sortby[type]);
 				Object.keys(acc.filter).forEach(type => FILTER[type] = acc.filter[type]);
-
-				// this.dbg('SLICES: %j', SLICES);
-				// this.dbg('SORTBY: %j', SORTBY);
-				// this.dbg('FILTER: %j', FILTER);
 			})
 	}
 }

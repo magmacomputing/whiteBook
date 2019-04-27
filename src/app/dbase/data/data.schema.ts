@@ -100,7 +100,7 @@ export interface ISchema extends IClientBase {
 	[FIELD.type]: string;
 	[FIELD.key]: string;
 	desc: string;
-	filter?: string[];
+	filter?: TString;
 	sort?: TString;
 }
 
@@ -116,8 +116,8 @@ export interface IPrice extends IClientBase {
 export interface IBonus extends IClientBase {
 	[FIELD.store]: STORE.bonus;
 	[FIELD.key]: 'week' | 'month' | 'sunday';
-	free: number | TString;
-	limit: number;
+	free: number | TString;							// number of free classes available, or string[] of classes available
+	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
 	desc?: TString;
 	sort?: number;
