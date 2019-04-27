@@ -7,10 +7,10 @@ import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IAdminState, IBonusState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, IMeta } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
-import { asArray, deDup } from '@lib/array.library';
+import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
 import { DATE_FMT, getDate, TDate } from '@lib/date.library';
@@ -157,7 +157,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 const decodeFilter = (parent: any, filter: TWhere = []) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
-		cond.value = deDup(asArray(cond.value)
+		cond.value = asArray(cond.value)
 			.flatMap(value => {    																// loop through filter's <value>
 				const isPath = isString(value) && value.startsWith('{{');
 				let lookup = value;
@@ -173,7 +173,8 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 				}
 
 				return lookup;                              				// rebuild filter's <value>
-			}))
+			})
+			.mapUnique()
 
 		if (cond.value.length === 1)
 			cond.value = cond.value[0];                           // an array of only one value, return as string

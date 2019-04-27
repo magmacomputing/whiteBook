@@ -101,8 +101,8 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
 			 */
 			case scheme.week
-				&& attendWeek.filter(row => isUndefined(row.bonus)).deDup(row => row.date).length + 1 > scheme.week.level
-				&& attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).deDup(row => row.date).length < scheme.week.free:
+				&& attendWeek.filter(row => isUndefined(row.bonus)).mapUnique(row => row.date).length + 1 > scheme.week.level
+				&& attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).mapUnique(row => row.date).length < scheme.week.free:
 				bonus = scheme.week;
 				break;
 
@@ -112,7 +112,7 @@ export class AttendService {
 			 * The class must be in the free list (scheme.week.free) to claim this bonus
 			 */
 			case scheme.sunday
-				&& attendWeek.filter(row => isUndefined(row.bonus)).deDup(row => row.date).length + 1 > scheme.sunday.level
+				&& attendWeek.filter(row => isUndefined(row.bonus)).mapUnique(row => row.date).length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
 				bonus = scheme.sunday;
@@ -123,8 +123,8 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
 			 */
 			case scheme.month
-				&& attendMonth.filter(row => isUndefined(row.bonus)).deDup(row => row.date).length + 1 > scheme.month.level
-				&& attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).deDup(row => row.date).length < scheme.month.free:
+				&& attendMonth.filter(row => isUndefined(row.bonus)).mapUnique(row => row.date).length + 1 > scheme.month.level
+				&& attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).mapUnique(row => row.date).length < scheme.month.free:
 				bonus = scheme.month;
 				break;
 		}

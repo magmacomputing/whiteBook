@@ -2,7 +2,7 @@ import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere } from '@dbase/fire/fire.interface';
 
-import { asArray, cartesian, deDup } from '@lib/array.library';
+import { asArray, cartesian, mapUnique } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
 import { isUndefined } from '@lib/type.library';
 
@@ -52,15 +52,25 @@ export const fnQuery = (query: IQuery = {}) => {
  */
 const splitQuery = (query: IQuery = {}) => {
 	const vals = asArray(query.where)							// for each 'where' clause
-		.map(where => deDup(...asArray(where.value))// for each 'value'
-			.map<IWhere>(value =>											// build an array of separate IWhere
-				({
-					fieldPath: where.fieldPath,
-					opStr: where.opStr,
-					value: value,
-				})
-			)
+		.map(where => asArray(where.value)					// for each 'value'
+			.mapUnique<any>()													// remove duplicates
+			.map(value => ({													// build an array of separate IWhere
+				fieldPath: where.fieldPath,
+				opStr: where.opStr,
+				value: value,
+			}))
 		);
+
+	// .map(where => asArray(where.value)					// for each 'value'
+	// 	.mapUnique()
+	// 	.map<IWhere>(value =>											// build an array of separate IWhere
+	// 		({
+	// 			fieldPath: where.fieldPath,
+	// 			opStr: where.opStr,
+	// 			value: value,
+	// 		})
+	// 	)
+	// );
 	const wheres: IWhere[] = cartesian(...vals) || [];// cartesian product of IWhere array
 	const split: IQuery[] = wheres.map(where =>		// for each split IWhere
 		({																					// build an array of IQuery

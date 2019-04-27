@@ -487,10 +487,9 @@ export class MigAttendComponent implements OnInit {
 				expiry: firestore.FieldValue.delete(),
 			}));
 		updates.push(...gifts
-			.filter(row => row[FIELD.effect])
+			.filter(row => row[FIELD.expire])
 			.map(row => ({
 				...row,
-				[FIELD.effect]: firestore.FieldValue.delete(),
 				[FIELD.expire]: firestore.FieldValue.delete(),
 			}))
 		);
