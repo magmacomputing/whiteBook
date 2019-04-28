@@ -286,10 +286,10 @@ export class MigAttendComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 
-			const offset = table.filter(row => row.date < 20150601).length;
-			table.splice(0, offset);
-			const len = table.filter(row => row.date <= 20160101).length;
-			table.splice(len);
+			// const offset = table.filter(row => row.date < 20160903).length;
+			// table.splice(0, offset);
+			// const len = table.filter(row => row.date <= 20160313).length;
+			// table.splice(len);
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
 		})
 	}

@@ -345,7 +345,8 @@ export interface IAttend extends IAttendBase {
 	[FIELD.stamp]: number;						// the timestamp of the check-in
 	payment: TString;									// the /member/payment _id
 	schedule: TString;								// the /client/schedule or /client/event _id
-	bonus?: TString;									// the /client/bonus or /member/gift _id for this payment
+	bonus?: string;										// the /client/bonus _id for this payment
+	gift?: string;										// the /member/gift _id for this payment
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
 	track: {													// to use in bonus-checking
