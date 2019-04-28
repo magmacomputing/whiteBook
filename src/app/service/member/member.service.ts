@@ -81,7 +81,7 @@ export class MemberService {
 		const profile = data.member.plan[0];						// the member's plan
 		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
 
-		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
+		return data.client.price												// look in member's prices as a match in 'span' and 'plan'
 			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
 

@@ -12,9 +12,12 @@ import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**
+ * User must have role = 'admin' or 'instructor'.  
  * Maintain the /client Collection.  
  * for example, add to Calendar, set Pricing, alter Schedule...  
- * User must have role = 'admin' or 'instructor'
+ * 
+ * Also allow Admin-related changes to /member.  
+ * for example, add a Gift, approve a Payment...
  */
 @Injectable({ providedIn: DBaseModule })
 export class AdminService {
@@ -43,7 +46,7 @@ export class AdminService {
 		return this.data.batch(creates, updates);
 	}
 
-	/** Add a Gift to a Member's account to use in future check-ins */
+	/** Create a Gift for a Member to use in future check-ins */
 	addGift = async (uid: string, count: number, type?: string, start?: TDate, expiry?: TDate) => {
 		return this.data.setDoc(STORE.gift, {
 			[FIELD.effect]: getDate(start).startOf('day').ts,
@@ -51,7 +54,7 @@ export class AdminService {
 			[FIELD.type]: type,
 			[FIELD.uid]: uid,
 			stamp: getStamp(),
-			expiry: expiry,
+			expiry: expiry && getStamp(expiry),
 			count: count,
 		} as IGift)
 	}

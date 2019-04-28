@@ -34,7 +34,7 @@ export interface IMeta {
 	[FIELD.access]?: number;							// the time when last accessed
 	[FIELD.effect]?: FNumber;							// the time from which (greater-than-or-equal) this row is effective
 	[FIELD.expire]?: FNumber;							// the time before which (less-than) this row is expired, or '0' for un-expired
-	[FIELD.hidden]?: FBoolean;							// valid value, but not to be displayed to the client
+	[FIELD.hidden]?: FBoolean;						// valid value, but not to be displayed to the client
 	[FIELD.disable]?: FBoolean;						// valid value, greyed-out to the client
 
 	[FIELD.store]: string;								// every document must declare the 'store' field
@@ -127,6 +127,7 @@ export interface IBonus extends IClientBase {
 export interface IPlan extends IClientBase {
 	[FIELD.store]: STORE.price;
 	[FIELD.key]: string;
+	bonus?: boolean;										// allowed to apply Bonus
 	desc: string;
 	sort: number;
 	rule?: TString;

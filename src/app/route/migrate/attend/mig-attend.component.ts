@@ -286,7 +286,8 @@ export class MigAttendComponent implements OnInit {
 			this.history,
 		]).then(([migrate, history]) => {
 			this.migrate = migrate;
-			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
+			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
+			table.length = 130;														// DEBUG
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
 		})
 	}
@@ -296,6 +297,7 @@ export class MigAttendComponent implements OnInit {
 		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
 
+		const price = parseInt(row.debit || '0');							// the price that was charged
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix, ...none] = what.split('*');
@@ -307,7 +309,7 @@ export class MigAttendComponent implements OnInit {
 
 		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			this.dbg(`${prefix}: need to resolve ${sfx} classes`);
-			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {				// insert additional attends
+			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;						// TODO: determine if ZumbaStep via the row.amount?  startTime
 				rest.splice(0, 0, { ...row });
 				this.dbg('splice: %j', row.type);
@@ -392,6 +394,7 @@ export class MigAttendComponent implements OnInit {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
 		}
 
+		sched.price = -price;											// to allow AttendService to check what was charged
 		this.attend.setAttend(sched, row.note, row.stamp)
 			.then(_ => {
 				if (rest.length)  										// fire next Attend
@@ -489,7 +492,7 @@ export class MigAttendComponent implements OnInit {
 		updates.push(...gifts
 			.filter(row => row[FIELD.expire])
 			.map(row => ({
-				...row,
+				...row,								// un-expire any Gifts
 				[FIELD.expire]: firestore.FieldValue.delete(),
 			}))
 		);

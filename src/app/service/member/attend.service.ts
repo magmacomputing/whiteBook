@@ -52,9 +52,13 @@ export class AttendService {
 		return now.ts;																		// timestamp
 	}
 
-	async getBonus(uid: string, event: string, date: TDate) {
+	/**
+	 * Determine the eligibility for free Attend
+	 */
+	async getBonus(event: string, uid?: string, date?: TDate) {
 		const now = getDate(date);
 		let bonus = {} as IBonus | IGift;
+		uid = uid || await this.data.auth.current.then(auth => auth!.uid);
 
 		/**
 		 * gift is array of Gifts effective (not expired) on this date
@@ -101,8 +105,8 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
 			 */
 			case scheme.week
-				&& attendWeek.filter(row => isUndefined(row.bonus)).mapUnique(row => row.date).length + 1 > scheme.week.level
-				&& attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).mapUnique(row => row.date).length < scheme.week.free:
+				&& attendWeek.filter(row => isUndefined(row.bonus)).distinct(row => row.date).length + 1 > scheme.week.level
+				&& attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).distinct(row => row.date).length < scheme.week.free:
 				bonus = scheme.week;
 				break;
 
@@ -112,7 +116,7 @@ export class AttendService {
 			 * The class must be in the free list (scheme.week.free) to claim this bonus
 			 */
 			case scheme.sunday
-				&& attendWeek.filter(row => isUndefined(row.bonus)).mapUnique(row => row.date).length + 1 > scheme.sunday.level
+				&& attendWeek.filter(row => isUndefined(row.bonus)).distinct(row => row.date).length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
 				bonus = scheme.sunday;
@@ -123,8 +127,8 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
 			 */
 			case scheme.month
-				&& attendMonth.filter(row => isUndefined(row.bonus)).mapUnique(row => row.date).length + 1 > scheme.month.level
-				&& attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).mapUnique(row => row.date).length < scheme.month.free:
+				&& attendMonth.filter(row => isUndefined(row.bonus)).distinct(row => row.date).length + 1 > scheme.month.level
+				&& attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).distinct(row => row.date).length < scheme.month.free:
 				bonus = scheme.month;
 				break;
 		}
@@ -133,7 +137,7 @@ export class AttendService {
 	}
 
 	/**
-	 * Insert an Attendance record, matched to an <active> Account Payment  
+	 * Insert an Attend document, matched to an active Payment  
 	 */
 	async setAttend(schedule: ISchedule, note?: TString, date?: TDate) {
 		const creates: IStoreMeta[] = [];
@@ -151,28 +155,12 @@ export class AttendService {
 		const uid = data.auth.current!.uid;
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		let calcPrice = await this.member.getEventPrice(schedule[FIELD.key], data);
-		const bonus = calcPrice
-			? await this.getBonus(uid, schedule[FIELD.key], date)			// any bonus entitlement
-			: {} as IBonus;
-		if (bonus[FIELD.id]) {														// if an applicable Bonus was found,
-			calcPrice = 0;																	// this Attend is free
-			if ((<IGift>bonus).count)
-				updates.push(bonus);													// update Gift date-range
-		}
-
-		if (isUndefined(schedule.price))									// if no <price> on Schedule, then use calculated value
-			schedule.price = calcPrice;
-		else if (schedule.price !== calcPrice)						// calculation mis-match
-			throw new Error(`Price discrepancy: wanted ${schedule.price}, should be ${calcPrice}`);
-
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day at same Location at same Time
 		const attendFilter = [
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.key, schedule[FIELD.key]),
 			addWhere(FIELD.note, note),
-			addWhere('schedule', schedule[FIELD.id]),
+			addWhere('schedule', schedule[FIELD.id]),				// schedule has <location>, <instructor>, <startTime>
 			addWhere('date', when),
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
@@ -187,7 +175,27 @@ export class AttendService {
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// Loop through Payments to determine which is <active>
+		// work out the actual price to charge
+		let [bonus, calcPrice] = await Promise.all([
+			data.client.plan[0].bonus
+				? this.getBonus(schedule[FIELD.key], uid, date)// any bonus entitlement
+				: {} as IBonus,
+			this.member.getEventPrice(schedule[FIELD.key], data),
+		]);
+
+		if (bonus[FIELD.id]) {														// if an applicable Bonus was found,
+			calcPrice = 0;																	// this Attend is free
+			if ((<IGift>bonus).count)
+				updates.push(bonus);													// update Gift date-range
+		}
+
+		if (schedule.price !== calcPrice && now.yy > 2014)// calculation mis-match
+			throw new Error(`Price discrepancy: wanted ${schedule.price}, should be ${calcPrice}`);
+
+		schedule.price = calcPrice;
+
+		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		// loop through Payments to determine which is <active>
 		const tests = new Set<boolean>();									// Set of test results
 		let active: IPayment;															// Payment[0]
 

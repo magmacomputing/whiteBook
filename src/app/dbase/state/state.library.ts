@@ -174,7 +174,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 
 				return lookup;                              				// rebuild filter's <value>
 			})
-			.mapUnique()
+			.distinct()
 
 		if (cond.value.length === 1)
 			cond.value = cond.value[0];                           // an array of only one value, return as string
