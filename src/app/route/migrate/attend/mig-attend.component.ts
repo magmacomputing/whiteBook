@@ -226,7 +226,6 @@ export class MigAttendComponent implements OnInit {
 						row.note = 'Write-off part topUp amount';
 				}
 
-				// this.dbg('row: %j', row);
 				return {
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: payType,
@@ -249,7 +248,7 @@ export class MigAttendComponent implements OnInit {
 				if (str) {
 					const nbr = parseInt(str[0]);
 					if (nbr === 1) {
-						if (gift && start) {
+						if (gift && start && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts)) {
 							creates.push(this.setGift(gift, start));
 							gift = 0;
 						}
@@ -259,7 +258,7 @@ export class MigAttendComponent implements OnInit {
 						gift = nbr;
 				}
 			})
-		if (gift)
+		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
 			creates.push(this.setGift(gift, start));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
