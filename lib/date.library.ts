@@ -9,8 +9,8 @@ interface IInstant {											// Date components
 	HH: number;															// hour[24]
 	MI: number;															// minute
 	SS: number;															// second
-	ms: number;															// milliseconds
 	ts: number;															// timestamp
+	ms: number;															// milliseconds
 	ww: number;															// number of weeks
 	mmm: string;														// short month-name
 	ddd: string;														// short day-name
@@ -64,8 +64,8 @@ export class Instant {
 	/** 24-hour format */	get HH() { return this.date.HH }
 	/** minutes */				get MI() { return this.date.MI }
 	/** seconds */				get SS() { return this.date.SS }
-	/** milliseconds */		get ms() { return this.date.ms }
 	/** timestamp */			get ts() { return this.date.ts }
+	/** milliseconds */		get ms() { return this.date.ms }
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** weekday number */	get dow() { return this.date.dow }
 	/** short day name */	get ddd() { return this.date.ddd }
@@ -101,8 +101,8 @@ export class Instant {
 			case 'Date':																						// already is a valid Date
 				date = dt as Date;
 				break;
-			case 'Instant':																					// already have a valid Date
-				date = new Date((dt as Instant).ts * 1000 + (dt as Instant).ms);
+			case 'Instant':																					// already have a valid Instant
+				date = (dt as Instant).asDate();
 				break;
 			case 'String':																					// TODO: use fmt to parse date-string
 				date = new Date(dt as string);												// attempt to parse date-string
@@ -117,22 +117,22 @@ export class Instant {
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
-			console.log('Invalid Date: ', dt, date);								// log the Invalid Date
+			console.error('Invalid Date: ', dt, date);							// log the Invalid Date
 
-		let [yy, mm, dd, HH, MI, SS, ms, ts, dow] = [
+		let [yy, mm, dd, HH, MI, SS, ts, ms, dow] = [
 			date.getFullYear(), date.getMonth(), date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
-			date.getMilliseconds(), Math.floor(date.getTime() / 1000), date.getDay(),
+			Math.floor(date.getTime() / 1000), date.getMilliseconds(), date.getDay(),
 		];
 
 		mm += 1;																									// ISO month
 		if (!dow && !isNaN(dow)) dow = Instant.DAY.Sun;						// ISO weekday
 
-		const thu = date.setDate(dd - dow + Instant.DAY.Thu) / 1000;		// set to nearest Thursday
-		const ny = new Date(date.getFullYear(), 0, 1).valueOf() / 1000;	// NewYears Day
+		const thu = date.setDate(dd - dow + Instant.DAY.Thu);			// set to nearest Thursday
+		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, HH, MI, SS, ms, ts, ww, dow, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
+		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
 	}
 
 	/** mutate an Instant */
@@ -238,8 +238,8 @@ export class Instant {
 					.replace(/M{2}/g, fix(date.MI))
 					.replace(/MI/g, fix(date.MI))
 					.replace(/S{2}/g, fix(date.SS))
-					.replace(/ms/g, asString(date.ms))
 					.replace(/ts/g, asString(date.ts))
+					.replace(/ms/g, asString(date.ms))
 					.replace(/w{2}/g, asString(date.ww))
 					.replace(/dow/g, asString(date.dow))
 				break;
@@ -249,8 +249,10 @@ export class Instant {
 	}
 
 	/** calculate the difference between dates */
-	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate) =>
-		Math.floor((this.parseDate(dt2).ts - this.date.ts) / Instant.divideBy[unit]);
+	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate) => {
+		const offset = this.parseDate(dt2);
+		Math.floor(((offset.ts * 1000 + offset.ms) - (this.date.ts * 1000 + this.date.ms)) / Instant.divideBy[unit]);
+	}
 }
 
 export namespace Instant {
@@ -264,12 +266,12 @@ export namespace Instant {
 	export const maxStamp = new Date('9999-12-31').valueOf() / 1000;
 	export const minStamp = new Date('1000-01-01').valueOf() / 1000;
 	export const divideBy = {													// approx date-offset divisors (unix-timestamp precision)
-		years: 31536000,
-		months: 2628000,
-		weeks: 604800,
-		days: 86400,
-		hours: 3600,
-		minutes: 60,
-		seconds: 1,
+		years: 31536000000,
+		months: 2628000000,
+		weeks: 604800000,
+		days: 86400000,
+		hours: 3600000,
+		minutes: 60000,
+		seconds: 1000,
 	}
 }

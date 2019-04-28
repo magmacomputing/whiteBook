@@ -265,7 +265,7 @@ export class AttendService {
 			updates.push({ ...active, ...upd });						// batch the Payment update
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// build the Attend document
+		// got everything we need; write an Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.type]: schedule[FIELD.type],							// the type of Attend ('class','event','special')

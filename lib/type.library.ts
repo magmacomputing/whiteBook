@@ -2,14 +2,17 @@
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
 
-	return type === 'Object'
-		? obj.constructor.name											// return Class name
-		: type === 'Function' && obj.valueOf().toString().startsWith('class ')
-			? 'Class'
-			: type
+	switch (true) {
+		case type === 'Object':
+			return obj.constructor.name;							// return Class name
+		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
+			return 'Class';
+		default:
+			return type;
+	}
 }
 
-/** return a boolean if obj matches type */
+/** Type-Guards: return a boolean to test <obj> is of <type> */
 export const isType = (obj: any, type: string = 'Object'): boolean => getType(obj).toLowerCase() === type.toLowerCase();
 
 export const isString = (obj?: any): obj is string => isType(obj, 'String');

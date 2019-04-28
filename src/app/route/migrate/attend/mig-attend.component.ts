@@ -12,7 +12,7 @@ import { MHistory } from '@route/migrate/attend/mig.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, TStoreBase, IStoreMeta, TClass, IGift } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -27,7 +27,6 @@ import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
-import { start } from 'repl';
 
 @Component({
 	selector: 'wb-mig-attend',
@@ -286,8 +285,11 @@ export class MigAttendComponent implements OnInit {
 		]).then(([migrate, history]) => {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-			const len = table.filter(row => row.date <= 20150520).length;
-			table.length = len;														// DEBUG
+
+			const offset = table.filter(row => row.date < 20150601).length;
+			table.splice(0, offset);
+			const len = table.filter(row => row.date <= 20160101).length;
+			table.splice(len);
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
 		})
 	}
@@ -311,7 +313,7 @@ export class MigAttendComponent implements OnInit {
 			this.dbg(`${prefix}: need to resolve ${sfx} classes`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;						// TODO: determine if ZumbaStep via the row.amount?  startTime
-				rest.splice(0, 0, { ...row });
+				rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + nbr - 1 });
 				this.dbg('splice: %j', row.type);
 			}
 			sfx = `-1.${sfx}`;
@@ -507,25 +509,27 @@ export class MigAttendComponent implements OnInit {
 			.then(sum => this.data.writeAccount(sum))
 	}
 
-	private fetch(action: string, query: string) {
+	private async fetch(action: string, query: string) {
 		const urlParams = `${this.url}?${query}&action=${action}&prefix=${this.prefix}`;
-		return this.http
-			.get(urlParams, { responseType: 'text' })
-			.toPromise()
-			.then(res => {
-				const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
-
-				this.dbg('fetch: %j', urlParams);
-				try {
-					const obj = JSON.parse(json);
-					return (action === 'history,status')
-						? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
-						: obj[action];
-				} catch (err) {
-					this.dbg('not a valid JSON');
-					return {}
-				}
-			})
-			.catch(err => this.dbg('cannot fetch: %s', err.message))
+		try {
+			const res = await this.http
+				.get(urlParams, { responseType: 'text' })
+				.toPromise();
+			const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
+			this.dbg('fetch: %j', urlParams);
+			try {
+				const obj = JSON.parse(json);
+				return (action === 'history,status')
+					? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
+					: obj[action];
+			}
+			catch (err) {
+				this.dbg('not a valid JSON');
+				return {};
+			}
+		}
+		catch (err_1) {
+			return this.dbg('cannot fetch: %s', err_1.message);
+		}
 	}
 }
