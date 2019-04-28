@@ -11,7 +11,8 @@ export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesi
 
 
 declare global {
-	interface Array<T> {
+	interface Array<T> {												// change the global interface for Array
+		/** reduce an Array to remove duplicate values */
 		distinct<U>(callbackfn?: (value: T) => U): T extends U ? T[] : U[];
 
 		cartesian: () => T[][];

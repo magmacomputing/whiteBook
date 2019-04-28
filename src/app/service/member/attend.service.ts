@@ -55,16 +55,15 @@ export class AttendService {
 	/**
 	 * Determine the eligibility for free Attend
 	 */
-	async getBonus(event: string, uid?: string, date?: TDate) {
+	async getBonus(event: string, date?: TDate) {
 		const now = getDate(date);
 		let bonus = {} as IBonus | IGift;
-		uid = uid || await this.data.auth.current.then(auth => auth!.uid);
 
 		/**
 		 * gift is array of Gifts effective (not expired) on this date
 		 * scheme is definition of Bonus schemes effective on this date
 		 */
-		let [gift, scheme] = await Promise.all([
+		let [gift, scheme, uid] = await Promise.all([
 			this.data.getStore<IGift>(STORE.gift, undefined, date)					// any active Gifts
 				.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
@@ -72,7 +71,9 @@ export class AttendService {
 					'week': bonus.find(row => row[FIELD.key] === 'week') || {} as IBonus,
 					'month': bonus.find(row => row[FIELD.key] === 'month') || {} as IBonus,
 					'sunday': bonus.find(row => row[FIELD.key] === 'sunday') || {} as IBonus,
-				}))
+				})),
+			this.data.auth.current
+				.then(auth => auth!.uid),
 		]);
 
 		/**
@@ -83,8 +84,8 @@ export class AttendService {
 		const where = addWhere(FIELD.uid, uid);
 		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('bonus', (gift[0] || {})[FIELD.id])]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth))]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), addWhere('date', now.format(DATE_FMT.yearMonthDay), '<')]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), addWhere(FIELD.date, now.format(DATE_FMT.yearMonthDay), '<')]),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a day do not count towards a Bonus
@@ -105,8 +106,12 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
 			 */
 			case scheme.week
-				&& attendWeek.filter(row => isUndefined(row.bonus)).distinct(row => row.date).length + 1 > scheme.week.level
-				&& attendWeek.filter(row => row.bonus === scheme.week[FIELD.id]).distinct(row => row.date).length < scheme.week.free:
+				&& attendWeek
+					.filter(row => isUndefined(row.bonus))
+					.distinct(row => row.date).length + 1 > scheme.week.level
+				&& attendWeek
+					.filter(row => row.bonus === scheme.week[FIELD.id])
+					.distinct(row => row.date).length < scheme.week.free:
 				bonus = scheme.week;
 				break;
 
@@ -116,7 +121,9 @@ export class AttendService {
 			 * The class must be in the free list (scheme.week.free) to claim this bonus
 			 */
 			case scheme.sunday
-				&& attendWeek.filter(row => isUndefined(row.bonus)).distinct(row => row.date).length + 1 > scheme.sunday.level
+				&& attendWeek
+					.filter(row => isUndefined(row.bonus))
+					.distinct(row => row.date).length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
 				bonus = scheme.sunday;
@@ -127,8 +134,12 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
 			 */
 			case scheme.month
-				&& attendMonth.filter(row => isUndefined(row.bonus)).distinct(row => row.date).length + 1 > scheme.month.level
-				&& attendMonth.filter(row => row.bonus === scheme.month[FIELD.id]).distinct(row => row.date).length < scheme.month.free:
+				&& attendMonth
+					.filter(row => isUndefined(row.bonus))
+					.distinct(row => row.date).length + 1 > scheme.month.level
+				&& attendMonth
+					.filter(row => row.bonus === scheme.month[FIELD.id])
+					.distinct(row => row.date).length < scheme.month.free:
 				bonus = scheme.month;
 				break;
 		}
@@ -178,7 +189,7 @@ export class AttendService {
 		// work out the actual price to charge
 		let [bonus, calcPrice] = await Promise.all([
 			data.client.plan[0].bonus
-				? this.getBonus(schedule[FIELD.key], uid, date)// any bonus entitlement
+				? this.getBonus(schedule[FIELD.key], date)		// any bonus entitlement
 				: {} as IBonus,
 			this.member.getEventPrice(schedule[FIELD.key], data),
 		]);
@@ -189,7 +200,7 @@ export class AttendService {
 				updates.push(bonus);													// update Gift date-range
 		}
 
-		if (schedule.price !== calcPrice && now.yy > 2014)// calculation mis-match
+		if (!isUndefined(schedule.price) && schedule.price !== calcPrice && now.yy > 2014)// calculation mis-match
 			throw new Error(`Price discrepancy: wanted ${schedule.price}, should be ${calcPrice}`);
 
 		schedule.price = calcPrice;

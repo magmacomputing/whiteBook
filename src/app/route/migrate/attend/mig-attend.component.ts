@@ -287,7 +287,8 @@ export class MigAttendComponent implements OnInit {
 		]).then(([migrate, history]) => {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-			table.length = 130;														// DEBUG
+			const len = table.filter(row => row.date <= 20150520).length;
+			table.length = len;														// DEBUG
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
 		})
 	}
@@ -297,7 +298,7 @@ export class MigAttendComponent implements OnInit {
 		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
 
-		const price = parseInt(row.debit || '0');							// the price that was charged
+		const price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix, ...none] = what.split('*');
@@ -318,7 +319,7 @@ export class MigAttendComponent implements OnInit {
 		}
 
 		switch (true) {
-			case this.special.includes(prefix):						// special event match by <type>, so we need to prompt for the 'class'
+			case this.special.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -366,7 +367,7 @@ export class MigAttendComponent implements OnInit {
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					note: row.note ? [row.note, caldr.name] : caldr.name,
+					note: row.note ? [row.note, caldr.name] : caldr.name, price,
 				}
 				break;
 
@@ -385,6 +386,9 @@ export class MigAttendComponent implements OnInit {
 				}
 
 				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
+				if (!sched)
+					throw new Error(`Cannot determine schedule: ${klass}`);
+				sched.price = price;											// to allow AttendService to check what was charged
 				break;
 
 			default:
@@ -392,9 +396,9 @@ export class MigAttendComponent implements OnInit {
 				sched = asAt(this.schedule, where, row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
+				sched.price = price;											// to allow AttendService to check what was charged
 		}
 
-		sched.price = -price;											// to allow AttendService to check what was charged
 		this.attend.setAttend(sched, row.note, row.stamp)
 			.then(_ => {
 				if (rest.length)  										// fire next Attend
