@@ -62,8 +62,9 @@ export class AttendService {
 		/**
 		 * gift is array of Gifts effective (not expired) on this date
 		 * scheme is definition of Bonus schemes effective on this date
+		 * uid is the current Member
 		 */
-		let [gift, scheme, uid] = await Promise.all([
+		const [gift, scheme, uid] = await Promise.all([
 			this.data.getStore<IGift>(STORE.gift, undefined, date)					// any active Gifts
 				.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
@@ -73,13 +74,13 @@ export class AttendService {
 					'sunday': bonus.find(row => row[FIELD.key] === 'sunday') || {} as IBonus,
 				})),
 			this.data.auth.current
-				.then(auth => auth!.uid),
+				.then(user => user!.uid),
 		]);
 
 		/**
 		 * bonusGift	is array of Attends so far against 1st available Gift
-		 * attendWeek	is array of Attends so far in the current week
-		 * attendMonth is array of Attends so far in the current month
+		 * attendWeek	is array of Attends so far in the current week, less than today
+		 * attendMonth is array of Attends so far in the current month, less than today
 		 */
 		const where = addWhere(FIELD.uid, uid);
 		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
