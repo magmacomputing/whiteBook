@@ -441,8 +441,8 @@ export class MigAttendComponent implements OnInit {
 		this.dbg('account: %j', summary);					// the current account summary
 		active.sort(sortKeys('-' + FIELD.stamp));
 		if (active[0][FIELD.type] === 'debit' && active[0].approve && !active[0][FIELD.expire]) {
-			const test1 = active[0].expiry && active[0].expiry < getStamp();
-			const test2 = summary.funds < 0;			// closed account
+			const test1 = active[0].expiry && active[0].expiry < getStamp() || false;
+			const test2 = summary.pend < 0;			// closed account
 			if (test1 || test2) {
 				const when = active[0].approve[FIELD.stamp];
 				this.dbg('closed: %j, %s', when, fmtDate(DATE_FMT.display, when));
