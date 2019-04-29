@@ -286,7 +286,7 @@ export class MigAttendComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 
-			// const offset = table.filter(row => row.date < 20190201).length;
+			// const offset = table.filter(row => row.date < 20160417).length;
 			// table.splice(0, offset);
 			// const len = table.filter(row => row.date <= 20160313).length;
 			// table.splice(len);
@@ -441,9 +441,10 @@ export class MigAttendComponent implements OnInit {
 		this.dbg('account: %j', summary);					// the current account summary
 		active.sort(sortKeys('-' + FIELD.stamp));
 		if (active[0][FIELD.type] === 'debit' && active[0].approve && !active[0][FIELD.expire]) {
-			const test1 = active[0].expiry && active[0].expiry < getStamp() || false;
+			const test1 = active[0].expiry && active[0].expiry < getStamp();
 			const test2 = summary.pend < 0;			// closed account
-			if (test1 || test2) {
+			const test3 = summary.funds < 0;
+			if (test1 || test2 || test3) {
 				const when = active[0].approve[FIELD.stamp];
 				this.dbg('closed: %j, %s', when, fmtDate(DATE_FMT.display, when));
 				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: when, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
