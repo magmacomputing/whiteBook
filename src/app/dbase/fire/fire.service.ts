@@ -92,7 +92,7 @@ export class FireService {
 		const cloneCreate = asArray(cloneObj(creates));
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));
-		const limit = 500;
+		const limit = 300;
 
 		return new Promise<boolean>((resolve, reject) => {
 

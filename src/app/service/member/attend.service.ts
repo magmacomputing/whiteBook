@@ -12,26 +12,18 @@ import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/snack/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus, TBonus } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
-import { getPath } from '@lib/object.library';
+import { getPath, isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { asArray } from '@lib/array.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
 	private dbg = dbg(this);
 
-	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) {
-		this.dbg('new');
-		// this.data.getFire(STORE.attend, { where: { fieldPath: FIELD.uid, opStr: '==', value: 'BronwynH' } })
-		// 	.then(attends => {
-		// 		this.dbg('cnt: %j', attends.length);
-		// 		this.data.batch(undefined, undefined, attends as IStoreMeta[])
-		// 	});
-	}
+	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
 	/** loop back up-to-seven days to find when className was last scheduled */
 	lkpDate = async (className: string, location?: string, date?: TDate) => {
@@ -64,40 +56,43 @@ export class AttendService {
 	 * Determine the eligibility for free Attend
 	 */
 	async getBonus(event: string, date?: TDate) {
-		const now = getDate(date);
-		let bonus = {} as IBonus | IGift;
-
 		/**
-		 * gift is array of Gifts effective (not expired) on this date
-		 * scheme is definition of Bonus schemes effective on this date
-		 * uid is the current Member
+		 * uid is the Member to check-in 
+		 * gift is array of active Gifts effective (not expired) on this date  
+		 * scheme is definition of active Bonus schemes effective on this date
 		 */
-		const [gifts, scheme, uid] = await Promise.all([
+		const [uid, gifts, scheme] = await Promise.all([
+			this.data.auth.current
+				.then(user => user!.uid),
+
 			this.data.getStore<IGift>(STORE.gift, undefined, date)					// any active Gifts
 				.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
+
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
 				.then(bonus => ({
 					'week': bonus.find(row => row[FIELD.key] === 'week') || {} as IBonus,
 					'month': bonus.find(row => row[FIELD.key] === 'month') || {} as IBonus,
 					'sunday': bonus.find(row => row[FIELD.key] === 'sunday') || {} as IBonus,
 				})),
-			this.data.auth.current
-				.then(user => user!.uid),
 		]);
 
 		/**
-		 * bonusGift	is array of Attends so far against 1st available Gift
+		 * bonusGift	is array of Attends so far against 1st active Gift
+		 * attendToday is array of Attends so far in the current week, equal to today
 		 * attendWeek	is array of Attends so far in the current week, less than today
 		 * attendMonth is array of Attends so far in the current month, less than today
 		 */
+		const now = getDate(date);
 		const where = addWhere(FIELD.uid, uid);
-		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('bonus', (gifts[0] || {})[FIELD.id])]),
+		const [bonusGift, attendToday, attendWeek, attendMonth] = await Promise.all([		// get tracking data
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || {})[FIELD.id])]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), addWhere('track.day', now.dow)]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), addWhere(FIELD.date, now.format(DATE_FMT.yearMonthDay), '<')]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), addWhere(FIELD.date, now.format(DATE_FMT.yearMonthDay), '<')]),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a day do not count towards a Bonus
+		let bonus = {} as TBonus;
 		switch (true) {
 			/**
 			 * Admin adds 'Gift' records to a Member's account which will detail
@@ -105,23 +100,28 @@ export class AttendService {
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
 			case gifts.length > 0:														// qualify for a Gift bonus?
-				bonus = gifts[0];																// use 1st effective Gift as the Bonus
-				if (bonusGift.length + 1 >= bonus.count)
-					bonus[FIELD.expire] = now.ts;									// mark this gift as 'now complete'
+				bonus[FIELD.id] = gifts[0][FIELD.id];
+				bonus[FIELD.type] = 'gift';
+				bonus.gift = gifts[0];													// use 1st effective Gift as the Bonus
+				if (bonusGift.length + 1 >= bonus.gift.count)
+					bonus.gift[FIELD.expire] = now.ts;						// mark this gift as 'now complete'
 				break;
 
 			/**
-			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.week.level).  
+			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price or gift classes in a week (scheme.week.level).  
 			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
 			 */
 			case scheme.week
 				&& attendWeek
-					.filter(row => row.bonus === undefined)
-					.distinct(row => row.date).length + 1 > scheme.week.level
+					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+					.distinct(row => row.date)
+					.length + 1 > scheme.week.level
 				&& attendWeek
 					.filter(row => row.bonus === scheme.week[FIELD.id])
-					.distinct(row => row.date).length < scheme.week.free:
-				bonus = scheme.week;
+					.distinct(row => row.date)
+					.length < scheme.week.free:
+				bonus[FIELD.id] = scheme.week[FIELD.id];
+				bonus[FIELD.type] = 'week';
 				break;
 
 			/**
@@ -131,11 +131,13 @@ export class AttendService {
 			 */
 			case scheme.sunday
 				&& attendWeek
-					.filter(row => isUndefined(row.bonus))
-					.distinct(row => row.date).length + 1 > scheme.sunday.level
+					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+					.distinct(row => row.date)
+					.length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
-				bonus = scheme.sunday;
+				bonus[FIELD.id] = scheme.sunday[FIELD.id];
+				bonus[FIELD.type] = 'sunday';
 				break;
 
 			/**
@@ -144,12 +146,15 @@ export class AttendService {
 			 */
 			case scheme.month
 				&& attendMonth
-					.filter(row => isUndefined(row.bonus))
-					.distinct(row => row.date).length + 1 > scheme.month.level
+					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+					.distinct(row => row.date)
+					.length + 1 > scheme.month.level
 				&& attendMonth
 					.filter(row => row.bonus === scheme.month[FIELD.id])
-					.distinct(row => row.date).length < scheme.month.free:
-				bonus = scheme.month;
+					.distinct(row => row.date)
+					.length < scheme.month.free:
+				bonus[FIELD.id] = scheme.month[FIELD.id];
+				bonus[FIELD.type] = 'month';
 				break;
 		}
 
@@ -179,7 +184,7 @@ export class AttendService {
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.key, schedule[FIELD.key]),
 			addWhere(FIELD.note, note),
-			addWhere('schedule', schedule[FIELD.id]),				// schedule has <location>, <instructor>, <startTime>
+			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
 			addWhere('date', when),
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
@@ -195,26 +200,26 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
-		let gift = {} as IGift;
 		let [bonus, calcPrice] = await Promise.all([
 			data.client.plan[0].bonus
 				? this.getBonus(schedule[FIELD.key], date)		// any bonus entitlement
-				: {} as IBonus,
+				: {} as TBonus,
 			this.member.getEventPrice(schedule[FIELD.key], data),
 		]);
 
-		if (bonus[FIELD.id]) {														// if an applicable Bonus was found,
-			calcPrice = 0;																	// this Attend is free
-			if ((<IGift>bonus).count) {
-				gift = bonus as IGift;
-				bonus = {} as IBonus;
-				updates.push(gift);														// update Gift date-range
+		if (!isEmpty(bonus)) {
+			calcPrice = 0;																	// override calculated price
+			if (bonus.gift) {
+				if (bonus.gift[FIELD.expire])									// if Bonus is a Gift and now expired
+					updates.push(bonus.gift);										// 	update Gift
+				delete bonus.gift;														// not needed
 			}
 		}
 
-		if (!isUndefined(schedule.price) && schedule.price !== calcPrice && now.yy > 2014)// calculation mis-match
+		if (!isUndefined(schedule.price) && schedule.price !== calcPrice && now.yy > 2014) {// calculation mis-match
+			this.dbg('bonus: %j', bonus);
 			throw new Error(`Price discrepancy: paid ${schedule.price}, but should be ${calcPrice}`);
-
+		}
 		schedule.price = calcPrice;
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -284,10 +289,14 @@ export class AttendService {
 			[FIELD.stamp]: stamp,														// createDate
 			[FIELD.date]: when,															// yyyymmdd of the Attend
 			[FIELD.note]: note,															// optional 'note'
-			schedule: schedule[FIELD.id],										// <id> of the Schedule
+			timetable: {
+				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
+				[FIELD.type]: schedule[FIELD.type] === 'class'
+					? 'schedule'
+					: 'calendar',
+			},
 			payment: active[FIELD.id],											// <id> of Account's current active document
-			bonus: bonus[FIELD.id],													// <id> of the Bonus
-			gift: gift[FIELD.id],														// <id> of the Gift
+			bonus: !isEmpty(bonus) ? bonus : undefined,			// <id> of the Bonus
 			amount: schedule.price,													// calculated price of the Attend
 			track: {
 				day: now.dow,																	// day of week

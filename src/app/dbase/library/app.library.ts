@@ -25,7 +25,6 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 		.filter((row: IObject<any>) => {									// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
-					// const key = row[clause.fieldPath.toString()];
 					const key = getPath(row, clause.fieldPath.toString()) as any;
 					const operand = clause.opStr || '==';				// default to 'equals'
 					const field = isString(key)
@@ -67,7 +66,7 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
 
 /**
  * Search an array, returning rows that match all the conditions *and* were in-effect on the 'date'
- * (where the rows are greater-than-or-equal to the date, or less-than the date)
+ * (i.e. where the rows are greater-than-or-equal to the date, or less-than the date)
  * @param table		The table-array to search
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'

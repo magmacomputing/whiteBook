@@ -338,22 +338,32 @@ export interface IGift extends IMemberBase {
 }
 
 // /attend
+export interface TBonus {
+	[FIELD.id]?: string;
+	[FIELD.type]?: string;
+	gift?: IGift;											// the /member/gift _id for this payment
+	scheme?: IBonus;									// the /client/bonus _id for this payment
+}
+interface TTrack {
+	day: number;											// weekDay attended
+	week: number;											// yearWeek attended
+	month: number;										// yearMonth attended
+}
 export interface IAttend extends IAttendBase {
 	[FIELD.store]: STORE.attend;
 	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass;
 	[FIELD.stamp]: number;						// the timestamp of the check-in
-	payment: TString;									// the /member/payment _id
-	schedule: TString;								// the /client/schedule or /client/event _id
-	bonus?: string;										// the /client/bonus _id for this payment
+	payment: string;									// the /member/payment _id
+	timetable: {
+		[FIELD.id]: string;							// the /client/schedule or /client/event _id
+		[FIELD.type]: string;						// 'schedule' or 'calendar'
+	}
 	gift?: string;										// the /member/gift _id for this payment
 	date: number;											// YYYYMMDD of the attend
 	amount: number;										// the amount the member was charged
-	track: {													// to use in bonus-checking
-		day: number;										// weekDay attended
-		week: number;										// yearWeek attended
-		month: number;									// yearMonth attended
-	}
+	bonus?: TBonus;										// override standard price
+	track: TTrack;										// to use in bonus-checking, attend-analysis, etc.
 }
 
 //	/admin/register

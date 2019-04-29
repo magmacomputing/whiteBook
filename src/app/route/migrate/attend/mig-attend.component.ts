@@ -87,7 +87,7 @@ export class MigAttendComponent implements OnInit {
 		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
 			.then(events => this.events = events);
 
-		this.state.getAuthData()																	// stash the current Auth'd user
+		this.state.getAuthData()																	// stash the Auth'd user
 			.pipe(take(1))
 			.toPromise()
 			.then(auth => this.user = auth.auth.user)
@@ -286,7 +286,7 @@ export class MigAttendComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 
-			// const offset = table.filter(row => row.date < 20160903).length;
+			// const offset = table.filter(row => row.date < 20190201).length;
 			// table.splice(0, offset);
 			// const len = table.filter(row => row.date <= 20160313).length;
 			// table.splice(len);
@@ -300,7 +300,7 @@ export class MigAttendComponent implements OnInit {
 		const now = getDate(row.date);
 
 		const price = parseInt(row.debit || '0') * -1;				// the price that was charged
-		const caldr = asAt(this.calendar, addWhere(FIELD.key, row.date), row.date)[0];
+		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere('location', 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix, ...none] = what.split('*');
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
