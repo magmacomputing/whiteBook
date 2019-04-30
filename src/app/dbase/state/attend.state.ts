@@ -25,11 +25,17 @@ export class AttendState implements NgxsOnInit {
 	@Action(SetAttend)
 	setStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
 		const state = getState() || {};
+		let empty: { [segment: string]: boolean; } = {};
 
 		asArray(payload).forEach(doc => {
 			const payment = doc.payment;
-			state[payment] = this.filterAttend(state, doc);	// remove the doc if it was previously created
+
+			if (state[payment] && !state[payment].length)
+				empty[payment] = true;							// check the first instance
+			if (!empty[payment])									// dont bother with filter, if originally empty
+				state[payment] = this.filterState(state, doc);	// remove the doc if it was previously created
 			state[payment].push(doc);												// push the changed AttendDoc into the Store
+
 			if (debug) this.dbg('setAttend: %j', doc);
 		})
 
@@ -43,7 +49,7 @@ export class AttendState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			const payment = doc.payment;
-			state[payment] = this.filterAttend(state, doc);
+			state[payment] = this.filterState(state, doc);
 
 			if (state[payment].length === 0)
 				delete state[doc.payment]
@@ -62,7 +68,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Attend Store */
-	private filterAttend(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
+	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
 		const curr = state && state[payload.payment] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];

@@ -38,9 +38,11 @@ export class LocalState implements NgxsOnInit {
 		asArray(payload).forEach(doc => {
 			if (doc[FIELD.store] === STORE.config) {		// Config change detected
 				const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
-				const fix = this.fixConfig()
-				state[group] = this.filterLocal(state, doc);
+				const fix = this.fixConfig();
+
+				state[group] = this.filterState(state, doc);
 				state[group].push(...fix);
+				// if (debug) this.dbg('setLocal: %j', doc);
 			}
 		})
 
@@ -48,16 +50,17 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	@Action(DelLocal)
-	delStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
 		const state = getState() || {};
+		const segment = FIELD.store;
 
 		asArray(payload).forEach(doc => {
-			const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
-			state[group] = this.filterLocal(state, doc);
+			const slice = doc[segment];
+			state[slice] = this.filterState(state, doc, segment);
 
-			if (state[group].length === 0)
-				delete state[group];
-			if (debug) this.dbg('delLocal: %s, %j', doc[FIELD.store], doc);
+			if (state[slice].length === 0)
+				delete state[slice];
+			if (debug) this.dbg('delLocal: %j', doc);
 		})
 
 		setState({ ...state });
@@ -70,8 +73,8 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Local Store */
-	private filterLocal(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const group = '@' + payload[FIELD.store].replace(/_/g, '') + '@';
+	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
+		const group = '@' + payload[segment].replace(/_/g, '') + '@';
 		const curr = state && state[payload[group]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
@@ -97,7 +100,8 @@ export class LocalState implements NgxsOnInit {
 					const tpl = makeTemplate(item[1]);					// turn it into a template literal
 					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
 				})
-				return Object.assign(row, { [FIELD.store]: LOCAL.config, value: subst });
+				// return Object.assign(row, { [FIELD.store]: LOCAL.config, value: subst });
+				return { ...row, [FIELD.store]: LOCAL.config, value: subst }
 			})
 	}
 }

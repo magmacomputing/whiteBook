@@ -30,7 +30,7 @@ export class AdminState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterAdmin(state, doc);
+			state[store] = this.filterState(state, doc);
 			state[store].push(doc);						// push the changed AdminDoc into the Store
 			if (debug) this.dbg('setAdmin: %j', doc);
 		})
@@ -44,7 +44,7 @@ export class AdminState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterAdmin(getState(), doc);
+			state[store] = this.filterState(getState(), doc);
 
 			if (state[store].length === 0)
 				delete state[store]
@@ -62,8 +62,8 @@ export class AdminState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Admin Store */
-	private filterAdmin(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload[FIELD.store]] || [];
+	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
+		const curr = state && state[segment] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}

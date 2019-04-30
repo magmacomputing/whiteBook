@@ -23,12 +23,18 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(SetMember)
-	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
+	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
 		const state = getState() || {};
+		let empty: { [segment: string]: boolean; } = {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterMember(state, doc);
+
+			if (state[store] && !state[store].length)
+				empty[store] = true;							// check the first instance
+			if (!empty[store])									// dont bother with filter, if originally empty
+				state[store] = this.filterState(state, doc);
+
 			state[store].push(doc);							// push the changed MemberDoc into the Store
 			if (debug) this.dbg('setMember: %j', doc);
 		})
@@ -37,15 +43,16 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(DelMember)
-	delStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
+		const segment = FIELD.store;
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.store];
-			state[store] = this.filterMember(state, doc);
+			const slice = doc[segment];
+			state[slice] = this.filterState(state, doc, segment);
 
-			if (state[store].length === 0)
-				delete state[store];
+			if (state[slice].length === 0)
+				delete state[slice];
 			if (debug) this.dbg('delMember: %j', doc);
 		})
 
@@ -59,8 +66,8 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Member Store */
-	private filterMember(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload[FIELD.store]] || [];
+	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
+		const curr = state && state[payload[segment]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}

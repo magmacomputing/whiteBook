@@ -34,7 +34,7 @@ export class ClientState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterClient(state, doc);
+			state[store] = this.filterState(state, doc);
 			state[store].push(doc);									// push the new/changed ClientDoc into the Store
 
 			if (doc[FIELD.store] === STORE.config)
@@ -58,7 +58,7 @@ export class ClientState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterClient(getState(), doc);
+			state[store] = this.filterState(getState(), doc);
 
 			if (store === STORE.schema && doc[FIELD.type] && doc[FIELD.key]) {
 				const type = doc[FIELD.type]!;
@@ -85,8 +85,8 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Client Store */
-	private filterClient(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload[FIELD.store]] || [];
+	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
+		const curr = state && state[payload[segment]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
