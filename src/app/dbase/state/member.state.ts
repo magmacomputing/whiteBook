@@ -23,32 +23,33 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(SetMember)
-	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
+	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const store = this.filterMember(state, doc);
-
-			store.push(doc);										// push the changed MemberDoc into the Store
-			state[doc.store] = store;
+			const store = doc[FIELD.store];
+			state[store] = this.filterMember(state, doc);
+			state[store].push(doc);							// push the changed MemberDoc into the Store
 			if (debug) this.dbg('setMember: %j', doc);
-			patchState({ ...state });
 		})
+
+		setState({ ...state });
 	}
 
 	@Action(DelMember)
-	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
+	delStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
-		
-		asArray(payload).forEach(doc => {
-			const store = this.filterMember(state, doc);
 
-			if (store.length === 0)
-				delete state[doc.store]
-			else state[doc.store] = store;
+		asArray(payload).forEach(doc => {
+			const store = doc[FIELD.store];
+			state[store] = this.filterMember(state, doc);
+
+			if (state[store].length === 0)
+				delete state[store];
 			if (debug) this.dbg('delMember: %j', doc);
-			patchState({ ...state });
 		})
+
+		setState({ ...state });
 	}
 
 	@Action(TruncMember)
@@ -59,7 +60,7 @@ export class MemberState implements NgxsOnInit {
 
 	/** remove an item from the Member Store */
 	private filterMember(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload.store] || [];
+		const curr = state && state[payload[FIELD.store]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}

@@ -32,28 +32,30 @@ export class AdminState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			const build = this.filterAdmin(state, doc);
-			
+
 			build.push(doc);										// push the changed AdminDoc into the Store
 			state[doc[FIELD.store]] = build;
 			if (debug) this.dbg('setAdmin: %j', doc);
-			patchState({ ...state });
 		})
+
+		patchState({ ...state });
 	}
 
 	@Action(DelAdmin)
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAdmin) {
 		const state = getState() || {};
-		
+
 		asArray(payload).forEach(doc => {
 			const store = this.filterAdmin(getState(), doc);
-			
+
 			if (store.length === 0)
-			delete state[doc[FIELD.store]]
+				delete state[doc[FIELD.store]]
 			else state[doc[FIELD.store]] = store;
-			
+
 			if (debug) this.dbg('delAdmin: %s, %j', doc[FIELD.store], payload);
-			patchState({ ...state });
 		})
+
+		patchState({ ...state });
 	}
 
 	@Action(TruncAdmin)

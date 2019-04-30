@@ -121,7 +121,7 @@ export class SyncService {
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
-				cnts[idx].push(snap.payload.doc.data())
+				cnts[idx].push(addMeta(snap))
 				return cnts;
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
@@ -139,40 +139,32 @@ export class SyncService {
 				.toPromise();
 		}
 
-		// TODO: fire multiple related snaps at once, rather than one-by-one
-		if (snapAdd.length)
-			this.store.dispatch(new setStore(snapAdd, debug));
-		if (snapMod.length)
-			this.store.dispatch(new setStore(snapAdd, debug));
-		if (snapDel.length)
-			this.store.dispatch(new setStore(snapDel, debug));
-		
-		snaps.forEach(async snap => {
-			const data = addMeta(snap);
-			const check = listen.cnt !== 0 && data[FIELD.uid] === listen.uid;
+		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();
+		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();
+		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();
 
-			switch (snap.type) {
-				case 'added':
-				case 'modified':
-					// this.store.dispatch(new setStore(data, debug));
-					if (check) {
-						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-							this.store.dispatch(new AuthToken());   // special: access-level has changed
+		if (listen.cnt !== 0) {
+			snaps.forEach(async snap => {										// look for special actions to fire
+				const data = addMeta(snap);
+				if (data[FIELD.uid] === listen.uid) {					// but only for authenticated User
+					switch (snap.type) {
+						case 'added':
+						case 'modified':
+							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
+								this.store.dispatch(new AuthToken());   // special: access-level has changed
 
-						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-							this.navigate.route(ROUTE.attend);			// special: initial Plan is set
+							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+								this.navigate.route(ROUTE.attend);			// special: initial Plan is set
+							break;
+
+						case 'removed':
+							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+								this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
+							break;
 					}
-					break;
-
-				case 'removed':
-					// this.store.dispatch(new delStore(data, debug));
-					if (check) {
-						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
-							this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
-					}
-					break;
-			}
-		})
+				}
+			})
+		}
 
 		if (listen.cnt === 0)
 			listen.ready.resolve(true);

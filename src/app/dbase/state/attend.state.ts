@@ -32,8 +32,9 @@ export class AttendState implements NgxsOnInit {
 			attend.push(doc);															// push the changed AttendDoc into the Store
 			state[doc.payment] = attend;
 			if (debug) this.dbg('setAttend: %j', doc);
-			patchState({ ...state });
 		})
+
+		patchState({ ...state });
 		dispatch(new SyncAttend(payload));							// tell any listener we have sync'd
 	}
 
@@ -48,8 +49,9 @@ export class AttendState implements NgxsOnInit {
 				delete state[doc.payment]
 			else state[doc.payment] = attend;
 			if (debug) this.dbg('delAttend: %j', doc);
-			patchState({ ...state });
 		})
+		
+		patchState({ ...state });
 		dispatch(new SyncAttend(payload));								// tell any listener we have sync'd
 	}
 

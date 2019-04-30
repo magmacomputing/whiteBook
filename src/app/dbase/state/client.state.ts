@@ -33,7 +33,7 @@ export class ClientState implements NgxsOnInit {
 		asArray(payload).forEach(doc => {
 			const store = this.filterClient(state, doc);
 
-			store.push(doc);										// push the new/changed ClientDoc into the Store
+			store.push(doc);											// push the new/changed ClientDoc into the Store
 			state[doc[FIELD.store]] = store;
 
 			if (doc[FIELD.store] === STORE.config)
@@ -42,8 +42,9 @@ export class ClientState implements NgxsOnInit {
 				this.setSchema();											// rebuild the STORES / SORTBY / FILTER
 
 			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);
-			patchState({ ...state });
 		})
+
+		patchState({ ...state });
 	}
 
 	@Action(DelClient)
@@ -67,8 +68,9 @@ export class ClientState implements NgxsOnInit {
 			else state[doc[FIELD.store]] = store;
 
 			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.store], doc);
-			patchState({ ...state });
 		})
+
+		patchState({ ...state });
 	}
 
 	@Action(TruncClient)

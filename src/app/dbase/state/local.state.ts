@@ -32,40 +32,35 @@ export class LocalState implements NgxsOnInit {
 	}
 
 	@Action(SetLocal)
-	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetLocal) {
+	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetLocal) {
 		const state = getState() || {};
-		
+
 		asArray(payload).forEach(doc => {
-			const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
-			const store = state[group] || [];
-
 			if (doc[FIELD.store] === STORE.config) {		// Config change detected
+				const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
 				const fix = this.fixConfig()
-				if (fix) {
-					store.length = 0;												// erase existing Config
-					store.push(...fix);											// insert fixed Config
-				}
+				state[group] = this.filterLocal(state, doc);
+				state[group].push(...fix);
 			}
-
-			state[group] = store;
-			patchState({ ...state });
 		})
+
+		setState({ ...state });
 	}
 
 	@Action(DelLocal)
-	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
+	delStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const store = this.filterLocal(getState(), doc);
+			const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
+			state[group] = this.filterLocal(state, doc);
 
-			if (store.length === 0)
-				delete state[doc[FIELD.store]]
-			else state[doc[FIELD.store]] = store;
-
+			if (state[group].length === 0)
+				delete state[group];
 			if (debug) this.dbg('delLocal: %s, %j', doc[FIELD.store], doc);
-			patchState({ ...state });
 		})
+
+		setState({ ...state });
 	}
 
 	@Action(TruncLocal)
@@ -76,7 +71,8 @@ export class LocalState implements NgxsOnInit {
 
 	/** remove an item from the Local Store */
 	private filterLocal(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload[FIELD.store]] || [];
+		const group = '@' + payload[FIELD.store].replace(/_/g, '') + '@';
+		const curr = state && state[payload[group]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
