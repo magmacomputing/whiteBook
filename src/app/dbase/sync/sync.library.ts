@@ -43,8 +43,6 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	}
 
 	lprintf('SyncLibrary', '%s: %s / %s', listen.collection, localHash, storeHash);
-	// lprintf('SyncLibrary', 'local: %j', localSort);
-	// lprintf('SyncLibrary', 'store: %j', snapSort);
 	return false;
 }
 

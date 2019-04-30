@@ -7,6 +7,7 @@ import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
 
 import { TString } from '@lib/type.library';
 import { IObject, isEmpty } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -28,40 +29,46 @@ export class ClientState implements NgxsOnInit {
 	@Action(SetClient)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
-		const store = this.filterClient(state, payload);
 
-		store.push(payload);										// push the new/changed ClientDoc into the Store
-		state[payload[FIELD.store]] = store;
+		asArray(payload).forEach(doc => {
+			const store = this.filterClient(state, doc);
 
-		if (payload[FIELD.store] === STORE.config)
-			this.store.dispatch(new SetLocal(payload));
-		if (payload[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
-			this.setSchema();											// rebuild the STORES / SORTBY / FILTER
+			store.push(doc);										// push the new/changed ClientDoc into the Store
+			state[doc[FIELD.store]] = store;
 
-		if (debug) this.dbg('setClient: %s, %j', payload[FIELD.store], payload);
-		patchState({ ...state });
+			if (doc[FIELD.store] === STORE.config)
+				this.store.dispatch(new SetLocal(doc));
+			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
+				this.setSchema();											// rebuild the STORES / SORTBY / FILTER
+
+			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(DelClient)
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
-		const store = this.filterClient(getState(), payload);
 
-		if (payload[FIELD.store] === STORE.schema && payload[FIELD.type] && payload[FIELD.key]) {
-			const type = payload[FIELD.type]!;
-			const key = payload[FIELD.key];
+		asArray(payload).forEach(doc => {
+			const store = this.filterClient(getState(), doc);
 
-			SLICES[type] = SLICES[type].filter(store => store !== payload[FIELD.key]);
-			delete SORTBY[key];
-			delete FILTER[key];
-		}
+			if (doc[FIELD.store] === STORE.schema && doc[FIELD.type] && doc[FIELD.key]) {
+				const type = doc[FIELD.type]!;
+				const key = doc[FIELD.key];
 
-		if (store.length === 0)
-			delete state[payload[FIELD.store]]
-		else state[payload[FIELD.store]] = store;
+				SLICES[type] = SLICES[type].filter(store => store !== doc[FIELD.key]);
+				delete SORTBY[key];
+				delete FILTER[key];
+			}
 
-		if (debug) this.dbg('delClient: %s, %j', payload[FIELD.store], payload);
-		patchState({ ...state });
+			if (store.length === 0)
+				delete state[doc[FIELD.store]]
+			else state[doc[FIELD.store]] = store;
+
+			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.store], doc);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(TruncClient)

@@ -121,13 +121,13 @@ export class SyncService {
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
-				cnts[idx] += 1;
+				cnts[idx].push(snap.payload.doc.data())
 				return cnts;
-			}, [0, 0, 0]);
+			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
 		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
-			collection, listen.cnt, source, snapAdd, snapMod, snapDel);
+			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0) {                           // initial snapshot
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
@@ -139,6 +139,14 @@ export class SyncService {
 				.toPromise();
 		}
 
+		// TODO: fire multiple related snaps at once, rather than one-by-one
+		if (snapAdd.length)
+			this.store.dispatch(new setStore(snapAdd, debug));
+		if (snapMod.length)
+			this.store.dispatch(new setStore(snapAdd, debug));
+		if (snapDel.length)
+			this.store.dispatch(new setStore(snapDel, debug));
+		
 		snaps.forEach(async snap => {
 			const data = addMeta(snap);
 			const check = listen.cnt !== 0 && data[FIELD.uid] === listen.uid;
@@ -146,7 +154,7 @@ export class SyncService {
 			switch (snap.type) {
 				case 'added':
 				case 'modified':
-					this.store.dispatch(new setStore(data, debug));
+					// this.store.dispatch(new setStore(data, debug));
 					if (check) {
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
 							this.store.dispatch(new AuthToken());   // special: access-level has changed
@@ -157,7 +165,7 @@ export class SyncService {
 					break;
 
 				case 'removed':
-					this.store.dispatch(new delStore(data, debug));
+					// this.store.dispatch(new delStore(data, debug));
 					if (check) {
 						if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 							this.navigate.route(ROUTE.plan);				// special: Plan has been deleted

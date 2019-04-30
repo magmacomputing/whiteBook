@@ -5,6 +5,7 @@ import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/stat
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
+import { asArray } from '@lib/array.library';
 
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.attend,
@@ -24,26 +25,32 @@ export class AttendState implements NgxsOnInit {
 	@Action(SetAttend)
 	setStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
 		const state = getState() || {};
-		const attend = this.filterAttend(state, payload);	// remove the doc if it was previously created
 
-		attend.push(payload);															// push the changed AttendDoc into the Store
-		state[payload.payment] = attend;
-		if (debug) this.dbg('setAttend: %j', payload);
-		patchState({ ...state });
-		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
+		asArray(payload).forEach(doc => {
+			const attend = this.filterAttend(state, doc);	// remove the doc if it was previously created
+
+			attend.push(doc);															// push the changed AttendDoc into the Store
+			state[doc.payment] = attend;
+			if (debug) this.dbg('setAttend: %j', doc);
+			patchState({ ...state });
+		})
+		dispatch(new SyncAttend(payload));							// tell any listener we have sync'd
 	}
 
-	@Action(DelAttend)																	// very rare Event
+	@Action(DelAttend)																// very rare Event
 	delStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
-		const attend = this.filterAttend(state, payload);
+		
+		asArray(payload).forEach(doc => {
+			const attend = this.filterAttend(state, doc);
 
-		if (attend.length === 0)
-			delete state[payload.payment]
-		else state[payload.payment] = attend;
-		if (debug) this.dbg('delAttend: %j', payload);
-		patchState({ ...state });
-		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
+			if (attend.length === 0)
+				delete state[doc.payment]
+			else state[doc.payment] = attend;
+			if (debug) this.dbg('delAttend: %j', doc);
+			patchState({ ...state });
+		})
+		dispatch(new SyncAttend(payload));								// tell any listener we have sync'd
 	}
 
 	@Action(TruncAttend)

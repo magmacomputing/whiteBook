@@ -8,6 +8,7 @@ import { IStoreMeta } from '@dbase/data/data.schema';
 import { makeTemplate } from '@lib/string.library';
 import { cloneObj } from '@lib/object.library';
 import { isString } from '@lib/type.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -33,34 +34,38 @@ export class LocalState implements NgxsOnInit {
 	@Action(SetLocal)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetLocal) {
 		const state = getState() || {};
-		const group = '@' + payload[FIELD.store].replace(/_/g, '') + '@';
-		const store = state[group] || [];
+		
+		asArray(payload).forEach(doc => {
+			const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
+			const store = state[group] || [];
 
-		if (payload[FIELD.store] === STORE.config) {// Config change detected
-			const fix = this.fixConfig()
-			if (fix) {
-				store.length = 0;												// erase existing Config
-				store.push(...fix);											// insert fixed Config
+			if (doc[FIELD.store] === STORE.config) {		// Config change detected
+				const fix = this.fixConfig()
+				if (fix) {
+					store.length = 0;												// erase existing Config
+					store.push(...fix);											// insert fixed Config
+				}
 			}
-		}
 
-		state[group] = store;
-
-		// if (debug) this.dbg('setLocal: %s, %j', payload[FIELD.store], payload);
-		patchState({ ...state });
+			state[group] = store;
+			patchState({ ...state });
+		})
 	}
 
 	@Action(DelLocal)
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
 		const state = getState() || {};
-		const store = this.filterLocal(getState(), payload);
 
-		if (store.length === 0)
-			delete state[payload[FIELD.store]]
-		else state[payload[FIELD.store]] = store;
+		asArray(payload).forEach(doc => {
+			const store = this.filterLocal(getState(), doc);
 
-		if (debug) this.dbg('delLocal: %s, %j', payload[FIELD.store], payload);
-		patchState({ ...state });
+			if (store.length === 0)
+				delete state[doc[FIELD.store]]
+			else state[doc[FIELD.store]] = store;
+
+			if (debug) this.dbg('delLocal: %s, %j', doc[FIELD.store], doc);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(TruncLocal)

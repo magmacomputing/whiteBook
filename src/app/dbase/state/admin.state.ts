@@ -5,6 +5,7 @@ import { TStateSlice, SLICE } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -28,25 +29,31 @@ export class AdminState implements NgxsOnInit {
 	@Action(SetAdmin)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
 		const state = getState() || {};
-		const build = this.filterAdmin(state, payload);
 
-		build.push(payload);										// push the changed AdminDoc into the Store
-		state[payload[FIELD.store]] = build;
-		if (debug) this.dbg('setAdmin: %j', payload);
-		patchState({ ...state });
+		asArray(payload).forEach(doc => {
+			const build = this.filterAdmin(state, doc);
+			
+			build.push(doc);										// push the changed AdminDoc into the Store
+			state[doc[FIELD.store]] = build;
+			if (debug) this.dbg('setAdmin: %j', doc);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(DelAdmin)
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAdmin) {
 		const state = getState() || {};
-		const store = this.filterAdmin(getState(), payload);
-
-		if (store.length === 0)
-			delete state[payload[FIELD.store]]
-		else state[payload[FIELD.store]] = store;
-
-		if (debug) this.dbg('delAdmin: %s, %j', payload[FIELD.store], payload);
-		patchState({ ...state });
+		
+		asArray(payload).forEach(doc => {
+			const store = this.filterAdmin(getState(), doc);
+			
+			if (store.length === 0)
+			delete state[doc[FIELD.store]]
+			else state[doc[FIELD.store]] = store;
+			
+			if (debug) this.dbg('delAdmin: %s, %j', doc[FIELD.store], payload);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(TruncAdmin)

@@ -3,7 +3,8 @@ import { TStateSlice, SLICE } from '@dbase/state/state.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data/data.define';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -24,24 +25,30 @@ export class MemberState implements NgxsOnInit {
 	@Action(SetMember)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
 		const state = getState() || {};
-		const store = this.filterMember(state, payload);
 
-		store.push(payload);										// push the changed MemberDoc into the Store
-		state[payload.store] = store;
-		if (debug) this.dbg('setMember: %j', payload);
-		patchState({ ...state });
+		asArray(payload).forEach(doc => {
+			const store = this.filterMember(state, doc);
+
+			store.push(doc);										// push the changed MemberDoc into the Store
+			state[doc.store] = store;
+			if (debug) this.dbg('setMember: %j', doc);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(DelMember)
 	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
 		const state = getState() || {};
-		const store = this.filterMember(state, payload);
+		
+		asArray(payload).forEach(doc => {
+			const store = this.filterMember(state, doc);
 
-		if (store.length === 0)
-			delete state[payload.store]
-		else state[payload.store] = store;
-		if (debug) this.dbg('delMember: %j', payload);
-		patchState({ ...state });
+			if (store.length === 0)
+				delete state[doc.store]
+			else state[doc.store] = store;
+			if (debug) this.dbg('delMember: %j', doc);
+			patchState({ ...state });
+		})
 	}
 
 	@Action(TruncMember)
