@@ -22,19 +22,16 @@ export class AdminState implements NgxsOnInit {
 
 	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
 
-	private init() {
-		this.dbg('init:');
-	}
+	private init() { this.dbg('init:'); }
 
 	@Action(SetAdmin)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const build = this.filterAdmin(state, doc);
-
-			build.push(doc);										// push the changed AdminDoc into the Store
-			state[doc[FIELD.store]] = build;
+			const store = doc[FIELD.store];
+			state[store] = this.filterAdmin(state, doc);
+			state[store].push(doc);						// push the changed AdminDoc into the Store
 			if (debug) this.dbg('setAdmin: %j', doc);
 		})
 
@@ -46,11 +43,11 @@ export class AdminState implements NgxsOnInit {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const store = this.filterAdmin(getState(), doc);
+			const store = doc[FIELD.store];
+			state[store] = this.filterAdmin(getState(), doc);
 
-			if (store.length === 0)
-				delete state[doc[FIELD.store]]
-			else state[doc[FIELD.store]] = store;
+			if (state[store].length === 0)
+				delete state[store]
 
 			if (debug) this.dbg('delAdmin: %s, %j', doc[FIELD.store], payload);
 		})

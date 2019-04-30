@@ -23,27 +23,32 @@ export class ClientState implements NgxsOnInit {
 
 	private init() {
 		this.dbg('init:');
-		this.setSchema();												// initial load of STORES / SORTBY / FILTER
+		this.setSchema();													// initial load of STORES / SORTBY / FILTER
 	}
 
 	@Action(SetClient)
 	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
+		const local: IStoreMeta[] = [];
+		const schema: IStoreMeta[] = [];
 
 		asArray(payload).forEach(doc => {
-			const store = this.filterClient(state, doc);
-
-			store.push(doc);											// push the new/changed ClientDoc into the Store
-			state[doc[FIELD.store]] = store;
+			const store = doc[FIELD.store];
+			state[store] = this.filterClient(state, doc);
+			state[store].push(doc);									// push the new/changed ClientDoc into the Store
 
 			if (doc[FIELD.store] === STORE.config)
-				this.store.dispatch(new SetLocal(doc));
+				local.push(doc);
 			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
-				this.setSchema();											// rebuild the STORES / SORTBY / FILTER
+				schema.push(doc);
 
 			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);
 		})
 
+		if (schema.length)
+			this.setSchema();												// rebuild the STORES / SORTBY / FILTER
+		if (local.length)
+			this.store.dispatch(new SetLocal(local));
 		patchState({ ...state });
 	}
 
@@ -52,9 +57,10 @@ export class ClientState implements NgxsOnInit {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const store = this.filterClient(getState(), doc);
+			const store = doc[FIELD.store];
+			state[store] = this.filterClient(getState(), doc);
 
-			if (doc[FIELD.store] === STORE.schema && doc[FIELD.type] && doc[FIELD.key]) {
+			if (store === STORE.schema && doc[FIELD.type] && doc[FIELD.key]) {
 				const type = doc[FIELD.type]!;
 				const key = doc[FIELD.key];
 
@@ -63,9 +69,8 @@ export class ClientState implements NgxsOnInit {
 				delete FILTER[key];
 			}
 
-			if (store.length === 0)
+			if (state[store].length === 0)
 				delete state[doc[FIELD.store]]
-			else state[doc[FIELD.store]] = store;
 
 			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.store], doc);
 		})

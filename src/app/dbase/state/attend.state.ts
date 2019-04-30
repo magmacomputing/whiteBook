@@ -27,32 +27,32 @@ export class AttendState implements NgxsOnInit {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const attend = this.filterAttend(state, doc);	// remove the doc if it was previously created
-
-			attend.push(doc);															// push the changed AttendDoc into the Store
-			state[doc.payment] = attend;
+			const payment = doc.payment;
+			state[payment] = this.filterAttend(state, doc);	// remove the doc if it was previously created
+			state[payment].push(doc);												// push the changed AttendDoc into the Store
 			if (debug) this.dbg('setAttend: %j', doc);
 		})
 
 		patchState({ ...state });
-		dispatch(new SyncAttend(payload));							// tell any listener we have sync'd
+		dispatch(new SyncAttend(payload));								// tell any listener we have sync'd
 	}
 
-	@Action(DelAttend)																// very rare Event
+	@Action(DelAttend)																	// very rare Event
 	delStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
 		const state = getState() || {};
-		
-		asArray(payload).forEach(doc => {
-			const attend = this.filterAttend(state, doc);
 
-			if (attend.length === 0)
+		asArray(payload).forEach(doc => {
+			const payment = doc.payment;
+			state[payment] = this.filterAttend(state, doc);
+
+			if (state[payment].length === 0)
 				delete state[doc.payment]
-			else state[doc.payment] = attend;
+
 			if (debug) this.dbg('delAttend: %j', doc);
 		})
-		
+
 		patchState({ ...state });
-		dispatch(new SyncAttend(payload));								// tell any listener we have sync'd
+		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
 	}
 
 	@Action(TruncAttend)
