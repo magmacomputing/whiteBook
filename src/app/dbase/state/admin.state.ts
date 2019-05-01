@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { SetAdmin, DelAdmin, TruncAdmin, filterState } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { FIELD } from '@dbase/data/data.define';
@@ -25,26 +25,28 @@ export class AdminState implements NgxsOnInit {
 	private init() { this.dbg('init:'); }
 
 	@Action(SetAdmin)
-	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
+	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterState(state, doc);
-			state[store].push(doc);						// push the changed AdminDoc into the Store
+
+			state[store] = filterState(state, doc);
+			state[store].push(doc);							// push the changed AdminDoc into the Store
+
 			if (debug) this.dbg('setAdmin: %j', doc);
 		})
 
-		patchState({ ...state });
+		setState({ ...state });
 	}
 
 	@Action(DelAdmin)
-	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAdmin) {
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAdmin) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterState(getState(), doc);
+			state[store] = filterState(state, doc);
 
 			if (state[store].length === 0)
 				delete state[store]
@@ -52,19 +54,12 @@ export class AdminState implements NgxsOnInit {
 			if (debug) this.dbg('delAdmin: %s, %j', doc[FIELD.store], payload);
 		})
 
-		patchState({ ...state });
+		setState({ ...state });
 	}
 
 	@Action(TruncAdmin)
 	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncAdmin) {
 		if (debug) this.dbg('truncAdmin');
 		setState({});
-	}
-
-	/** remove an item from the Admin Store */
-	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
-		const curr = state && state[segment] || [];
-
-		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
 }

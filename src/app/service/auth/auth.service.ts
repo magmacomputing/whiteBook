@@ -21,7 +21,6 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
 	private auth$ = this.state.getAuthData();
-	private open: Window | null = null;
 	private dbg = dbg(this);
 
 	constructor(private readonly store: Store, private state: StateService, private fire: FireService) { this.dbg('new'); }
@@ -109,25 +108,30 @@ export class AuthService {
 		const config = await this.state.getSingle<IConfig>(LOCAL.config, addWhere(FIELD.key, 'oauth')) || {};
 		const oauth = config.value;
 
-		this.open = window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
-
-		const channel = new BroadcastChannel('token');
-		channel.onmessage = (msg) => {
-			channel.close();
+		const parent = this.openChannel('token');
+		parent.onmessage = (msg) => {
+			parent.close();												// close BroadcastChannel
 			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
 		}
+
+		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
+	}
+
+	private openChannel(name: string) {
+		return new BroadcastChannel(name);
 	}
 
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
+		const child = this.openChannel('token');
 		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
 				if (state.auth.info) 								// tell the main thread to update State
-					new BroadcastChannel('token')
+					child
 						.postMessage(JSON.stringify(state.auth.info));
 
-				if (state.auth.user && this.open)
+				if (state.auth.user) //&& open) {
 					window.close();										// only close on valid user
 			})
 	}

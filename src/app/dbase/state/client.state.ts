@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SetClient, DelClient, TruncClient, SetLocal } from '@dbase/state/state.action';
+import { SetClient, DelClient, TruncClient, SetLocal, filterState } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { STORE, FIELD, SLICES, SORTBY, FILTER } from '@dbase/data/data.define';
@@ -27,14 +27,14 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(SetClient)
-	setStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
+	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
 		const local: IStoreMeta[] = [];
 		const schema: IStoreMeta[] = [];
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterState(state, doc);
+			state[store] = filterState(state, doc);
 			state[store].push(doc);									// push the new/changed ClientDoc into the Store
 
 			if (doc[FIELD.store] === STORE.config)
@@ -49,16 +49,16 @@ export class ClientState implements NgxsOnInit {
 			this.setSchema();												// rebuild the STORES / SORTBY / FILTER
 		if (local.length)
 			this.store.dispatch(new SetLocal(local));
-		patchState({ ...state });
+		setState({ ...state });
 	}
 
 	@Action(DelClient)
-	delStore({ patchState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
-			state[store] = this.filterState(getState(), doc);
+			state[store] = filterState(state, doc);
 
 			if (store === STORE.schema && doc[FIELD.type] && doc[FIELD.key]) {
 				const type = doc[FIELD.type]!;
@@ -75,20 +75,13 @@ export class ClientState implements NgxsOnInit {
 			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.store], doc);
 		})
 
-		patchState({ ...state });
+		setState({ ...state });
 	}
 
 	@Action(TruncClient)
 	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncClient) {
 		if (debug) this.dbg('truncClient');
 		setState({});
-	}
-
-	/** remove an item from the Client Store */
-	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
-		const curr = state && state[payload[segment]] || [];
-
-		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}
 
 	/** rebuild values for STORES, SORTBY, FILTER variables */

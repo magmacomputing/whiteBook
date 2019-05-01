@@ -26,7 +26,6 @@ export class MemberService {
 	constructor(private readonly data: DataService, private readonly store: Store,
 		private state: StateService, private snack: SnackService, private sync: SyncService) {
 		this.dbg('new');
-
 		this.sync.wait(MemberInfo, _ => this.getAuthProfile());
 		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
 	}

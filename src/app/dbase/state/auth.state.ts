@@ -1,5 +1,5 @@
 import * as firebase from 'firebase/app';
-import { filter, tap, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
@@ -7,7 +7,7 @@ import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
 	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo, LoginAnon, AuthOther
 } from '@dbase/state/auth.action';
-import { SLICE, IState, TStateSlice } from '@dbase/state/state.define';
+import { SLICE, TStateSlice } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/snack/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
@@ -23,7 +23,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
 import { getPath } from '@lib/object.library';
-import { isNull, getType } from '@lib/type.library';
+import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @State<IAuthState>({

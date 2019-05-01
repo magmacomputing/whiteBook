@@ -77,10 +77,10 @@ export interface IMigrateBase extends IMeta {
 export interface IStoreMeta extends IMeta {
 	[key: string]: any;											// add in index-signature
 }
+export type TStoreMeta = IStoreMeta | IStoreMeta[];
 // client documents have a '<key>' field, member documents have a '<uid>' field
 export const isClientStore = (store: TStoreBase): store is IClientBase =>
 	getSlice(store[FIELD.store]) === 'client' || getSlice(store[FIELD.store]) === 'local';
-// (<IClientBase>store)[FIELD.key] !== undefined;
 
 //	/client/_default_
 export interface IDefault extends IClientBase {

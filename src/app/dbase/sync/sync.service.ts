@@ -68,7 +68,7 @@ export class SyncService {
 
 	/**
 	 * Wait for an NGXS-event to occur,  
-	 * and optionally povide a callback function to process after the event
+	 * and optionally provide a callback function to process after the event
 	 */
 	public wait<T>(event: any, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
 		const timeOut = 5000;																// wait up-to 5 seconds
