@@ -436,7 +436,7 @@ export class MigAttendComponent implements OnInit {
 		]);
 
 		const updates: IStoreMeta[] = [];
-		const closed = active[0].expiry;
+		const closed = active[0] && active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
 		active.sort(sortKeys('-' + FIELD.stamp));
