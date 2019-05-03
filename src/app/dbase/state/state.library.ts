@@ -190,6 +190,8 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
  * adjust : is amount from active payment, if debit  
  * bank		: is any unspent funds (brought forward from previous payment)  
  * pend 	: is amount from future payments (not yet 'active')  
+ * funds	: is amount remaining on active payment  
+ * credit	: is amount remaining overall (i.e. including <pend>)
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account) {
@@ -198,15 +200,8 @@ export const sumPayment = (source: IAccountState) => {
 			.reduce((sum, payment, indx) => {
 				if (indx === 0/** && payment[FIELD.effect] */) {		// only 1st Payment
 					sum.bank += payment.bank || 0;
-
-					// if (payment[FIELD.type] === 'debit') {
-					// 	sum.adjust += payment.amount || 0;
-					// 	sum.paid += payment.adjust || 0;
-					// } else {
 					sum.adjust += payment.adjust || 0;
 					sum.paid += payment.amount || 0;
-					// }
-
 				} else
 					sum.pend += (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
 
@@ -226,9 +221,9 @@ export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
 		source.account.summary = source.account.attend
 			.reduce((sum, attend) => {
-				sum.spend += attend.amount;
-				sum.credit -= attend.amount;
-				sum.funds -= attend.amount;
+				sum.spend += attend.payment.amount;
+				sum.credit -= attend.payment.amount;
+				sum.funds -= attend.payment.amount;
 				return sum;
 			}, source.account.summary);
 	}

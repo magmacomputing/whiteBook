@@ -114,11 +114,11 @@ export class AttendService {
 			case scheme.week
 				&& attendWeek
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
-					.distinct(row => row.date)
+					.distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.week.level
 				&& attendWeek
 					.filter(row => row.bonus === scheme.week[FIELD.id])
-					.distinct(row => row.date)
+					.distinct(row => row.track[FIELD.date])
 					.length < scheme.week.free:
 				bonus[FIELD.id] = scheme.week[FIELD.id];
 				bonus[FIELD.type] = 'week';
@@ -132,7 +132,7 @@ export class AttendService {
 			case scheme.sunday
 				&& attendWeek
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
-					.distinct(row => row.date)
+					.distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
@@ -147,11 +147,11 @@ export class AttendService {
 			case scheme.month
 				&& attendMonth
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
-					.distinct(row => row.date)
+					.distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.month.level
 				&& attendMonth
 					.filter(row => row.bonus === scheme.month[FIELD.id])
-					.distinct(row => row.date)
+					.distinct(row => row.track[FIELD.date])
 					.length < scheme.month.free:
 				bonus[FIELD.id] = scheme.month[FIELD.id];
 				bonus[FIELD.type] = 'month';
@@ -185,7 +185,7 @@ export class AttendService {
 			addWhere(FIELD.key, schedule[FIELD.key]),
 			addWhere(FIELD.note, note),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			addWhere('date', when),
+			addWhere(`track.${FIELD.date}`, when),
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
@@ -193,6 +193,7 @@ export class AttendService {
 				case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:
 					break;																			// we dont already have an Attend with no note
 				default:
+					this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 					this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 					return false;																// discard Attend
 			}
@@ -236,13 +237,12 @@ export class AttendService {
 			tests.add(data.account.attend.length < 100);						// arbitrary limit of Attends against a Payment             
 			tests.add(schedule.price <= data.account.summary.funds);// enough funds to cover this Attend
 			tests.add(now.ts < expiry);															// Payment expired
-
 			if (!tests.has(false))
 				break;																				// all tests passed
 			tests.clear();																	// reset the test Set
-			this.dbg('test1: %j, %j', data.account.attend.length < 100, data.account.attend.length);
-			this.dbg('test2: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
-			this.dbg('test3: %j, %j, %j', now.ts < expiry, now.ts, expiry);
+			this.dbg('limit: %j, %j', data.account.attend.length < 100, data.account.attend.length);
+			this.dbg('funds: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
+			this.dbg('expiry: %j, %j, %j', now.ts < expiry, now.ts, expiry);
 
 			if (data.account.payment.length <= 1) {					// create a new Payment
 				const gap = schedule.price - data.account.summary.credit;
@@ -259,10 +259,8 @@ export class AttendService {
 			const next = data.account.payment[1];
 			if (next && !next.bank) {												// rollover unused funds into next Payment
 				data.account.payment[1].bank = data.account.summary.funds;
-				updates.push({ ...data.account.payment[1] });
-
-				if (active.approve)															// close previous Payment
-					updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });
+				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
+				updates.push({ ...data.account.payment[1] });	// update the now-Active payment with <bank>
 
 				data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
@@ -287,7 +285,6 @@ export class AttendService {
 			[FIELD.type]: schedule[FIELD.type],							// the type of Attend ('class','event','special')
 			[FIELD.key]: schedule[FIELD.key] as TClass,			// the Attend's class
 			[FIELD.stamp]: stamp,														// createDate
-			[FIELD.date]: when,															// yyyymmdd of the Attend
 			[FIELD.note]: note,															// optional 'note'
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
@@ -295,14 +292,17 @@ export class AttendService {
 					? 'schedule'
 					: 'calendar',
 			},
-			payment: active[FIELD.id],											// <id> of Account's current active document
-			bonus: !isEmpty(bonus) ? bonus : undefined,			// <id> of the Bonus
-			amount: schedule.price,													// calculated price of the Attend
+			payment: {
+				[FIELD.id]: active[FIELD.id],									// <id> of Account's current active document
+				amount: schedule.price,												// calculated price of the Attend
+			},
 			track: {
+				[FIELD.date]: when,														// yyyymmdd of the Attend
 				day: now.dow,																	// day of week
 				week: now.format(DATE_FMT.yearWeek),					// week-number of year
 				month: now.format(DATE_FMT.yearMonth),				// month-number of year
-			}
+			},
+			bonus: !isEmpty(bonus) ? bonus : undefined,			// <id>/<type> of Bonus
 		}
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 

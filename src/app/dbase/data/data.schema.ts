@@ -346,6 +346,7 @@ export interface TBonus {
 }
 interface TTrack {
 	day: number;											// weekDay attended
+	date: number;											// yearMonthDay attended
 	week: number;											// yearWeek attended
 	month: number;										// yearMonth attended
 }
@@ -354,14 +355,14 @@ export interface IAttend extends IAttendBase {
 	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass;
 	[FIELD.stamp]: number;						// the timestamp of the check-in
-	payment: string;									// the /member/payment _id
+	payment: {
+		[FIELD.id]: string;							// the /member/payment _id
+		amount: number;									// the amount the member was charged
+	},
 	timetable: {
 		[FIELD.id]: string;							// the /client/schedule or /client/event _id
 		[FIELD.type]: string;						// 'schedule' or 'calendar'
 	}
-	gift?: string;										// the /member/gift _id for this payment
-	date: number;											// YYYYMMDD of the attend
-	amount: number;										// the amount the member was charged
 	bonus?: TBonus;										// override standard price
 	track: TTrack;										// to use in bonus-checking, attend-analysis, etc.
 }

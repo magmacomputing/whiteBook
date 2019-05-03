@@ -111,7 +111,7 @@ export class StateService {
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 		if (payment)
-			filterAttend.push(addWhere(STORE.payment, payment))
+			filterAttend.push(addWhere(`${STORE.payment}.${FIELD.id}`, payment))
 
 		return this.attend$.pipe(
 			joinDoc(this.states, 'application', STORE.default),
@@ -186,7 +186,7 @@ export class StateService {
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 		const filterAttend = [
-			addWhere('payment', `{{account.payment[0].${FIELD.id}}}`),
+			addWhere(`payment.${FIELD.id}`, `{{account.payment[0].${FIELD.id}}}`),
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 
@@ -274,7 +274,7 @@ export class StateService {
 		const now = getDate(date);																							// create a new Instant
 		const filterUser: TWhere = [addWhere(FIELD.uid, '{{auth.current.uid}}'),];
 		const filterBonus: TWhere = [addWhere(FIELD.disable, true, '!=')];
-		const filterGift: TWhere = [addWhere('bonus', `{{member.gift[*].${FIELD.id}}}`), ...filterUser];
+		const filterGift: TWhere = [addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`), ...filterUser];
 		const filterWeek: TWhere = [addWhere('track.week', now.format(DATE_FMT.yearWeek)), ...filterUser];
 		const filterMonth: TWhere = [addWhere('track.month', now.format(DATE_FMT.yearMonth)), ...filterUser];
 

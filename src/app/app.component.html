@@ -8,7 +8,7 @@
 	<button [hidden]="!app.auth.token ||
 	!app.auth.token.claims.claims ||
 	!app.auth.token.claims.claims.roles || 
-	!app.auth.token.claims.claims.roles.includes('admin')" (click)="router.navigateByUrl('/migrate/migAttend')">Migrate
+	!app.auth.token.claims.claims.roles.includes('admin')" (click)="router.navigateByUrl('/migrate/attend')">Migrate
 		Attend</button>
 
 	<div *ngFor="let message of app.member.message">

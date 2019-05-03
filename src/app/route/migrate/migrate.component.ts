@@ -24,7 +24,7 @@ import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject } from '@lib/object.library';
-import { isUndefined, isNull } from '@lib/type.library';
+import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
 
@@ -154,7 +154,6 @@ export class MigrateComponent implements OnInit {
 				this.history = this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
-						// this.dbg('history: %j', (resp.history || []).sort(sortKeys(FIELD.stamp)));
 						return (resp.history || []).sort(sortKeys(FIELD.stamp));
 					})
 				this.history
@@ -281,15 +280,25 @@ export class MigrateComponent implements OnInit {
 	public addAttend() {
 		Promise.all([
 			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
 			this.history,
-		]).then(([migrate, history]) => {
+		]).then(([migrate, attend, history]) => {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
+			const start = attend.sort(sortKeys('-track.date'));
 
-			// const offset = table.filter(row => row.date < 20161118).length;
-			// table.splice(0, offset);
-			// const len = table.filter(row => row.date <= 20160313).length;
-			// table.splice(len);
+			if (start[0]) {
+				const startFrom = start[0].track.date;
+				this.dbg('startFrom: %j', startFrom);
+				const offset = table.filter(row => row.date < startFrom).length;
+				table.splice(0, offset + 1);
+
+				// if (endAt) {
+				// 	this.dbg('endAt: %j', finish);
+				// 	const len = table.filter(row => row.date <= finish).length;
+				// 	table.splice(len);
+				// }
+			}
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
 		})
 	}
@@ -401,7 +410,9 @@ export class MigrateComponent implements OnInit {
 		}
 
 		this.attend.setAttend(sched, row.note, row.stamp)
-			.then(_ => {
+			.then(res => {
+				if (getType(res) === 'Boolean' && res === false)
+					throw new Error('stopping');
 				if (rest.length)  										// fire next Attend
 					this.nextAttend(rest[0], ...rest.slice(1));
 				else this.lastAttend();								// wrap-up final Payment

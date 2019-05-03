@@ -28,7 +28,7 @@ export class AttendState implements NgxsOnInit {
 		let empty: { [segment: string]: boolean; } = {};
 
 		asArray(payload).forEach(doc => {
-			const payment = doc.payment;
+			const payment = doc.payment[FIELD.id];
 
 			if (state[payment] && !state[payment].length)
 				empty[payment] = true;							// check the first instance
@@ -48,11 +48,11 @@ export class AttendState implements NgxsOnInit {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const payment = doc.payment;
+			const payment = doc.payment[FIELD.id];
 			state[payment] = this.filterState(state, doc);
 
 			if (state[payment].length === 0)
-				delete state[doc.payment]
+				delete state[payment];
 
 			if (debug) this.dbg('delAttend: %j', doc);
 		})
@@ -69,7 +69,7 @@ export class AttendState implements NgxsOnInit {
 
 	/** remove an item from the Attend Store */
 	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload.payment] || [];
+		const curr = state && state[payload.payment[FIELD.id]] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}

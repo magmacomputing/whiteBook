@@ -7,7 +7,7 @@ import { MaterialModule } from '@route/material.module';
 import { MigrateComponent } from '@route/migrate/migrate.component';
 
 const routes: Routes = [
-  { path: 'migAttend', component: MigrateComponent },
+  { path: 'attend', component: MigrateComponent },
 ];
 
 @NgModule({
