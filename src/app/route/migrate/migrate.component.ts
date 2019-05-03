@@ -286,8 +286,8 @@ export class MigrateComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 
-			const offset = table.filter(row => row.date < 20161118).length;
-			table.splice(0, offset);
+			// const offset = table.filter(row => row.date < 20161118).length;
+			// table.splice(0, offset);
 			// const len = table.filter(row => row.date <= 20160313).length;
 			// table.splice(len);
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
