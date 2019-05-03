@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
+import { MatDialog } from '@angular/material';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
 
-  constructor() { }
+  constructor(private dialog: MatDialog) { }
+
+  open() {
+    // const refDialog = this.dialog.
+  }
 }

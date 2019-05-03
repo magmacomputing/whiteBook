@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { MATERIAL_SANITY_CHECKS } from '@angular/material';
+import { MatDialogModule } from '@angular/material';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -18,6 +19,7 @@ import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/mater
 
 const modules = [
 	MatToolbarModule,
+	MatDialogModule,
 	MatMenuModule,
 	MatButtonModule,
 	MatIconModule,
