@@ -13,7 +13,7 @@ import { AttendState } from '@dbase/state/attend.state';
 import { LocalState } from '@dbase/state/local.state';
 import { AdminState } from '@dbase/state/admin.state';
 
-import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/snack/snack.service';
+import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/material/snack.service';
 
 const fb = environment.firebase || {};
 

@@ -8,7 +8,7 @@ import { Store } from '@ngxs/store';
 import { AdminService } from '@service/admin/admin.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { MHistory } from '@route/migrate/attend/mig.interface';
+import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
@@ -29,10 +29,10 @@ import { asString } from '@lib/string.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
-	selector: 'wb-mig-attend',
-	templateUrl: './mig-attend.component.html',
+	selector: 'wb-migrate',
+	templateUrl: './migrate.component.html',
 })
-export class MigAttendComponent implements OnInit {
+export class MigrateComponent implements OnInit {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
@@ -286,8 +286,8 @@ export class MigAttendComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 
-			// const offset = table.filter(row => row.date < 20160417).length;
-			// table.splice(0, offset);
+			const offset = table.filter(row => row.date < 20161118).length;
+			table.splice(0, offset);
 			// const len = table.filter(row => row.date <= 20160313).length;
 			// table.splice(len);
 			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend

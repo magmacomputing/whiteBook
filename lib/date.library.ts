@@ -47,11 +47,17 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get Timestamp */	export const getStamp = (dt?: TDate) => getDate(dt).ts;
 /** format Instant */	export const fmtDate = <K extends string | keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 
+
+/**
+ * An Instant is a object that is used to manage Dates.  
+ * It has properties to break a Date into components ('yyyy', 'dd', etc.)  
+ * It has methods to perform Date manipulations (add(), format(), diff(), startOf(), etc.)  
+ * It has short-cut functions to create an Instant (getDate(), getStamp(), fmtDate())
+ */
 export class Instant {
 	private date: IInstant;																			// Date parsed into components
 
@@ -86,7 +92,7 @@ export class Instant {
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	private parseDate = (dt?: TDate, fmt?: TString) => {
+	private parseDate = (dt?: TDate, fmt?: TString) => {				// TODO: allow for <fmt> when parsing a :string argument
 		let date: Date;
 
 		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...

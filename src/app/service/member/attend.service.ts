@@ -9,7 +9,7 @@ import { STORE, FIELD } from '@dbase/data/data.define';
 
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
-import { SnackService } from '@service/snack/snack.service';
+import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus, TBonus } from '@dbase/data/data.schema';

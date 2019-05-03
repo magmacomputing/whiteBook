@@ -3,7 +3,7 @@ import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { DocumentReference } from '@angular/fire/firestore';
 
-import { SnackService } from '@service/snack/snack.service';
+import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, ICustomClaims, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';

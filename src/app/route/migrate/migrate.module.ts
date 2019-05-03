@@ -4,17 +4,15 @@ import { HttpClientModule} from '@angular/common/http';
 import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@route/material.module';
-import { MigAttendComponent } from '@route/migrate/attend/mig-attend.component';
-import { MigEventComponent } from './event/mig-event.component';
+import { MigrateComponent } from '@route/migrate/migrate.component';
 
 const routes: Routes = [
-  { path: 'migAttend', component: MigAttendComponent },
+  { path: 'migAttend', component: MigrateComponent },
 ];
 
 @NgModule({
   declarations: [
-    MigAttendComponent,
-    MigEventComponent,
+    MigrateComponent,
   ],
   imports: [
     CommonModule, MaterialModule, RouterModule.forChild(routes), HttpClientModule,

@@ -4,7 +4,7 @@ import { Store } from '@ngxs/store';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
-import { SnackService } from '@service/snack/snack.service';
+import { SnackService } from '@service/material/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 import { SyncService } from '@dbase/sync/sync.service';

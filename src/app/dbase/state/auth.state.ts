@@ -9,7 +9,7 @@ import {
 } from '@dbase/state/auth.action';
 import { SLICE, TStateSlice } from '@dbase/state/state.define';
 
-import { SnackService } from '@service/snack/snack.service';
+import { SnackService } from '@service/material/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
 
 import { ROUTE } from '@route/route.define';

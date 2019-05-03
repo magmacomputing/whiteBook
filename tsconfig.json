@@ -1,4 +1,7 @@
 {
+  "angularCompilerOptions": {
+    "enableIvy": true,
+  },
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
@@ -15,7 +18,7 @@
     ],
     "lib": [
       "esnext",
-      "dom"
+      "dom",
     ],
     "strict": true,
     "noImplicitThis": false,
@@ -24,17 +27,17 @@
         "src/environments/*"
       ],
       "@lib/*": [
-        "lib/*"
+        "lib/*",
       ],
       "@dbase/*": [
-        "src/app/dbase/*"
+        "src/app/dbase/*",
       ],
       "@service/*": [
-        "src/app/service/*"
+        "src/app/service/*",
       ],
       "@route/*": [
         "src/app/route/*",
-        "src/app/route/router/*"
+        "src/app/route/router/*",
       ],
     },
   }

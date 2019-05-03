@@ -5,7 +5,7 @@ import { firestore } from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
-import { SnackService } from '@service/snack/snack.service';
+import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
