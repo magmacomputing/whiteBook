@@ -218,6 +218,7 @@ export class StateService {
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
+		const filterSpan = [addWhere(FIELD.type, `{{client.schedule.${FIELD.type}}}`), addWhere(FIELD.key, `{{client.class.${FIELD.type}}}`),];
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
@@ -236,7 +237,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get classes for this calendar-date
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
-			joinDoc(this.states, 'client', STORE.span, undefined, date),												// get class durations
+			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)

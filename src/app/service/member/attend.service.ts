@@ -294,9 +294,7 @@ export class AttendService {
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
 				[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
-				[FIELD.store]: schedule[FIELD.type] === 'class'
-					? 'schedule'
-					: 'calendar',
+				[FIELD.store]: schedule[FIELD.type] === 'class' ? 'schedule' : 'calendar',
 				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},
 			payment: {
