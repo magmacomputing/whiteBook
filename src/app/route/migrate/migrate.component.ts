@@ -299,7 +299,9 @@ export class MigrateComponent implements OnInit {
 				// 	table.splice(len);
 				// }
 			}
-			this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
+			if (table.length)
+				this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
+			else this.dbg('nothing to load');
 		})
 	}
 

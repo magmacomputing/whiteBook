@@ -18,6 +18,7 @@ interface IInstant {											// Date components
 }
 
 interface IDateFmt {											// pre-configured format strings
+	[str: string]: string | number;					// allow for dynamic format-codes
 	"ddd, dd mmm yyyy": string;
 	"yyyy-mm-dd HH:MI": string;
 	"dd-mmm": string;
@@ -49,7 +50,7 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 // shortcut functions to common Instant class properties / methods.
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get Timestamp */	export const getStamp = (dt?: TDate) => getDate(dt).ts;
-/** format Instant */	export const fmtDate = <K extends string | keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
+/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
 
 
 /**
@@ -78,7 +79,7 @@ export class Instant {
 	/** short month name*/get mmm() { return this.date.mmm }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** apply formatting*/format = <K extends string | keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
+	/** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(unit, dt2);
 	/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
 
@@ -198,26 +199,22 @@ export class Instant {
 	}
 
 	/** combine Instant components to apply some standard / free-format rules */
-	private formatDate = <K extends string | keyof IDateFmt>(fmt: K, code?: string): K extends (keyof IDateFmt) ? IDateFmt[K] : string => {
+	private formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
 		const date = { ...this.date };													// clone current Instant
-		let result: string | number;
 
 		switch (fmt) {
 			case DATE_FMT.yearWeek:
-				const offset = date.ww === 1 && date.mm === 12;	// if late-Dec, add 1 to yyyy
-				result = parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
-				break;
+				const offset = date.ww === 1 && date.mm === 12;			// if late-Dec, add 1 to yy
+				return parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 
 			case DATE_FMT.yearMonth:
-				result = parseInt(`${fix(date.yy)}${fix(date.mm)}`);
-				break;
+				return parseInt(`${fix(date.yy)}${fix(date.mm)}`);
 
 			case DATE_FMT.yearMonthDay:
-				result = parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
-				break;
+				return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 			default:
-				result = fmt
+				return asString(fmt)
 					.replace(/y{4}/g, fix(date.yy))
 					.replace(/y{2}/g, fix(date.yy).substring(2, 4))
 					.replace(/m{3}/g, date.mmm)
@@ -232,10 +229,7 @@ export class Instant {
 					.replace(/ms/g, asString(date.ms))
 					.replace(/w{2}/g, asString(date.ww))
 					.replace(/dow/g, asString(date.dow))
-				break;
 		}
-		// @ts-ignore			TODO: set return-type according to IDateFmt[K] | string
-		return result;
 	}
 
 	/** calculate the difference between dates */

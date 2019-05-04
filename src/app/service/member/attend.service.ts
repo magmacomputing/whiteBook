@@ -14,7 +14,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus, TBonus } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
+import { getDate, DATE_FMT, TDate, Instant, fmtDate } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
 import { getPath, isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
@@ -77,18 +77,17 @@ export class AttendService {
 		]);
 
 		/**
-		 * bonusGift	is array of Attends so far against 1st active Gift
-		 * attendToday is array of Attends so far in the current week, equal to today
-		 * attendWeek	is array of Attends so far in the current week, less than today
-		 * attendMonth is array of Attends so far in the current month, less than today
+		 * bonusGift		is array of Attends so far against 1st active Gift
+		 * attendWeek		is array of Attends so far in the week, less than <now>
+		 * attendMonth	is array of Attends so far in the month, less than <now>
 		 */
 		const now = getDate(date);
 		const where = addWhere(FIELD.uid, uid);
-		const [bonusGift, attendToday, attendWeek, attendMonth] = await Promise.all([		// get tracking data
+		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
+		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || {})[FIELD.id])]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), addWhere('track.day', now.dow)]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), addWhere(FIELD.date, now.format(DATE_FMT.yearMonthDay), '<')]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), addWhere(FIELD.date, now.format(DATE_FMT.yearMonthDay), '<')]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a day do not count towards a Bonus
@@ -262,8 +261,8 @@ export class AttendService {
 				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
 				updates.push({ ...data.account.payment[1] });	// update the now-Active payment with <bank>
 
-				data.account.payment = data.account.payment.slice(1);// drop the 1st inactive payment
-				data.account.attend = await this.data.getStore(STORE.attend, addWhere(STORE.payment, next[FIELD.id]));
+				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
+				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
 		}
 
