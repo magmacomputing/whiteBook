@@ -14,7 +14,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus, TBonus } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT, TDate, Instant, fmtDate } from '@lib/date.library';
+import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
 import { getPath, isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
@@ -99,10 +99,12 @@ export class AttendService {
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
 			case gifts.length > 0:														// qualify for a Gift bonus?
-				bonus[FIELD.id] = gifts[0][FIELD.id];
-				bonus[FIELD.type] = 'gift';
-				bonus.gift = gifts[0];													// use 1st effective Gift as the Bonus
-				if (bonusGift.length + 1 >= bonus.gift.count)
+				bonus = {
+					[FIELD.id]: gifts[0][FIELD.id],
+					[FIELD.type]: 'gift',
+					gift: gifts[0],																// use 1st effective Gift as the Bonus
+				}
+				if (bonus.gift && bonusGift.length + 1 >= bonus.gift.count)
 					bonus.gift[FIELD.expire] = now.ts;						// mark this gift as 'now complete'
 				break;
 
@@ -119,8 +121,10 @@ export class AttendService {
 					.filter(row => row.bonus === scheme.week[FIELD.id])
 					.distinct(row => row.track[FIELD.date])
 					.length < scheme.week.free:
-				bonus[FIELD.id] = scheme.week[FIELD.id];
-				bonus[FIELD.type] = 'week';
+				bonus = {
+					[FIELD.id]: scheme.week[FIELD.id],
+					[FIELD.type]: 'week',
+				}
 				break;
 
 			/**
@@ -135,8 +139,10 @@ export class AttendService {
 					.length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
-				bonus[FIELD.id] = scheme.sunday[FIELD.id];
-				bonus[FIELD.type] = 'sunday';
+				bonus = {
+					[FIELD.id]: scheme.sunday[FIELD.id],
+					[FIELD.type]: 'sunday',
+				}
 				break;
 
 			/**
@@ -152,8 +158,10 @@ export class AttendService {
 					.filter(row => row.bonus === scheme.month[FIELD.id])
 					.distinct(row => row.track[FIELD.date])
 					.length < scheme.month.free:
-				bonus[FIELD.id] = scheme.month[FIELD.id];
-				bonus[FIELD.type] = 'month';
+				bonus = {
+					[FIELD.id]: scheme.month[FIELD.id],
+					[FIELD.type]: 'month',
+				}
 				break;
 		}
 
@@ -180,11 +188,11 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day at same Location at same Time
 		const attendFilter = [
-			addWhere(FIELD.uid, data.auth.current!.uid),
-			addWhere(FIELD.key, schedule[FIELD.key]),
-			addWhere(FIELD.note, note),
+			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
 			addWhere(`track.${FIELD.date}`, when),
+			addWhere(FIELD.uid, data.auth.current!.uid),
+			addWhere(FIELD.note, note),
 		]
 		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
 		if (booked.length) {
@@ -281,15 +289,15 @@ export class AttendService {
 		// got everything we need; write an Attend document
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
-			[FIELD.type]: schedule[FIELD.type],							// the type of Attend ('class','event','special')
-			[FIELD.key]: schedule[FIELD.key] as TClass,			// the Attend's class
 			[FIELD.stamp]: stamp,														// createDate
 			[FIELD.note]: note,															// optional 'note'
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
-				[FIELD.type]: schedule[FIELD.type] === 'class'
+				[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
+				[FIELD.store]: schedule[FIELD.type] === 'class'
 					? 'schedule'
 					: 'calendar',
+				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},
 			payment: {
 				[FIELD.id]: active[FIELD.id],									// <id> of Account's current active document

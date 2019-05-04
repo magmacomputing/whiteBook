@@ -107,7 +107,6 @@ export const joinDoc = (states: IState, node: string | undefined, store: string,
 				const index = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
 
 				parent = data;                                        // stash the original parent data state
-
 				return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, index));
 			}),
 

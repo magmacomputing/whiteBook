@@ -12,7 +12,7 @@
 
 			<div *ngIf="current && current.migrate.sheetName == dash.register.migrate.sheetName">
 				<div *ngIf="account$ | async as data">
-					<button (click)="addPayment()" [disabled]="data.account.payment?.length">Add Payments</button>
+					<button (click)="addPayment()" [disabled]="!!data.account.payment?.length">Add Payments</button>
 					<button (click)="addAttend()" [disabled]="!data.account.payment?.length">Add Attends</button>
 					<br>
 					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>

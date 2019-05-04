@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take, map, tap } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -160,7 +160,7 @@ export class MigrateComponent implements OnInit {
 					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
 					.catch(err => this.dbg('err: %j', err.message))
 
-				this.account$ = this.state.getAccountData();
+				this.account$ = this.state.getAccountData();//.pipe(tap(data => this.dbg('account$: %j', data)));;
 				this.dflt = 'Zumba';
 				this.hide = register[FIELD.hidden]
 					? 'Un'
@@ -442,11 +442,19 @@ export class MigrateComponent implements OnInit {
 	}
 
 	private async lastAttend() {
-		const [summary, profile, active] = await Promise.all([
+		const [summary, profile, active, history] = await Promise.all([
 			this.member.getAmount(),								// get closing balance
 			this.member.getPlan(),									// get final Plan
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+			this.history,
 		]);
+
+		this.dbg('history: %j', history.reduce((prev: any, curr: any) => {
+			if (curr.type === 'Debit')
+				prev.paid += parseFloat(curr.credit)
+			else prev.spend += parseFloat(curr.debit)
+			return prev;
+		}, { paid: 0, spend: 0 }))
 
 		const updates: IStoreMeta[] = [];
 		const closed = active[0] && active[0].expiry;

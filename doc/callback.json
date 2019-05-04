@@ -1,25 +1,3508 @@
-{
-	"uid": "MichelleZ",
-	"sheetName": "MichelleZ",
-	"email": "michelle_zhao@nomail.com",
-	"picture": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xpf1/t1.0-1/p50x50/971206_10203611276505405_1675186406_n.jpg",
-	"credit": 0,
-	"plans": [
-		{
-			"plan": "member",
-			"effect": 1400668857
-		}
-	],
-	"providers": [
-		{
-			"id": "1320692280",
-			"provider": "fb",
-			"firstName": "Michelle",
-			"lastName": "Zhao",
-			"gender": "female",
-			"email": "michelle_zhao@nomail.com",
-			"picture": "https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xpf1/t1.0-1/p50x50/971206_10203611276505405_1675186406_n.jpg",
-			"isAdmin": false
-		}
-	]
-}
+[
+	{
+		"stamp": 1405074175,
+		"date": 20140711,
+		"approved": 1405120948,
+		"type": "Debit",
+		"title": "Approved: 12-Jul",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1405074177,
+		"date": 20140711,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1405506983,
+		"date": 20140716,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1405675149,
+		"date": 20140718,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1406112116,
+		"date": 20140723,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1406282594,
+		"date": 20140725,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1406421587,
+		"date": 20140727,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1406717360,
+		"date": 20140730,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1406887663,
+		"date": 20140801,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1407026206,
+		"date": 20140803,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1407321503,
+		"date": 20140806,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1407630916,
+		"date": 20140810,
+		"approved": 1407735817,
+		"type": "Debit",
+		"title": "Approved: 11-Aug",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1407630917,
+		"date": 20140810,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1408526104,
+		"date": 20140820,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1408756250,
+		"date": 20140823,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1409136108,
+		"date": 20140827,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1409307710,
+		"date": 20140829,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1409741333,
+		"date": 20140903,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1410345694,
+		"date": 20140910,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1410518274,
+		"date": 20140912,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1410950513,
+		"date": 20140917,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1411726048,
+		"date": 20140926,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1412155766,
+		"date": 20141001,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1412234956,
+		"date": 20141002,
+		"approved": 1412234964,
+		"type": "Debit",
+		"title": "Approved: 02-Oct",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1412564565,
+		"date": 20141006,
+		"type": "oldEvent*1 Class",
+		"title": "<span style=\"color:#5b0f01;\">oldEvent*1 Class</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1412761458,
+		"date": 20141008,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1412761500,
+		"date": 20141008,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00",
+		"note": "double-booked"
+	},
+	{
+		"stamp": 1412932583,
+		"date": 20141010,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1412932635,
+		"date": 20141010,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1413536382,
+		"date": 20141017,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1413615046,
+		"date": 20141018,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1413970851,
+		"date": 20141022,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1414197160,
+		"date": 20141025,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1414279977,
+		"date": 20141026,
+		"approved": 1414620811,
+		"type": "Debit",
+		"title": "Approved: 30-Oct",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1414279978,
+		"date": 20141026,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1414575649,
+		"date": 20141029,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1414753329,
+		"date": 20141031,
+		"type": "Spooky*Zumba",
+		"title": "<span style=\"color:#fe00ff;\">Spooky*Zumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1414884759,
+		"date": 20141102,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1415181916,
+		"date": 20141105,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1415352104,
+		"date": 20141107,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1415489799,
+		"date": 20141109,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1415785019,
+		"date": 20141112,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1415956605,
+		"date": 20141114,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1415956651,
+		"date": 20141114,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1416390049,
+		"date": 20141119,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1416699511,
+		"date": 20141123,
+		"approved": 1417005765,
+		"type": "Debit",
+		"title": "Approved: 26-Nov",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1416699512,
+		"date": 20141123,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1416995111,
+		"date": 20141126,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1417164323,
+		"date": 20141128,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1417217431,
+		"date": 20141129,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1417303717,
+		"date": 20141130,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1417599553,
+		"date": 20141203,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1417770318,
+		"date": 20141205,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1417770332,
+		"date": 20141205,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1418200200,
+		"date": 20141210,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00",
+		"note": "double-booked"
+	},
+	{
+		"stamp": 1418204203,
+		"date": 20141210,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1418513644,
+		"date": 20141214,
+		"approved": 1423053089,
+		"type": "Debit",
+		"title": "Approved: 04-Feb",
+		"credit": "+28.00"
+	},
+	{
+		"stamp": 1418513645,
+		"date": 20141214,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1418515887,
+		"date": 20141214,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00",
+		"note": "double-booked"
+	},
+	{
+		"stamp": 1418809720,
+		"date": 20141217,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1418976000,
+		"date": 20141219,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1423643400,
+		"date": 20150211,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1423724391,
+		"date": 20150212,
+		"approved": 1423724403,
+		"type": "Debit",
+		"title": "Approved: 12-Feb",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1423814400,
+		"date": 20150213,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1423956600,
+		"date": 20150215,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1424248200,
+		"date": 20150218,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1424853000,
+		"date": 20150225,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1425078000,
+		"date": 20150228,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1425457800,
+		"date": 20150304,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1425771366,
+		"date": 20150308,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1426062600,
+		"date": 20150311,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1426238503,
+		"date": 20150313,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1426238512,
+		"date": 20150313,
+		"approved": 1427021970,
+		"type": "Debit",
+		"title": "Approved: 22-Mar",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1426238518,
+		"date": 20150313,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1426381237,
+		"date": 20150315,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1426381258,
+		"date": 20150315,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1426667400,
+		"date": 20150318,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1426836600,
+		"date": 20150320,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1426842390,
+		"date": 20150320,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1426985442,
+		"date": 20150322,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1427277120,
+		"date": 20150325,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1427447738,
+		"date": 20150327,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1427590654,
+		"date": 20150329,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1427881883,
+		"date": 20150401,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1428290173,
+		"date": 20150406,
+		"approved": 1429449812,
+		"type": "Debit",
+		"title": "Approved: 19-Apr",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1428290174,
+		"date": 20150406,
+		"type": "oldEvent*1 Class",
+		"title": "<span style=\"color:#5b0f01;\">oldEvent*1 Class</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1428490149,
+		"date": 20150408,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1428659961,
+		"date": 20150410,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1428798600,
+		"date": 20150412,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1429095083,
+		"date": 20150415,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1429261200,
+		"date": 20150417,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1429403936,
+		"date": 20150419,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1429700073,
+		"date": 20150422,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1429866000,
+		"date": 20150424,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1430299800,
+		"date": 20150429,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;font-style:italic;\">oldZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #1"
+	},
+	{
+		"stamp": 1430613000,
+		"date": 20150503,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;font-style:italic;\">oldZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #2"
+	},
+	{
+		"stamp": 1430904600,
+		"date": 20150506,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;font-style:italic;\">oldZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #3"
+	},
+	{
+		"stamp": 1431129600,
+		"date": 20150509,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1431217800,
+		"date": 20150510,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1431238424,
+		"date": 20150510,
+		"approved": 1431579350,
+		"type": "Debit",
+		"title": "Approved: 14-May",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1431680400,
+		"date": 20150515,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1431822600,
+		"date": 20150517,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1432114200,
+		"date": 20150520,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1432719000,
+		"date": 20150527,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1432893938,
+		"date": 20150529,
+		"type": "oldZumbaStep",
+		"title": "<span style=\"color:#d05fff;\">oldZumbaStep</span>",
+		"debit": "-4.00"
+	},
+	{
+		"stamp": 1432893952,
+		"date": 20150529,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1433032200,
+		"date": 20150531,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1433323800,
+		"date": 20150603,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1433548800,
+		"date": 20150606,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1433637000,
+		"date": 20150607,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1433727103,
+		"date": 20150608,
+		"type": "oldEvent*1 Class",
+		"title": "<span style=\"color:#5b0f01;\">oldEvent*1 Class</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1433933421,
+		"date": 20150610,
+		"approved": 1434547093,
+		"type": "Debit",
+		"title": "Approved: 17-Jun",
+		"credit": "+100.00"
+	},
+	{
+		"stamp": 1433933423,
+		"date": 20150610,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1434099600,
+		"date": 20150612,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1434242092,
+		"date": 20150614,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1434538080,
+		"date": 20150617,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1434624146,
+		"date": 20150618,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1434758296,
+		"date": 20150620,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435143138,
+		"date": 20150624,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435228698,
+		"date": 20150625,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435366995,
+		"date": 20150627,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435451407,
+		"date": 20150628,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435743000,
+		"date": 20150701,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435751212,
+		"date": 20150701,
+		"approved": 1435845363,
+		"type": "Debit",
+		"title": "Approved: 02-Jul",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1435834360,
+		"date": 20150702,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1435971820,
+		"date": 20150704,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1436352829,
+		"date": 20150708,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1436576653,
+		"date": 20150711,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1441186200,
+		"date": 20150902,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1441411200,
+		"date": 20150905,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1441954800,
+		"date": 20150911,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1442016000,
+		"date": 20150912,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1442395800,
+		"date": 20150916,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1442620800,
+		"date": 20150919,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1442650077,
+		"date": 20150919,
+		"approved": 1444817368,
+		"type": "Debit",
+		"title": "Approved: 14-Oct",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1442709000,
+		"date": 20150920,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1443000600,
+		"date": 20150923,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1443171600,
+		"date": 20150925,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1443225600,
+		"date": 20150926,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1443313800,
+		"date": 20150927,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1443605400,
+		"date": 20150930,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1444811400,
+		"date": 20151014,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1444982400,
+		"date": 20151016,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1445729400,
+		"date": 20151025,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446021000,
+		"date": 20151028,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446038650,
+		"date": 20151029,
+		"approved": 1448238512,
+		"type": "Debit",
+		"title": "Approved: 23-Nov",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1446192000,
+		"date": 20151030,
+		"type": "Spooky*Zumba",
+		"title": "<span style=\"color:#fe00ff;\">Spooky*Zumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446334200,
+		"date": 20151101,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446625800,
+		"date": 20151104,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446712200,
+		"date": 20151105,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446796800,
+		"date": 20151106,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1446850800,
+		"date": 20151107,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447230600,
+		"date": 20151111,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447317000,
+		"date": 20151112,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447401600,
+		"date": 20151113,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447455600,
+		"date": 20151114,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447467195,
+		"date": 20151114,
+		"approved": 1448238517,
+		"type": "Debit",
+		"title": "Approved: 23-Nov",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1447543800,
+		"date": 20151115,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447835400,
+		"date": 20151118,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1447921800,
+		"date": 20151119,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1448006400,
+		"date": 20151120,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1448060400,
+		"date": 20151121,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1448148600,
+		"date": 20151122,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1448440200,
+		"date": 20151125,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1448611200,
+		"date": 20151127,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1448753400,
+		"date": 20151129,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;font-style:italic;\">oldZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #1"
+	},
+	{
+		"stamp": 1448759791,
+		"date": 20151129,
+		"approved": 1448759804,
+		"type": "Debit",
+		"title": "Approved: 29-Nov",
+		"credit": "+80.00"
+	},
+	{
+		"stamp": 1449045000,
+		"date": 20151202,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;font-style:italic;\">oldZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #2"
+	},
+	{
+		"stamp": 1449216000,
+		"date": 20151204,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1449649800,
+		"date": 20151209,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1449736200,
+		"date": 20151210,
+		"type": "oldAeroStep",
+		"title": "<span style=\"color:#ff7935;\">oldAeroStep</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1449820800,
+		"date": 20151211,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1449957600,
+		"date": 20151213,
+		"type": "oldZumba",
+		"title": "<span style=\"color:#ff00ff;\">oldZumba</span>",
+		"debit": "-8.00"
+	},
+	{
+		"stamp": 1453586400,
+		"date": 20160124,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1453768200,
+		"date": 20160126,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1453883400,
+		"date": 20160127,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1454108400,
+		"date": 20160130,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1454196600,
+		"date": 20160131,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1454488200,
+		"date": 20160203,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1454570709,
+		"date": 20160204,
+		"approved": 1454663436,
+		"type": "Debit",
+		"title": "Approved: 05-Feb",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1454659200,
+		"date": 20160205,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1454801400,
+		"date": 20160207,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1455093000,
+		"date": 20160210,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1455264000,
+		"date": 20160212,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1455406200,
+		"date": 20160214,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1455697800,
+		"date": 20160217,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1455870600,
+		"date": 20160219,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1456011000,
+		"date": 20160221,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1456302600,
+		"date": 20160224,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1456475400,
+		"date": 20160226,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1456479090,
+		"date": 20160226,
+		"approved": 1456912572,
+		"type": "Debit",
+		"title": "Approved: 02-Mar",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1456527600,
+		"date": 20160227,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1456615800,
+		"date": 20160228,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1456907400,
+		"date": 20160302,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1457132400,
+		"date": 20160305,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1457136000,
+		"date": 20160305,
+		"type": "prevStep",
+		"title": "<span style=\"color:#0001ff;\">prevStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1457512200,
+		"date": 20160309,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461144600,
+		"date": 20160420,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461369600,
+		"date": 20160423,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461457800,
+		"date": 20160424,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461538800,
+		"date": 20160425,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461594897,
+		"date": 20160426,
+		"approved": 1461762337,
+		"type": "Debit",
+		"title": "Approved: 27-Apr",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1461749400,
+		"date": 20160427,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461835800,
+		"date": 20160428,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1461922200,
+		"date": 20160429,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1462062600,
+		"date": 20160501,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1462354200,
+		"date": 20160504,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1462440600,
+		"date": 20160505,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1462527000,
+		"date": 20160506,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1462959000,
+		"date": 20160511,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1463045400,
+		"date": 20160512,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1463131800,
+		"date": 20160513,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1463147976,
+		"date": 20160513,
+		"approved": 1463824431,
+		"type": "Debit",
+		"title": "Approved: 21-May",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1463272200,
+		"date": 20160515,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1463563800,
+		"date": 20160518,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1463650200,
+		"date": 20160519,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1463736600,
+		"date": 20160520,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464082200,
+		"date": 20160524,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464168600,
+		"date": 20160525,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464255000,
+		"date": 20160526,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464341400,
+		"date": 20160527,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464687000,
+		"date": 20160531,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464773400,
+		"date": 20160601,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464782415,
+		"date": 20160601,
+		"approved": 1466776086,
+		"type": "Debit",
+		"title": "Approved: 24-Jun",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1464859800,
+		"date": 20160602,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1464946200,
+		"date": 20160603,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1465378200,
+		"date": 20160608,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1465464600,
+		"date": 20160609,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1465551000,
+		"date": 20160610,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1465772400,
+		"date": 20160613,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1465896600,
+		"date": 20160614,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1465983000,
+		"date": 20160615,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1466155800,
+		"date": 20160617,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1466501400,
+		"date": 20160621,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1466577425,
+		"date": 20160622,
+		"approved": 1469191300,
+		"type": "Debit",
+		"title": "Approved: 22-Jul",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1466587800,
+		"date": 20160622,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1466760600,
+		"date": 20160624,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1466901000,
+		"date": 20160626,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1467106200,
+		"date": 20160628,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1467192600,
+		"date": 20160629,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1467365400,
+		"date": 20160701,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1467970200,
+		"date": 20160708,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1468022400,
+		"date": 20160709,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1468110600,
+		"date": 20160710,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1468402200,
+		"date": 20160713,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1468416143,
+		"date": 20160713,
+		"approved": 1469191304,
+		"type": "Debit",
+		"title": "Approved: 22-Jul",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1468488600,
+		"date": 20160714,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1468575000,
+		"date": 20160715,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1468627200,
+		"date": 20160716,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469007000,
+		"date": 20160720,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469093400,
+		"date": 20160721,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469178000,
+		"date": 20160722,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469314800,
+		"date": 20160724,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469611800,
+		"date": 20160727,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469698200,
+		"date": 20160728,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469784600,
+		"date": 20160729,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1469800263,
+		"date": 20160729,
+		"approved": 1473164495,
+		"type": "Debit",
+		"title": "Approved: 06-Sep",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1469836800,
+		"date": 20160730,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1470130200,
+		"date": 20160802,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1470389400,
+		"date": 20160805,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1470441600,
+		"date": 20160806,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1470529800,
+		"date": 20160807,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1470735000,
+		"date": 20160809,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1470821400,
+		"date": 20160810,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1471046400,
+		"date": 20160813,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1471426200,
+		"date": 20160817,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1471512600,
+		"date": 20160818,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1471517619,
+		"date": 20160818,
+		"approved": 1473164498,
+		"type": "Debit",
+		"title": "Approved: 06-Sep",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1471599000,
+		"date": 20160819,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1471739400,
+		"date": 20160821,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1472031000,
+		"date": 20160824,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1472117400,
+		"date": 20160825,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1472202000,
+		"date": 20160826,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1472635800,
+		"date": 20160831,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1472722200,
+		"date": 20160901,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1472949000,
+		"date": 20160904,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1473164529,
+		"date": 20160906,
+		"approved": 1473164539,
+		"type": "Debit",
+		"title": "Approved: 06-Sep",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1473240600,
+		"date": 20160907,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1473413400,
+		"date": 20160909,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1473553800,
+		"date": 20160911,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1473759000,
+		"date": 20160913,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1473845400,
+		"date": 20160914,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1473931800,
+		"date": 20160915,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1474018200,
+		"date": 20160916,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1474363800,
+		"date": 20160920,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1474450200,
+		"date": 20160921,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1474536600,
+		"date": 20160922,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1474593114,
+		"date": 20160923,
+		"approved": 1474593122,
+		"type": "Debit",
+		"title": "Approved: 23-Sep",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1474623000,
+		"date": 20160923,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1477038600,
+		"date": 20161021,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1477470600,
+		"date": 20161026,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1477557000,
+		"date": 20161027,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1477639800,
+		"date": 20161028,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1477989000,
+		"date": 20161101,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1478075400,
+		"date": 20161102,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1478090605,
+		"date": 20161102,
+		"approved": 1478090612,
+		"type": "Debit",
+		"title": "Approved: 02-Nov",
+		"credit": "+180.00"
+	},
+	{
+		"stamp": 1478161800,
+		"date": 20161103,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1478248200,
+		"date": 20161104,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1478680200,
+		"date": 20161109,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;font-style:italic;\">prevZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #1"
+	},
+	{
+		"stamp": 1478853000,
+		"date": 20161111,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;font-style:italic;\">prevZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #2"
+	},
+	{
+		"stamp": 1479285000,
+		"date": 20161116,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;font-style:italic;\">prevZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #3"
+	},
+	{
+		"stamp": 1479457800,
+		"date": 20161118,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;font-style:italic;\">prevZumba</span>",
+		"debit": "-0.00",
+		"note": "Gift #4"
+	},
+	{
+		"stamp": 1479592800,
+		"date": 20161120,
+		"type": "prevStep",
+		"title": "<span style=\"color:#0001ff;font-style:italic;\">prevStep</span>",
+		"debit": "-0.00",
+		"note": "Gift #5"
+	},
+	{
+		"stamp": 1479598200,
+		"date": 20161120,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1479889800,
+		"date": 20161123,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1479976200,
+		"date": 20161124,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1480062600,
+		"date": 20161125,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1480203000,
+		"date": 20161127,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1480494600,
+		"date": 20161130,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1480581000,
+		"date": 20161201,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1480719600,
+		"date": 20161203,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1481185800,
+		"date": 20161208,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1481272200,
+		"date": 20161209,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1481704200,
+		"date": 20161214,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1481790600,
+		"date": 20161215,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1481878800,
+		"date": 20161216,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1481929200,
+		"date": 20161217,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1482222600,
+		"date": 20161220,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1482309000,
+		"date": 20161221,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1482395400,
+		"date": 20161222,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1485381600,
+		"date": 20170126,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1485505800,
+		"date": 20170127,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1485558000,
+		"date": 20170128,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1485608097,
+		"date": 20170128,
+		"approved": 1485608388,
+		"type": "Debit",
+		"title": "Approved: 28-Jan",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1485851400,
+		"date": 20170131,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1485937800,
+		"date": 20170201,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1486024200,
+		"date": 20170202,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1486542600,
+		"date": 20170208,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1486769400,
+		"date": 20170211,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487061000,
+		"date": 20170214,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487147400,
+		"date": 20170215,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487320200,
+		"date": 20170217,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487372400,
+		"date": 20170218,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487665800,
+		"date": 20170221,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487752200,
+		"date": 20170222,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487925000,
+		"date": 20170224,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1487940706,
+		"date": 20170224,
+		"approved": 1488275370,
+		"type": "Debit",
+		"title": "Approved: 28-Feb",
+		"credit": "+170.00"
+	},
+	{
+		"stamp": 1488065400,
+		"date": 20170226,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1488270600,
+		"date": 20170228,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1488357000,
+		"date": 20170301,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1488529800,
+		"date": 20170303,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1488670200,
+		"date": 20170305,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1488961800,
+		"date": 20170308,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1489048200,
+		"date": 20170309,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1489134600,
+		"date": 20170310,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1489480200,
+		"date": 20170314,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1489566600,
+		"date": 20170315,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1489653000,
+		"date": 20170316,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1489879800,
+		"date": 20170319,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490171400,
+		"date": 20170322,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490257800,
+		"date": 20170323,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490396400,
+		"date": 20170325,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490404500,
+		"date": 20170325,
+		"type": "prevHiLo",
+		"title": "<span style=\"color:#35d42c;\">prevHiLo</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490776200,
+		"date": 20170329,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490862600,
+		"date": 20170330,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1490925295,
+		"date": 20170331,
+		"approved": 1490925303,
+		"type": "Debit",
+		"title": "Approved: 31-Mar",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1491001200,
+		"date": 20170401,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1491087600,
+		"date": 20170402,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1491471000,
+		"date": 20170406,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1491557400,
+		"date": 20170407,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1491989400,
+		"date": 20170412,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492075800,
+		"date": 20170413,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492214400,
+		"date": 20170415,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492390800,
+		"date": 20170417,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492507800,
+		"date": 20170418,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492594200,
+		"date": 20170419,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492767000,
+		"date": 20170421,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1492782795,
+		"date": 20170421,
+		"approved": 1493387380,
+		"type": "Debit",
+		"title": "Approved: 28-Apr",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1493112600,
+		"date": 20170425,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1493199000,
+		"date": 20170426,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1493285400,
+		"date": 20170427,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1493371800,
+		"date": 20170428,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1493387361,
+		"date": 20170428,
+		"approved": 1493387383,
+		"type": "Debit",
+		"title": "Approved: 28-Apr",
+		"credit": "+90.00"
+	},
+	{
+		"stamp": 1493803800,
+		"date": 20170503,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1493890200,
+		"date": 20170504,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1494028800,
+		"date": 20170506,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1494408600,
+		"date": 20170510,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1494495000,
+		"date": 20170511,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1494581400,
+		"date": 20170512,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1494633600,
+		"date": 20170513,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1495013400,
+		"date": 20170517,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1496136600,
+		"date": 20170530,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1496223000,
+		"date": 20170531,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1496827800,
+		"date": 20170607,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1496914200,
+		"date": 20170608,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1497000600,
+		"date": 20170609,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1497227400,
+		"date": 20170612,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1497432600,
+		"date": 20170614,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1497519000,
+		"date": 20170615,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1497523467,
+		"date": 20170615,
+		"approved": 1498050361,
+		"type": "Debit",
+		"title": "Approved: 21-Jun",
+		"credit": "+180.00"
+	},
+	{
+		"stamp": 1497657600,
+		"date": 20170617,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1498037400,
+		"date": 20170621,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1498123800,
+		"date": 20170622,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1498210200,
+		"date": 20170623,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1498555800,
+		"date": 20170627,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1498642200,
+		"date": 20170628,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1498728600,
+		"date": 20170629,
+		"type": "prevAeroStep",
+		"title": "<span style=\"color:#ff8035;\">prevAeroStep</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1499419800,
+		"date": 20170707,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1499765400,
+		"date": 20170711,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1499851800,
+		"date": 20170712,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500024600,
+		"date": 20170714,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500076800,
+		"date": 20170715,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500370200,
+		"date": 20170718,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500456600,
+		"date": 20170719,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500629400,
+		"date": 20170721,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500769800,
+		"date": 20170723,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1500975000,
+		"date": 20170725,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1501061400,
+		"date": 20170726,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1501579800,
+		"date": 20170801,
+		"type": "prevStepDown",
+		"title": "<span style=\"color:#cc0100;\">prevStepDown</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1501666200,
+		"date": 20170802,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1501839000,
+		"date": 20170804,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1501857292,
+		"date": 20170805,
+		"approved": 1507753919,
+		"type": "Debit",
+		"title": "Approved: 12-Oct",
+		"credit": "+180.00"
+	},
+	{
+		"stamp": 1507105800,
+		"date": 20171004,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1507883400,
+		"date": 20171013,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1511944200,
+		"date": 20171129,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1511944200,
+		"date": 20171129,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00",
+		"note": "double-booked"
+	},
+	{
+		"stamp": 1512514800,
+		"date": 20171206,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1512687600,
+		"date": 20171208,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1513153800,
+		"date": 20171213,
+		"type": "prevZumba",
+		"title": "<span style=\"color:#ff01ff;\">prevZumba</span>",
+		"debit": "-9.00"
+	},
+	{
+		"stamp": 1523406600,
+		"date": 20180411,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1524043800,
+		"date": 20180418,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1524216600,
+		"date": 20180420,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1524789000,
+		"date": 20180427,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1525253400,
+		"date": 20180502,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1525858200,
+		"date": 20180509,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1527067800,
+		"date": 20180523,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1527154200,
+		"date": 20180524,
+		"type": "AeroStep",
+		"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1527320279,
+		"date": 20180526,
+		"approved": 1527320287,
+		"type": "Debit",
+		"title": "Approved: 26-May",
+		"credit": "+100.00"
+	},
+	{
+		"stamp": 1527634800,
+		"date": 20180530,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1528239600,
+		"date": 20180606,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1528795800,
+		"date": 20180612,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1528882200,
+		"date": 20180613,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1529055000,
+		"date": 20180615,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1529487000,
+		"date": 20180620,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1530091800,
+		"date": 20180627,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1530610200,
+		"date": 20180703,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1530696600,
+		"date": 20180704,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1531215000,
+		"date": 20180710,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1531301400,
+		"date": 20180711,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1531819800,
+		"date": 20180717,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1531906200,
+		"date": 20180718,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1532424600,
+		"date": 20180724,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1532511000,
+		"date": 20180725,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1532609994,
+		"date": 20180726,
+		"approved": 1533395687,
+		"type": "Debit",
+		"title": "Approved: 05-Aug",
+		"credit": "+200.00"
+	},
+	{
+		"stamp": 1532646000,
+		"date": 20180727,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533029400,
+		"date": 20180731,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533115800,
+		"date": 20180801,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533634200,
+		"date": 20180807,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533720600,
+		"date": 20180808,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533807000,
+		"date": 20180809,
+		"type": "AeroStep",
+		"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533893400,
+		"date": 20180810,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1533953700,
+		"date": 20180811,
+		"type": "HiLo",
+		"title": "<span style=\"color:#35d52c;font-style:italic;\">HiLo</span>",
+		"debit": "-0.00",
+		"note": "Gift #1:  incorrect\n\nBonus: Week Level reached"
+	},
+	{
+		"stamp": 1534239000,
+		"date": 20180814,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1534498200,
+		"date": 20180817,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1534930200,
+		"date": 20180822,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1535448600,
+		"date": 20180828,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1535535000,
+		"date": 20180829,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1536053400,
+		"date": 20180904,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1536139800,
+		"date": 20180905,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1536744600,
+		"date": 20180912,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1536917400,
+		"date": 20180914,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1537349400,
+		"date": 20180919,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1538089200,
+		"date": 20180928,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1538346573,
+		"date": 20181001,
+		"approved": 1538718514,
+		"type": "Debit",
+		"title": "Approved: 05-Oct",
+		"credit": "+100.00"
+	},
+	{
+		"stamp": 1538472600,
+		"date": 20181002,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1538559000,
+		"date": 20181003,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1539127800,
+		"date": 20181010,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1539732600,
+		"date": 20181017,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1540337400,
+		"date": 20181024,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1540974600,
+		"date": 20181031,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1541752200,
+		"date": 20181109,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1542184200,
+		"date": 20181114,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1542789000,
+		"date": 20181121,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1543566600,
+		"date": 20181130,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1543639572,
+		"date": 20181201,
+		"approved": 1545289970,
+		"type": "Debit",
+		"title": "Approved: 20-Dec",
+		"credit": "+100.00"
+	},
+	{
+		"stamp": 1543966200,
+		"date": 20181205,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1544603400,
+		"date": 20181212,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1545208200,
+		"date": 20181219,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1549009800,
+		"date": 20190201,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1549441800,
+		"date": 20190206,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1549530000,
+		"date": 20190207,
+		"type": "AeroStep",
+		"title": "<span style=\"color:#ff8135;\">AeroStep</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1549614600,
+		"date": 20190208,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1550651400,
+		"date": 20190220,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1551169800,
+		"date": 20190226,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1551828600,
+		"date": 20190306,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00"
+	},
+	{
+		"stamp": 1552252385,
+		"date": 20190311,
+		"approved": 1552614759,
+		"type": "Debit",
+		"title": "Approved: 15-Mar",
+		"credit": "+100.00",
+		"funds": 91
+	},
+	{
+		"stamp": 1552379400,
+		"date": 20190312,
+		"type": "StepDown",
+		"title": "<span style=\"color:#cc0200;\">StepDown</span>",
+		"debit": "-10.00",
+		"funds": 81
+	},
+	{
+		"stamp": 1553675400,
+		"date": 20190327,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00",
+		"funds": 71
+	},
+	{
+		"stamp": 1553848200,
+		"date": 20190329,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00",
+		"funds": 61
+	},
+	{
+		"stamp": 1554280200,
+		"date": 20190403,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00",
+		"funds": 51
+	},
+	{
+		"stamp": 1555061400,
+		"date": 20190412,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00",
+		"funds": 41
+	},
+	{
+		"stamp": 1555461000,
+		"date": 20190417,
+		"type": "Zumba",
+		"title": "<span style=\"color:#ff02ff;\">Zumba</span>",
+		"debit": "-10.00",
+		"funds": 31
+	}
+]

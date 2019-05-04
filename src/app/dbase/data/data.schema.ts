@@ -352,8 +352,6 @@ interface TTrack {
 }
 export interface IAttend extends IAttendBase {
 	[FIELD.store]: STORE.attend;
-	[FIELD.type]: TSchedule;
-	[FIELD.key]: TClass;
 	[FIELD.stamp]: number;						// the timestamp of the check-in
 	payment: {
 		[FIELD.id]: string;							// the /member/payment _id
@@ -361,7 +359,9 @@ export interface IAttend extends IAttendBase {
 	},
 	timetable: {
 		[FIELD.id]: string;							// the /client/schedule or /client/event _id
-		[FIELD.type]: string;						// 'schedule' or 'calendar'
+		[FIELD.store]: string;					// 'schedule' or 'calendar'
+		[FIELD.type]: TSchedule;
+		[FIELD.key]: TClass;
 	}
 	bonus?: TBonus;										// override standard price
 	track: TTrack;										// to use in bonus-checking, attend-analysis, etc.
