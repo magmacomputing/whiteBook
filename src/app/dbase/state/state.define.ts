@@ -129,5 +129,6 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		price?: IPrice[];
 		span?: ISpan[];
 		alert?: IAlert[];
+		bonus?: IBonus[];
 	}
 }

@@ -378,13 +378,112 @@ export const getDash = (source: IAdminState) => {
 }
 
 /** Calculate tracking against Bonus schemes */
-export const calcBonus = (source: IBonusState) => {
+export const calcBonus = (event: string, date?: TDate) => {
 
-	console.log('bonus: ', source);
-	// console.log('schemes: ', schemes);
-	// console.log('gifts: ', gifts);
-	// console.log('trackGift: ', trackGift);
-	// console.log('trackWeek: ', now.format(DATE_FMT.yearWeek), trackWeek);
-	// console.log('trackMonth: ', now.format(DATE_FMT.yearMonth), trackMonth);
-	return { ...source }
+	// const [uid, gifts, scheme] = await Promise.all([
+	// 	this.data.auth.current
+	// 		.then(user => user!.uid),
+
+	// 	this.data.getStore<IGift>(STORE.gift, undefined, date)					// any active Gifts
+	// 		.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
+
+	// 	this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
+	// 		.then(bonus => ({
+	// 			'week': bonus.find(row => row[FIELD.key] === 'week') || {} as IBonus,
+	// 			'month': bonus.find(row => row[FIELD.key] === 'month') || {} as IBonus,
+	// 			'sunday': bonus.find(row => row[FIELD.key] === 'sunday') || {} as IBonus,
+	// 		})),
+	// ]);
+
+	// /**
+	//  * attendGift		is array of Attends so far against 1st active Gift
+	//  * attendWeek		is array of Attends so far in the week, less than <now>
+	//  * attendMonth	is array of Attends so far in the month, less than <now>
+	//  */
+	// const now = getDate(date);
+	// const where = addWhere(FIELD.uid, uid);
+	// const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
+	// const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
+	// 	this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || {})[FIELD.id])]),
+	// 	this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
+	// 	this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
+	// ]);
+
+	// // We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
+	// let bonus = {} as TBonus;
+	// switch (true) {
+	// 	/**
+	// 	 * Admin adds 'Gift' records to a Member's account which will detail
+	// 	 * the start-date, and count of free classes (and an optional expiry for the Gift).  
+	// 	 * This bonus will be used in preference to any other bonus-pricing scheme.
+	// 	 */
+	// 	case gifts.length > 0:														// qualify for a Gift bonus?
+	// 		bonus = {
+	// 			[FIELD.id]: gifts[0][FIELD.id],
+	// 			[FIELD.type]: 'gift',
+	// 			gift: {
+	// 				[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
+	// 				...gifts[0],
+	// 			},
+	// 		}
+	// 		break;
+
+	// 	/**
+	// 	 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price or gift classes in a week (scheme.week.level).  
+	// 	 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
+	// 	 */
+	// 	case scheme.week
+	// 		&& attendWeek
+	// 			.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+	// 			.distinct(row => row.track[FIELD.date])
+	// 			.length + 1 > scheme.week.level
+	// 		&& attendWeek
+	// 			.filter(row => row.bonus === scheme.week[FIELD.id])
+	// 			.distinct(row => row.track[FIELD.date])
+	// 			.length < scheme.week.free:
+	// 		bonus = {
+	// 			[FIELD.id]: scheme.week[FIELD.id],
+	// 			[FIELD.type]: 'week',
+	// 		}
+	// 		break;
+
+	// 	/**
+	// 	 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.sunday.level),
+	// 	 * but does not qualify for the Week scheme (already claimed yesterday?).    
+	// 	 * The class must be in the free list (scheme.week.free) to claim this bonus
+	// 	 */
+	// 	case scheme.sunday
+	// 		&& attendWeek
+	// 			.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+	// 			.distinct(row => row.track[FIELD.date])
+	// 			.length + 1 > scheme.sunday.level
+	// 		&& now.dow === Instant.DAY.Sun
+	// 		&& (scheme.sunday.free as TString).includes(event):
+	// 		bonus = {
+	// 			[FIELD.id]: scheme.sunday[FIELD.id],
+	// 			[FIELD.type]: 'sunday',
+	// 		}
+	// 		break;
+
+	// 	/**
+	// 	 * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
+	// 	 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
+	// 	 */
+	// 	case scheme.month
+	// 		&& attendMonth
+	// 			.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+	// 			.distinct(row => row.track[FIELD.date])
+	// 			.length + 1 > scheme.month.level
+	// 		&& attendMonth
+	// 			.filter(row => row.bonus === scheme.month[FIELD.id])
+	// 			.distinct(row => row.track[FIELD.date])
+	// 			.length < scheme.month.free:
+	// 		bonus = {
+	// 			[FIELD.id]: scheme.month[FIELD.id],
+	// 			[FIELD.type]: 'month',
+	// 		}
+	// 		break;
+	// }
+
+	// return { ...source }
 }

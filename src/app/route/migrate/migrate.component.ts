@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map, tap } from 'rxjs/operators';
+import { take, map } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -223,6 +223,8 @@ export class MigrateComponent implements OnInit {
 					if (row.note && row.note.startsWith('Request for '))
 						row.note = 'Write-off part topUp amount';
 				}
+				if (row.debit === undefined && row.credit === undefined)
+				throw new Error(`cannot find amount: ${row}`)
 
 				return {
 					[FIELD.store]: STORE.payment,

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, switchMap, tap } from 'rxjs/operators';
+import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
@@ -208,6 +208,8 @@ export class StateService {
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 * span				-> has the Class Duration definitions ('full' or 'half')
 	 * alert			-> has an array of Alert notes to display on the Attend component
+	 * bonus			-> has an array of active Bonus schemes
+	 * gift				-> has an array of active Gifts available to a Member on the supplied date
 	 */
 	getScheduleData(date?: TDate) {
 		const now = getDate(date);
@@ -219,6 +221,8 @@ export class StateService {
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = [addWhere(FIELD.type, `{{client.schedule.${FIELD.type}}}`), addWhere(FIELD.key, `{{client.class.${FIELD.type}}}`),];
+		const filterBonus = addWhere(FIELD.key, 'XXXXXX');																		// placeholder
+		const filterGift = addWhere(FIELD.key, 'XXXXXX');																			// placeholder
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
@@ -239,6 +243,8 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
+			joinDoc(this.states, 'client', STORE.bonus, filterBonus, date),											// get any Bonus
+			joinDoc(this.states, 'member', STORE.gift, filterGift, date),												// get any Gifts
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)
 	}
@@ -271,21 +277,12 @@ export class StateService {
 	/**
 	 * Assemble a Object describing the eligibility of a Member for special pricing
 	 */
-	getBonusData(date?: TDate, event?: TString): Observable<IBonusState> {
-		const now = getDate(date);																							// create a new Instant
-		const filterUser: TWhere = [addWhere(FIELD.uid, '{{auth.current.uid}}'),];
-		const filterBonus: TWhere = [addWhere(FIELD.disable, true, '!=')];
-		const filterGift: TWhere = [addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`), ...filterUser];
-		const filterWeek: TWhere = [addWhere('track.week', now.format(DATE_FMT.yearWeek)), ...filterUser];
-		const filterMonth: TWhere = [addWhere('track.month', now.format(DATE_FMT.yearMonth)), ...filterUser];
+	// getBonusData(date?: TDate, event?: TString): Observable<IBonusState> {
+	/**
+	 * uid is the Member to check-in 
+	 * gift is array of active Gifts effective (not expired) on this date  
+	 * scheme is definition of active Bonus schemes effective on this date
+	 */
 
-		return this.getAuthData().pipe(
-			joinDoc(this.states, 'application', STORE.default, undefined, date),	// default values
-			joinDoc(this.states, 'client', STORE.bonus, filterBonus, date),				// active /client/bonus scheme rules
-			joinDoc(this.states, 'member', STORE.gift, filterUser, date),					// current /member/gift docs
-			joinDoc(this.states, 'track.gift', STORE.attend, filterGift, date),		// attends against those gifts
-			joinDoc(this.states, 'track.week', STORE.attend, filterWeek, date),		// attends against current week
-			joinDoc(this.states, 'track.month', STORE.attend, filterMonth, date, calcBonus),
-		)
-	}
+	// }
 }

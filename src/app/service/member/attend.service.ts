@@ -25,7 +25,7 @@ export class AttendService {
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
-	/** loop back up-to-seven days to find when className was last scheduled */
+	/** look back up-to-seven days to find when className was last scheduled */
 	lkpDate = async (className: string, location?: string, date?: TDate) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
 		let now = getDate(date);													// start with date-argument
@@ -77,20 +77,20 @@ export class AttendService {
 		]);
 
 		/**
-		 * bonusGift		is array of Attends so far against 1st active Gift
+		 * attendGift		is array of Attends so far against 1st active Gift
 		 * attendWeek		is array of Attends so far in the week, less than <now>
 		 * attendMonth	is array of Attends so far in the month, less than <now>
 		 */
 		const now = getDate(date);
 		const where = addWhere(FIELD.uid, uid);
 		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
-		const [bonusGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
+		const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || {})[FIELD.id])]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
 		]);
 
-		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a day do not count towards a Bonus
+		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
 		let bonus = {} as TBonus;
 		switch (true) {
 			/**
@@ -102,10 +102,11 @@ export class AttendService {
 				bonus = {
 					[FIELD.id]: gifts[0][FIELD.id],
 					[FIELD.type]: 'gift',
-					gift: gifts[0],																// use 1st effective Gift as the Bonus
+					gift: {
+						[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
+						...gifts[0],
+					},
 				}
-				if (bonus.gift && bonusGift.length + 1 >= bonus.gift.count)
-					bonus.gift[FIELD.expire] = now.ts;						// mark this gift as 'now complete'
 				break;
 
 			/**
