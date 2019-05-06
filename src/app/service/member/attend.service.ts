@@ -103,6 +103,7 @@ export class AttendService {
 					[FIELD.id]: gifts[0][FIELD.id],
 					[FIELD.type]: 'gift',
 					gift: {
+						[FIELD.effect]: gifts[0][FIELD.effect] || (attendGift.length === 0 ? now.startOf('day').ts : undefined),
 						[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
 						...gifts[0],
 					},
@@ -219,8 +220,7 @@ export class AttendService {
 		if (!isEmpty(bonus)) {
 			calcPrice = 0;																	// override calculated price
 			if (bonus.gift) {
-				if (bonus.gift[FIELD.expire])									// if Bonus is a Gift and now expired
-					updates.push(bonus.gift);										// 	update Gift
+				updates.push({ ...bonus.gift });							// batch the Gift update
 				delete bonus.gift;														// not needed
 			}
 		}
@@ -240,7 +240,7 @@ export class AttendService {
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
-			const expiry = getPath(active, 'expiry') || Number.MAX_SAFE_INTEGER;
+			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
 			tests.add(data.account.attend.length < 100);						// arbitrary limit of Attends against a Payment             
 			tests.add(schedule.price <= data.account.summary.funds);// enough funds to cover this Attend
@@ -273,18 +273,18 @@ export class AttendService {
 				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
+
+			const upd: Partial<IPayment> = {};								// updates to the Payment
+			if (!next[FIELD.effect])
+				upd[FIELD.effect] = stamp;											// mark Effective on first check-in
+			if (data.account.summary.credit === schedule.price && schedule.price)
+				upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
+			if (!next.expiry && next.approve)									// calc an Expiry for this Payment
+				upd.expiry = calcExpiry(next.approve.stamp, next, data.client);
+
+			if (Object.keys(upd).length)
+				updates.push({ ...next, ...upd });							// batch the Payment update
 		}
-
-		const upd: Partial<IPayment> = {};								// updates to the Payment
-		if (!active[FIELD.effect])
-			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
-		if (data.account.summary.credit === schedule.price && schedule.price)
-			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve)							// calc an Expiry for this Payment
-			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
-
-		if (Object.keys(upd).length)
-			updates.push({ ...active, ...upd });						// batch the Payment update
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document

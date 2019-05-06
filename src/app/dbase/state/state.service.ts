@@ -4,9 +4,9 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState, IBonusState } from '@dbase/state/state.define';
+import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash, getState, calcBonus } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash, getState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
@@ -14,7 +14,6 @@ import { IStoreMeta } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { TString } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
 import { cloneObj } from '@lib/object.library';

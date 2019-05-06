@@ -49,7 +49,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 }
 
 export const getMemberAge = (info: IProfileInfo[] = []) =>
-	getDate(getMemberBirthDay(info)).diff('years');						// diff from today
+	getDate(getMemberBirthDay(info)).diff('years');				// diff from today
 
 /** A Member's payment will auto-expire (i.e. unused funds lapse) after a number of months */
 export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState["client"]) => {
@@ -57,10 +57,10 @@ export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState[
 	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
 	const hold = payment.hold || 0;
 
-	if (topUp && !isUndefined(plan.expiry)) {									// plan.expiry is usually six-months
+	if (topUp && !isUndefined(plan.expiry)) {							// plan.expiry is usually six-months
 		const offset = topUp.amount
 			? Math.round(payment.amount / (topUp.amount / plan.expiry)) || 1
-			: plan.expiry;																// allow for gratis account expiry
+			: plan.expiry;																		// allow for gratis account expiry
 		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
 	}
 

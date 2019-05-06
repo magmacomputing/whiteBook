@@ -1,7 +1,6 @@
 import { Component, Injectable, Inject } from '@angular/core';
 import { MatDialog, MatDialogRef, MatDialogConfig, MAT_DIALOG_DATA } from '@angular/material';
 
-// TODO: Display an Info icon
 @Component({
   selector: 'info-dialog',
   template: '<span style="color:green">Note: </span>{{ data }}'

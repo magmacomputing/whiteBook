@@ -23,9 +23,10 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
-import { sortKeys, IObject } from '@lib/object.library';
+import { sortKeys, IObject, cloneObj } from '@lib/object.library';
 import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
+import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -49,6 +50,7 @@ export class MigrateComponent implements OnInit {
 	private user!: firebase.UserInfo | null;
 	private dflt!: string;
 	private ready!: Promise<boolean[]>;
+	private check!: IPromise<boolean>;
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -224,7 +226,7 @@ export class MigrateComponent implements OnInit {
 						row.note = 'Write-off part topUp amount';
 				}
 				if (row.debit === undefined && row.credit === undefined)
-				throw new Error(`cannot find amount: ${row}`)
+					throw new Error(`cannot find amount: ${row}`)
 
 				return {
 					[FIELD.store]: STORE.payment,
@@ -288,6 +290,7 @@ export class MigrateComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 			const start = attend.sort(sortKeys('-track.date'));
+			const preprocess = [...table];
 
 			if (start[0]) {
 				const startFrom = start[0].track.date;
@@ -295,20 +298,20 @@ export class MigrateComponent implements OnInit {
 				const offset = table.filter(row => row.date < startFrom).length;
 				table.splice(0, offset + 1);
 
-				// if (endAt) {
-				// 	this.dbg('endAt: %j', finish);
-				// 	const len = table.filter(row => row.date <= finish).length;
-				// 	table.splice(len);
-				// }
+				// const endAt = table.filter(row => row.date <= getDate('2016-Aug-31').ts).length;
+				// table.splice(endAt);
 			}
-			if (table.length)
-				this.nextAttend(table[0], ...table.slice(1));	// fire initial Attend
-			else this.dbg('nothing to load');
+			if (table.length) {
+				this.check = createPromise();
+				this.nextAttend(false, preprocess[0], ...preprocess.splice(1));
+				this.check.promise														// wait for pre-process to complete
+					.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
+			} else this.dbg('nothing to load');
 		})
 	}
 
-	private nextAttend(row: MHistory, ...rest: MHistory[]) {
-		this.dbg('hist: %j', row);
+	private nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
+		if (flag) this.dbg('hist: %j', row);
 		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
 
@@ -323,11 +326,11 @@ export class MigrateComponent implements OnInit {
 		let migrate: IMigrateBase | undefined;
 
 		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
-			this.dbg(`${prefix}: need to resolve ${sfx} classes`);
+			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} classes`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;						// TODO: determine if ZumbaStep via the row.amount?  startTime
 				rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + nbr - 1 });
-				this.dbg('splice: %j', row.type);
+				if (flag) this.dbg('splice: %j', row.type);
 			}
 			sfx = `-1.${sfx}`;
 		}
@@ -409,18 +412,25 @@ export class MigrateComponent implements OnInit {
 				const where = [addWhere(FIELD.key, what), addWhere('day', now.dow)];
 				sched = asAt(this.schedule, where, row.date)[0];
 				if (!sched)
-					throw new Error(`Cannot determine schedule: ${JSON.stringify(where)}`);
+					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				sched.price = price;											// to allow AttendService to check what was charged
 		}
 
-		this.attend.setAttend(sched, row.note, row.stamp)
-			.then(res => {
-				if (getType(res) === 'Boolean' && res === false)
-					throw new Error('stopping');
-				if (rest.length)  										// fire next Attend
-					this.nextAttend(rest[0], ...rest.slice(1));
-				else this.lastAttend();								// wrap-up final Payment
-			})
+		if (flag) {
+			this.attend.setAttend(sched, row.note, row.stamp)
+				.then(res => {
+					if (getType(res) === 'Boolean' && res === false)
+						throw new Error('stopping');
+					if (rest.length)  										// fire next Attend
+						this.nextAttend(true, rest[0], ...rest.slice(1));
+					else this.lastAttend();								// wrap-up final Payment
+				})
+		} else {
+			if (rest.length)
+				this.nextAttend(false, rest[0], ...rest.slice(1))
+			else
+				this.check.resolve(true)
+		}
 	}
 
 	private lookupMigrate(key: string | number, type: string = 'event') {

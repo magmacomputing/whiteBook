@@ -24,8 +24,8 @@
     "@ngxs/storage-plugin": "^3.4.3",
     "@ngxs/store": "^3.4.3",
     "core-js": "^2.6.5",
-    "firebase": "^5.11.1",
     "hammerjs": "^2.0.8",
+    "firebase": "^5.11.1",
     "rxjs": "^6.5.1",
     "zone.js": "^0.8.29"
   },

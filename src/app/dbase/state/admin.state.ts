@@ -51,7 +51,7 @@ export class AdminState implements NgxsOnInit {
 			if (state[store].length === 0)
 				delete state[store]
 
-			if (debug) this.dbg('delAdmin: %s, %j', doc[FIELD.store], payload);
+			if (debug) this.dbg('delAdmin: %s, %j', doc[FIELD.store], doc);
 		})
 
 		setState({ ...state });

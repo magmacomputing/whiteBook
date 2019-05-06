@@ -117,7 +117,7 @@ export class SyncService {
 		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = getSource(snaps);
-		const debug = source !== 'cache' && listen.cnt !== -1;
+		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
