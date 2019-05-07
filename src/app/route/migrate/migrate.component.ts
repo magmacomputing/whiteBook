@@ -12,7 +12,7 @@ import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -23,7 +23,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
-import { sortKeys, IObject, cloneObj } from '@lib/object.library';
+import { sortKeys, IObject } from '@lib/object.library';
 import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
@@ -195,19 +195,22 @@ export class MigrateComponent implements OnInit {
 	}
 
 	async addPayment() {
-		const [pays, gifts, hist = []] = await Promise.all([
+		const [pays, gifts, profile, plans, prices, hist = []] = await Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<IProfilePlan>(STORE.profile),
+			this.data.getStore<IPlan>(STORE.plan),
+			this.data.getStore<IPrice>(STORE.price),
 			this.history,
 		])
 		const creates: IStoreMeta[] = hist
-			.filter(row => (row.type === 'Debit' && !(row.note && row.note.startsWith('Auto-Approve Credit ')) || row.type === 'Credit'))
+			.filter(row => (row.type === 'Debit' && !(row.note && row.note.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => isUndefined(pays.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
-				const payType = row.type !== 'Debit' || (row.note && row.note.startsWith('Write-off')) ? 'debit' : 'topUp';
+				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
 
-				if (row.title.startsWith('Approved: ')) {
+				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					approve.stamp = row.approved!;
 					approve.uid = 'JorgeEC';
 				}
@@ -222,11 +225,24 @@ export class MigrateComponent implements OnInit {
 				if (row.hold && row.hold <= 0) {
 					row.debit = asString(row.hold);
 					row.hold = undefined;
-					if (row.note && row.note.startsWith('Request for '))
+					if (row.note && row.note.toUpperCase().startsWith('Request for '.toUpperCase()))
 						row.note = 'Write-off part topUp amount';
 				}
 				if (row.debit === undefined && row.credit === undefined)
 					throw new Error(`cannot find amount: ${row}`)
+
+				let expiry = undefined;
+				const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
+				const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
+				const curr = asAt(prices, undefined, row.stamp);
+				const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
+				if (topUp && !isUndefined(desc.expiry)) {
+					const offset = topUp.amount
+						? Math.round(parseFloat(row.credit!) / (topUp.amount / desc.expiry)) || 1
+						: desc.expiry;
+					expiry = getDate(approve.stamp || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
+					if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
+				}
 
 				return {
 					[FIELD.store]: STORE.payment,
@@ -236,6 +252,7 @@ export class MigrateComponent implements OnInit {
 					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
 					approve: approve.stamp && approve,
+					expiry: expiry,
 					note: row.note,
 				} as IPayment
 			});
@@ -246,7 +263,7 @@ export class MigrateComponent implements OnInit {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const str = row.note!.substring(row.note!.search('Gift #') + 6).match(/\d+/g);
+				const str = row.note && row.note.substring(row.note.search('Gift #') + 6).match(/\d+/g);
 				if (str) {
 					const nbr = parseInt(str[0]);
 					if (nbr === 1) {
@@ -292,25 +309,27 @@ export class MigrateComponent implements OnInit {
 			const start = attend.sort(sortKeys('-track.date'));
 			const preprocess = [...table];
 
+			// const endAt = table.filter(row => row.date >= getDate('2017-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+			// table.splice(endAt - 1);
+
 			if (start[0]) {
 				const startFrom = start[0].track.date;
 				this.dbg('startFrom: %j', startFrom);
 				const offset = table.filter(row => row.date < startFrom).length;
 				table.splice(0, offset + 1);
-
-				// const endAt = table.filter(row => row.date <= getDate('2016-Aug-31').ts).length;
-				// table.splice(endAt);
 			}
 			if (table.length) {
 				this.check = createPromise();
-				this.nextAttend(false, preprocess[0], ...preprocess.splice(1));
+				this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
 				this.check.promise														// wait for pre-process to complete
+					.then(_ready => this.dbg('ready: %j', _ready))
 					.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
+					.then(_done => this.lastAttend())
 			} else this.dbg('nothing to load');
 		})
 	}
 
-	private nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
+	private async nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
 		if (flag) this.dbg('hist: %j', row);
 		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
@@ -328,7 +347,7 @@ export class MigrateComponent implements OnInit {
 		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} classes`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
-				row.type = prefix + `*-${nbr}.${sfx}`;						// TODO: determine if ZumbaStep via the row.amount?  startTime
+				row.type = prefix + `*-${nbr}.${sfx}`;
 				rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + nbr - 1 });
 				if (flag) this.dbg('splice: %j', row.type);
 			}
@@ -352,7 +371,7 @@ export class MigrateComponent implements OnInit {
 						throw new Error('Cannot determine event');
 
 					migrate.attend[sfx] = event.classes[idx];
-					this.writeMigrate(migrate);
+					await this.writeMigrate(migrate);
 				}
 
 				sched = {
@@ -376,7 +395,7 @@ export class MigrateComponent implements OnInit {
 							throw new Error('Cannot determine event');
 
 						migrate.attend[what] = event.classes[idx];
-						this.writeMigrate(migrate);
+						await this.writeMigrate(migrate);
 					}
 					what = migrate.attend[what];
 				}
@@ -399,7 +418,7 @@ export class MigrateComponent implements OnInit {
 					this.dflt = klass;
 
 					migrate.attend = { class: klass };
-					this.writeMigrate(migrate);
+					await this.writeMigrate(migrate);
 				}
 
 				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
@@ -416,21 +435,27 @@ export class MigrateComponent implements OnInit {
 				sched.price = price;											// to allow AttendService to check what was charged
 		}
 
+		const p = createPromise();
 		if (flag) {
 			this.attend.setAttend(sched, row.note, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
 						throw new Error('stopping');
-					if (rest.length)  										// fire next Attend
-						this.nextAttend(true, rest[0], ...rest.slice(1));
-					else this.lastAttend();								// wrap-up final Payment
+					if (!rest.length)  										// fire next Attend
+						return p.reject(flag);
+					p.resolve(flag);
 				})
 		} else {
-			if (rest.length)
-				this.nextAttend(false, rest[0], ...rest.slice(1))
-			else
-				this.check.resolve(true)
+			if (!rest.length) {
+				debugger;
+				this.check.resolve(true);
+				return p.reject(flag);
+			} else p.resolve(flag)
 		}
+
+		p.promise
+			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
+			.catch(_ => this.dbg('done: %j', flag))
 	}
 
 	private lookupMigrate(key: string | number, type: string = 'event') {
