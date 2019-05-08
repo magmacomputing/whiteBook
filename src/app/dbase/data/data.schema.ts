@@ -115,7 +115,7 @@ export interface IPrice extends IClientBase {
 //	/client/bonus
 export interface IBonus extends IClientBase {
 	[FIELD.store]: STORE.bonus;
-	[FIELD.key]: 'week' | 'month' | 'sunday';
+	[FIELD.key]: 'week' | 'month' | 'sunday' | 'sun3';
 	free: number | TString;							// number of free classes available, or string[] of classes available
 	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
