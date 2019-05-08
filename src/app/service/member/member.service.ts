@@ -69,7 +69,7 @@ export class MemberService {
 		return data.account.summary;
 	}
 
-	setAccount = async (data?: IAccountState, creates:IStoreMeta[] = [], updates:IStoreMeta[] = []) => {
+	setAccount = async (creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], data?: IAccountState) => {
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
@@ -83,7 +83,7 @@ export class MemberService {
 				stamp: getStamp(),
 				summary,
 			}
-			: {...doc[0], stamp:getStamp(), summary}
+			: { ...doc[0], stamp: getStamp(), summary }
 
 		if (!accountDoc[FIELD.id])
 			creates.push(accountDoc as IStoreMeta)

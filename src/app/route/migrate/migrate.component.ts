@@ -287,7 +287,8 @@ export class MigrateComponent implements OnInit {
 			})
 		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
 			creates.push(this.setGift(gift, start));
-const updates:IStoreMeta[] = [{...await this.member.setAccount()}];
+		const updates: IStoreMeta[] = [];
+		await this.member.setAccount(creates, updates);
 
 		this.data.batch(creates, updates, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
@@ -500,6 +501,7 @@ const updates:IStoreMeta[] = [{...await this.member.setAccount()}];
 			return prev;
 		}, { paid: 0, spend: 0 }))
 
+		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 		const closed = active[0] && active[0].expiry;
 
@@ -524,7 +526,7 @@ const updates:IStoreMeta[] = [{...await this.member.setAccount()}];
 			}
 		}
 
-		updates.push({...await this.member.setAccount()});
+		await this.member.setAccount(creates, updates);
 		this.data.batch(undefined, updates, undefined, SetMember)
 			.finally(() => this.dbg('done'))
 	}
@@ -536,13 +538,14 @@ const updates:IStoreMeta[] = [{...await this.member.setAccount()}];
 			this.data.getStore<IPayment>(STORE.payment, [where, addWhere(FIELD.store, STORE.payment)]),
 			this.data.getStore<IGift>(STORE.gift, [where, addWhere(FIELD.store, STORE.gift)]),
 		])
+		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 		const deletes: IStoreMeta[] = [...attends, ...payments, ...gifts];
 
 		if (full)
 			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		updates.push({...await this.member.setAccount()});
+		await this.member.setAccount(creates, updates);
 		return this.data.batch(undefined, updates, deletes)
 	}
 
