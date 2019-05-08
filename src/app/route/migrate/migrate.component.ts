@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { take, map, retryWhen, scan, takeWhile, delay, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { take, map } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -171,7 +171,7 @@ export class MigrateComponent implements OnInit {
 			});
 	}
 
-	async	signOut() {																					// signOut of 'impersonate' mode
+	async	signOut() {																					// signOut of 'on-behalf' mode
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
 			.subscribe(_other => {

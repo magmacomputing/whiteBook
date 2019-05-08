@@ -12,7 +12,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { MemberInfo } from '@dbase/state/auth.action';
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IAccount } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IAccount, IStoreMeta } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -69,22 +69,26 @@ export class MemberService {
 		return data.account.summary;
 	}
 
-	setAccount = async (data?: IAccountState, uid?: string) => {
-		uid = uid || await this.data.getUID();
+	setAccount = async (data?: IAccountState, creates:IStoreMeta[] = [], updates:IStoreMeta[] = []) => {
+		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
 			this.data.getStore<IAccount>(STORE.account, addWhere(FIELD.uid, uid)),
 		]);
 		const accountDoc: Partial<IAccount> = !doc.length
 			? {																// scaffold a new Account doc
-				[FIELD.id]: this.data.newId,
 				[FIELD.store]: STORE.account,
 				[FIELD.type]: 'summary',
 				[FIELD.uid]: uid,
+				stamp: getStamp(),
+				summary,
 			}
-			: doc[0]
+			: {...doc[0], stamp:getStamp(), summary}
 
-		return { ...accountDoc, stamp: getStamp(), summary } as IAccount;
+		if (!accountDoc[FIELD.id])
+			creates.push(accountDoc as IStoreMeta)
+		else updates.push(accountDoc as IStoreMeta)
+		return accountDoc;
 	}
 
 	getPlan = async (data?: IAccountState) => {
