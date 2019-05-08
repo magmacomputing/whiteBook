@@ -273,19 +273,19 @@ export class AttendService {
 				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
-
-			const upd: Partial<IPayment> = {};								// updates to the Payment
-			if (!next[FIELD.effect])
-				upd[FIELD.effect] = stamp;											// mark Effective on first check-in
-			if (data.account.summary.credit === schedule.price && schedule.price)
-				upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-			if (!next.expiry && next.approve)									// calc an Expiry for this Payment
-				upd.expiry = calcExpiry(next.approve.stamp, next, data.client);
-
-			if (Object.keys(upd).length)
-				updates.push({ ...next, ...upd });							// batch the Payment update
 		}
 
+		const upd: Partial<IPayment> = {};								// updates to the Payment
+		if (!active[FIELD.effect])
+			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
+		if (data.account.summary.funds === schedule.price && schedule.price)
+			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
+		if (!active.expiry && active.approve)							// calc an Expiry for this Payment
+			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
+
+		if (Object.keys(upd).length)
+			updates.push({ ...active, ...upd });						// batch the Payment update
+	
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document
 		const attendDoc: Partial<IAttend> = {
@@ -313,7 +313,7 @@ export class AttendService {
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 
 		return this.data.batch(creates, updates, undefined, SyncAttend)
-			.then(_ => this.member.getAmount())							// re-calc the new Account summary
-			.then(sum => this.data.writeAccount(sum))				// update Admin summary
+		// .then(_ => this.member.getAmount())							// re-calc the new Account summary
+		// .then(sum => this.data.writeAccount(sum))				// update Admin summary
 	}
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { take, map, retryWhen, scan, takeWhile, delay, catchError } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -23,7 +23,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
-import { sortKeys, IObject } from '@lib/object.library';
+import { sortKeys, IObject, cloneObj } from '@lib/object.library';
 import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
@@ -178,6 +178,9 @@ export class MigrateComponent implements OnInit {
 				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
 				this.current = null;
+				this.history = Promise.resolve([]);
+				this.hide = '';
+
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
 			})
@@ -307,10 +310,10 @@ export class MigrateComponent implements OnInit {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 			const start = attend.sort(sortKeys('-track.date'));
-			const preprocess = [...table];
+			const preprocess = cloneObj(table);
 
-			// const endAt = table.filter(row => row.date >= getDate('2017-Jan-01').format(DATE_FMT.yearMonthDay)).length;
-			// table.splice(endAt - 1);
+			// const endAt = table.filter(row => row.date >= getDate('2016-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+			// table.splice(table.length - endAt);
 
 			if (start[0]) {
 				const startFrom = start[0].track.date;
@@ -324,13 +327,18 @@ export class MigrateComponent implements OnInit {
 				this.check.promise														// wait for pre-process to complete
 					.then(_ready => this.dbg('ready: %j', _ready))
 					.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
-					.then(_done => this.lastAttend())
 			} else this.dbg('nothing to load');
 		})
 	}
 
 	private async nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
+		if (!row) {
+			if (flag)
+				this.lastAttend();
+			return this.dbg('done: %s', flag);
+		}
 		if (flag) this.dbg('hist: %j', row);
+
 		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
 
@@ -441,21 +449,16 @@ export class MigrateComponent implements OnInit {
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
 						throw new Error('stopping');
-					if (!rest.length)  										// fire next Attend
-						return p.reject(flag);
 					p.resolve(flag);
 				})
 		} else {
-			if (!rest.length) {
-				debugger;
-				this.check.resolve(true);
-				return p.reject(flag);
-			} else p.resolve(flag)
+			p.resolve(flag)
+			if (!rest.length)
+				return this.check.resolve(true);
 		}
 
 		p.promise
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
-			.catch(_ => this.dbg('done: %j', flag))
 	}
 
 	private lookupMigrate(key: string | number, type: string = 'event') {
@@ -517,9 +520,10 @@ export class MigrateComponent implements OnInit {
 			}
 		}
 
+		this.dbg('updates: %j', updates.length);
 		this.data.batch(undefined, updates, undefined, SetMember)
 			.then(_ => this.member.getAmount())				// re-calc the new Account summary
-			.then(sum => updates.length ? this.data.writeAccount(sum) : {})	// update Admin summary
+			.then(sum => this.data.writeAccount(sum))	// update Admin summary
 			.finally(() => this.dbg('done'))
 	}
 
@@ -575,6 +579,14 @@ export class MigrateComponent implements OnInit {
 		try {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
+				// .pipe(
+				// 	retryWhen(errors => errors.pipe(
+				// 		scan(acc => acc + 1, 0),
+				// 		takeWhile(acc => acc < 3),
+				// 		delay(1000),
+				// 		catchError(error => of(error)),
+				// 	))
+				// )
 				.toPromise();
 			const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
 			this.dbg('fetch: %j', urlParams);

@@ -94,7 +94,9 @@ export class FireService {
 		const cloneDelete = asArray(cloneObj(deletes));
 		const limit = 300;
 
-		return new Promise<boolean>((resolve, reject) => {
+		return (cloneCreate.length + cloneUpdate.length + cloneDelete.length === 0)
+			? Promise.resolve(undefined)									// nothing to do
+			: new Promise<boolean>((resolve, reject) => {
 
 			while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
 				const c = cloneCreate.splice(0, limit);
