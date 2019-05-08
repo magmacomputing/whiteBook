@@ -12,7 +12,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { MemberInfo } from '@dbase/state/auth.action';
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IAccount } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -67,6 +67,24 @@ export class MemberService {
 	getAmount = async (data?: IAccountState) => {
 		data = data || await this.getAccount();
 		return data.account.summary;
+	}
+
+	setAccount = async (data?: IAccountState, uid?: string) => {
+		uid = uid || await this.data.getUID();
+		const [summary, doc] = await Promise.all([
+			this.getAmount(data),
+			this.data.getStore<IAccount>(STORE.account, addWhere(FIELD.uid, uid)),
+		]);
+		const accountDoc: Partial<IAccount> = !doc.length
+			? {																// scaffold a new Account doc
+				[FIELD.id]: this.data.newId,
+				[FIELD.store]: STORE.account,
+				[FIELD.type]: 'summary',
+				[FIELD.uid]: uid,
+			}
+			: doc[0]
+
+		return { ...accountDoc, stamp: getStamp(), summary } as IAccount;
 	}
 
 	getPlan = async (data?: IAccountState) => {

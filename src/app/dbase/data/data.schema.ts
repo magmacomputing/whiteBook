@@ -7,9 +7,9 @@ import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = '_schema_' | '_config_' | '_default_';
 type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
-type TStoreMember = 'profile' | 'payment' | 'gift' | 'message' | 'migrate';
+type TStoreMember = 'profile' | 'payment' | 'account' | 'gift' | 'message' | 'migrate';
 type TStoreAttend = 'attend';
-type TStoreAdmin = 'register' | 'account';
+type TStoreAdmin = 'register';
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
@@ -403,8 +403,8 @@ export interface IRegister extends IAdminBase {
 	};
 }
 
-//	/admin/account
-export interface IAccount extends IAdminBase {
+//	/member/account
+export interface IAccount extends IMemberBase {
 	[FIELD.store]: STORE.account;
 	[FIELD.type]: 'summary';
 	stamp: number;																	// date last updated

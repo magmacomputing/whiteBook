@@ -70,10 +70,6 @@ export class DataService {
 		return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
 	}
 
-	async writeAccount(summary: ISummary) {
-		return this.fire.writeAccount(await this.getUID(), summary);
-	}
-
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
 	}

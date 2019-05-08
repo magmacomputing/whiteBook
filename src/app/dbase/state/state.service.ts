@@ -145,7 +145,7 @@ export class StateService {
 	 */
 	getMemberData(date?: TDate): Observable<IMemberState> {
 		const filterProfile = [
-			addWhere(FIELD.type, ['plan', 'info', 'gift']),   // where the <type> is either 'plan', 'info', or 'gift'
+			addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   // where the <type> is either 'plan', 'info', 'gift' or 'account'
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),  		// and the <uid> is current active User
 		]
 		const filterPlan = addWhere(FIELD.key, '{{member.plan[0].plan}}');

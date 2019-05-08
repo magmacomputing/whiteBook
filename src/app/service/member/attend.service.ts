@@ -285,7 +285,7 @@ export class AttendService {
 
 		if (Object.keys(upd).length)
 			updates.push({ ...active, ...upd });						// batch the Payment update
-	
+
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document
 		const attendDoc: Partial<IAttend> = {
@@ -312,8 +312,10 @@ export class AttendService {
 		}
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 
+		data.account.attend.push(attendDoc as IAttend);
+		updates.push(await this.member.setAccount(data));	// batch the new Account
+
 		return this.data.batch(creates, updates, undefined, SyncAttend)
-		// .then(_ => this.member.getAmount())							// re-calc the new Account summary
-		// .then(sum => this.data.writeAccount(sum))				// update Admin summary
+			.then(_ => this.member.setAccount())						// update Admin summary
 	}
 }

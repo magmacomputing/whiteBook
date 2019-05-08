@@ -12,7 +12,7 @@ import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IAccount } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -197,6 +197,11 @@ export class MigrateComponent implements OnInit {
 		this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
 	}
 
+	async setAccount() {
+		debugger;
+		this.member.setAccount();
+	}
+
 	async addPayment() {
 		const [pays, gifts, profile, plans, prices, hist = []] = await Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
@@ -285,8 +290,7 @@ export class MigrateComponent implements OnInit {
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
-			.then(_ => this.member.getAmount())							// re-calc Account summary
-			.then(summary => this.data.writeAccount(summary))
+			.then(_ => this.member.setAccount())							// re-calc Account summary
 	}
 
 	private setGift(gift: number, start: number) {
@@ -522,8 +526,7 @@ export class MigrateComponent implements OnInit {
 
 		this.dbg('updates: %j', updates.length);
 		this.data.batch(undefined, updates, undefined, SetMember)
-			.then(_ => this.member.getAmount())				// re-calc the new Account summary
-			.then(sum => this.data.writeAccount(sum))	// update Admin summary
+			.then(_ => this.member.setAccount())	// update Admin summary
 			.finally(() => this.dbg('done'))
 	}
 
@@ -540,8 +543,7 @@ export class MigrateComponent implements OnInit {
 			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
 		return this.data.batch(undefined, undefined, deletes)
-			.then(_ => this.member.getAmount())
-			.then(sum => this.data.writeAccount(sum))
+			.then(_ => this.member.setAccount())
 	}
 
 	async delAttend() {
@@ -570,8 +572,7 @@ export class MigrateComponent implements OnInit {
 			this.dbg('attends: Nothing to do');
 
 		return this.data.batch(undefined, updates, deletes, SetMember)
-			.then(_ => this.member.getAmount())
-			.then(sum => this.data.writeAccount(sum))
+			.then(_ => this.member.setAccount())
 	}
 
 	private async fetch(action: string, query: string) {

@@ -176,9 +176,9 @@ export class FireService {
 		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
 	}
 
-	writeAccount(uid: string, summary: ISummary) {
-		return this.callHttps('writeAccount', { uid, summary });
-	}
+	// writeAccount(uid: string, summary: ISummary) {
+	// 	return this.callHttps('writeAccount', { uid, summary });
+	// }
 
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
