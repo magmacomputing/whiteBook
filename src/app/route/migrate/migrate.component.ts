@@ -287,10 +287,10 @@ export class MigrateComponent implements OnInit {
 			})
 		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
 			creates.push(this.setGift(gift, start));
+const updates:IStoreMeta[] = [{...await this.member.setAccount()}];
 
-		this.data.batch(creates, undefined, undefined, SetMember)
+		this.data.batch(creates, updates, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
-			.then(_ => this.member.setAccount())							// re-calc Account summary
 	}
 
 	private setGift(gift: number, start: number) {
@@ -524,33 +524,34 @@ export class MigrateComponent implements OnInit {
 			}
 		}
 
-		this.dbg('updates: %j', updates.length);
+		updates.push({...await this.member.setAccount()});
 		this.data.batch(undefined, updates, undefined, SetMember)
-			.then(_ => this.member.setAccount())	// update Admin summary
 			.finally(() => this.dbg('done'))
 	}
 
 	async delPayment(full: boolean) {
 		const where = addWhere(FIELD.uid, this.current!.uid);
-		const [payments, gifts, attends] = await Promise.all([
+		const [attends, payments, gifts] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, where),
 			this.data.getStore<IPayment>(STORE.payment, [where, addWhere(FIELD.store, STORE.payment)]),
 			this.data.getStore<IGift>(STORE.gift, [where, addWhere(FIELD.store, STORE.gift)]),
-			this.data.getStore<IAttend>(STORE.attend, where),
 		])
-		const deletes: IStoreMeta[] = [...payments, ...gifts, ...attends];
+		const updates: IStoreMeta[] = [];
+		const deletes: IStoreMeta[] = [...attends, ...payments, ...gifts];
 
 		if (full)
 			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		return this.data.batch(undefined, undefined, deletes)
-			.then(_ => this.member.setAccount())
+		updates.push({...await this.member.setAccount()});
+		return this.data.batch(undefined, updates, deletes)
 	}
 
 	async delAttend() {
-		const [deletes, payments, gifts] = await Promise.all([
-			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
+		const where = addWhere(FIELD.uid, this.current!.uid);
+		const [attends, payments, gifts] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, where),
+			this.data.getStore<IPayment>(STORE.payment, where),
+			this.data.getStore<IGift>(STORE.gift, where),
 		])
 		const updates: IStoreMeta[] = payments
 			.filter(row => row[FIELD.effect])
@@ -559,7 +560,7 @@ export class MigrateComponent implements OnInit {
 				[FIELD.effect]: firestore.FieldValue.delete(),
 				[FIELD.expire]: firestore.FieldValue.delete(),
 				bank: firestore.FieldValue.delete(),
-				expiry: firestore.FieldValue.delete(),
+				// expiry: firestore.FieldValue.delete(),
 			}));
 		updates.push(...gifts
 			.filter(row => row[FIELD.expire])
@@ -568,10 +569,10 @@ export class MigrateComponent implements OnInit {
 				[FIELD.expire]: firestore.FieldValue.delete(),
 			}))
 		);
-		if (!deletes.length && !updates.length)
+		if (!attends.length && !updates.length)
 			this.dbg('attends: Nothing to do');
 
-		return this.data.batch(undefined, updates, deletes, SetMember)
+		return this.data.batch(undefined, updates, attends, SetMember)
 			.then(_ => this.member.setAccount())
 	}
 
