@@ -22,7 +22,7 @@ const fb = environment.firebase || {};
 		CommonModule,
 		NgxsModule.forFeature([ClientState, MemberState, AttendState, LocalState, AdminState]),
 		AngularFireModule.initializeApp(fb.app, fb.config),
-		AngularFirestoreModule.enablePersistence({ experimentalTabSynchronization: true }),
+		AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
 		AngularFireFunctionsModule,
 	],
 	providers: [

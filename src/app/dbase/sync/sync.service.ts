@@ -31,12 +31,13 @@ export class SyncService {
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
-	// TODO: make smarter call-syntax to allow for multi-stream merge
 	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
-	public async on(collection: string, query?: IQuery) {
+	public async on(collection: string, query?: IQuery, ...rest: any[]) {
 		const ready = createPromise<boolean>();
-
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
+
+		rest.forEach(([collection, query]) => 						// in case we want to append other Collection queries
+			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, collection);
 

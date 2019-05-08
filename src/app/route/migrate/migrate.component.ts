@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take, map, retry } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -12,7 +12,7 @@ import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IAccount } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -198,8 +198,11 @@ export class MigrateComponent implements OnInit {
 	}
 
 	async setAccount() {
-		debugger;
-		this.member.setAccount();
+		const creates: IStoreMeta[] = [],
+			updates: IStoreMeta[] = [];
+		await this.member.setAccount(creates, updates);
+
+		this.data.batch(creates, updates);
 	}
 
 	async addPayment() {
@@ -527,7 +530,7 @@ export class MigrateComponent implements OnInit {
 		}
 
 		await this.member.setAccount(creates, updates);
-		this.data.batch(undefined, updates, undefined, SetMember)
+		this.data.batch(creates, updates, undefined, SetMember)
 			.finally(() => this.dbg('done'))
 	}
 
@@ -546,7 +549,7 @@ export class MigrateComponent implements OnInit {
 			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
 		await this.member.setAccount(creates, updates);
-		return this.data.batch(undefined, updates, deletes)
+		return this.data.batch(creates, updates, deletes)
 	}
 
 	async delAttend() {
@@ -556,6 +559,7 @@ export class MigrateComponent implements OnInit {
 			this.data.getStore<IPayment>(STORE.payment, where),
 			this.data.getStore<IGift>(STORE.gift, where),
 		])
+		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = payments
 			.filter(row => row[FIELD.effect])
 			.map(row => ({					// reset the calculated-fields
@@ -575,8 +579,8 @@ export class MigrateComponent implements OnInit {
 		if (!attends.length && !updates.length)
 			this.dbg('attends: Nothing to do');
 
-		return this.data.batch(undefined, updates, attends, SetMember)
-			.then(_ => this.member.setAccount())
+		await this.member.setAccount(creates, updates);
+		return this.data.batch(creates, updates, attends, SetMember)
 	}
 
 	private async fetch(action: string, query: string) {
@@ -584,14 +588,7 @@ export class MigrateComponent implements OnInit {
 		try {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
-				// .pipe(
-				// 	retryWhen(errors => errors.pipe(
-				// 		scan(acc => acc + 1, 0),
-				// 		takeWhile(acc => acc < 3),
-				// 		delay(1000),
-				// 		catchError(error => of(error)),
-				// 	))
-				// )
+				.pipe(retry(2))
 				.toPromise();
 			const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
 			this.dbg('fetch: %j', urlParams);

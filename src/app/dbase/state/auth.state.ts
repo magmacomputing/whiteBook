@@ -242,24 +242,31 @@ export class AuthState implements NgxsOnInit {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => {
 					ctx.patchState({ user, token, current: user });
-					if (token.claims.claims && token.claims.claims.roles && token.claims.claims.roles.includes('admin'))
-						this.sync.on(COLLECTION.admin)
+					if (this.hasRole(token, 'admin'))
+						this.sync.on(COLLECTION.admin, undefined,
+							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.account) }]);
 				})
 		}
 	}
 
+	private hasRole = (token: firebase.auth.IdTokenResult, role: string) => {
+		return getPath<string[]>({ ...token }, 'claims.claims.roles', [])!.includes(role);
+	}
+
 	@Action(AuthToken)															// fetch latest IdToken
 	setToken(ctx: StateContext<IAuthState>) {
+		let token: firebase.auth.IdTokenResult;
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
-				.then(token => ctx.patchState({ token }))
+				.then(result => token = result)
+				.then(_ => ctx.patchState({ token }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
 				.then(_ => {
-					const token = ctx.getState().token as firebase.auth.IdTokenResult;
-					const roles = token && token.claims.claims.roles || [];
-					if (roles.includes('admin'))
-						this.sync.on(COLLECTION.admin)
-					else this.sync.off(COLLECTION.admin)
+					if (this.hasRole(token, 'admin'))
+						this.sync.on(COLLECTION.admin, undefined,
+							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.account) }]);
+					else
+						this.sync.off(COLLECTION.admin);
 				})
 		}
 	}

@@ -11,7 +11,6 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
-import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -86,7 +85,8 @@ export class FireService {
 
 	/**
 	 * Wrap database-writes within a set of Batches (limited to 500 documents per).  
-	 * These documents are assumed to have a <store> field and (except for 'creates') an <id> field
+	 * These documents are assumed to have a <store> field and (except for 'creates') an <id> field  
+	 * If they are Member documents and missing a <uid> field, the current User is inserted
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const cloneCreate = asArray(cloneObj(creates));
@@ -95,7 +95,7 @@ export class FireService {
 		const limit = 300;
 
 		return (cloneCreate.length + cloneUpdate.length + cloneDelete.length === 0)
-			? Promise.resolve(undefined)									// nothing to do
+			? Promise.resolve(undefined)										// nothing to do
 			: new Promise<boolean>((resolve, reject) => {
 
 			while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
