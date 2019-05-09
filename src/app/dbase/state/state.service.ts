@@ -95,10 +95,10 @@ export class StateService {
 	getAdminData(): Observable<IAdminState> {
 		return this.admin$.pipe(
 			switchMap(source => {
-				return source.register
+				return (source.register || [])
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
-						[STORE.account]: source.account.find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IAccount,
+						[STORE.account]: (source.account || []).find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IAccount,
 					}))
 			})
 		)
