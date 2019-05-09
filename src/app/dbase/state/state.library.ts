@@ -367,15 +367,17 @@ export const buildTimetable = (source: ITimetableState) => {
 	return { ...source }
 }
 
-export const getDash = (source: IAdminState) => {
-	source.admin.dashBoard = source.admin.register
-		.map(register => ({
-			register,
-			account: source.admin.summary && source.admin.summary.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
-		}))
+// export const getDash = (source: TStateSlice<IStoreMeta>) => {
+// 	debugger;
 
-	return { ...source }
-}
+// 	const dashBoard = source.register
+// 		.map(register => ({
+// 			register,
+// 			account: source.summary && source.summary.find(acct => acct[FIELD.uid] === register[FIELD.uid]),
+// 		}))
+
+// 	return { ...dashBoard }
+// }
 
 /** Calculate tracking against Bonus schemes */
 export const calcBonus = (event: string, date?: TDate) => {

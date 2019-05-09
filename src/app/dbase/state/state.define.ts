@@ -43,15 +43,10 @@ export interface IUserState {
 }
 
 export interface IAdminState {
-	admin: {
-		register: IRegister[];
-		summary?: IAccount[];
-		dashBoard?: {
-			register: IRegister;
-			account?: IAccount;
-		}[];
-	}
-}
+	[STORE.register]: IRegister;
+	[STORE.account]?: IAccount;
+}[];
+
 
 export interface IApplicationState {		// application-wide settings
 	application: {

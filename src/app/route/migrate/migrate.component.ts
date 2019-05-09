@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map, retry } from 'rxjs/operators';
+import { take, map, retry, tap, switchMap } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -15,7 +15,7 @@ import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
-import { IAccountState, IAdminState } from '@dbase/state/state.define';
+import { IAccountState, IAdminState, TStateSlice } from '@dbase/state/state.define';
 import { SetMember } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
@@ -28,6 +28,7 @@ import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
+import { dashCaseToCamelCase } from '@angular/animations/browser/src/util';
 
 @Component({
 	selector: 'wb-migrate',
@@ -42,7 +43,7 @@ export class MigrateComponent implements OnInit {
 	public credit = ['value', 'zero', 'all'];
 
 	private account$!: Observable<IAccountState>;
-	private dash$!: Observable<IAdminState["admin"]["dashBoard"]>;
+	private dash$!: Observable<IAdminState>;
 	private history!: Promise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
@@ -109,21 +110,26 @@ export class MigrateComponent implements OnInit {
 	}
 
 	private filter(key?: string) {
-		this.dash$ = this.state.getAdminData().pipe(
-			map(data => data.admin.dashBoard!
-				.filter(row => row.register.migrate)
-				.filter(row => !!row.register[FIELD.hidden] === this.hidden)
-				.filter(row => {
-					switch (this.credit[this.creditIdx]) {
-						case 'all':
-							return true;
-						case 'value':
-							return row.account && row.account.summary.credit;
-						case 'zero':
-							return row.account && !row.account.summary.credit;
-					}
-				})
-			));
+		this.dash$ =
+			this.state.getAdminData().pipe(
+				// switchMap(data => data.admin),
+				tap(data => this.dbg('data: %j', data)),
+				// map(data => data.admin.dashBoard!
+				// 	.filter(row => row.register.migrate)
+				// 	.filter(row => !!row.register[FIELD.hidden] === this.hidden)
+				// 	.filter(row => {
+				// 		switch (this.credit[this.creditIdx]) {
+				// 			case 'all':
+				// 				return true;
+				// 			case 'value':
+				// 				return row.account && row.account.summary.credit;
+				// 			case 'zero':
+				// 				return row.account && !row.account.summary.credit;
+				// 		}
+				// 	})
+			)
+			// .subscribe()
+			;
 
 		switch (key) {
 			case 'hide':

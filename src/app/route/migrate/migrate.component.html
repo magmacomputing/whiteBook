@@ -4,7 +4,8 @@
 	<div *ngIf="dash$.length; else noDash"></div>
 	<hr>
 	<div *ngFor="let dash of dash$">
-		<p>
+		{{ dash | json }}
+		<!-- <p>
 			<img (click)="signIn(dash.register)" [src]="dash.register.user.photoURL || ''" width="50" height="50" alt=" "
 				onError="" title="{{dash.register | json}}">
 			{{ dash.register.migrate.sheetName }}
@@ -22,9 +23,9 @@
 					<button (click)="delPayment(true)">Reset Account</button>
 					<button (click)="delUser()">Delete User</button>
 					<button (click)="hideUser()">{{hide}}Hide User</button>
-					<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
+					<p *ngIf="dash.account"> {{ dash.admin.account?.summary | json }} </p>
 				</div>
-			</div>
+			</div> -->
 	</div>
 </div>
 

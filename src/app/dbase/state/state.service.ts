@@ -4,13 +4,13 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAdminState, IAttendState, IPaymentState, IApplicationState } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getDash, getState } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta, IAccount, IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
@@ -89,15 +89,18 @@ export class StateService {
 
 	/**
 	 * Assemble an AdminState Object describing stores only available to Members with 'admin' role
-	 * admin.register	-> has an array of the current state of /admin/register
-	 * admin.account	=> has an array of the current value of /admin/account
+	 * dash.register	-> has an array of the current state of /admin/register
+	 * dash.account		-> has an array of the current value of /admin/account
 	 */
 	getAdminData(): Observable<IAdminState> {
-		const filterAccount = addWhere(FIELD.type, 'summary');
-
-		return of({}).pipe(
-			joinDoc(this.states, 'admin', STORE.register),
-			joinDoc(this.states, 'admin', STORE.account, filterAccount, undefined, getDash),
+		return this.admin$.pipe(
+			switchMap(source => {
+				return source.register
+					.map(reg => ({
+						[STORE.register]: reg as IRegister,
+						[STORE.account]: source.account.find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IAccount,
+					}))
+			})
 		)
 	}
 
