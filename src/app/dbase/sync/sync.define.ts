@@ -1,9 +1,10 @@
 import { Subscription } from 'rxjs';
 import { IPromise } from '@lib/utility.library';
+import { COLLECTION } from '@dbase/data/data.define';
 import { TruncAttend, TruncClient, TruncMember, DelMember, DelAttend, DelClient, SetClient, SetMember, SetAttend, SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
 
 export interface IListen {
-	collection: string;										// Firestore collection
+	collection: COLLECTION;								// Firestore collection
 	cnt: number;													// count of snapshots received
 	uid: string | null;										// authenticated User
 	ready: IPromise<boolean>;							// indicate when snap0 is received

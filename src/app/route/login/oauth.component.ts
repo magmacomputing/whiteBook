@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { AuthService } from '@service/auth/auth.service';
 
-import { FIELD, LOCAL } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';
 import { dbg } from '@lib/logger.library';
 
@@ -23,7 +23,7 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.getSingle<IConfig>(LOCAL.config, addWhere(FIELD.key, 'oauth'))
+			this.state.getSingle<IConfig>(STORE.local, [addWhere(FIELD.type, 'config'), addWhere(FIELD.key, 'oauth')])
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);

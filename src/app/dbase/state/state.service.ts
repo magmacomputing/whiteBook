@@ -47,7 +47,7 @@ export class StateService {
 	}
 
 	/** Fetch the current, useable values for a supplied store */
-	getCurrent<T>(store: string, where?: TWhere) {
+	getCurrent<T>(store: STORE, where?: TWhere) {
 		const filters = asArray(where);
 		filters.push(addWhere(FIELD.expire, 0));
 		filters.push(addWhere(FIELD.hidden, false));
@@ -55,15 +55,15 @@ export class StateService {
 		return getCurrent<T>(this.states, store, filters);
 	}
 
-	getStore<T>(store: string, where?: TWhere, date?: TDate) {
+	getStore<T>(store: STORE, where?: TWhere, date?: TDate) {
 		return getStore<T>(this.states, store, where, date);
 	}
 
-	getState<T>(store: string, where?: TWhere) {
+	getState<T>(store: STORE, where?: TWhere) {
 		return getState<T>(this.states, store, where);
 	}
 
-	getSingle<T>(store: string, filter: TWhere) {
+	getSingle<T>(store: STORE, filter: TWhere) {
 		return this.asPromise(this.getCurrent<T>(store, filter))
 			.then(table => table[0]);				// only the first document
 	}

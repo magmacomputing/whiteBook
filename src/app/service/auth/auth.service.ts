@@ -11,7 +11,7 @@ import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, LOCAL } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
 import { IObject } from '@lib/object.library';
@@ -105,7 +105,7 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const config = await this.state.getSingle<IConfig>(LOCAL.config, addWhere(FIELD.key, 'oauth')) || {};
+		const config = await this.state.getSingle<IConfig>(STORE.local, [addWhere(FIELD.type, 'config'), addWhere(FIELD.key, 'oauth')]) || {};
 		const oauth = config.value;
 
 		const parent = this.openChannel('token');

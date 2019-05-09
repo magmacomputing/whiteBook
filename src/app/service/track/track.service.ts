@@ -23,15 +23,15 @@ export class TrackService {
 		const uid = await this.auth.current
 			.then(user => user && user.uid)
 
-		const trackCol = `/${STORE.log}/${now.yy}${fix(now.mm)}/${fix(now.dd)}`;
-		const trackDoc: ITrack = {
+		const trackCol = `/${STORE.log}/${now.yy}${fix(now.mm)}/${fix(now.dd)}` as STORE;
+		const trackDoc = {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
 			[FIELD.uid]: uid || 'anonymous',
 			stamp: now.ts,
 			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
-		}
+		} as ITrack
 
 		this.dbg('track: %j', trackDoc);
 		this.fire.setDoc(trackCol, trackDoc);

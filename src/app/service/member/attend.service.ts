@@ -196,7 +196,7 @@ export class AttendService {
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.note, note),
 		]
-		const booked = await this.data.getFire<IAttend>(STORE.attend, { where: attendFilter });
+		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
 		if (booked.length) {
 			switch (true) {
 				case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:

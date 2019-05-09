@@ -13,7 +13,7 @@ import { IListen } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { AuthToken, IAuthState } from '@dbase/state/auth.action';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -31,12 +31,15 @@ export class SyncService {
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
-	/** establish a listener to a remote Firestore Collection, and sync to an NGXS Slice */
-	public async on(collection: string, query?: IQuery, ...rest: any[]) {
+	/**
+	 * establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
+	 * Additional collections can be defined, and merged into the same slice
+	 */
+	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
 		const ready = createPromise<boolean>();
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
 
-		rest.forEach(([collection, query]) => 						// in case we want to append other Collection queries
+		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
 			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, collection);
@@ -62,7 +65,7 @@ export class SyncService {
 			.toPromise()
 	}
 
-	public status(collection: string) {
+	public status(collection: COLLECTION) {
 		const { cnt, ready: { promise: ready } } = this.listener[collection];
 		return { collection, cnt, ready };
 	}
@@ -96,7 +99,7 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection: string, trunc?: boolean) {
+	public off(collection: COLLECTION, trunc?: boolean) {
 		const listen = this.listener[collection];
 
 		if (listen) {																			// are we listening?
@@ -113,7 +116,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: string, snaps: DocumentChangeAction<IStoreMeta>[]) {
+	private async sync(collection: COLLECTION, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
 

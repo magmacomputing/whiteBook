@@ -2,7 +2,7 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
-import { FIELD, STORE, LOCAL } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
 import { makeTemplate } from '@lib/string.library';
@@ -101,7 +101,7 @@ export class LocalState implements NgxsOnInit {
 					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
 				})
 				// return Object.assign(row, { [FIELD.store]: LOCAL.config, value: subst });
-				return { ...row, [FIELD.store]: LOCAL.config, value: subst }
+				return { ...row, [FIELD.store]: STORE.local, [FIELD.type]: 'config', value: subst }
 			})
 	}
 }

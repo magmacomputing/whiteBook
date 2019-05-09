@@ -6,8 +6,8 @@ import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
 import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IAdminState, IBonusState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, TStoreBase, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan } from '@dbase/data/data.schema';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
 import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
@@ -20,7 +20,7 @@ import { addWhere } from '@dbase/fire/fire.library';
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
  */
-export const getCurrent = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate, index?: string) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, index?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -37,7 +37,7 @@ export const getCurrent = <T>(states: IState, store: string, filter: TWhere = []
 /**
  * Get all documents by filter, do not exclude _expire
  */
-export const getStore = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate) => {
+export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
 	if (store === slice)													// top-level slice
 		return getState<T>(states, store, filter, date);
@@ -51,7 +51,7 @@ export const getStore = <T>(states: IState, store: string, filter: TWhere = [], 
 		map(obs => filterTable<T>(obs[store], filter)),
 	)
 }
-export const getState = <T>(states: IState, store: string, filter: TWhere = [], date?: TDate) => {
+export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const state: Observable<TStateSlice<T>> = states[store] as any;
 
 	if (!state)
@@ -64,7 +64,7 @@ export const getState = <T>(states: IState, store: string, filter: TWhere = [], 
 	)
 }
 
-export const getSlice = (store: string) => {    // determine the state-slice based on the <store> field
+export const getSlice = (store: STORE) => {			// determine the state-slice based on the <store> field
 	const slices = Object.keys(SLICES)
 		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store
 
@@ -97,7 +97,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string | undefined, store: string, filter: TWhere = [], date?: TDate, callBack?: CallableFunction) => {
+export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: TWhere = [], date?: TDate, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 

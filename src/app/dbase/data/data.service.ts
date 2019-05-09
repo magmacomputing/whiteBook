@@ -1,21 +1,20 @@
 import { Injectable } from '@angular/core';
+import { DocumentReference } from '@angular/fire/firestore';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { DocumentReference } from '@angular/fire/firestore';
 
 import { SnackService } from '@service/material/snack.service';
-import { COLLECTION, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, ICustomClaims, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { getSlice } from '@dbase/state/state.library';
-import { ISummary } from '@dbase/state/state.define';
+import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
+import { getSlice } from '@dbase/state/state.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { AuthService } from '@service/auth/auth.service';
 import { asAt } from '@dbase/library/app.library';
 
 import { TString } from '@lib/type.library';
@@ -40,7 +39,7 @@ export class DataService {
 	}
 
 	/** Make Store data available in a Promise */
-	private snap<T>(store: string) {
+	private snap<T>(store: STORE) {
 		const slice = getSlice(store);
 
 		return this.store
@@ -48,19 +47,19 @@ export class DataService {
 			.toPromise()
 	}
 
-	getCurrent<T>(store: string, where: TWhere = []) {
+	getCurrent<T>(store: STORE, where: TWhere = []) {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getStore<T>(store: string, where: TWhere = [], date?: TDate) {
+	getStore<T>(store: STORE, where: TWhere = [], date?: TDate) {
 		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 
-	getState<T>(store: string, where: TWhere = []) {
+	getState<T>(store: STORE, where: TWhere = []) {
 		return this.state.asPromise(this.state.getState<T>(store, where));
 	}
 
-	getMeta(store: string, docId: string) {
+	getMeta(store: STORE, docId: string) {
 		return store
 			? this.fire.callMeta(store, docId)										// get server to respond with document meta-data
 			: Promise.reject(`Cannot determine slice: ${store}`)
@@ -79,7 +78,7 @@ export class DataService {
 			.then(current => current!.uid);
 	}
 
-	getFire<T>(collection: string, query?: IQuery) {		// direct access to collection, rather than via state
+	getFire<T>(collection: COLLECTION, query?: IQuery) {		// direct access to collection, rather than via state
 		return this.fire.combine('snapshotChanges', this.fire.colRef<T>(collection, query))
 			.pipe(take(1))																				// wait for first emit from each Observable in value-array
 			.toPromise()
@@ -91,12 +90,12 @@ export class DataService {
 		return this.fire.newId();                       				// get Firebase to generate a new Key
 	}
 
-	async setDoc(store: string, doc: TStoreBase) {
+	async setDoc(store: STORE, doc: TStoreBase) {
 		doc = docPrep(doc, await this.getUID())									// make sure we have a <key/uid> field
 		return this.fire.setDoc(store, doc);
 	}
 
-	updDoc(store: string, docId: string, data: TStoreBase) {
+	updDoc(store: STORE, docId: string, data: TStoreBase) {
 		return this.fire.updDoc(store, docId, data);
 	}
 
@@ -119,7 +118,7 @@ export class DataService {
 				return;                                             // abort the Create/Update
 			}
 
-			const currDocs = await this.snap<TStoreBase>(nextDoc[FIELD.store])// read the store
+			const currDocs = await this.snap<any>(nextDoc[FIELD.store])// read the store
 				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 

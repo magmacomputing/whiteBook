@@ -5,11 +5,9 @@ import { ISummary } from '@dbase/state/state.define';
 import { TString } from '@lib/type.library';
 import { getSlice } from '@dbase/state/state.library';
 
-type TStoreConfig = '_schema_' | '_config_' | '_default_';
-type TStoreClient = 'class' | 'event' | 'price' | 'plan' | 'provider' | 'schedule' | 'calendar' | 'location' | 'instructor' | 'bonus' | 'span' | 'alert';
-type TStoreMember = 'profile' | 'payment' | 'account' | 'gift' | 'message' | 'migrate';
-type TStoreAttend = 'attend';
-type TStoreAdmin = 'register';
+type TStoreConfig = STORE.schema | STORE.config | STORE.default;
+type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert;
+type TStoreUser = STORE.profile | STORE.payment | STORE.account | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register;
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
@@ -37,32 +35,24 @@ export interface IMeta {
 	[FIELD.hidden]?: FBoolean;						// valid value, but not to be displayed to the client
 	[FIELD.disable]?: FBoolean;						// valid value, greyed-out to the client
 
-	[FIELD.store]: string;								// every document must declare the 'store' field
+	[FIELD.store]: STORE;									// every document must declare the 'store' field
 	[FIELD.type]?: string | number;				// an optional 'type' code to qualify the 'store'
 	[FIELD.note]?: FString;								// an optional 'note' on all documents
 }
 
 /**
  * We have two main types of 'store' documents.  
- * One for 'client' & 'local', keyed by 'store/type/key',  
- * the other for 'member' & 'attend', keyed by 'store/type/uid'
+ * One for 'client' & 'local', keyed by 'store/type?/key',  
+ * the other for 'admin', 'member' & 'attend', keyed by 'store/type?/uid'
  */
-export type TStoreBase = IClientBase | IMemberBase | IAttendBase | IAdminBase | IMigrateBase;
+export type TStoreBase = IClientBase | IUserBase | IMigrateBase;
 interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
 	[FIELD.icon]?: string;									// an optional icon for the UI
 }
-interface IMemberBase extends IMeta {
-	[FIELD.store]: TStoreMember;
-	[FIELD.uid]: string;
-}
-interface IAttendBase extends IMeta {
-	[FIELD.store]: TStoreAttend;
-	[FIELD.uid]: string;
-}
-interface IAdminBase extends IMeta {
-	[FIELD.store]: TStoreAdmin;
+interface IUserBase extends IMeta {
+	[FIELD.store]: TStoreUser;
 	[FIELD.uid]: string;
 }
 export interface IMigrateBase extends IMeta {
@@ -75,12 +65,13 @@ export interface IMigrateBase extends IMeta {
 	}
 }
 export interface IStoreMeta extends IMeta {
+	store: STORE;
 	[key: string]: any;											// add in index-signature
 }
 export type TStoreMeta = IStoreMeta | IStoreMeta[];
-// client documents have a '<key>' field, member documents have a '<uid>' field
-export const isClientStore = (store: TStoreBase): store is IClientBase =>
-	getSlice(store[FIELD.store]) === 'client' || getSlice(store[FIELD.store]) === 'local';
+// client documents have a '<key>' field, user documents have a '<uid>' field
+export const isClientDocument = (document: TStoreBase): document is IClientBase =>
+	getSlice(document[FIELD.store]) === 'client' || getSlice(document[FIELD.store]) === 'local';
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
@@ -270,15 +261,15 @@ export interface IProvider extends IClientBase {
 	}
 }
 
-//	/member
-export interface IMessage extends IMemberBase {
+//	/member/message
+export interface IMessage extends IUserBase {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: 'diary' | 'alert';
 	[FIELD.note]: TString;
 }
 
 //	/member/profile
-export interface IProfile extends IMemberBase {
+export interface IProfile extends IUserBase {
 	[FIELD.store]: STORE.profile;
 	[FIELD.type]: TProfile;
 }
@@ -311,7 +302,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 }
 
 //	/member/payment
-export interface IPayment extends IMemberBase {
+export interface IPayment extends IUserBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: TPayment;
 	[FIELD.stamp]: number;						// create-date
@@ -328,7 +319,7 @@ export interface IPayment extends IMemberBase {
 }
 
 //	/member/gift
-export interface IGift extends IMemberBase {
+export interface IGift extends IUserBase {
 	[FIELD.store]: STORE.gift,
 	// [FIELD.type]: string;
 	[FIELD.stamp]: number;
@@ -350,7 +341,7 @@ interface TTrack {
 	week: number;											// yearWeek attended
 	month: number;										// yearMonth attended
 }
-export interface IAttend extends IAttendBase {
+export interface IAttend extends IUserBase {
 	[FIELD.store]: STORE.attend;
 	[FIELD.stamp]: number;						// the timestamp of the check-in
 	payment: {
@@ -379,7 +370,7 @@ export interface ICustomClaims {				// a special sub-set of fields from the User
 export type TUser = UserInfo & {
 	customClaims?: ICustomClaims;
 }
-export interface IRegister extends IAdminBase {
+export interface IRegister extends IUserBase {
 	[FIELD.store]: STORE.register;
 	user: TUser;
 	migrate?: {
@@ -404,7 +395,7 @@ export interface IRegister extends IAdminBase {
 }
 
 //	/member/account
-export interface IAccount extends IMemberBase {
+export interface IAccount extends IUserBase {
 	[FIELD.store]: STORE.account;
 	[FIELD.type]: 'summary';
 	stamp: number;																	// date last updated

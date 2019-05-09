@@ -2,7 +2,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { FILTER, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, isClientStore, IStoreMeta, FType, FNumber } from '@dbase/data/data.schema';
+import { TStoreBase, isClientDocument, IStoreMeta, FType, FNumber } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
@@ -35,7 +35,7 @@ export const docPrep = (doc: TStoreBase, uid: string) => {
 	if (!doc[FIELD.store])												// every document needs a <store> field
 		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`)
 
-	if (!isClientStore(doc))											// if not a /client document
+	if (!isClientDocument(doc))										// if not a /client document
 		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
 			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
 

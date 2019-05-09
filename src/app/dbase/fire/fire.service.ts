@@ -8,7 +8,7 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
@@ -32,14 +32,14 @@ export class FireService {
 		private zone: NgZone, private snack: SnackService) { this.dbg('new'); }
 
 	/**
-	 * Collection References, with optional query.  
+	 * return Collection References (against an optional query).  
 	 * If a 'logical-or' is detected in the 'value' of any Where-clause,
 	 * multiple Collection References are returned.
 	 */
-	colRef<T>(collection: string, query?: IQuery) {
+	colRef<T>(collection: COLLECTION, query?: IQuery) {
 		return !query
-			? [this.afs.collection<T>(collection)]
-			: fnQuery(query)										// register an array of Querys over a collection reference
+			? [this.afs.collection<T>(collection)]// reference against the entire collection
+			: fnQuery(query)											// else register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
@@ -56,7 +56,7 @@ export class FireService {
 	}
 
 	/** Document Reference, for existing or new */
-	docRef(store: string, docId?: string) {
+	docRef(store: STORE, docId?: string) {
 		const col = store.includes('/')
 			? store																// already a '/{collection}' path
 			: getSlice(store)											// lookup parent collection name for a 'store'
@@ -72,7 +72,7 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private removeMeta(doc: Partial<IStoreMeta>) {
+	private removeMeta(doc: firestore.DocumentData) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
@@ -98,23 +98,23 @@ export class FireService {
 			? Promise.resolve(undefined)										// nothing to do
 			: new Promise<boolean>((resolve, reject) => {
 
-			while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
-				const c = cloneCreate.splice(0, limit);
-				const u = cloneUpdate.splice(0, limit - c.length);
-				const d = cloneDelete.splice(0, limit - c.length - u.length);
-				// this.dbg('batch: c: %s, u: %s, d: %s', c.length, u.length, d.length);
+				while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
+					const c = cloneCreate.splice(0, limit);
+					const u = cloneUpdate.splice(0, limit - c.length);
+					const d = cloneDelete.splice(0, limit - c.length - u.length);
+					// this.dbg('batch: c: %s, u: %s, d: %s', c.length, u.length, d.length);
 
-				const bat = this.afs.firestore.batch();
+					const bat = this.afs.firestore.batch();
 
-				c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
-				u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-				d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+					c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
+					u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
+					d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
-				bat.commit()
-					.then(_res => resolve(true))								// the first batch's result
-					.catch(err => reject(err))
-			}
-		})
+					bat.commit()
+						.then(_res => resolve(true))								// the first batch's result
+						.catch(err => reject(err))
+				}
+			})
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
@@ -144,7 +144,7 @@ export class FireService {
 		})
 	}
 
-	async setDoc(store: string, doc: Partial<IStoreMeta>) {
+	async setDoc(store: STORE, doc: firestore.DocumentData) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
 		doc = this.removeMeta(doc);								// remove the meta-fields from the document
@@ -152,14 +152,14 @@ export class FireService {
 		return docId;
 	}
 
-	async updDoc(store: string, docId: string, data: Partial<IStoreMeta>) {
+	async updDoc(store: STORE, docId: string, data: firestore.DocumentData) {
 		data = this.removeMeta(data);
 		await this.docRef(store, docId).update(data)
 		return docId;
 	}
 
 	/** get all Documents, optionally with a supplied Query */
-	async getAll<T>(collection: string, query?: IQuery) {
+	async getAll<T>(collection: COLLECTION, query?: IQuery) {
 		const snap = await this.colRef<T>(collection, query)[0]	// TODO: allow for logical-or, merge of snapshotChanges
 			.snapshotChanges()
 			.pipe(take(1))
@@ -168,17 +168,13 @@ export class FireService {
 		return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
 	}
 
-	callMeta(store: string, docId: string) {
+	callMeta(store: STORE, docId: string) {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
 	writeClaim(claim: ICustomClaims) {
 		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
 	}
-
-	// writeAccount(uid: string, summary: ISummary) {
-	// 	return this.callHttps('writeAccount', { uid, summary });
-	// }
 
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);

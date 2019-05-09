@@ -7,7 +7,7 @@ export enum COLLECTION {
 	attend = 'attend',
 	client = 'client',
 	admin = 'admin',
-	// migrate = 'migrate',
+	local = '_local_',
 }
 
 export enum STORE {
@@ -34,6 +34,7 @@ export enum STORE {
 	register = 'register',
 	account = 'account',
 	migrate = 'migrate',
+	local = '_local_',
 	log = 'log',
 }
 
@@ -44,9 +45,9 @@ export enum MEMBER {
 	gift = 'gift',
 }
 
-export enum LOCAL {
-	config = '@config@',
-}
+// export enum LOCAL {
+// 	config = '@config@',
+// }
 
 export enum FIELD {								// common Field names
 	effect = '_effect',							// valid when greater-than-or-equal-to
@@ -67,15 +68,10 @@ export enum FIELD {								// common Field names
 	key = 'key',
 };
 
-/** These variables should now be built in ClientState */
-export let SLICES: IObject<string[]> = {
-	// auth: ['credential', 'info', 'token', 'user'],
-	// client: ['class', 'calendar', 'event', 'provider', 'price', 'plan', 'schedule', 'location', 'instructor', 'alert', 'bonus', 'span', '_default_', '_config_', '_schema_'],
-	// member: ['payment', 'profile', 'message', 'track'],
-	// attend: ['attend'],
-	// local: ['@config@'],
-	// admin: ['register'],
-}
+export const enumKey = (e: any, value: string) => Object.keys(e).find(row => e[row] === value) || 'unknown';
+
+/** These variables are built in ClientState initial snapshot */
+export let SLICES: IObject<string[]> = {};
 
 /** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
 export let FILTER: IObject<TString> = {
@@ -84,21 +80,4 @@ export let FILTER: IObject<TString> = {
 	[COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],
 }
 
-export let SORTBY: IObject<TString> = {
-	// [STORE.provider]: ["sort", FIELD.key],
-	// [STORE.plan]: ["sort", FIELD.key],
-	// [STORE.schedule]: ["location", FIELD.type, "day", "start", FIELD.key],
-	// [STORE.calendar]: [FIELD.key, "start"],
-	// [STORE.class]: FIELD.key,
-	// [STORE.event]: [FIELD.key, "name"],
-	// [STORE.price]: [FIELD.key, FIELD.type],
-	// [STORE.location]: ["sort", FIELD.key],
-	// [STORE.instructor]: ["sort", FIELD.key],
-	// [STORE.bonus]: ["sort", FIELD.key],
-	// [STORE.span]: [FIELD.key, "duration"],
-	// [STORE.default]: [FIELD.type, FIELD.key],
-	// [STORE.schema]: [FIELD.type, FIELD.key],
-	// [STORE.profile]: [FIELD.uid, FIELD.type, FIELD.effect],
-	// [STORE.payment]: [FIELD.uid, "stamp", FIELD.type],
-	// [STORE.attend]: [FIELD.uid, "date", FIELD.type],
-}
+export let SORTBY: IObject<TString> = {};
