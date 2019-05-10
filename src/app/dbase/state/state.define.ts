@@ -34,7 +34,7 @@ export enum SLICE {
  *  }
  */
 
-export type TStateSlice<T> = { [store: string]: T[] };
+export type TStateSlice<T> = { [segment: string]: T[] };
 export interface LState { [slice: string]: TStateSlice<IStoreMeta> };	// localStore State
 export interface IState { [slice: string]: Observable<TStateSlice<IStoreMeta>> };
 
@@ -43,9 +43,13 @@ export interface IUserState {
 }
 
 export interface IAdminState {
-	[STORE.register]: IRegister;
-	[STORE.account]?: IAccount;
-}[];
+	register: IRegister[];
+	account?: IAccount[];
+	dash: {
+		[STORE.register]: IStoreMeta;
+		[STORE.account]?: IAccount;
+	}[]
+};
 
 
 export interface IApplicationState {		// application-wide settings

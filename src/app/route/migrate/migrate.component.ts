@@ -43,7 +43,7 @@ export class MigrateComponent implements OnInit {
 	public credit = ['value', 'zero', 'all'];
 
 	private account$!: Observable<IAccountState>;
-	private dash$!: Observable<IAdminState>;
+	private dash$!: Observable<IAdminState["dash"]>;
 	private history!: Promise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
@@ -110,26 +110,22 @@ export class MigrateComponent implements OnInit {
 	}
 
 	private filter(key?: string) {
-		this.dash$ =
-			this.state.getAdminData().pipe(
-				// switchMap(data => data.admin),
-				tap(data => this.dbg('data: %j', data)),
-				// map(data => data.admin.dashBoard!
-				// 	.filter(row => row.register.migrate)
-				// 	.filter(row => !!row.register[FIELD.hidden] === this.hidden)
-				// 	.filter(row => {
-				// 		switch (this.credit[this.creditIdx]) {
-				// 			case 'all':
-				// 				return true;
-				// 			case 'value':
-				// 				return row.account && row.account.summary.credit;
-				// 			case 'zero':
-				// 				return row.account && !row.account.summary.credit;
-				// 		}
-				// 	})
-			)
-			// .subscribe()
-			;
+		this.dash$ = this.state.getAdminData().pipe(
+			tap(data => this.dbg('data: %j', data)),
+			map(data => data.dash!
+				.filter(row => row.register.migrate)
+				.filter(row => !!row.register[FIELD.hidden] === this.hidden)
+				.filter(row => {
+					switch (this.credit[this.creditIdx]) {
+						case 'all':
+							return true;
+						case 'value':
+							return row.account && row.account.summary.credit;
+						case 'zero':
+							return row.account && !row.account.summary.credit;
+					}
+				})
+			))
 
 		switch (key) {
 			case 'hide':
