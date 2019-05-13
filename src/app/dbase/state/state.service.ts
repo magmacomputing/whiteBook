@@ -99,12 +99,11 @@ export class StateService {
 				[STORE.account]: source[STORE.account] as IAccount[],
 				dash: (source[STORE.register] || [])
 					.sort(sortKeys(...SORTBY[STORE.register]))
-					.map(reg => (
-						{
-							[STORE.register]: reg as IRegister,
-							[STORE.account]: (source[STORE.account] || []).find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IAccount,
-						}
-					)),
+					.map(reg => ({
+						[STORE.register]: reg as IRegister,
+						[STORE.account]: (source[STORE.account] || [])
+							.find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IAccount,
+					})),
 			}))
 		)
 	}

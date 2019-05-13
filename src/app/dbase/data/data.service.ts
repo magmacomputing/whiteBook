@@ -78,7 +78,7 @@ export class DataService {
 			.then(current => current!.uid);
 	}
 
-	getFire<T>(collection: COLLECTION, query?: IQuery) {		// direct access to collection, rather than via state
+	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
 		return this.fire.combine('snapshotChanges', this.fire.colRef<T>(collection, query))
 			.pipe(take(1))																				// wait for first emit from each Observable in value-array
 			.toPromise()
