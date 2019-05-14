@@ -18,18 +18,18 @@ export class TruncClient {								// Truncate a Client object from the Store
 	constructor(public debug: boolean = true) { }
 }
 
-export class SetLocal {										// Add a Client object-clone into the local Store
-	static type = '[Sync Service] Set Local';
+export class SetDevice {										// Add a Client object-clone into the local Store
+	static type = '[Sync Service] Set Device';
 	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
 }
 
-export class DelLocal {
-	static type = '[Sync Service] Delete Local';
+export class DelDevice {
+	static type = '[Sync Service] Delete Device';
 	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
 }
 
-export class TruncLocal {
-	static type = '[Sync Service] Truncate Local';
+export class TruncDevice {
+	static type = '[Sync Service] Truncate Device';
 	constructor(public debug: boolean = true) { }
 }
 

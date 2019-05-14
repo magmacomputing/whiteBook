@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
-import { addWhere } from '@dbase/fire/fire.library';
-import { StateService } from '@dbase/state/state.service';
 import { AuthService } from '@service/auth/auth.service';
+import { StateService } from '@dbase/state/state.service';
+import { getConfig } from '@dbase/library/config.library';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { STORE } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';
 import { dbg } from '@lib/logger.library';
 
@@ -23,7 +23,8 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.getSingle<IConfig>(STORE.local, [addWhere(FIELD.type, 'config'), addWhere(FIELD.key, 'oauth')])
+			this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
+				.then(config => getConfig(config, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);
@@ -38,5 +39,4 @@ export class OAuthComponent implements OnInit {
 		this.dbg('deactivate: %s', false);
 		return false;											// once on this page, cannot move away
 	}
-
 }

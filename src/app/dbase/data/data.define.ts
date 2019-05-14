@@ -1,13 +1,10 @@
-import { IObject } from '@lib/object.library';
-import { TString } from '@lib/type.library';
-
 export enum COLLECTION {
 	log = 'log',
 	member = 'member',
 	attend = 'attend',
 	client = 'client',
 	admin = 'admin',
-	local = '_local_',
+	device = 'device',
 }
 
 export enum STORE {
@@ -34,7 +31,7 @@ export enum STORE {
 	register = 'register',
 	account = 'account',
 	migrate = 'migrate',
-	local = '_local_',
+	local = '@config@',
 	log = 'log',
 }
 
@@ -67,17 +64,3 @@ export enum FIELD {								// common Field names
 	icon = 'icon',
 	key = 'key',
 };
-
-export const enumKey = (e: any, value: string) => Object.keys(e).find(row => e[row] === value) || 'unknown';
-
-/** These variables are built in ClientState initial snapshot */
-export let SLICES: IObject<string[]> = {};
-
-/** a list of Fields on which to Filter Documents, when determining Type-2 delta-inserts */
-export let FILTER: IObject<TString> = {
-	[COLLECTION.client]: [FIELD.store, FIELD.key],
-	[COLLECTION.member]: [FIELD.store, FIELD.type, FIELD.uid],
-	[COLLECTION.attend]: [FIELD.store, FIELD.type, FIELD.uid],
-}
-
-export let SORTBY: IObject<TString> = {};

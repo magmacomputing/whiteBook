@@ -64,10 +64,6 @@ export class LoginSetup {
 	static type = '[Auth] LoginSetup';
 	constructor(public user: firebase.User) { }
 }
-
-export class MemberInfo {												// signal MemberService to check for ProviderInfo changes
-	static type = '[Auth] MemberInfo';
-}
 export class AuthInfo {													// fetch AdditionalUserInfo into auth state
 	static type = '[Auth] AuthInfo';
 	constructor(public info: any) { }

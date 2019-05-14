@@ -17,6 +17,7 @@ import { IProvider, IConfig } from '@dbase/data/data.schema';
 import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { getConfig } from '@dbase/library/config.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
@@ -105,8 +106,9 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const config = await this.state.getSingle<IConfig>(STORE.local, [addWhere(FIELD.type, 'config'), addWhere(FIELD.key, 'oauth')]) || {};
-		const oauth = config.value;
+		const oauth = await this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
+			.then(config => getConfig(config, 'oauth'))
+			.then(oauth => oauth.value)
 
 		const parent = this.openChannel('token');
 		parent.onmessage = (msg) => {

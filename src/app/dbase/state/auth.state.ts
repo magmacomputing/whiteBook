@@ -1,11 +1,12 @@
 import * as firebase from 'firebase/app';
+import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { AngularFireAuth } from '@angular/fire/auth';
 
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
-	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, MemberInfo, LoginAnon, AuthOther
+	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, LoginAnon, AuthOther
 } from '@dbase/state/auth.action';
 import { SLICE, TStateSlice } from '@dbase/state/state.define';
 
@@ -39,6 +40,7 @@ import { dbg } from '@lib/logger.library';
 export class AuthState implements NgxsOnInit {
 	private dbg = dbg(this);
 	private user: firebase.User | null = null;
+	private _memberSubject = new BehaviorSubject(null as firebase.auth.AdditionalUserInfo | null);
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private store: Store, private snack: SnackService, private navigate: NavigateService) { this.init(); }
 
@@ -48,6 +50,10 @@ export class AuthState implements NgxsOnInit {
 		this.dbg('init');
 		this.afAuth.authState
 			.subscribe(user => this.store.dispatch(new CheckSession(user)))
+	}
+
+	get memberSubject() {
+		return this._memberSubject;
 	}
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
@@ -205,7 +211,7 @@ export class AuthState implements NgxsOnInit {
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
-				.then(_ => ctx.dispatch(new MemberInfo()))// check for AdditionalUserInfo
+				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this.dbg('route: %j', this.navigate.url))
 				.then(_ => {
 					if (['/', '/login'].includes(this.navigate.url))

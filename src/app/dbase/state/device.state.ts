@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SetLocal, DelLocal, TruncLocal } from '@dbase/state/state.action';
+import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
@@ -12,15 +12,15 @@ import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * LocalState is for items derived from the server.  
+ * DeviceState is for items derived from the server.  
  * Currently this is _config_ with placeholders evaluated, and  
  * UI preferences for _login_ (which are needed prior to authentication)
  */
 @State<TStateSlice<IStoreMeta>>({
-	name: SLICE.local,
+	name: SLICE.device,
 	defaults: {}
 })
-export class LocalState implements NgxsOnInit {
+export class DeviceState implements NgxsOnInit {
 	private dbg = dbg(this);
 
 	constructor(private store: Store) { this.init(); }
@@ -31,8 +31,8 @@ export class LocalState implements NgxsOnInit {
 		this.dbg('init:');
 	}
 
-	@Action(SetLocal)
-	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetLocal) {
+	@Action(SetDevice)
+	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetDevice) {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
@@ -42,15 +42,15 @@ export class LocalState implements NgxsOnInit {
 
 				state[group] = this.filterState(state, doc);
 				state[group].push(...fix);
-				// if (debug) this.dbg('setLocal: %j', doc);
+				// if (debug) this.dbg('setDevice: %j', doc);
 			}
 		})
 
 		setState({ ...state });
 	}
 
-	@Action(DelLocal)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelLocal) {
+	@Action(DelDevice)
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelDevice) {
 		const state = getState() || {};
 		const segment = FIELD.store;
 
@@ -60,19 +60,20 @@ export class LocalState implements NgxsOnInit {
 
 			if (state[slice].length === 0)
 				delete state[slice];
-			if (debug) this.dbg('delLocal: %j', doc);
+			if (debug) this.dbg('delDevice: %j', doc);
 		})
 
 		setState({ ...state });
 	}
 
-	@Action(TruncLocal)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncLocal) {
-		if (debug) this.dbg('truncLocal');
+	// TODO: dont delete local-device store?
+	@Action(TruncDevice)
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncDevice) {
+		if (debug) this.dbg('truncDevice');
 		setState({});
 	}
 
-	/** remove an item from the Local Store */
+	/** remove an item from the Device Store */
 	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
 		const group = '@' + payload[segment].replace(/_/g, '') + '@';
 		const curr = state && state[payload[group]] || [];
@@ -100,7 +101,7 @@ export class LocalState implements NgxsOnInit {
 					const tpl = makeTemplate(item[1]);					// turn it into a template literal
 					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
 				})
-				// return Object.assign(row, { [FIELD.store]: LOCAL.config, value: subst });
+
 				return { ...row, [FIELD.store]: STORE.local, [FIELD.type]: 'config', value: subst }
 			})
 	}

@@ -6,7 +6,7 @@ import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
 import { SLICE, LState } from '@dbase/state/state.define';
-import { SetLocal, DelLocal, TruncLocal, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { SetDevice, DelDevice, TruncDevice, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
@@ -78,8 +78,8 @@ export const getMethod = (slice: string) => {
 		case SLICE.attend:
 			return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
 
-		case SLICE.local:
-			return { setStore: SetLocal, delStore: DelLocal, truncStore: TruncLocal }
+		case SLICE.device:
+			return { setStore: SetDevice, delStore: DelDevice, truncStore: TruncDevice }
 
 		case SLICE.admin:
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }

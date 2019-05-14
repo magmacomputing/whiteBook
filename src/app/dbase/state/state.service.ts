@@ -9,7 +9,8 @@ import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUser
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, SORTBY } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
+import { SORTBY } from '@dbase/library/config.define';
 import { IStoreMeta, IAccount, IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';

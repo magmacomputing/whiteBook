@@ -8,7 +8,8 @@ import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
-import { STORE, FIELD, SLICES, SORTBY } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
+import { SLICES, SORTBY } from '@dbase/library/config.define';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';

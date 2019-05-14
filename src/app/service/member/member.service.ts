@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { take } from 'rxjs/operators';
-import { Store } from '@ngxs/store';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
@@ -9,7 +8,6 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
-import { MemberInfo } from '@dbase/state/auth.action';
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IAccount, IStoreMeta } from '@dbase/data/data.schema';
@@ -18,16 +16,16 @@ import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@lib/logger.library';
+import { AuthState } from '@dbase/state/auth.state';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg = dbg(this);
 
-	constructor(private readonly data: DataService, private readonly store: Store,
+	constructor(private readonly data: DataService, private readonly auth: AuthState,
 		private state: StateService, private snack: SnackService, private sync: SyncService) {
 		this.dbg('new');
-		this.sync.wait(MemberInfo, _ => this.getAuthProfile());
-		this.store.dispatch(new MemberInfo());				// now fire the initial MemberInfo check
+		this.auth.memberSubject.subscribe(info => (info) && this.getAuthProfile(info));
 	}
 
 	async setPlan(plan: TPlan, dt?: TDate) {
@@ -115,12 +113,12 @@ export class MemberService {
 	}
 
 	/** check for change of User.additionalInfo */
-	async getAuthProfile() {
+	async getAuthProfile(info: firebase.auth.AdditionalUserInfo) {
 		const user = await this.state.asPromise(this.state.getAuthData());
 		if (isNull(user.auth.info) || isUndefined(user.auth.info))
 			return;																				// No AdditionalUserInfo available
 
-		const memberInfo = getMemberInfo(user.auth.info);
+		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
 			...memberInfo,																// spread the conformed member info
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
