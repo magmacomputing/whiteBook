@@ -211,7 +211,7 @@ export class MigrateComponent implements OnInit {
 		const [pays, gifts, profile, plans, prices, hist = []] = await Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IProfilePlan>(STORE.profile),
+			this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IPlan>(STORE.plan),
 			this.data.getStore<IPrice>(STORE.price),
 			this.history,
@@ -247,7 +247,7 @@ export class MigrateComponent implements OnInit {
 				let expiry = undefined;
 				const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
 				const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
-				const curr = asAt(prices, undefined, row.stamp);
+				const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
 				const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
 				if (topUp && !isUndefined(desc.expiry)) {
 					const offset = topUp.amount
