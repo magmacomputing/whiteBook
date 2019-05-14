@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
-import { RoutingModule } from '@route/routing.module';
+import { RoutingModule } from '@route/route.module';
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthModule } from '@service/auth/auth.module';
 import { AppComponent } from './app.component';

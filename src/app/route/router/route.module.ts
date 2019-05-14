@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 
 import { ROUTE } from '@route/route.define';
-import { AuthGuard, ProfileGuard, DeactivateGuard } from '@route/routing.guard';
+import { AuthGuard, ProfileGuard, DeactivateGuard } from '@route/route.guard';
 import { MaterialModule } from '@route/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
