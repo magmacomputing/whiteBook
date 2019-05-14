@@ -28,6 +28,7 @@ import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
+import { getTreeNoValidDataSourceError } from '@angular/cdk/tree';
 
 @Component({
 	selector: 'wb-migrate',
@@ -207,8 +208,8 @@ export class MigrateComponent implements OnInit {
 		this.data.batch(creates, updates);
 	}
 
-	async addPayment() {
-		const [pays, gifts, profile, plans, prices, hist = []] = await Promise.all([
+	private async getMember() {
+		return Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.uid, this.current!.uid)),
@@ -216,9 +217,13 @@ export class MigrateComponent implements OnInit {
 			this.data.getStore<IPrice>(STORE.price),
 			this.history,
 		])
+	}
+
+	async addPayment() {
+		const [payments, gifts, profile, plans, prices, hist = []] = await this.getMember();
 		const creates: IStoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note && row.note.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
-			.filter(row => isUndefined(pays.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
+			.filter(row => isUndefined(payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
@@ -244,19 +249,6 @@ export class MigrateComponent implements OnInit {
 				if (row.debit === undefined && row.credit === undefined)
 					throw new Error(`cannot find amount: ${row}`)
 
-				let expiry = undefined;
-				const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
-				const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
-				const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
-				const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
-				if (topUp && !isUndefined(desc.expiry)) {
-					const offset = topUp.amount
-						? Math.round(parseFloat(row.credit!) / (topUp.amount / desc.expiry)) || 1
-						: desc.expiry;
-					expiry = getDate(approve.stamp || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
-					if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
-				}
-
 				return {
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: payType,
@@ -265,7 +257,7 @@ export class MigrateComponent implements OnInit {
 					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
 					approve: approve.stamp && approve,
-					expiry: expiry,
+					expiry: this.getExpiry(row, profile, plans, prices),
 					note: row.note,
 				} as IPayment
 			});
@@ -297,6 +289,24 @@ export class MigrateComponent implements OnInit {
 
 		this.data.batch(creates, updates, undefined, SetMember)
 			.then(_ => this.dbg('payment: %s', creates.length))
+	}
+
+	private getExpiry(row: MHistory, profile: IProfilePlan[], plans: IPlan[], prices: IPrice[]) {
+		let expiry: number | undefined = undefined;
+		const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
+		const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
+		const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
+		const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
+
+		if (topUp && !isUndefined(desc.expiry)) {
+			const offset = topUp.amount
+				? Math.round(parseFloat(row.credit!) / (topUp.amount / desc.expiry)) || 1
+				: desc.expiry;
+			expiry = getDate(row.approved || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
+			if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
+		}
+
+		return expiry;
 	}
 
 	private setGift(gift: number, start: number) {
@@ -556,25 +566,26 @@ export class MigrateComponent implements OnInit {
 
 	async delAttend() {
 		const where = addWhere(FIELD.uid, this.current!.uid);
-		const [attends, payments, gifts] = await Promise.all([
+		const [attends, [payments, gifts, profile, plans, prices, hist = []]] = await Promise.all([
 			this.data.getStore<IAttend>(STORE.attend, where),
-			this.data.getStore<IPayment>(STORE.payment, where),
-			this.data.getStore<IGift>(STORE.gift, where),
+			this.getMember(),
 		])
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = payments
-			.filter(row => row[FIELD.effect])
-			.map(row => ({					// reset the calculated-fields
+			.filter(row => row[FIELD.effect])		// only select those that are in-effect
+			.map(row => ({											// reset the calculated-fields
 				...row,
 				[FIELD.effect]: firestore.FieldValue.delete(),
 				[FIELD.expire]: firestore.FieldValue.delete(),
 				bank: firestore.FieldValue.delete(),
-				// expiry: firestore.FieldValue.delete(),
+				expiry: this.getExpiry({ stamp: row[FIELD.stamp], credit: row.amount && row.amount.toString(), debit: row.adjust && row.adjust.toString(), hold: row.hold, title: '', date: 0, type: 'topUp' } as MHistory,
+					profile, plans, prices),
 			}));
+
 		updates.push(...gifts
 			.filter(row => row[FIELD.expire])
 			.map(row => ({
-				...row,								// un-expire any Gifts
+				...row,														// un-expire any Gifts
 				[FIELD.expire]: firestore.FieldValue.delete(),
 			}))
 		);

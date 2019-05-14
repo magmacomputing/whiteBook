@@ -17,7 +17,9 @@
 					<br>
 					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
 					<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
+					<br>
 					<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
+					<button (click)="setProfile()" [disabled]="1 == 0">Set Profile</button>
 					<br>
 					<button (click)="delPayment(true)">Reset Account</button>
 					<button (click)="delUser()">Delete User</button>

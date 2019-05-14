@@ -25,7 +25,7 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 			: 'server'
 }
 
-/** check for tampering on the localStorage object */
+/** check for uncollected changes on remote database, or tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const localState = getLocalStore<LState>(StoreStorage) || {};
 	const localSlice = localState[listen.collection] || {};

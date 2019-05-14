@@ -6,7 +6,6 @@ import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/material/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
-import { SyncService } from '@dbase/sync/sync.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
@@ -22,10 +21,9 @@ import { AuthState } from '@dbase/state/auth.state';
 export class MemberService {
 	private dbg = dbg(this);
 
-	constructor(private readonly data: DataService, private readonly auth: AuthState,
-		private state: StateService, private snack: SnackService, private sync: SyncService) {
+	constructor(private readonly data: DataService, private readonly auth: AuthState, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
-		this.auth.memberSubject.subscribe(info => (info) && this.getAuthProfile(info));
+		this.auth.memberSubject.subscribe(info => info && this.getAuthProfile(info));
 	}
 
 	async setPlan(plan: TPlan, dt?: TDate) {
