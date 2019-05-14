@@ -3,10 +3,12 @@ import { SetClient, DelClient, TruncClient, filterState } from '@dbase/state/sta
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
+import { SLICES } from '@dbase/library/config.define';
 import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
 import { setSchema } from '@dbase/library/config.library';
 
 import { asArray } from '@lib/array.library';
+import { isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -24,8 +26,8 @@ export class ClientState implements NgxsOnInit {
 		this.dbg('init:');
 		this.store.selectOnce(state => state[COLLECTION.client])
 			.toPromise()
-			.then(client => client[STORE.schema] as ISchema[])
-			.then(schema => setSchema(schema))				// initial load of STORES / SORTBY / FILTER
+			.then(client => client && client[STORE.schema] || [])
+			.then((schema: ISchema[]) => setSchema(schema))				// initial load of STORES / SORTBY / FILTER
 	}
 
 	@Action(SetClient)
@@ -38,7 +40,7 @@ export class ClientState implements NgxsOnInit {
 			state[store] = filterState(state, doc);
 			state[store].push(doc);									// push the new/changed ClientDoc into the Store
 
-			if (doc[FIELD.store] === STORE.schema && debug)
+			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
 				schema.push(doc);											// if STORE.schema changes, rebuild schema-variables
 
 			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);

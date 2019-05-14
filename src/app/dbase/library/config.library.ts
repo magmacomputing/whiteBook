@@ -8,6 +8,8 @@ import { isString } from '@lib/type.library';
 
 /** rebuild values for STORES, SORTBY, FILTER variables */
 export const setSchema = async (schemas: ISchema[]) => {
+  if (schemas.length)
+    console.log('schema: ', schemas);
   const acc = schemas.reduce((acc, schema) => {
     const { [FIELD.key]: key, [FIELD.type]: type, [FIELD.hidden]: hidden } = schema;
 
