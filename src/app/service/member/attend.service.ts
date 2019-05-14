@@ -16,7 +16,7 @@ import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IB
 
 import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
 import { isUndefined, TString } from '@lib/type.library';
-import { getPath, isEmpty } from '@lib/object.library';
+import { getPath, isEmpty, IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -69,11 +69,10 @@ export class AttendService {
 				.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
 
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
-				.then(bonus => ({
-					'week': bonus.find(row => row[FIELD.key] === 'week') || {} as IBonus,
-					'month': bonus.find(row => row[FIELD.key] === 'month') || {} as IBonus,
-					'sunday': bonus.find(row => row[FIELD.key] === 'sunday') || {} as IBonus,
-				})),
+				.then(bonus => bonus.reduce((acc, row) => {
+					acc[row[FIELD.key]] = row;
+					return acc;
+				}, {} as IObject<IBonus>))
 		]);
 
 		/**
@@ -225,7 +224,7 @@ export class AttendService {
 			}
 		}
 
-		if (!isUndefined(schedule.price) && schedule.price !== calcPrice && now.yy > 2014) {// calculation mis-match
+		if (!isUndefined(schedule.price) && schedule.price !== calcPrice) {// calculation mis-match
 			this.dbg('bonus: %j', bonus);
 			throw new Error(`Price discrepancy: paid ${schedule.price}, but should be ${calcPrice}`);
 		}
