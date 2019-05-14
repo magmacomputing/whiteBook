@@ -66,6 +66,7 @@ export class MemberService {
 	}
 
 	setAccount = async (creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], data?: IAccountState) => {
+		data = data || await this.getAccount();
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
