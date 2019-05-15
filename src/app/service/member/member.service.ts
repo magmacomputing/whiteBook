@@ -112,21 +112,21 @@ export class MemberService {
 	}
 
 	/** check for change of User.additionalInfo */
-	async getAuthProfile(info: firebase.auth.AdditionalUserInfo) {
-		const user = await this.state.asPromise(this.state.getAuthData());
-		if (isNull(user.auth.info) || isUndefined(user.auth.info))
+	async getAuthProfile(info: firebase.auth.AdditionalUserInfo, uid?: string) {
+		if (isNull(info) || isUndefined(info))
 			return;																				// No AdditionalUserInfo available
 
+		const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
 			...memberInfo,																// spread the conformed member info
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'info',
-			[FIELD.uid]: user.auth.user!.uid,
+			[FIELD.uid]: uid || (await user).auth.user!.uid,
 		}
 
-		const where = addWhere('providerId', user.auth.info.providerId);
+		const where = addWhere('providerId', info.providerId);
 		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
 	}
 

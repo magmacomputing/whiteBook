@@ -369,6 +369,7 @@ export interface ICustomClaims {				// a special sub-set of fields from the User
 }
 export type TUser = UserInfo & {
 	customClaims?: ICustomClaims;
+	providerData?: (UserInfo | null)[];
 }
 export interface IRegister extends IUserBase {
 	[FIELD.store]: STORE.register;
@@ -390,6 +391,7 @@ export interface IRegister extends IUserBase {
 			email: string;
 			gender?: 'male' | 'female';
 			isAdmin?: boolean;
+			birthDay?: number;
 		}[]
 	};
 }

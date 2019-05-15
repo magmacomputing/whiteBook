@@ -68,6 +68,18 @@ export const getAuthProvider = (providerId: string,
 
 export const getProviderId = (prefix: string) => {
 	switch (prefix) {
+		case 'fb':
+			return 'facebook.com';
+		
+		case 'g+':
+			return 'google.com';
+		
+		case 'tw':
+			return 'twitter.com';
+		
+		case 'gh':
+			return 'github.com';
+		
 		case 'li':
 			return 'linkedin.com';
 

@@ -19,20 +19,26 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
 		lastName: profile.family_name || profile.last_name || profile.lastName,
-		displayName: profile.name || profile.login
+		displayName: profile.displayName || profile.name || profile.login
 			|| (profile.given_name || profile.first_name || profile.firstName) + ' ' + (profile.family_name || profile.last_name || profile.lastName),
 		email: profile.email || profile.emailAddress,
 		gender: profile.gender,
-		photoURL: profile.pictureUrl
+		photoURL: profile.photoURL
+			|| profile.pictureUrl
 			|| profile.thumbnail															// linkedin
 			|| profile.profile_image_url_https								// twitter
 			|| profile.avatar_url															// github
 			|| isString(profile.picture) && profile.picture 	// google
 			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url // facebook
 			|| undefined,
-		birthDay: profile.birthday,
+		birthDay: profile.birthDay || profile.birthday,
 	}
 
+	if (!profileInfo.firstName && !profileInfo.lastName && profileInfo.displayName && profileInfo.displayName.includes(' ')) {
+		const name = profileInfo.displayName.split(' ');
+		profileInfo.lastName = name.pop();
+		profileInfo.firstName = name.join(' ');
+	}
 	if (profileInfo.photoURL)															// strip the queryParams
 		profileInfo.photoURL = profileInfo.photoURL.split('?')[0];
 	if (profileInfo.birthDay)															// as number

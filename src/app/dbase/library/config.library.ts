@@ -8,8 +8,6 @@ import { isString } from '@lib/type.library';
 
 /** rebuild values for STORES, SORTBY, FILTER variables */
 export const setSchema = async (schemas: ISchema[]) => {
-  if (schemas.length)
-    console.log('schema: ', schemas);
   const acc = schemas.reduce((acc, schema) => {
     const { [FIELD.key]: key, [FIELD.type]: type, [FIELD.hidden]: hidden } = schema;
 
@@ -24,8 +22,8 @@ export const setSchema = async (schemas: ISchema[]) => {
     if (schema.filter)
       acc.filter[key] = schema.filter;
 
-    return acc;													// dummy <return>
-  }, {
+    return acc;													// return accumulator
+  }, {                                  // init accumulator
       slices: {} as typeof SLICES,
       sortby: {} as typeof SORTBY,
       filter: {} as typeof FILTER,
@@ -37,6 +35,7 @@ export const setSchema = async (schemas: ISchema[]) => {
   Object.keys(acc.filter).forEach(type => FILTER[type] = acc.filter[type]);
 }
 
+// This is called so infrequently, its not worth making it reactive
 /** resolve some placeholder variables in IConfig[] */
 export const getConfig = (config: IConfig[], key: string) => {
   const placeholder: IObject<string> = {};

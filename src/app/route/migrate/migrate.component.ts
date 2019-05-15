@@ -1,13 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map, retry, tap } from 'rxjs/operators';
+import { take, map, retry } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
 import { AdminService } from '@service/admin/admin.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
+import { getProviderId } from '@service/auth/auth.library';
 import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
@@ -28,7 +29,6 @@ import { isUndefined, isNull, getType } from '@lib/type.library';
 import { asString } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
-import { getTreeNoValidDataSourceError } from '@angular/cdk/tree';
 
 @Component({
 	selector: 'wb-migrate',
@@ -44,7 +44,7 @@ export class MigrateComponent implements OnInit {
 
 	private account$!: Observable<IAccountState>;
 	private dash$!: Observable<IAdminState["dash"]>;
-	private history!: Promise<MHistory[]>;
+	private history: IPromise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
 	private current: IRegister | null = null;
@@ -81,6 +81,7 @@ export class MigrateComponent implements OnInit {
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
 
+		this.history = createPromise<MHistory[]>();
 		this.filter();
 
 		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
@@ -143,29 +144,32 @@ export class MigrateComponent implements OnInit {
 	async signIn(register: IRegister) {
 		if (this.current && this.current!.user.customClaims!.memberName === register.user.customClaims!.memberName)
 			return this.signOut();
-		this.current = register;																	// stash current Member
+		this.current = register;																// stash current Member
 
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
-				await Promise.all([														// initial sync complete
+				await Promise.all([																	// initial sync complete
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
 				]);
+				this.sync.status(COLLECTION.member).ready						// when Member sync'd
+					.then(_ => this.setProfile())											// give them a Profile.info
 
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
-				this.history = this.fetch(action, `provider=${provider}&id=${id}`)
+				this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
 						return (resp.history || []).sort(sortKeys(FIELD.stamp));
 					})
-				this.history
+					.then(history => this.history.resolve(history))
+				this.history.promise
 					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
 					.catch(err => this.dbg('err: %j', err.message))
 
-				this.account$ = this.state.getAccountData();//.pipe(tap(data => this.dbg('account$: %j', data)));;
+				this.account$ = this.state.getAccountData();
 				this.dflt = 'Zumba';
 				this.hide = register[FIELD.hidden]
 					? 'Un'
@@ -175,14 +179,14 @@ export class MigrateComponent implements OnInit {
 	}
 
 	async	signOut() {																					// signOut of 'on-behalf' mode
+		this.current = null;
+		this.history = createPromise<MHistory[]>();
+		this.hide = '';
+
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
 			.subscribe(_other => {
 				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
-
-				this.current = null;
-				this.history = Promise.resolve([]);
-				this.hide = '';
 
 				this.sync.on(COLLECTION.member, query);
 				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
@@ -208,6 +212,24 @@ export class MigrateComponent implements OnInit {
 		this.data.batch(creates, updates);
 	}
 
+	async setProfile() {
+		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
+		const providers = reg.migrate!.providers || [];
+
+		Promise.all(providers
+			.filter(provider => !isNull(provider))
+			.map(provider => {
+				const profile: firebase.auth.AdditionalUserInfo = {
+					isNewUser: false,
+					providerId: getProviderId(provider!.provider),
+					profile: provider,
+				}
+				return this.member.getAuthProfile(profile, this.current!.uid);
+			})
+		)
+	}
+
+	/** get the data needed to migrate a Member */
 	private async getMember() {
 		return Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
@@ -215,7 +237,7 @@ export class MigrateComponent implements OnInit {
 			this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IPlan>(STORE.plan),
 			this.data.getStore<IPrice>(STORE.price),
-			this.history,
+			this.history.promise,
 		])
 	}
 
@@ -325,7 +347,7 @@ export class MigrateComponent implements OnInit {
 		Promise.all([
 			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
-			this.history,
+			this.history.promise,
 		]).then(([migrate, attend, history]) => {
 			this.migrate = migrate;
 			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
@@ -506,7 +528,7 @@ export class MigrateComponent implements OnInit {
 			this.member.getAmount(),								// get closing balance
 			this.member.getPlan(),									// get final Plan
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
-			this.history,
+			this.history.promise,
 		]);
 
 		this.dbg('history: %j', history.reduce((prev: any, curr: any) => {
