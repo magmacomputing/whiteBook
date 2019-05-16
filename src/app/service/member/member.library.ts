@@ -50,7 +50,7 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 // each Provider might report a different birthday; take latest
 export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	const birthDays = asArray(info)
-		.map(row => row.birthDay)
+		.map(row => row.info.birthDay)
 		.filter(isNumber)
 	return birthDays.length ? Math.max(...birthDays) : undefined;
 }
