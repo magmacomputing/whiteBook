@@ -7,7 +7,7 @@ import { TStoreBase, isClientDocument, IStoreMeta, FType, FNumber } from '@dbase
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
-import { equalObj, cloneObj } from '@lib/object.library';
+import { equalObj, cloneObj, getPath } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -20,12 +20,12 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 
 	asArray(filters).forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
-			where.push(addWhere(field, nextDoc[field]));
+			where.push(addWhere(field, getPath(nextDoc, field)));// nextDoc[field]));
 		else throw new Error(`missing required field: ${field}`)
 	})
 
 	asArray(filter).forEach(clause => {           // add any additional match-criteria
-		if (nextDoc[clause.fieldPath as string])
+		if (getPath(nextDoc, clause.fieldPath as string))
 			where.push(addWhere(clause.fieldPath, clause.value, clause.opStr))
 	})
 
