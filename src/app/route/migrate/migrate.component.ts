@@ -154,8 +154,8 @@ export class MigrateComponent implements OnInit {
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
 				]);
-				this.sync.status(COLLECTION.member).ready						// when Member sync'd
-					.then(_ => this.setProfile())											// give them a Profile.info
+				// this.sync.status(COLLECTION.member).ready						// when Member sync'd
+				// 	.then(_ => this.setProfile())											// give them a Profile.info
 
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];

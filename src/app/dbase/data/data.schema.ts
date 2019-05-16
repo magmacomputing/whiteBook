@@ -281,8 +281,9 @@ export interface IProfileClaim extends IProfile {
 	[FIELD.type]: 'claim';
 	claim: ICustomClaims;
 }
-export interface IProfileInfo extends IProfile, IMemberInfo {
+export interface IProfileInfo extends IProfile {
 	[FIELD.type]: 'info';
+	'info': IMemberInfo;
 }
 export interface IProfilePref extends IProfile {
 	[FIELD.type]: 'pref';

@@ -119,11 +119,11 @@ export class MemberService {
 		const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
-			...memberInfo,																// spread the conformed member info
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: 'info',
 			[FIELD.uid]: uid || (await user).auth.user!.uid,
+			info: { ...memberInfo },											// spread the conformed member info
 		}
 
 		const where = addWhere('providerId', info.providerId);
