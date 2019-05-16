@@ -7,7 +7,7 @@ import { TStoreBase, isClientDocument, IStoreMeta, FType, FNumber } from '@dbase
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
-import { equalObj } from '@lib/object.library';
+import { equalObj, cloneObj } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -34,13 +34,14 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 
 export const docPrep = (doc: TStoreBase, uid: string) => {
 	if (!doc[FIELD.store])												// every document needs a <store> field
-		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`)
+		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`);
+	const prep = cloneObj(doc);
 
-	if (!isClientDocument(doc))										// if not a /client document
-		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
-			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
+	if (!isClientDocument(prep))										// if not a /client document
+		if (!prep[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
+			prep[FIELD.uid] = uid;											//  push the current user's uid onto the document
 
-	return doc;
+	return prep;
 }
 
 /** Expire current docs */

@@ -125,9 +125,9 @@ export class MemberService {
 			[FIELD.uid]: uid || (await user).auth.user!.uid,
 			info: { ...memberInfo },											// spread the conformed member info
 		}
-
-		const where = addWhere('providerId', info.providerId);
-		this.data.insDoc(profileInfo as IProfileInfo, where, Object.keys(memberInfo));
+debugger;
+		const where = addWhere('info.providerId', info.providerId);
+		this.data.insDoc(profileInfo as IProfileInfo, where, 'info');
 	}
 
 }
