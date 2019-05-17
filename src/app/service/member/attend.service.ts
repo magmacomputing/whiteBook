@@ -11,12 +11,14 @@ import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IBonus, TBonus } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
-import { isUndefined, TString } from '@lib/type.library';
+import { isUndefined, isNumber, TString } from '@lib/type.library';
 import { getPath, isEmpty, IObject } from '@lib/object.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -315,5 +317,58 @@ export class AttendService {
 		await this.member.setAccount(creates, updates, data);
 
 		return this.data.batch(creates, updates, undefined, SyncAttend)
+	}
+
+	/**
+	 * Removing Attends is a tricky business...  
+	 * it may need to walk back a couple of related Documents.  
+	 * Take great care when deleting a non-latest Attend, as this will affect Bonus pricing, Bank rollovers, etc.
+	 */
+	public delAttend = async (where: TWhere) => {
+		const memberUid = addWhere(FIELD.uid, (await this.data.auth.current)!.uid);
+		const filter = asArray(where);
+		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
+			filter.push(memberUid);
+
+		const [attends, payments, gifts] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, filter),
+			this.data.getStore<IPayment>(STORE.payment, [memberUid, addWhere(FIELD.store, STORE.payment)]),
+			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.store, STORE.gift)]),
+		])
+		const creates: IStoreMeta[] = [];
+		const updates: IStoreMeta[] = [];
+		const deletes: IStoreMeta[] = [...attends];
+
+		let pays = attends														// count the number of Attends per Payment
+			.distinct(row => row.payment[FIELD.id])
+			.reduce((acc, itm) => {
+				acc[itm] = payments.filter(row => row[FIELD.id] === itm).length;
+				return acc;
+			}, {} as IObject<number>);
+
+		attends.forEach(attend => {
+			if (attend.bonus && attend.bonus[FIELD.type] === STORE.gift) {
+				const idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]!);
+				if (idx >= 0 && isNumber(gifts[idx][FIELD.expire])) {
+					gifts[idx][FIELD.expire] = undefined;
+					updates.push({ ...gifts[idx] });				// re-open a Gift
+				}
+			}
+
+			const payId = attend.payment[FIELD.id];			// get the Payment id
+			pays[payId] -= 1;														// reduce the number of Attends for this Payment
+			if (pays[payId] === 0) {
+				const idx = payments.findIndex(row => row[FIELD.id] === payId);
+				if (idx > 0) {														// re-open a Payment
+					payments[idx][FIELD.expire] = undefined;
+					payments[idx].bank = undefined;
+					updates.push({ ...payments[idx] })
+				}
+			}
+
+		})
+
+		return this.data.batch(creates, updates, deletes)
+			.then(_ => this.member.updAccount())
 	}
 }

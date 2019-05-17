@@ -88,6 +88,13 @@ export class MemberService {
 		return accountDoc;
 	}
 
+	updAccount = async (data?: IAccountState) => {
+		const creates: IStoreMeta[] = [];
+		const updates: IStoreMeta[] = [];
+		await this.setAccount(creates, updates, data);
+		return this.data.batch(creates, updates);
+	}
+
 	getPlan = async (data?: IAccountState) => {
 		data = data || await this.getAccount();
 		return data.member.plan[0];

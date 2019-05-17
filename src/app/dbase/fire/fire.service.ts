@@ -76,7 +76,8 @@ export class FireService {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
-				delete rest[key];										// TODO: recurse?
+				// delete rest[key];										// TODO: recurse?
+				rest[key] = firestore.FieldValue.delete();
 			if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
 				rest[key] = firestore.FieldValue.delete();	// TODO: workaround
 		})

@@ -564,8 +564,8 @@ export class MigrateComponent implements OnInit {
 			}
 		}
 
-		await this.member.setAccount(creates, updates);
 		this.data.batch(creates, updates, undefined, SetMember)
+			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
 
