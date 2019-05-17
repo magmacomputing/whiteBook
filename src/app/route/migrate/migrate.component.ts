@@ -67,6 +67,7 @@ export class MigrateComponent implements OnInit {
 		oldZumba: 'Zumba',
 		oldZumbaStep: 'ZumbaStep',
 		oldSmartStep: 'SmartStep',
+		oldSunday3Pak: '3Pack',
 		prevStep: 'MultiStep',
 		prevSmartStep: 'SmartStep',
 		prevStepDown: 'StepDown',
