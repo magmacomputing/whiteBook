@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { firestore } from 'firebase/app';
 import { DocumentReference } from '@angular/fire/firestore';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
@@ -24,7 +25,7 @@ import { dbg } from '@lib/logger.library';
 
 /**
  * The DataService is a go-between for the local State (ngxs 'Store')
- * and the remote DataBase (Firebase 'Cloud Firestore').  
+ * and the remote Database (Firebase 'Cloud Firestore').  
  * The intention is that all 'reads' are from State, and all 'writes' are to a persisted
  * local cache of the Database (which FireStore will sync back to the server).
  */
@@ -97,6 +98,11 @@ export class DataService {
 
 	updDoc(store: STORE, docId: string, data: TStoreBase) {
 		return this.fire.updDoc(store, docId, data);
+	}
+
+	/** mark a field for deletion */
+	get del() {
+		return firestore.FieldValue.delete();
 	}
 
 	/** Expire any current matching docs, and Create new doc */

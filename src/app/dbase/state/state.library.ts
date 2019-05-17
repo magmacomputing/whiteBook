@@ -50,6 +50,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 
 	return state.pipe(
 		map(obs => filterTable<T>(obs[store], filter)),
+		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }
 export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
@@ -61,7 +62,8 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	const res: T[] = []
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
-		map(table => filterTable<T>(table, filter))
+		map(table => filterTable<T>(table, filter)),
+		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }
 
