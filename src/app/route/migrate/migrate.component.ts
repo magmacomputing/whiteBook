@@ -307,10 +307,9 @@ export class MigrateComponent implements OnInit {
 			})
 		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
 			creates.push(this.setGift(gift, start));
-		const updates: IStoreMeta[] = [];
-		await this.member.setAccount(creates, updates);
 
-		this.data.batch(creates, updates, undefined, SetMember)
+		this.data.batch(creates, undefined, undefined, SetMember)
+			.then(_ => this.member.updAccount())
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
 
