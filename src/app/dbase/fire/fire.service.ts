@@ -41,11 +41,12 @@ export class FireService {
 
 				const uid = this.afa.auth.currentUser && this.afa.auth.currentUser.uid;
 				if (uid) {
+					const status = { store: 'status', uid: uid };
 					const ref = this.afd.database.ref(`status/${uid}`);
 					ref
 						.onDisconnect()
-						.set({ state: 'offline', stamp: database.ServerValue.TIMESTAMP })
-						.then(_ => ref.set({state: 'online', stamp: database.ServerValue.TIMESTAMP}))
+						.set({ ...status, state: 'offline', stamp: database.ServerValue.TIMESTAMP })
+						.then(_ => ref.set({ ...status, state: 'online', stamp: database.ServerValue.TIMESTAMP }))
 				}
 			})
 	}
