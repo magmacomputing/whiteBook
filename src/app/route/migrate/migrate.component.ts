@@ -30,6 +30,8 @@ import { asString } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
 
+const ON = true, OFF = false;
+
 @Component({
 	selector: 'wb-migrate',
 	templateUrl: './migrate.component.html',
@@ -68,6 +70,7 @@ export class MigrateComponent implements OnInit {
 		oldZumbaStep: 'ZumbaStep',
 		oldSmartStep: 'SmartStep',
 		oldSunday3Pak: '3Pack',
+		oldSunday3For2: '3Pack',
 		prevStep: 'MultiStep',
 		prevSmartStep: 'SmartStep',
 		prevStepDown: 'StepDown',
@@ -147,6 +150,8 @@ export class MigrateComponent implements OnInit {
 			return this.signOut();
 		this.current = register;																// stash current Member
 
+		await this.data.connect(ON);
+
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
@@ -155,8 +160,6 @@ export class MigrateComponent implements OnInit {
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
 				]);
-				// this.sync.status(COLLECTION.member).ready						// when Member sync'd
-				// 	.then(_ => this.setProfile())											// give them a Profile.info
 
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
@@ -183,6 +186,7 @@ export class MigrateComponent implements OnInit {
 		this.current = null;
 		this.history = createPromise<MHistory[]>();
 		this.hide = '';
+		await this.data.connect(ON);
 
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
@@ -343,34 +347,35 @@ export class MigrateComponent implements OnInit {
 	/**
 	 * Add Attendance records for a Member
 	 */
-	public addAttend() {
-		Promise.all([
+	public async addAttend() {
+		const [migrate, attend, history] = await Promise.all([
 			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
 			this.history.promise,
-		]).then(([migrate, attend, history]) => {
-			this.migrate = migrate;
-			const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-			const start = attend.sort(sortKeys('-track.date'));
-			const preprocess = cloneObj(table);
+		])
 
-			// const endAt = table.filter(row => row.date >= getDate('2016-Jan-01').format(DATE_FMT.yearMonthDay)).length;
-			// table.splice(table.length - endAt);
+		this.migrate = migrate;
+		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
+		const start = attend.sort(sortKeys('-track.date'));
+		const preprocess = cloneObj(table);
 
-			if (start[0]) {
-				const startFrom = start[0].track.date;
-				this.dbg('startFrom: %j', startFrom);
-				const offset = table.filter(row => row.date < startFrom).length;
-				table.splice(0, offset + 1);
-			}
-			if (table.length) {
-				this.check = createPromise();
-				this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
-				this.check.promise														// wait for pre-process to complete
-					.then(_ready => this.dbg('ready: %j', _ready))
-					.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
-			} else this.dbg('nothing to load');
-		})
+		// const endAt = table.filter(row => row.date >= getDate('2016-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+		// table.splice(table.length - endAt);
+
+		if (start[0]) {
+			const startFrom = start[0].track.date;
+			this.dbg('startFrom: %j', startFrom);
+			const offset = table.filter(row => row.date < startFrom).length;
+			table.splice(0, offset + 1);
+		}
+		if (table.length) {
+			this.check = createPromise();
+			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
+			this.check.promise														// wait for pre-process to complete
+				.then(_ready => this.dbg('ready: %j', _ready))
+				.then(_ready => this.data.connect(OFF))
+				.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
+		} else this.dbg('nothing to load');
 	}
 
 	private async nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
@@ -524,6 +529,7 @@ export class MigrateComponent implements OnInit {
 	}
 
 	private async lastAttend() {
+		await this.data.connect(ON);
 		const [summary, profile, active, history] = await Promise.all([
 			this.member.getAmount(),								// get closing balance
 			this.member.getPlan(),									// get final Plan
@@ -565,6 +571,7 @@ export class MigrateComponent implements OnInit {
 
 		this.data.batch(creates, updates, undefined, SetMember)
 			.then(_ => this.member.updAccount())
+			// .then(_ => this.data.connect(ON))						// let Firestore write back to server
 			.finally(() => this.dbg('done'))
 	}
 

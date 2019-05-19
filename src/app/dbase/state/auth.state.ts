@@ -236,10 +236,11 @@ export class AuthState implements NgxsOnInit {
 
 		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
 			.pipe(
-				map(slice => slice[STORE.register]),			// get the Register slice
-				map(table => table.filter(row => row[FIELD.uid] === member || getPath(row, 'user.customClaims.memberName') === member)),
+				map(admin => admin[STORE.register]),			// get the Register segment
+				map(table => table.find(row => row[FIELD.uid] === member || getPath(row, 'user.customClaims.memberName') === member)),
 			)
-			.subscribe(reg => ctx.patchState({ current: reg[0].user }))
+			.subscribe(reg => ctx.patchState({ current: reg && reg.user }))
+			.unsubscribe()
 	}
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken

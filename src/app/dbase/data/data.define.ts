@@ -31,6 +31,7 @@ export enum STORE {
 	register = 'register',
 	account = 'account',
 	migrate = 'migrate',
+	status = 'status',
 	local = '@config@',
 	log = 'log',
 }

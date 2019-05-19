@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/firestore';
+import { AngularFireDatabaseModule } from '@angular/fire/database';
 import { AngularFireFunctionsModule, FunctionsRegionToken } from '@angular/fire/functions';
 import { environment } from '@env/environment';
 
@@ -10,7 +11,6 @@ import { NgxsModule } from '@ngxs/store';
 import { ClientState } from '@dbase/state/client.state';
 import { MemberState } from '@dbase/state/member.state';
 import { AttendState } from '@dbase/state/attend.state';
-// import { DeviceState } from '@dbase/state/device.state';
 import { AdminState } from '@dbase/state/admin.state';
 
 import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/material/snack.service';
@@ -23,6 +23,7 @@ const fb = environment.firebase || {};
 		NgxsModule.forFeature([ClientState, MemberState, AttendState, AdminState]),
 		AngularFireModule.initializeApp(fb.app, fb.config),
 		AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
+		AngularFireDatabaseModule,
 		AngularFireFunctionsModule,
 	],
 	providers: [

@@ -159,10 +159,18 @@ export class DataService {
 			})
 			.then(_ => this.fire.batch(creates, updates, deletes))// batch the writes
 			.then(_ => sync)																			// wait for callback to resolve
+			.catch(err => this.dbg('err: %s', err.message))
 	}
 
 	/** Wrap writes in a Transaction */
 	runTxn(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[], selects?: DocumentReference[]) {
 		return this.fire.runTxn(creates, updates, deletes, selects);
+	}
+
+	connect(onOff: boolean) {
+		this.dbg('server: %s', onOff ? 'on' : 'off');
+		return onOff
+			? this.fire.connect(true)
+			: this.fire.connect(false)
 	}
 }

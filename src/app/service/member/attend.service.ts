@@ -103,6 +103,7 @@ export class AttendService {
 				bonus = {
 					[FIELD.id]: gifts[0][FIELD.id],
 					[FIELD.type]: 'gift',
+					count: attendGift.length + 1,
 					gift: {
 						[FIELD.effect]: gifts[0][FIELD.effect] || (attendGift.length === 0 ? now.startOf('day').ts : undefined),
 						[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
@@ -322,7 +323,7 @@ export class AttendService {
 	/**
 	 * Removing Attends is a tricky business...  
 	 * it may need to walk back a couple of related Documents.  
-	 * Take great care when deleting a non-latest Attend, as this will affect Bonus pricing, Bank rollovers, etc.
+	 * Take great care when deleting a non-latest Attend, as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
 	 */
 	public delAttend = async (where: TWhere) => {
 		const memberUid = addWhere(FIELD.uid, (await this.data.auth.current)!.uid);

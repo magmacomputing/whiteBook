@@ -7,7 +7,7 @@ import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert;
-type TStoreUser = STORE.profile | STORE.payment | STORE.account | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register;
+type TStoreUser = STORE.profile | STORE.payment | STORE.account | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
@@ -334,6 +334,7 @@ export interface TBonus {
 	[FIELD.id]?: string;
 	[FIELD.type]?: string;
 	gift?: IGift;											// the /member/gift _id for this payment
+	count?: number;										// the number of this Gift
 	scheme?: IBonus;									// the /client/bonus _id for this payment
 }
 interface TTrack {
@@ -403,4 +404,10 @@ export interface IAccount extends IUserBase {
 	[FIELD.type]: 'summary';
 	stamp: number;																	// date last updated
 	summary: ISummary;
+}
+//	/member/status
+export interface IConnect extends IUserBase {
+	[FIELD.store]: STORE.status;
+	stamp: number;
+	status: boolean;
 }

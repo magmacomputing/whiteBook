@@ -1,9 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
-import { firestore } from 'firebase/app';
+import { firestore, database } from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
+import { AngularFireAuth } from '@angular/fire/auth';
+import { AngularFireDatabase } from '@angular/fire/database';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -19,7 +21,6 @@ import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
-
 /**
  * This private service will communicate with the FireStore database,
  * and is intended to be invoked via the DataService only
@@ -27,9 +28,27 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	private dbg = dbg(this);
+	private ref!: database.Reference;
+	private online: boolean = false;
 
-	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
-		private zone: NgZone, private snack: SnackService) { this.dbg('new'); }
+	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, private readonly afd: AngularFireDatabase, private readonly aff: AngularFireFunctions,
+		private zone: NgZone, private snack: SnackService) {
+		this.dbg('new');
+
+		this.afd.database.ref('.info/connected')
+			.on('value', snap => {
+				this.online = snap.val();						// keep local track of online/offline status
+
+				const uid = this.afa.auth.currentUser && this.afa.auth.currentUser.uid;
+				if (uid) {
+					const ref = this.afd.database.ref(`status/${uid}`);
+					ref
+						.onDisconnect()
+						.set({ state: 'offline', stamp: database.ServerValue.TIMESTAMP })
+						.then(_ => ref.set({state: 'online', stamp: database.ServerValue.TIMESTAMP}))
+				}
+			})
+	}
 
 	/**
 	 * return Collection References (against an optional query).  
@@ -66,6 +85,16 @@ export class FireService {
 		return this.afs.firestore.collection(col).doc(docId);
 	}
 
+	connect(onOff: boolean) {
+		if (onOff) {
+			this.afd.database.goOnline();							// disconnect Realtime database
+			return this.afs.firestore.enableNetwork();// disconnect Cloud Firestore
+		} else {
+			this.afd.database.goOffline();						// reconnect Realtime database
+			return this.afs.firestore.disableNetwork();// reconnect Cloud Firestore
+		}
+	}
+
 	/** allocate a new meta-field _id */
 	newId() {
 		return this.afs.createId();
@@ -85,7 +114,7 @@ export class FireService {
 	}
 
 	/**
-	 * Wrap database-writes within a set of Batches (limited to 500 documents per).  
+	 * Wrap database-writes within a set of Batches (limited to 300 documents per).  
 	 * These documents are assumed to have a <store> field and (except for 'creates') an <id> field  
 	 * If they are Member documents and missing a <uid> field, the current User is inserted
 	 */
@@ -94,28 +123,23 @@ export class FireService {
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));
 		const limit = 300;
+		const all: Promise<void>[] = [];
 
-		return (cloneCreate.length + cloneUpdate.length + cloneDelete.length === 0)
-			? Promise.resolve(undefined)										// nothing to do
-			: new Promise<boolean>((resolve, reject) => {
+		while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
+			const c = cloneCreate.splice(0, limit);
+			const u = cloneUpdate.splice(0, limit - c.length);
+			const d = cloneDelete.splice(0, limit - c.length - u.length);
 
-				while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
-					const c = cloneCreate.splice(0, limit);
-					const u = cloneUpdate.splice(0, limit - c.length);
-					const d = cloneDelete.splice(0, limit - c.length - u.length);
-					// this.dbg('batch: c: %s, u: %s, d: %s', c.length, u.length, d.length);
+			const bat = this.afs.firestore.batch();
+			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
+			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
+			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+			all.push(bat.commit());
+		}
 
-					const bat = this.afs.firestore.batch();
-
-					c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
-					u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-					d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
-
-					bat.commit()
-						.then(_res => resolve(true))								// the first batch's result
-						.catch(err => reject(err))
-				}
-			})
+		if (!this.online)
+			all.length = 0;													// dont wait for Batch if offline
+		return Promise.all(all);
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
