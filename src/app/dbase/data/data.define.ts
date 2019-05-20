@@ -60,3 +60,12 @@ export enum FIELD {								// common Field names
 	icon = 'icon',
 	key = 'key',
 };
+
+export enum STATUS {
+	connect = 'connect',						// connected, but not logged-in
+	active = 'active',							// logged-in, browser has focus
+	behalf = 'behalf',							// logged-in on behalf of Member
+	inactive = 'inactive',					// logged-in, browser lost focus
+	offline = 'offline',						// logged-in, network off air
+	logout = 'logout',							// logged-out, browser lost focus
+}

@@ -10,15 +10,16 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE, STATUS } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { IStoreMeta, ICustomClaims } from '@dbase/data/data.schema';
+import { IStoreMeta, ICustomClaims, IStatusConnect } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, isObject } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
+import { getDeviceId } from '@lib/window.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -39,22 +40,20 @@ export class FireService {
 			.on('value', snap => {
 				this.online = snap.val();						// keep local track of online/offline status
 
-				const uid = this.afa.auth.currentUser && this.afa.auth.currentUser.uid;
-				if (uid) {
-					const status = { store: 'status', uid: uid };
-					const ref = this.afd.database.ref(`status/${uid}`);
-					ref
-						.onDisconnect()
-						.set({ ...status, state: 'offline', stamp: database.ServerValue.TIMESTAMP })
-						.then(_ => ref.set({ ...status, state: 'online', stamp: database.ServerValue.TIMESTAMP }))
-				}
+				const uid = this.afa.auth.currentUser && this.afa.auth.currentUser.uid || null;
+				const device = getDeviceId() || null;
+				const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: uid as string, device };
+				const ref = this.afd.database.ref(`status/${uid || device}`);
+				ref
+					.onDisconnect()
+					.set({ ...status, state: STATUS.offline, stamp: database.ServerValue.TIMESTAMP })
+					.then(_ => ref.set({ ...status, state: STATUS.active, stamp: database.ServerValue.TIMESTAMP }))
 			})
 	}
 
 	/**
 	 * return Collection References (against an optional query).  
-	 * If a 'logical-or' is detected in the 'value' of any Where-clause,
-	 * multiple Collection References are returned.
+	 * If a 'logical-or' is detected in the 'value' of any Where-clause, multiple Collection References are returned.
 	 */
 	colRef<T>(collection: COLLECTION, query?: IQuery) {
 		return !query

@@ -38,3 +38,18 @@ const getStorage = <T>(key: string, target: Storage) =>
 const delStorage = (key: string, target: Storage) =>
 	target.removeItem(key);
 
+/** calculate an approximate browser fingerprint */
+export const getDeviceId = () => {
+	let nav = window.navigator;
+	let screen = window.screen;
+
+	return `
+		${nav.mimeTypes.length}
+		${nav.userAgent.replace(/\D+/g, '')}
+		${nav.plugins.length}
+		${screen.height || ''}
+		${screen.width || ''}
+		${screen.pixelDepth || ''}
+		`
+		.replace(/(\r\n|\n|\r|\t|\s)/gm, "")
+}
