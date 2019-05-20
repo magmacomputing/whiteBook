@@ -5,7 +5,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
@@ -102,7 +102,7 @@ export class AttendService {
 			case gifts.length > 0:														// qualify for a Gift bonus?
 				bonus = {
 					[FIELD.id]: gifts[0][FIELD.id],
-					[FIELD.type]: 'gift',
+					[FIELD.type]: BONUS.gift,
 					count: attendGift.length + 1,
 					gift: {
 						[FIELD.effect]: gifts[0][FIELD.effect] || (attendGift.length === 0 ? now.startOf('day').ts : undefined),
@@ -118,7 +118,7 @@ export class AttendService {
 			 */
 			case scheme.week
 				&& attendWeek
-					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 					.distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.week.level
 				&& attendWeek
@@ -127,7 +127,7 @@ export class AttendService {
 					.length < scheme.week.free:
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
-					[FIELD.type]: 'week',
+					[FIELD.type]: BONUS.week,
 				}
 				break;
 
@@ -138,14 +138,14 @@ export class AttendService {
 			 */
 			case scheme.sunday
 				&& attendWeek
-					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 					.distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
 				&& (scheme.sunday.free as TString).includes(event):
 				bonus = {
 					[FIELD.id]: scheme.sunday[FIELD.id],
-					[FIELD.type]: 'sunday',
+					[FIELD.type]: BONUS.sunday,
 				}
 				break;
 
@@ -155,7 +155,7 @@ export class AttendService {
 			 */
 			case scheme.month
 				&& attendMonth
-					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === 'gift')
+					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 					.distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.month.level
 				&& attendMonth
@@ -164,7 +164,7 @@ export class AttendService {
 					.length < scheme.month.free:
 				bonus = {
 					[FIELD.id]: scheme.month[FIELD.id],
-					[FIELD.type]: 'month',
+					[FIELD.type]: BONUS.month,
 				}
 				break;
 		}
@@ -348,7 +348,7 @@ export class AttendService {
 			}, {} as IObject<number>);
 
 		attends.forEach(attend => {
-			if (attend.bonus && attend.bonus[FIELD.type] === STORE.gift) {
+			if (attend.bonus && attend.bonus[FIELD.type] === BONUS.gift) {
 				const idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]!);
 				if (idx >= 0 && isNumber(gifts[idx][FIELD.expire])) {
 					gifts[idx][FIELD.expire] = undefined;

@@ -69,3 +69,10 @@ export enum STATUS {
 	offline = 'offline',						// logged-in, network off air
 	logout = 'logout',							// logged-out, browser lost focus
 }
+
+export enum BONUS {
+	gift = 'gift',
+	week = 'week',
+	month = 'month',
+	sunday = 'sunday',
+}

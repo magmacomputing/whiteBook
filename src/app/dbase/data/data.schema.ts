@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, STATUS } from '@dbase/data/data.define';
+import { FIELD, STORE, STATUS, BONUS } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { TString } from '@lib/type.library';
 import { getSlice } from '@dbase/state/state.library';
@@ -331,9 +331,10 @@ export interface IGift extends IUserBase {
 }
 
 // /attend
+
 export interface TBonus {
 	[FIELD.id]?: string;
-	[FIELD.type]?: string;
+	[FIELD.type]?: BONUS;
 	gift?: IGift;											// the /member/gift _id for this payment
 	count?: number;										// the number of this Gift
 	scheme?: IBonus;									// the /client/bonus _id for this payment
