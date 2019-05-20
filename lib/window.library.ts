@@ -37,3 +37,4 @@ const getStorage = <T>(key: string, target: Storage) =>
 
 const delStorage = (key: string, target: Storage) =>
 	target.removeItem(key);
+

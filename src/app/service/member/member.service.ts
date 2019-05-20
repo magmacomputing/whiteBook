@@ -9,7 +9,7 @@ import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IAccount, IStoreMeta } from '@dbase/data/data.schema';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -70,12 +70,12 @@ export class MemberService {
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<IAccount>(STORE.account, addWhere(FIELD.uid, uid)),
+			this.data.getStore<IStatusAccount>(STORE.status, [addWhere(FIELD.uid, uid), addWhere(FIELD.type, 'account')]),
 		]);
-		const accountDoc: Partial<IAccount> = !doc.length
+		const accountDoc: Partial<IStatusAccount> = !doc.length
 			? {																// scaffold a new Account doc
-				[FIELD.store]: STORE.account,
-				[FIELD.type]: 'summary',
+				[FIELD.store]: STORE.status,
+				[FIELD.type]: 'account',
 				[FIELD.uid]: uid,
 				stamp: getStamp(),
 				summary,

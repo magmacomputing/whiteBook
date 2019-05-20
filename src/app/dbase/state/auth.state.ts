@@ -251,7 +251,7 @@ export class AuthState implements NgxsOnInit {
 					ctx.patchState({ user, token, current: user });
 					if (this.hasRole(token, 'admin'))
 						this.sync.on(COLLECTION.admin, undefined,
-							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.account) }]);
+							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
 				})
 		}
 	}
@@ -271,7 +271,7 @@ export class AuthState implements NgxsOnInit {
 				.then(_ => {
 					if (this.hasRole(token, 'admin'))
 						this.sync.on(COLLECTION.admin, undefined,
-							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.account) }]);
+							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
 					else
 						this.sync.off(COLLECTION.admin);
 				})

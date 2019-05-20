@@ -4,7 +4,8 @@ import { IAuthState } from './auth.action';
 import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IAccount, IGift, IBonus
+	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
+	IStatusConnect, IStatusAccount,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -44,10 +45,11 @@ export interface IUserState {
 
 export interface IAdminState {
 	register: IRegister[];
-	account?: IAccount[];
+	status?: IStatusAccount[] | IStatusConnect[];
 	dash: {
-		[STORE.register]: IStoreMeta;
-		[STORE.account]?: IAccount;
+		[STORE.register]: IRegister;
+		account: IStatusAccount;
+		connect: IStatusConnect;
 	}[]
 };
 

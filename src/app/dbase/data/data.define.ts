@@ -29,7 +29,6 @@ export enum STORE {
 	config = '_config_',
 	schema = '_schema_',
 	register = 'register',
-	account = 'account',
 	migrate = 'migrate',
 	status = 'status',
 	local = '@config@',
@@ -42,10 +41,6 @@ export enum MEMBER {
 	diary = 'diary',
 	gift = 'gift',
 }
-
-// export enum LOCAL {
-// 	config = '@config@',
-// }
 
 export enum FIELD {								// common Field names
 	effect = '_effect',							// valid when greater-than-or-equal-to

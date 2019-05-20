@@ -7,13 +7,14 @@ import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert;
-type TStoreUser = STORE.profile | STORE.payment | STORE.account | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
+type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
 type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
 type TPayment = 'topUp' | 'hold' | 'credit' | 'debit';
 type TProfile = 'plan' | 'claim' | 'info' | 'pref';
+type TStatus = 'account' | 'connect';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
@@ -398,16 +399,18 @@ export interface IRegister extends IUserBase {
 	};
 }
 
-//	/member/account
-export interface IAccount extends IUserBase {
-	[FIELD.store]: STORE.account;
-	[FIELD.type]: 'summary';
-	stamp: number;																	// date last updated
+//	/member/status
+export interface IStatus extends IUserBase {
+	[FIELD.store]: STORE.status;
+	[FIELD.type]: TStatus;
+	stamp: number;
+}
+export interface IStatusAccount extends IStatus {
+	[FIELD.type]: 'account';
 	summary: ISummary;
 }
-//	/member/status
-export interface IConnect extends IUserBase {
-	[FIELD.store]: STORE.status;
-	stamp: number;
+export interface IStatusConnect extends IStatus {
+	[FIELD.type]: 'connect';
 	status: boolean;
+	device?: string;
 }

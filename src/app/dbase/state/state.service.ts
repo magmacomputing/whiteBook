@@ -11,7 +11,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { SORTBY } from '@dbase/library/config.define';
-import { IStoreMeta, IAccount, IRegister } from '@dbase/data/data.schema';
+import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
@@ -97,13 +97,15 @@ export class StateService {
 		return this.admin$.pipe(
 			map(source => ({
 				[STORE.register]: source[STORE.register] as IRegister[],
-				[STORE.account]: source[STORE.account] as IAccount[],
+				[STORE.status]: source[STORE.status] as IStatusAccount[] | IStatusConnect[],
 				dash: (source[STORE.register] || [])
 					.sort(sortKeys(...SORTBY[STORE.register]))
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
-						[STORE.account]: (source[STORE.account] || [])
-							.find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IAccount,
+						account: (source[STORE.status] || [])
+							.find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IStatusAccount,
+						connect: (source[STORE.status] || [])
+							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as IStatusConnect,
 					})),
 			}))
 		)
