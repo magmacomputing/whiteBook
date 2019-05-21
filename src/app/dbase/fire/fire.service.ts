@@ -53,7 +53,7 @@ export class FireService {
 			this.uid = this.afa.auth.currentUser.uid;
 		if (!this.uid && state == STATUS.active)// Connected, authenticated
 			state = STATUS.connect								// Connected, not authenticated
-debugger;
+
 		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
 		this.ref
 			.onDisconnect()
