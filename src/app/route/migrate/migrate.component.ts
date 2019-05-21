@@ -69,8 +69,6 @@ export class MigrateComponent implements OnInit {
 		oldZumba: 'Zumba',
 		oldZumbaStep: 'ZumbaStep',
 		oldSmartStep: 'SmartStep',
-		oldSunday3Pak: '3Pack',
-		oldSunday3For2: '3Pack',
 		prevStep: 'MultiStep',
 		prevSmartStep: 'SmartStep',
 		prevStepDown: 'StepDown',
@@ -81,6 +79,7 @@ export class MigrateComponent implements OnInit {
 		prevStepIn: 'StepIn',
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
+	private pack = ['oldSunday3Pak', 'oldSunday3for2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
