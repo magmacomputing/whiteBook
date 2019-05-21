@@ -40,6 +40,7 @@ export enum MEMBER {
 	payment = 'payment',
 	diary = 'diary',
 	gift = 'gift',
+	status = 'status',
 }
 
 export enum FIELD {								// common Field names

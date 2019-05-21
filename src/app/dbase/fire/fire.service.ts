@@ -30,25 +30,35 @@ import { dbg } from '@lib/logger.library';
 export class FireService {
 	private dbg = dbg(this);
 	private ref!: database.Reference;
+	private uid: string | null = null;
 	private online: boolean = false;
 
 	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, private readonly afd: AngularFireDatabase, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
+		this.ref = this.afd.database.ref(`status/${getDeviceId()}`);
 
 		this.afd.database.ref('.info/connected')
 			.on('value', snap => {
 				this.online = snap.val();						// keep local track of online/offline status
-
-				const uid = this.afa.auth.currentUser && this.afa.auth.currentUser.uid || null;
-				const device = getDeviceId() || null;
-				const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: uid as string, device };
-				const ref = this.afd.database.ref(`status/${uid || device}`);
-				ref
-					.onDisconnect()
-					.set({ ...status, state: STATUS.offline, stamp: database.ServerValue.TIMESTAMP })
-					.then(_ => ref.set({ ...status, state: STATUS.active, stamp: database.ServerValue.TIMESTAMP }))
+				if (this.online)
+					this.setState(STATUS.active);			// set initial state
 			})
+	}
+
+	setState(state: STATUS) {
+		if (this.uid && !this.afa.auth.currentUser)
+			this.uid = null;											// User has logged-out
+		if (!this.uid && this.afa.auth.currentUser)
+			this.uid = this.afa.auth.currentUser.uid;
+		if (!this.uid && state == STATUS.active)// Connected, authenticated
+			state = STATUS.connect								// Connected, not authenticated
+debugger;
+		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
+		this.ref
+			.onDisconnect()
+			.set({ ...status, state: STATUS.offline, stamp: database.ServerValue.TIMESTAMP })
+			.then(_ => this.ref.set({ ...status, state: state, stamp: database.ServerValue.TIMESTAMP }))
 	}
 
 	/**
@@ -85,6 +95,7 @@ export class FireService {
 		return this.afs.firestore.collection(col).doc(docId);
 	}
 
+	/** this will auto-manage '.info/connected' Realtime reference */
 	connect(onOff: boolean) {
 		if (onOff) {
 			this.afd.database.goOnline();							// disconnect Realtime database
