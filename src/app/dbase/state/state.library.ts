@@ -49,7 +49,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(obs => filterTable<T>(obs[store], filter)),
+		map(obs => asAt<T>(obs[store], filter, date)),
 		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }
@@ -62,7 +62,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	const res: T[] = []
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
-		map(table => filterTable<T>(table, filter)),
+		map(table => asAt<T>(table, filter, date)),
 		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }

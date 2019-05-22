@@ -168,7 +168,7 @@ export class DataService {
 	}
 
 	connect(onOff: boolean) {
-		this.dbg('server: %s', onOff ? 'on' : 'off');
+		this.dbg('server: %s', onOff ? 'online' : 'offline');
 		return onOff
 			? this.fire.connect(true)
 			: this.fire.connect(false)

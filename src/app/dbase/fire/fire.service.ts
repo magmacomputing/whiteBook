@@ -10,7 +10,7 @@ import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD, COLLECTION, STORE, STATUS } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE, CONNECT } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IStoreMeta, ICustomClaims, IStatusConnect } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
@@ -42,22 +42,22 @@ export class FireService {
 			.on('value', snap => {
 				this.online = snap.val();						// keep local track of online/offline status
 				if (this.online)
-					this.setState(STATUS.active);			// set initial state
+					this.setState(CONNECT.active);			// set initial state
 			})
 	}
 
-	setState(state: STATUS) {
+	setState(state: CONNECT) {
 		if (this.uid && !this.afa.auth.currentUser)
 			this.uid = null;											// User has logged-out
 		if (!this.uid && this.afa.auth.currentUser)
 			this.uid = this.afa.auth.currentUser.uid;
-		if (!this.uid && state == STATUS.active)// Connected, authenticated
-			state = STATUS.connect								// Connected, not authenticated
+		if (!this.uid && state == CONNECT.active)// Connected, authenticated
+			state = CONNECT.connect								// Connected, not authenticated
 
 		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
 		this.ref
 			.onDisconnect()
-			.set({ ...status, state: STATUS.offline, stamp: database.ServerValue.TIMESTAMP })
+			.set({ ...status, state: CONNECT.offline, stamp: database.ServerValue.TIMESTAMP })
 			.then(_ => this.ref.set({ ...status, state: state, stamp: database.ServerValue.TIMESTAMP }))
 	}
 
@@ -148,8 +148,8 @@ export class FireService {
 			all.push(bat.commit());
 		}
 
-		if (!this.online)
-			all.length = 0;													// dont wait for Batch if offline
+		// if (!this.online)
+		// 	all.length = 0;													// dont wait for Batch if offline
 		return Promise.all(all);
 	}
 

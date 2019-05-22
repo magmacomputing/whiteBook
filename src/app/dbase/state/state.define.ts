@@ -44,8 +44,9 @@ export interface IUserState {
 }
 
 export interface IAdminState {
-	register: IRegister[];
-	status?: IStatusAccount[] | IStatusConnect[];
+	[STORE.register]: IRegister[];
+	account: IStatusAccount[];
+	connect: IStatusConnect[];
 	dash: {
 		[STORE.register]: IRegister;
 		account: IStatusAccount;

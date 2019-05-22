@@ -18,7 +18,7 @@ import { dbg } from '@lib/logger.library';
 export class AdminState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor(private store: Store) { this.init(); }
+	constructor() { this.init(); }
 
 	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
 
@@ -29,9 +29,10 @@ export class AdminState implements NgxsOnInit {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.store];
+			const store = doc[FIELD.type] || doc[FIELD.store];
+			const segment = doc[FIELD.type] ? FIELD.type : FIELD.store;
 
-			state[store] = filterState(state, doc);
+			state[store] = filterState(state, doc, segment);
 			state[store].push(doc);							// push the changed AdminDoc into the Store
 
 			if (debug) this.dbg('setAdmin: %j', doc);
@@ -45,9 +46,10 @@ export class AdminState implements NgxsOnInit {
 		const state = getState() || {};
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.store];
-			state[store] = filterState(state, doc);
+			const store = doc[FIELD.type] || doc[FIELD.store];
+			const segment = doc[FIELD.type] ? FIELD.type : FIELD.store;
 
+			state[store] = filterState(state, doc, segment);
 			if (state[store].length === 0)
 				delete state[store]
 

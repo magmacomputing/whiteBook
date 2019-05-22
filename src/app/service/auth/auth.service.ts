@@ -9,9 +9,8 @@ import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
-import { addWhere } from '@dbase/fire/fire.library';
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, STORE, STATUS } from '@dbase/data/data.define';
+import { FIELD, STORE, CONNECT } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
 import { IObject } from '@lib/object.library';
@@ -47,7 +46,7 @@ export class AuthService {
 	}
 
 	public signOut() {
-		this.fire.setState(STATUS.connect);
+		this.fire.setState(CONNECT.connect);
 		this.store.dispatch(new Logout());
 	}
 
@@ -103,7 +102,7 @@ export class AuthService {
 
 		return this.store.dispatch(new LoginIdentity(authProvider))
 			.toPromise()
-			.then(_ => this.fire.setState(STATUS.active))
+			.then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	/** This runs in the main thread */
@@ -144,13 +143,13 @@ export class AuthService {
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password))
 			.toPromise()
-			.then(_ => this.fire.setState(STATUS.active))
+			.then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon())
 			.toPromise()
-			.then(_ => this.fire.setState(STATUS.active))
+			.then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInOIDC(provider: IProvider) { }

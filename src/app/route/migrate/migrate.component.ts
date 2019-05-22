@@ -13,7 +13,7 @@ import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IStatus } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
 import { asAt } from '@dbase/library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -25,12 +25,11 @@ import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
-import { isUndefined, isNull, getType } from '@lib/type.library';
+import { isUndefined, isNull, getType, TString } from '@lib/type.library';
 import { asString } from '@lib/string.library';
+import { asArray } from '@lib/array.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
-
-const ON = true, OFF = false;
 
 @Component({
 	selector: 'wb-migrate',
@@ -79,7 +78,7 @@ export class MigrateComponent implements OnInit {
 		prevStepIn: 'StepIn',
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
-	private pack = ['oldSunday3Pak', 'oldSunday3for2'];
+	private pack = ['oldSunday3Pak', 'oldSunday3For2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
@@ -149,8 +148,6 @@ export class MigrateComponent implements OnInit {
 			return this.signOut();
 		this.current = register;																// stash current Member
 
-		await this.data.connect(ON);
-
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
@@ -185,7 +182,6 @@ export class MigrateComponent implements OnInit {
 		this.current = null;
 		this.history = createPromise<MHistory[]>();
 		this.hide = '';
-		await this.data.connect(ON);
 
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
@@ -358,8 +354,8 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2016-Jan-01').format(DATE_FMT.yearMonthDay)).length;
-		// table.splice(table.length - endAt);
+		const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+		table.splice(table.length - endAt);
 
 		if (start[0]) {
 			const startFrom = start[0].track.date;
@@ -372,7 +368,6 @@ export class MigrateComponent implements OnInit {
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
 			this.check.promise														// wait for pre-process to complete
 				.then(_ready => this.dbg('ready: %j', _ready))
-				.then(_ready => this.data.connect(OFF))
 				.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
 		} else this.dbg('nothing to load');
 	}
@@ -388,7 +383,7 @@ export class MigrateComponent implements OnInit {
 		let what = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
 
-		const price = parseInt(row.debit || '0') * -1;				// the price that was charged
+		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere('location', 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix, ...none] = what.split('*');
@@ -408,8 +403,37 @@ export class MigrateComponent implements OnInit {
 			sfx = `-1.${sfx}`;
 		}
 
+		if (this.pack.includes(prefix)) {
+			const [plan, prices, bonus] = await Promise.all([
+				this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.type, 'plan'), now),
+				this.data.getStore<IPrice>(STORE.price, undefined, now),
+				this.data.getStore<IBonus>(STORE.bonus, undefined, now),
+			])
+			const obj = prices
+				.filter(row => row[FIELD.key] === plan[0].plan)
+				.reduce((accum, row) => {
+					accum[row[FIELD.type]] = row;
+					return accum;
+				}, {} as IObject<IPrice>)
+			const sunday = bonus.find(row => row[FIELD.key] === 'sunday');
+			if (isUndefined(sunday))
+				throw new Error(`Cannot find a Sunday bonus: ${row}`);
+			const free = asArray(sunday.free as TString)
+
+			// @ts-ignore
+			row.note = isUndefined(row.note)
+				? '3Pack'
+				: ['3Pack', row.note]
+			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep
+
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : price).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : price).toString() });
+			what = 'MultiStep';
+			price = obj.full.amount;											// set this row's price to MultiSTep
+		}
+
 		switch (true) {
-			case this.special.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
+			case this.special.includes(prefix):									// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -487,6 +511,7 @@ export class MigrateComponent implements OnInit {
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				sched.price = price;											// to allow AttendService to check what was charged
+				sched.note = row.note;
 		}
 
 		const p = createPromise();
@@ -528,7 +553,6 @@ export class MigrateComponent implements OnInit {
 	}
 
 	private async lastAttend() {
-		await this.data.connect(ON);
 		const [summary, profile, active, history] = await Promise.all([
 			this.member.getAmount(),								// get closing balance
 			this.member.getPlan(),									// get final Plan
@@ -570,7 +594,6 @@ export class MigrateComponent implements OnInit {
 
 		this.data.batch(creates, updates, undefined, SetMember)
 			.then(_ => this.member.updAccount())
-			// .then(_ => this.data.connect(ON))						// let Firestore write back to server
 			.finally(() => this.dbg('done'))
 	}
 

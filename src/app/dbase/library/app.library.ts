@@ -33,30 +33,31 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 							? key.map(toLower)											// string[] to lowercase
 							: key;
 
-					return asArray(clause.value).map(value => {	// each value logically OR-ed to see if at-least one match
-						const compare = toLower(value);
+					return (isUndefined(clause.value) ? [undefined] : asArray(clause.value))
+						.map(value => {														// each value logically OR-ed to see if at-least one match
+							const compare = toLower(value);
 
-						switch (operand) {												// standard firestore query-operators, and '!='
-							case '==':
-								return isUndefined(field)
-									? !compare													// if field not present, compare to 'false-y'
-									: field == compare;									// use '==' to allow for string/number match, instead of '==='
-							case '>':
-								return field > compare;
-							case '>=':
-								return field >= compare;
-							case '<':
-								return field < compare;
-							case '<=':
-								return field <= compare;
-							case 'array-contains':
-								return field.includes(compare);
-							case '!=':															// non-standard operator
-								return (isUndefined(field) && !isUndefined(compare)) || field != compare;
-							default:
-								return false;
-						}
-					}).includes(true);													// true if at least-one value matches a particular clause
+							switch (operand) {											// standard firestore query-operators, and '!='
+								case '==':
+									return isUndefined(field)
+										? !compare												// if field not present, compare to 'false-y'
+										: field == compare;								// use '==' to allow for string/number match, instead of '==='
+								case '>':
+									return field > compare;
+								case '>=':
+									return field >= compare;
+								case '<':
+									return field < compare;
+								case '<=':
+									return field <= compare;
+								case 'array-contains':
+									return field.includes(compare);
+								case '!=':														// non-standard operator
+									return (isUndefined(field) && !isUndefined(compare)) || field != compare;
+								default:
+									return false;
+							}
+						}).includes(true);												// true if at least-one value matches a particular clause
 				})
 		})
 }

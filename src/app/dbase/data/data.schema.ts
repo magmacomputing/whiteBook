@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, STATUS, BONUS } from '@dbase/data/data.define';
+import { FIELD, STORE, CONNECT, BONUS } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { TString } from '@lib/type.library';
 import { getSlice } from '@dbase/state/state.library';
@@ -412,6 +412,6 @@ export interface IStatusAccount extends IStatus {
 }
 export interface IStatusConnect extends IStatus {
 	[FIELD.type]: 'connect';
-	status: STATUS;
+	state: CONNECT;
 	device?: string | null;
 }

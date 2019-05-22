@@ -133,16 +133,17 @@ export class AttendService {
 
 			/**
 			 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.sunday.level),
-			 * but does not qualify for the Week scheme (already claimed yesterday?).    
+			 * and does not qualify for the Week scheme (already claimed yesterday?).    
 			 * The class must be in the free list (scheme.week.free) to claim this bonus
 			 */
 			case scheme.sunday
 				&& attendWeek
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					.distinct(row => row.track[FIELD.date])
+					// .distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.sunday.level
 				&& now.dow === Instant.DAY.Sun
-				&& (scheme.sunday.free as TString).includes(event):
+				&& event.startsWith('*')
+				&& (scheme.sunday.free as TString).includes(event.substring(1)):
 				bonus = {
 					[FIELD.id]: scheme.sunday[FIELD.id],
 					[FIELD.type]: BONUS.sunday,
@@ -192,12 +193,15 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day at same Location at same Time
 		const attendFilter = [
+			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			addWhere(`track.${FIELD.date}`, when),
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.note, note),
 		]
+		// if (!isUndefined(note))
+		// 	attendFilter.push(addWhere(FIELD.note, note));
+		// debugger;
 		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
 		if (booked.length) {
 			switch (true) {
@@ -212,9 +216,10 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
+		const key = schedule.note && asArray(schedule.note as TString).includes('3Pack') ? '*' : '';
 		let [bonus, calcPrice] = await Promise.all([
 			data.client.plan[0].bonus
-				? this.getBonus(schedule[FIELD.key], date)		// any bonus entitlement
+				? this.getBonus(key + schedule[FIELD.key], date)		// any bonus entitlement
 				: {} as TBonus,
 			this.member.getEventPrice(schedule[FIELD.key], data),
 		]);

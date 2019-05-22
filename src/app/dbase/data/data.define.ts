@@ -62,7 +62,7 @@ export enum FIELD {								// common Field names
 	key = 'key',
 };
 
-export enum STATUS {
+export enum CONNECT {
 	connect = 'connect',						// connected, but not logged-in
 	active = 'active',							// logged-in, browser has focus
 	behalf = 'behalf',							// logged-in on behalf of Member

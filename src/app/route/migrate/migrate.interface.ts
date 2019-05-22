@@ -1,3 +1,5 @@
+import { TString } from "@lib/type.library";
+
 export interface MRegister {
 	id: string;
 	provider: 'fb' | 'g+' | 'gh' | 'li' | 'tw';

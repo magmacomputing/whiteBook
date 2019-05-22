@@ -92,19 +92,21 @@ export class StateService {
 	 * Assemble an AdminState Object describing stores only available to Members with 'admin' role
 	 * dash.register	-> has an array of the current state of /admin/register
 	 * dash.account		-> has an array of the current value of /admin/account
+	 * dash.connect 	-> has an array of the current connections in /admin/connect
 	 */
 	getAdminData(): Observable<IAdminState> {
 		return this.admin$.pipe(
 			map(source => ({
 				[STORE.register]: source[STORE.register] as IRegister[],
-				[STORE.status]: source[STORE.status] as IStatusAccount[] | IStatusConnect[],
+				account: source.account as IStatusAccount[],
+				connect: source.connect as IStatusConnect[],
 				dash: (source[STORE.register] || [])
 					.sort(sortKeys(...SORTBY[STORE.register]))
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
-						account: (source[STORE.status] || [])
-							.find(acct => acct[FIELD.uid] === reg[FIELD.uid]) as IStatusAccount,
-						connect: (source[STORE.status] || [])
+						account: (source.account || [])
+							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as IStatusAccount,
+						connect: (source.connect || [])
 							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as IStatusConnect,
 					})),
 			}))
