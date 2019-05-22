@@ -201,14 +201,14 @@ export class AttendService {
 		]
 		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
 		if (booked.length) {
-			switch (true) {
-				case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:
-					break;																			// we dont already have an Attend with no note
-				default:
-					this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-					this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-					return false;																// discard Attend
-			}
+			// 	switch (true) {
+			// 		case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:
+			// 			break;																			// we dont already have an Attend with no note
+			// 		default:
+			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+			return false;																// discard Attend
+			// 	}
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
