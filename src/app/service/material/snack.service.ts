@@ -1,14 +1,15 @@
-import { Injectable, Component, Inject } from '@angular/core';
-import { MatSnackBar, MatSnackBarRef, MatSnackBarConfig, MAT_SNACK_BAR_DATA } from '@angular/material';
+import { Injectable, Component, Inject, NgZone } from '@angular/core';
+import { MatSnackBar, MatSnackBarRef, MatSnackBarConfig, MAT_SNACK_BAR_DATA, SimpleSnackBar } from '@angular/material';
 
 import { MaterialModule } from '@route/material.module';
+import { ComponentType } from '@angular/core/src/render3';
 
 // TODO: Display an Info icon
 @Component({
   selector: 'info-snackbar',
   template: '<span style="color:green">Note: </span>{{ data }}'
 })
-export class InfoSnackbarComponent {
+export class InfoSnackBar {
   constructor(@Inject(MAT_SNACK_BAR_DATA) public data: any) { }
 }
 // TODO: Display a Warning icon
@@ -16,7 +17,7 @@ export class InfoSnackbarComponent {
   selector: 'warning-snackbar',
   template: '<span style="color:orange">Warning: </span>{{ data }}'
 })
-export class WarnSnackbarComponent {
+export class WarnSnackBar {
   constructor(@Inject(MAT_SNACK_BAR_DATA) public data: any) { }
 }
 // TODO: Display an Error icon
@@ -24,19 +25,20 @@ export class WarnSnackbarComponent {
   selector: 'error-snackbar',
   template: '<span style="color:red">Error: </span>{{ data }}'
 })
-export class ErrorSnackbarComponent {
+export class ErrorSnackBar {
   constructor(@Inject(MAT_SNACK_BAR_DATA) public data: any) { }
 }
 
 @Injectable({ providedIn: MaterialModule })
 export class SnackService {
-  private ref?: MatSnackBarRef<{}>;
+  private ref?: MatSnackBarRef<SimpleSnackBar | InfoSnackBar | WarnSnackBar | ErrorSnackBar>;
   private timeOut = 5000;
 
-  constructor(public snack: MatSnackBar) { }
+  constructor(public snack: MatSnackBar, private zone: NgZone) { }
 
   private setConfig(config: MatSnackBarConfig) {
-    return {duration: this.timeOut, ...config};
+    config.verticalPosition = config.verticalPosition || 'bottom';
+    return { duration: this.timeOut, ...config };
   }
 
   public open(msg: string, action?: string, config: MatSnackBarConfig = {}) {
@@ -45,24 +47,27 @@ export class SnackService {
   }
 
   public info(msg: string, action?: string, config: MatSnackBarConfig = {}) {
-    this.dismiss();
-    this.ref = this.snack.openFromComponent(InfoSnackbarComponent, { ...this.setConfig(config), data: msg });
+    this.fromComponent<InfoSnackBar>(InfoSnackBar, config, msg);
   }
 
   public warn(msg: string, action?: string, config: MatSnackBarConfig = {}) {
-    this.dismiss();
-    this.ref = this.snack.openFromComponent(WarnSnackbarComponent, { ...this.setConfig(config), data: msg });
+    this.fromComponent<WarnSnackBar>(WarnSnackBar, config, msg);
   }
 
   public error(msg: string, action?: string, config: MatSnackBarConfig = {}) {
-    this.dismiss();
-    this.ref = this.snack.openFromComponent(ErrorSnackbarComponent, { ...this.setConfig(config), data: msg });
+    this.fromComponent<ErrorSnackBar>(ErrorSnackBar, config, msg);
   }
 
   public dismiss() {                    // dismiss any snackbar, if present
-    if (this.ref) {
-      // this.ref.dismiss();
+    if (this.ref)
       this.ref = undefined;
-    }
+  }
+
+  // TODO: fix 'any' typing for component
+  private fromComponent<T extends InfoSnackBar | WarnSnackBar | ErrorSnackBar>(component: any, config: MatSnackBarConfig = {}, msg: string) {
+    this.dismiss();
+    this.zone.run(_ => {
+      this.ref = this.snack.openFromComponent<T>(component, { ...this.setConfig(config), data: msg })
+    });
   }
 }
