@@ -2,7 +2,6 @@ import { Injectable, Component, Inject, NgZone } from '@angular/core';
 import { MatSnackBar, MatSnackBarRef, MatSnackBarConfig, MAT_SNACK_BAR_DATA, SimpleSnackBar } from '@angular/material';
 
 import { MaterialModule } from '@route/material.module';
-import { ComponentType } from '@angular/core/src/render3';
 
 // TODO: Display an Info icon
 @Component({

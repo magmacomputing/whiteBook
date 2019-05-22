@@ -182,6 +182,7 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
+		// This presumes that the <key> is from schedule store, and not calendar
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
 		const now = getDate(date);
@@ -201,14 +202,9 @@ export class AttendService {
 		]
 		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
 		if (booked.length) {
-			// 	switch (true) {
-			// 		case isUndefined(note) && booked.filter(attend => isUndefined(attend.note)).length === 0:
-			// 			break;																			// we dont already have an Attend with no note
-			// 		default:
 			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			return false;																// discard Attend
-			// 	}
+			return false;																		// discard Attend
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -216,7 +212,7 @@ export class AttendService {
 		const key = schedule.note && asArray(schedule.note as TString).includes('3Pack') ? '*' : '';
 		let [bonus, calcPrice] = await Promise.all([
 			data.client.plan[0].bonus
-				? this.getBonus(key + schedule[FIELD.key], date)		// any bonus entitlement
+				? this.getBonus(key + schedule[FIELD.key], date)// any bonus entitlement
 				: {} as TBonus,
 			this.member.getEventPrice(schedule[FIELD.key], data),
 		]);

@@ -13,7 +13,7 @@ import { MemberState } from '@dbase/state/member.state';
 import { AttendState } from '@dbase/state/attend.state';
 import { AdminState } from '@dbase/state/admin.state';
 
-import { InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent } from '@service/material/snack.service';
+import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
 
 const fb = environment.firebase || {};
 
@@ -30,6 +30,6 @@ const fb = environment.firebase || {};
 		{ provide: FunctionsRegionToken, useValue: 'us-central1' },
 		{ provide: FirestoreSettingsToken, useValue: {} },				// TODO: is this still necessary after @angular/fire is upgraded from 5.1.1
 	],
-	declarations: [InfoSnackbarComponent, WarnSnackbarComponent, ErrorSnackbarComponent],
+	declarations: [InfoSnackBar, WarnSnackBar, ErrorSnackBar],
 })
 export class DBaseModule { }
