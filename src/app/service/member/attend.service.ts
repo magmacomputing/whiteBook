@@ -199,9 +199,6 @@ export class AttendService {
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(FIELD.note, note),
 		]
-		// if (!isUndefined(note))
-		// 	attendFilter.push(addWhere(FIELD.note, note));
-		// debugger;
 		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
 		if (booked.length) {
 			switch (true) {
