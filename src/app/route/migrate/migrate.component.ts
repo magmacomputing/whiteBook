@@ -352,15 +352,15 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
-		table.splice(table.length - endAt);
+		// const endAt = table.filter(row => row.date >= getDate('2015-Jul-01').format(DATE_FMT.yearMonthDay)).length;
+		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
 			this.dbg('startFrom: %s, %j', startFrom, startAttend);
 			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((this.lookup[row.type] || row.type) as TClass))).length;
-			table.splice(0, offset + 1);
+			table.splice(0, offset);
 		}
 		if (table.length) {
 			this.check = createPromise();
@@ -419,10 +419,7 @@ export class MigrateComponent implements OnInit {
 				throw new Error(`Cannot find a Sunday bonus: ${row}`);
 			const free = asArray(sunday.free as TString)
 
-			// @ts-ignore
-			row.note = isUndefined(row.note)
-				? '3Pack'
-				: ['3Pack', row.note]
+			row.elect = 'sunday';
 			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep
 
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : price).toString() });
@@ -510,7 +507,7 @@ export class MigrateComponent implements OnInit {
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				sched.price = price;											// to allow AttendService to check what was charged
-				sched.note = row.note;
+				sched.elect = row.elect;
 		}
 
 		const p = createPromise();

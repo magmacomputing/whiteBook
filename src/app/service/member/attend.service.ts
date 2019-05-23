@@ -57,7 +57,7 @@ export class AttendService {
 	/**
 	 * Determine the eligibility for free Attend
 	 */
-	async getBonus(event: string, date?: TDate) {
+	async getBonus(event: string, date?: TDate, elect?: string) {
 		/**
 		 * uid is the Member to check-in 
 		 * gift is array of active Gifts effective (not expired) on this date  
@@ -137,13 +137,13 @@ export class AttendService {
 			 * The class must be in the free list (scheme.week.free) to claim this bonus
 			 */
 			case scheme.sunday
-				&& attendWeek
+				&& attendWeek																				// count Attends this week either Gift or non-Bonus
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					// .distinct(row => row.track[FIELD.date])
-					.length + 1 > scheme.sunday.level
-				&& now.dow === Instant.DAY.Sun
-				&& event.startsWith('*')
-				&& (scheme.sunday.free as TString).includes(event.substring(1)):
+					// .distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
+					.length + 1 > scheme.sunday.level									// required number of Attends this week
+				&& now.dow === Instant.DAY.Sun											// today is 'Sunday'
+				&& elect == BONUS.sunday														// Member elected to take Bonus
+				&& (scheme.sunday.free as TString).includes(event):	// Event is offered on Bonus
 				bonus = {
 					[FIELD.id]: scheme.sunday[FIELD.id],
 					[FIELD.type]: BONUS.sunday,
@@ -209,10 +209,9 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
-		const key = schedule.note && asArray(schedule.note as TString).includes('3Pack') ? '*' : '';
 		let [bonus, calcPrice] = await Promise.all([
 			data.client.plan[0].bonus
-				? this.getBonus(key + schedule[FIELD.key], date)// any bonus entitlement
+				? this.getBonus(schedule[FIELD.key], date, schedule.elect)// any bonus entitlement
 				: {} as TBonus,
 			this.member.getEventPrice(schedule[FIELD.key], data),
 		]);

@@ -24,4 +24,5 @@ export interface MHistory {
 	hold?: number;
 	funds?: number;
 	approved?: number;
+	elect?: string;
 }

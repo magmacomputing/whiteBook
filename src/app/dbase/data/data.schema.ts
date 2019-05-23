@@ -167,6 +167,7 @@ export interface ISchedule extends IClientBase {
 	start: string;
 	span?: string;
 	price?: number;											// infer the member's price for this class
+	elect?: string;											// name the Bonus the Member chooses
 }
 
 //	/client/location
