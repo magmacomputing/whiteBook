@@ -40,7 +40,7 @@ export class ClientState implements NgxsOnInit {
 			state[store] = filterState(state, doc);
 			state[store].push(doc);									// push the new/changed ClientDoc into the Store
 
-			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty(SLICES)))
+			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty<object>(SLICES)))
 				schema.push(doc);											// if STORE.schema changes, rebuild schema-variables
 
 			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);

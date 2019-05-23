@@ -69,7 +69,7 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	const slices = Object.keys(SLICES)
 		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store
 
-	if (isEmpty(SLICES))													// nothing in State yet, on first-time connect
+	if (isEmpty<object>(SLICES))									// nothing in State yet, on first-time connect
 		slices.push(SLICE.client);									// special: assume 'client' slice.
 	if (!SORTBY[store])
 		SORTBY[store] = ['sort', 'key'];						// special: assume sort order
