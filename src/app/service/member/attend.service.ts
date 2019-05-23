@@ -60,15 +60,14 @@ export class AttendService {
 	async getBonus(event: string, date?: TDate, elect?: string) {
 		/**
 		 * uid is the Member to check-in 
-		 * gift is array of active Gifts effective (not expired) on this date  
+		 * gifts is array of active Gifts effective (not expired) on this date  
 		 * scheme is definition of active Bonus schemes effective on this date
 		 */
 		const [uid, gifts, scheme] = await Promise.all([
 			this.data.auth.current
 				.then(user => user!.uid),
 
-			this.data.getStore<IGift>(STORE.gift, undefined, date)					// any active Gifts
-				.then(gifts => asAt(gifts, undefined, date)),									// effective on this date
+			this.data.getStore<IGift>(STORE.gift, undefined, date),					// any active Gifts
 
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
 				.then(bonus => bonus.reduce((acc, row) => {
@@ -100,16 +99,20 @@ export class AttendService {
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
 			case gifts.length > 0:														// qualify for a Gift bonus?
-				bonus = {
-					[FIELD.id]: gifts[0][FIELD.id],
-					[FIELD.type]: BONUS.gift,
-					count: attendGift.length + 1,
-					gift: {
-						[FIELD.effect]: gifts[0][FIELD.effect] || (attendGift.length === 0 ? now.startOf('day').ts : undefined),
-						[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
-						...gifts[0],
-					},
-				}
+				const close = attendGift.length >= gifts.length
+					|| (gifts[0].expiry && gifts[0].expiry > now.ts);	// TODO: check for future Gifts, if this is now expired
+				bonus = close																		// close a Gift
+					? { gift: { [FIELD.expire]: now.ts, ...gifts[0] } }
+					: {
+						[FIELD.id]: gifts[0][FIELD.id],
+						[FIELD.type]: BONUS.gift,
+						count: attendGift.length + 1,
+						gift: {
+							[FIELD.effect]: gifts[0][FIELD.effect] || (attendGift.length === 0 ? now.startOf('day').ts : undefined),
+							[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
+							...gifts[0],
+						},
+					}
 				break;
 
 			/**
@@ -217,11 +220,12 @@ export class AttendService {
 		]);
 
 		if (!isEmpty(bonus)) {
-			calcPrice = 0;																	// override calculated price
 			if (bonus.gift) {
 				updates.push({ ...bonus.gift });							// batch the Gift update
 				delete bonus.gift;														// not needed
 			}
+			if (bonus[FIELD.id])
+				calcPrice = 0;																// override calculated price
 		}
 
 		if (!isUndefined(schedule.price) && schedule.price !== calcPrice) {// calculation mis-match

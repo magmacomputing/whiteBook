@@ -39,7 +39,7 @@ export const sortKeys = (...keys: string[]): any => (a: any, b: any) => {
 	switch (true) {
 		case keys.length === 0:
 			return 0;
-	
+
 		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && !desc:
 		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && desc:
 			return -1;
@@ -103,6 +103,6 @@ export const equalObj = (obj1: any, obj2: any): boolean => {
 	})
 }
 
-export const isEmpty = (obj: object | any[]): boolean =>
+export const isEmpty = <T>(obj: T | T[]): boolean =>
 	(isObject(obj) && Object.keys(obj).length === 0) ||
 	(isArray(obj) && obj.length === 0)
