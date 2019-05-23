@@ -339,9 +339,7 @@ export class MigrateComponent implements OnInit {
 		} as IGift
 	}
 
-	/**
-	 * Add Attendance records for a Member
-	 */
+	/** Add Attendance records for a Member */
 	public async addAttend() {
 		const [migrate, attend, history] = await Promise.all([
 			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
@@ -357,10 +355,11 @@ export class MigrateComponent implements OnInit {
 		const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
 		table.splice(table.length - endAt);
 
-		if (start[0]) {
+		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
-			this.dbg('startFrom: %j', startFrom);
-			const offset = table.filter(row => row.date < startFrom).length;
+			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
+			this.dbg('startFrom: %s, %j', startFrom, startAttend);
+			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((this.lookup[row.type] || row.type) as TClass))).length;
 			table.splice(0, offset + 1);
 		}
 		if (table.length) {

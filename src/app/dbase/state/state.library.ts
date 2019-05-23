@@ -19,9 +19,9 @@ import { addWhere } from '@dbase/fire/fire.library';
 
 /**
  * Generic Slice Observable  
- *  w/ special logic to slice 'attend' store, as it uses non-standard indexing
+ *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
-export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, index?: string) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -30,14 +30,12 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(state => asAt<T>(state[index || store], filter, date)),
+		map(state => asAt<T>(state[segment || store], filter, date)),
 		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
 	)
 }
 
-/**
- * Get all documents by filter, do not exclude _expire
- */
+/** Get all documents by filter, do not exclude _expire unless <date> specified */
 export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
 	if (store === slice)													// top-level slice
@@ -49,7 +47,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(obs => asAt<T>(obs[store], filter, date)),
+		map(obs => isUndefined(date) ? filterTable<T>(obs[store], filter) : asAt<T>(obs[store], filter, date)),
 		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }
@@ -62,7 +60,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	const res: T[] = []
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
-		map(table => asAt<T>(table, filter, date)),
+		map(table => isUndefined(date) ? filterTable<T>(table, filter) : asAt<T>(table, filter, date)),
 		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }
@@ -107,10 +105,10 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
-				const index = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
+				const segment = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
 
 				parent = data;                                        // stash the original parent data state
-				return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, index));
+				return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, segment));
 			}),
 
 			map(res => {
