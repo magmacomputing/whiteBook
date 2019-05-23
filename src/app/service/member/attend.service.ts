@@ -99,7 +99,7 @@ export class AttendService {
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
 			case gifts.length > 0:														// qualify for a Gift bonus?
-				const close = attendGift.length >= gifts.length
+				const close = attendGift.length >= gifts[0].count
 					|| (gifts[0].expiry && gifts[0].expiry > now.ts);	// TODO: check for future Gifts, if this is now expired
 				bonus = close																		// close a Gift
 					? { gift: { [FIELD.expire]: now.ts, ...gifts[0] } }
@@ -230,6 +230,7 @@ export class AttendService {
 
 		if (!isUndefined(schedule.price) && schedule.price !== calcPrice) {// calculation mis-match
 			this.dbg('bonus: %j', bonus);
+			this.snack.error(`Price discrepancy: paid ${schedule.price}, but should be ${calcPrice}`);
 			throw new Error(`Price discrepancy: paid ${schedule.price}, but should be ${calcPrice}`);
 		}
 		schedule.price = calcPrice;
