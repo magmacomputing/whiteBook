@@ -78,7 +78,7 @@ export class MigrateComponent implements OnInit {
 		prevStepIn: 'StepIn',
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
-	private pack = ['oldSunday3Pak', 'oldSunday3For2'];
+	private pack = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
@@ -352,8 +352,8 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2015-Jul-01').format(DATE_FMT.yearMonthDay)).length;
-		// table.splice(table.length - endAt);
+		const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+		table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
@@ -416,7 +416,7 @@ export class MigrateComponent implements OnInit {
 				}, {} as IObject<IPrice>)
 			const sunday = bonus.find(row => row[FIELD.key] === 'sunday');
 			if (isUndefined(sunday))
-				throw new Error(`Cannot find a Sunday bonus: ${row}`);
+				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
 
 			row.elect = 'sunday';
