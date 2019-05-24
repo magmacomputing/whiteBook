@@ -4,12 +4,12 @@ import { switchMap, map } from 'rxjs/operators';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { IFireClaims } from '@service/auth/auth.interface';
 import { getMemberAge } from '@service/member/member.library';
-import { asAt, firstRow, filterTable } from '@dbase/library/app.library';
+import { SLICES, SORTBY } from '@library/config.define';
+import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { SLICES, SORTBY } from '@dbase/library/config.define';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';

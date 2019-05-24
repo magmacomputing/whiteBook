@@ -9,13 +9,17 @@ import { asArray } from '@lib/array.library';
 import { toLower } from '@lib/string.library';
 
 /**
- * apply Firestore-like filters to an Array.  
+ * apply filters to an array (table) of objects (rows).  
  * each row in the table must match all the filters to be selected.  
  * each field must match at least one of the filter-values to be selected.  
  * 
- * eg.[	{ fieldPath: 'store', opStr: '==', value: 'price' },  
- * 			{ fieldPath: 'type', opStr: '==' value: ['full','half'] }
- * 		]  
+ * for example, a table with the following filters
+ * ~~~~
+ * [
+ *  { fieldPath: 'store', opStr: '==', value: 'price' },  
+ *  { fieldPath: 'type', opStr: '==' value: ['full','half'] }
+ * ]
+ * ~~~~ 
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
 export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {

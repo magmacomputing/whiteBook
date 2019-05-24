@@ -31,7 +31,10 @@
       ],
       "@dbase/*": [
         "src/app/dbase/*",
-      ],
+			],
+			"@library/*": [
+				"src/app/library/*",
+			],
       "@service/*": [
         "src/app/service/*",
       ],

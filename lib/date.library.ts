@@ -41,8 +41,8 @@ export enum DATE_FMT {										// pre-configured format names
 export type TDate = string | number | Date | Instant;
 
 type TMutate = 'add' | 'start' | 'mid' | 'end';
-type TUnitTime = 'month' | 'months' | 'day' | 'days' | 'minute' | 'minutes' | 'hour' | 'hours';
-type TUnitOffset = 'day' | 'week' | 'month';
+type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
+type TUnitOffset = 'month' | 'week' | 'day';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,9 +55,9 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 
 /**
  * An Instant is a object that is used to manage Dates.  
- * It has properties to break a Date into components ('yyyy', 'dd', etc.)  
+ * It has properties to break a Date into components ('yy', 'dd', etc.)  
  * It has methods to perform Date manipulations (add(), format(), diff(), startOf(), etc.)  
- * It has short-cut functions to create an Instant (getDate(), getStamp(), fmtDate())
+ * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
  */
 export class Instant {
 	private date: IInstant;																			// Date parsed into components
@@ -139,16 +139,25 @@ export class Instant {
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, mmm: Instant.MONTH[mm], ddd: Instant.DAY[dow] } as IInstant;
+		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.DAY[dow], mmm: Instant.MONTH[mm] } as IInstant;
 	}
 
 	/** mutate an Instant */
-	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitOffset, offset: number = 1) => {
+	private setDate = (mutate: TMutate, unit: TUnitTime, offset: number = 1) => {
 		const date = { ...this.date };														// clone the current Instant
+		const single = unit.endsWith('s')
+			? unit.substring(0, unit.length - 1)										// remove plural units
+			: unit
 		if (mutate !== 'add')
 			[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];		// discard the time-portion of the date
 
-		switch (`${mutate}.${unit}`) {
+		switch (`${mutate}.${single}`) {
+			case 'start.minute':
+				[date.SS, date.ms] = [0, 0];
+				break;
+			case 'start.hour':
+				[date.MI, date.SS, date.ms] = [0, 0, 0];
+				break;
 			case 'start.day':
 				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
 				break;
@@ -158,6 +167,12 @@ export class Instant {
 			case 'start.month':
 				date.dd = 1;
 				break;
+			case 'mid.second':
+				[date.SS, date.ms] = [30, 0];
+				break;
+			case 'mid.minute':
+				[date.MI, date.SS, date.ms] = [30, 0, 0];
+				break;
 			case 'mid.day':
 				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
 				break;
@@ -166,6 +181,12 @@ export class Instant {
 				break;
 			case 'mid.month':
 				date.dd = 15;
+				break;
+			case 'end.second':
+				[date.SS, date.ms] = [59, 999];
+				break;
+			case 'end.minute':
+				[date.MI, date.SS, date.ms] = [59, 59, 999];
 				break;
 			case 'end.day':
 				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
@@ -178,19 +199,15 @@ export class Instant {
 				date.dd = 0;
 				break;
 			case 'add.minute':
-			case 'add.minutes':
 				date.MI += offset;
 				break;
 			case 'add.hour':
-			case 'add.hours':
 				date.HH += offset;
 				break;
 			case 'add.day':
-			case 'add.days':
 				date.dd += offset;
 				break;
 			case 'add.month':
-			case 'add.months':
 				date.mm += offset;
 				break;
 		}

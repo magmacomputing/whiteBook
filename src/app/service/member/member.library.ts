@@ -4,9 +4,9 @@ import { IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
-import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
-import { getStamp, getDate } from '@lib/date.library';
 import { asArray } from '@lib/array.library';
+import { getStamp, getDate } from '@lib/date.library';
+import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
 
 // Library of member-related functions
 

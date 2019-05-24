@@ -10,7 +10,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD } from '@dbase/data/data.define';
-import { SORTBY } from '@dbase/library/config.define';
+import { SORTBY } from '@library/config.define';
 import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';

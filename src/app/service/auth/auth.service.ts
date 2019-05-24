@@ -16,7 +16,7 @@ import { IProvider, IConfig } from '@dbase/data/data.schema';
 import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { getConfig } from '@dbase/library/config.library';
+import { getConfig } from '@library/config.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
@@ -46,7 +46,7 @@ export class AuthService {
 	}
 
 	public signOut() {
-		this.fire.setState(CONNECT.connect);
+		// this.fire.setState(CONNECT.connect);
 		this.store.dispatch(new Logout());
 	}
 
@@ -101,8 +101,8 @@ export class AuthService {
 			(authProvider as TParams).setCustomParameters(provider.params);
 
 		return this.store.dispatch(new LoginIdentity(authProvider))
-			.toPromise()
-			.then(_ => this.fire.setState(CONNECT.active))
+			// .toPromise()
+			// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	/** This runs in the main thread */
@@ -142,14 +142,14 @@ export class AuthService {
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password))
-			.toPromise()
-			.then(_ => this.fire.setState(CONNECT.active))
+			// .toPromise()
+			// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon())
-			.toPromise()
-			.then(_ => this.fire.setState(CONNECT.active))
+			// .toPromise()
+			// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInOIDC(provider: IProvider) { }
@@ -158,7 +158,7 @@ export class AuthService {
 
 
 	/** This allows us to logout current Member, and signOn as another */
-	public impersonate(uid: string) {
+	public behalf(uid: string) {
 		return this.fire.createToken(uid)				// ask Cloud Functions to mint a token on our behalf
 			.then(token => {
 				const authInfo = { token, prefix: 'local', user: {} };

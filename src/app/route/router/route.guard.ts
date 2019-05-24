@@ -13,12 +13,12 @@ import { LState } from '@dbase/state/state.define';
 import { StoreStorage } from '@dbase/sync/sync.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
+import { asAt } from '@library/app.library';
 
 import { getLocalStore } from '@lib/window.library';
 import { isUndefined } from '@lib/type.library';
 import { getPath } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { asAt } from '@dbase/library/app.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthGuard implements CanActivate {

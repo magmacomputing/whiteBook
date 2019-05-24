@@ -16,7 +16,7 @@ import { getSlice } from '@dbase/state/state.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { asAt } from '@dbase/library/app.library';
+import { asAt } from '@library/app.library';
 
 import { TString } from '@lib/type.library';
 import { getStamp, TDate } from '@lib/date.library';

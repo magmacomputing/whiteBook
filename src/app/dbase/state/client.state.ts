@@ -2,10 +2,10 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetClient, DelClient, TruncClient, filterState } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
+import { SLICES } from '@library/config.define';
+import { setSchema } from '@library/config.library';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { SLICES } from '@dbase/library/config.define';
 import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
-import { setSchema } from '@dbase/library/config.library';
 
 import { asArray } from '@lib/array.library';
 import { isEmpty } from '@lib/object.library';
