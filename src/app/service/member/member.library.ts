@@ -19,7 +19,7 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
 		lastName: profile.family_name || profile.last_name || profile.lastName,
-		displayName: profile.displayName || profile.name || profile.login
+		displayName: profile.formattedName || profile.displayName || profile.name || profile.login
 			|| (profile.given_name || profile.first_name || profile.firstName) + ' ' + (profile.family_name || profile.last_name || profile.lastName),
 		email: profile.email || profile.emailAddress,
 		gender: profile.gender,
