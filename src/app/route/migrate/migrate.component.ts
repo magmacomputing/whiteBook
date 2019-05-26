@@ -655,7 +655,8 @@ export class MigrateComponent implements OnInit {
 			try {
 				const obj = JSON.parse(json);
 				return (action === 'history,status')
-					? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
+					? { ...obj.history, ...obj.status }
+					// ? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
 					: obj[action];
 			}
 			catch (err) {
