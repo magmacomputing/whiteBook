@@ -10,7 +10,7 @@ import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, STORE, CONNECT } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
 import { IObject } from '@lib/object.library';
@@ -127,7 +127,9 @@ export class AuthService {
 
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
+		this.dbg('signInToken: %j', response);
 		const child = this.openChannel('token');
+
 		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {

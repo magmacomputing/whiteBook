@@ -352,8 +352,8 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
-		table.splice(table.length - endAt);
+		// const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
@@ -510,7 +510,7 @@ export class MigrateComponent implements OnInit {
 				sched.elect = row.elect;
 		}
 
-		const p = createPromise();
+		const p = createPromise<boolean>();
 		if (flag) {
 			this.attend.setAttend(sched, row.note, row.stamp)
 				.then(res => {
@@ -655,8 +655,7 @@ export class MigrateComponent implements OnInit {
 			try {
 				const obj = JSON.parse(json);
 				return (action === 'history,status')
-					? { ...obj.history, ...obj.status }
-					// ? Object.assign({}, { history: obj.history.history }, { status: obj.status.status })
+					? { ...obj.status, ...obj.history }
 					: obj[action];
 			}
 			catch (err) {

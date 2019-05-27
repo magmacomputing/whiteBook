@@ -1,8 +1,8 @@
 import * as firebase from 'firebase/app';
 import { BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AngularFireAuth } from '@angular/fire/auth';
 
+import { AngularFireAuth } from '@angular/fire/auth';
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
