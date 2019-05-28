@@ -17,7 +17,7 @@ import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IB
 import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
 import { getPath, isEmpty, IObject } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
+import { asArray, ArrayExt } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -84,9 +84,12 @@ export class AttendService {
 		const where = addWhere(FIELD.uid, uid);
 		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
 		const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || { [FIELD.id]: 'xYz' })[FIELD.id])]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || { [FIELD.id]: 'xYz' })[FIELD.id])])
+				.then(res => new ArrayExt<IAttend>(...res)),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior])
+				.then(res => new ArrayExt<IAttend>(...res)),
+			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior])
+				.then(res => new ArrayExt<IAttend>(...res)),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
