@@ -1,49 +1,35 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import { Select } from '@ngxs/store';
-import { ISelector } from '@dbase/state/store.define';
-import { getStore } from '@dbase/state/store.state';
-import { AuthState } from '@dbase/state/auth.state';
-import { ClientState } from '@dbase/state/client.state';
+import { IPlanState } from '@dbase/state/state.define';
+import { StateService } from '@dbase/state/state.service';
+import { MemberService } from '@service/member/member.service';
 
-import { MemberService } from '@dbase/app/member.service';
-import { MemberState } from '@dbase/state/member.state';
-import { IAuthState } from '@dbase/state/auth.define';
-import { STORE } from '@dbase/data/data.define';
-import { IWhere } from '@dbase/fire/fire.interface';
-
+import { IPrice } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data/data.define';
 import { dbg } from '@lib/logger.library';
 
 @Component({
-  selector: 'wb-plan',
-  templateUrl: './plan.component.html',
+	selector: 'wb-plan',
+	templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-  @Select(ClientState.getClient) client$!: Observable<ISelector>;
-  @Select(MemberState.getMember) member$!: Observable<ISelector>;
-  @Select(AuthState.getUser) auth$!: Observable<IAuthState>;
+	public data$!: Observable<IPlanState>;
+	private dbg = dbg(this);
 
-  private dbg: Function = dbg.bind(this);
+	constructor(private readonly member: MemberService, private readonly state: StateService) { }
 
-  constructor(private readonly member: MemberService) { }
+	ngOnInit() {
+		this.data$ = this.state.getPlanData().pipe(
+			map(source => {
+				source.client.plan = source.client.plan.filter(row => !row[FIELD.hidden])
+				return source;
+			})
+		)
+	}
 
-  ngOnInit() { }
-
-  get profile$() {                // get the Member's current Plan
-    const filter: IWhere = { fieldPath: 'type', opStr: '==', value: 'plan' };
-    return getStore(this.member$, STORE.profile, filter);
-  }
-
-  get plan$() {                   // get the available Plans
-    return getStore(this.client$, STORE.plan, undefined, ['order', 'type']);
-  }
-
-  getPrice(plan: string) {
-    const filter: IWhere[] = [
-      { fieldPath: 'plan', opStr: '==', value: plan },
-      { fieldPath: 'type', opStr: '==', value: 'topUp' },
-    ]
-    return getStore(this.client$, STORE.price, filter);
-  }
+	showPlan(plan: string, price: IPrice[]) {
+		this.dbg('show: %j', price.filter(price => price[FIELD.key] === plan));
+	}
 }

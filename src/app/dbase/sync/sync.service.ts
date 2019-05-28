@@ -1,148 +1,176 @@
 import { Injectable } from '@angular/core';
-import { SnapshotMetadata } from '@firebase/firestore-types';
-import { DocumentChangeAction } from 'angularfire2/firestore';
+import { timer } from 'rxjs';
+import { map, debounce, timeout, take } from 'rxjs/operators';
 
-import { Store } from '@ngxs/store';
-import { SLICE, IStoreDoc } from '@dbase/state/store.define';
-import { SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
-import { SetMember, DelMember, TruncMember } from '@dbase/state/store.define';
-import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/store.define';
+import { Store, Actions, ofActionDispatched } from '@ngxs/store';
+import { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { IListen, StoreStorage } from '@dbase/sync/sync.define';
-import { LoginToken } from '@dbase/state/auth.define';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { ROUTE } from '@route/router/route.define';
+import { NavigateService } from '@route/navigate.service';
+
+import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
+import { IListen } from '@dbase/sync/sync.define';
+import { SLICE } from '@dbase/state/state.define';
+import { AuthToken, IAuthState } from '@dbase/state/auth.action';
+
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { isFunction, sortKeys, IObject } from '@lib/object.library';
+import { IObject } from '@lib/object.library';
+import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
-import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
-  private dbg: Function = dbg.bind(this);
-  private listener: IObject<IListen>;
-  private localStore: IObject<any>;
+	private dbg = dbg(this);
+	private listener: IObject<IListen> = {};
 
-  constructor(private fire: FireService, private store: Store) {
-    this.dbg('new');
-    this.listener = {};
-    this.localStore = JSON.parse(localStorage.getItem(StoreStorage) || '{}');
-  }
+	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
-  /** establish a listener to a remote Collection, and sync to an NGXS Slice */
-  public async on(collection: string, slice?: string, query?: IQuery) {
-    const snapSync = this.snapSync.bind(this, collection);
-    const ready = createPromise<boolean>();
-    slice = slice || collection;                      // default to same-name as collection
+	/**
+	 * establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
+	 * Additional collections can be defined, and merged into the same slice
+	 */
+	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
+		const ready = createPromise<boolean>();
+		const refs = this.fire.colRef<IStoreMeta>(collection, query);
 
-    this.off(collection);                             // detach any prior Subscription
-    this.listener[collection] = {
-      slice: slice,
-      ready: ready,
-      cnt: -1,                                        // '-1' is not-yet-snapped, '0' is first snapshot
-      subscribe: this.fire.colRef(collection, query)
-        .stateChanges()                               // only watch for changes since last snapshot
-        .subscribe(snapSync)
-    }
-    this.dbg('on: %s', collection);
-    return ready.promise;                             // indicate when snap0 is complete
-  }
+		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
+			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
+		const stream = this.fire.merge('stateChanges', refs);
+		const sync = this.sync.bind(this, collection);
 
-  public status(collection: string) {
-    const { slice, cnt, ready: { promise: ready } } = this.listener[collection];
-    return { slice, cnt, ready };
-  }
+		this.off(collection);                             // detach any prior Subscription
+		this.listener[collection] = {
+			collection,
+			ready,
+			uid: await this.getAuthUID(),
+			cnt: -1,																				// '-1' is not-yet-snapped, '0' is first snapshot
+			method: getMethod(collection),
+			subscribe: stream.subscribe(sync)
+		}
 
-  /** detach an existing snapshot listener */
-  public off(collection: string) {
-    const listen = this.listener[collection];
+		this.dbg('on: %s' + (query ? ', %j' : ''), collection, query || '');
+		return ready.promise;                             // indicate when snap0 is complete
+	}
 
-    if (listen && isFunction(listen.subscribe.unsubscribe)) {
-      listen.subscribe.unsubscribe();
-      this.dbg('off: %s', collection);
-    }
-    delete this.listener[collection];
-  }
+	private getAuthUID() {															// Useful for matching sync-events to the Auth'd User
+		return this.store
+			.selectOnce<IAuthState>(state => state[SLICE.auth])
+			.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
+			.toPromise()
+	}
 
-  /** handler for snapshot listeners */
-  private async snapSync(collection: string, snaps: DocumentChangeAction<IStoreDoc>[]) {
-    const listen = this.listener[collection];
-    let setStore: any, delStore: any, truncStore;
+	public status(collection: COLLECTION) {
+		const { cnt, ready: { promise: ready } } = this.listener[collection];
+		return { collection, cnt, ready };
+	}
 
-    this.listener[collection].cnt += 1;
+	/**
+	 * Wait for an NGXS-event to occur,  
+	 * and optionally provide a callback function to process after the event
+	 */
+	public wait<T>(event: any, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
+		const timeOut = 10000;															// wait up-to 10 seconds
 
-    const snapType = snaps[0] || snaps[1] || snaps[2];// look in 'added', 'modified', else 'removed'
-    const snapSource = this.getSource(snapType ? snapType.payload.doc.metadata : {} as SnapshotMetadata);
-    this.dbg('snapSync: %s #%s detected from %s (%s items)', collection, listen.cnt, snapSource, snaps.length);
+		return new Promise<T>((resolve, reject) => {
+			this.actions.pipe(
+				ofActionDispatched(event), 											// listen for an NGXS event
+				debounce(_ => timer(500)), 											// let State settle
+				take(1), 																				// unsubscribe after first occurence
+				timeout(timeOut)
+			)
+				.subscribe(
+					payload => {
+						isFunction(callBack)
+							? callBack(payload).then(resolve)
+							: resolve(payload)
+					},
+					err => {
+						reject(err);
+						this.dbg('timeOut: %s', event.name);				// log the event not detected
+					}
+				)
+		})
+	}
 
-    switch (listen.slice) {                           // TODO: can we merge these?
-      case SLICE.client:
-        setStore = SetClient;
-        delStore = DelClient;
-        truncStore = TruncClient;
-        break;
+	/** detach an existing snapshot listener */
+	public off(collection: COLLECTION, trunc?: boolean) {
+		const listen = this.listener[collection];
 
-      case SLICE.member:
-        setStore = SetMember;
-        delStore = DelMember;
-        truncStore = TruncMember;
-        break;
+		if (listen) {																			// are we listening?
+			if (isFunction(listen.subscribe.unsubscribe)) {
+				listen.subscribe.unsubscribe();
+				this.dbg('off: %s', collection);
+			}
 
-      case SLICE.attend:
-        setStore = SetAttend;
-        delStore = DelAttend;
-        truncStore = TruncAttend;
-        break;
+			if (trunc && listen.method)
+				this.store.dispatch(new listen.method.truncStore());
+		}
 
-      default:
-        this.dbg('snap: Unexpected "slice": %s', listen.slice);
-        return;                                       // Unknown Slice !!
-    }
+		delete this.listener[collection];
+	}
 
-    if (listen.cnt === 0) {                           // this is the initial snapshot, so check for tampering
-      const localStore = this.localStore[listen.slice] || {};
-      const localList: IStoreDoc[] = [];
-      const snapList = snaps.map(snap => Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data()));
+	/** handler for snapshot listeners */
+	private async sync(collection: COLLECTION, snaps: DocumentChangeAction<IStoreMeta>[]) {
+		const listen = this.listener[collection];
+		const { setStore, delStore, truncStore } = listen.method;
 
-      Object.keys(localStore).forEach(key => localList.push(...localStore[key]));
-      let [localHash, storeHash] = await Promise.all([
-        cryptoHash(localList.sort(sortKeys(FIELD.store, FIELD.id))),
-        cryptoHash(snapList.sort(sortKeys(FIELD.store, FIELD.id))),
-      ])
+		const source = getSource(snaps);
+		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
+		const [snapAdd, snapMod, snapDel] = snaps
+			.reduce((cnts, snap) => {
+				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
+				cnts[idx].push(addMeta(snap))
+				return cnts;
+			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
-      listen.ready.resolve(true);                     // indicate snap0 is ready
-      if (localHash === storeHash)                    // compare what is in snap0 with localStorage
-        return;                                       // ok, already sync'd  
+		listen.cnt += 1;
+		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
+			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-      this.store.dispatch(new truncStore());          // otherwise, reset Store
-    }
+		if (listen.cnt === 0) {                           // initial snapshot
+			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
+			if (await checkStorage(listen, snaps))
+				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
 
-    snaps.forEach(snap => {
-      const data = Object.assign({}, { [FIELD.id]: snap.payload.doc.id }, snap.payload.doc.data());
+			await this.store
+				.dispatch(new truncStore(debug))							// suspected tampering, reset Store
+				.toPromise();
+		}
 
-      switch (snap.type) {
-        case 'added':
-        case 'modified':
-          this.store.dispatch(new setStore(data));
-          if (data.store === STORE.profile && data.type === 'claims' && !data[FIELD.expire])
-            this.store.dispatch(new LoginToken());    // special: access-level has changed
-          break;
+		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();
+		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();
+		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();
 
-        case 'removed':
-          this.store.dispatch(new delStore(data));
-          break;
-      }
-    })
-  }
+		if (listen.cnt !== 0) {
+			snaps.forEach(async snap => {										// look for special actions to fire
+				const data = addMeta(snap);
+				if (data[FIELD.uid] === listen.uid) {					// but only for authenticated User
+					switch (snap.type) {
+						case 'added':
+						case 'modified':
+							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
+								this.store.dispatch(new AuthToken());   // special: access-level has changed
 
-  private getSource(meta: SnapshotMetadata) {
-    return meta.fromCache
-      ? 'cache'
-      : meta.hasPendingWrites
-        ? 'local'
-        : 'server'
-  }
+							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+								this.navigate.route(ROUTE.attend);			// special: initial Plan is set
+							break;
+
+						case 'removed':
+							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+								this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
+							break;
+					}
+				}
+			})
+		}
+
+		if (listen.cnt === 0)
+			listen.ready.resolve(true);
+	}
 }

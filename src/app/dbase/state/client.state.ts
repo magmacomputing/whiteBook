@@ -1,58 +1,81 @@
-import { State, Action, StateContext, Selector, NgxsOnInit } from '@ngxs/store';
-import { currStore } from '@dbase/state/store.state';
-import { SLICE, IStoreState, IStoreDoc, SetClient, DelClient, TruncClient } from '@dbase/state/store.define';
+import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
+import { SetClient, DelClient, TruncClient, filterState } from '@dbase/state/state.action';
+import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
-import { FIELD } from '@dbase/data/data.define';
+import { SLICES } from '@library/config.define';
+import { setSchema } from '@library/config.library';
+import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
+import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
+
+import { asArray } from '@lib/array.library';
+import { isEmpty } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
-@State<IStoreState>({
+@State<TStateSlice<IStoreMeta>>({
 	name: SLICE.client,
 	defaults: {}
 })
 export class ClientState implements NgxsOnInit {
-	private dbg: Function = dbg.bind(this);
+	private dbg = dbg(this);
 
-	constructor() { }
+	constructor(private readonly store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<IStoreState>) { this.dbg('init:'); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
+
+	private init() {
+		this.dbg('init:');
+		this.store.selectOnce(state => state[COLLECTION.client])
+			.toPromise()
+			.then(client => client && client[STORE.schema] || [])
+			.then((schema: ISchema[]) => setSchema(schema))				// initial load of STORES / SORTBY / FILTER
+	}
 
 	@Action(SetClient)
-	setStore({ patchState, getState }: StateContext<IStoreState>, { payload }: SetClient) {
+	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
 		const state = getState() || {};
-		const store = this.filterClient(state, payload);
+		const schema: IStoreMeta[] = [];
 
-		store.push(payload);										// push the changed ClientDoc into the Store
-		state[payload.store] = store;
-		this.dbg('setClient: %j', payload);
-		patchState({ ...state });
+		asArray(payload).forEach(doc => {
+			const store = doc[FIELD.store];
+			state[store] = filterState(state, doc);
+			state[store].push(doc);									// push the new/changed ClientDoc into the Store
+
+			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty<object>(SLICES)))
+				schema.push(doc);											// if STORE.schema changes, rebuild schema-variables
+
+			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);
+		})
+
+		if (schema.length)
+			setSchema(state[STORE.schema] as ISchema[]);	// rebuild the STORES / SORTBY / FILTER
+		setState({ ...state });
 	}
 
 	@Action(DelClient)
-	delStore({ patchState, getState }: StateContext<IStoreState>, { payload }: DelClient) {
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
 		const state = getState() || {};
-		const store = this.filterClient(getState(), payload);
+		const schema: IStoreMeta[] = [];
 
-		state[payload.store] = store;
-		this.dbg('delClient: %j', payload);
-		patchState({ ...state });
+		asArray(payload).forEach(doc => {
+			const store = doc[FIELD.store];
+			state[store] = filterState(state, doc);
+
+			if (state[store].length === 0)
+				delete state[doc[FIELD.store]]
+			if (store === STORE.schema && doc[FIELD.type] && doc[FIELD.key])
+				schema.push(doc);
+
+			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.store], doc);
+		})
+
+		if (schema.length)
+			setSchema(state[STORE.schema] as ISchema[]);	// rebuild the STORES / SORTBY / FILTER
+		setState({ ...state });
 	}
 
 	@Action(TruncClient)
-	truncStore({ setState }: StateContext<IStoreState>) {
-		this.dbg('truncClient');
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncClient) {
+		if (debug) this.dbg('truncClient');
 		setState({});
-	}
-
-	/** remove an item from the Client Store */
-	private filterClient(state: IStoreState, payload: IStoreDoc) {
-		const curr = state && state[payload.store] || [];
-
-		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
-	}
-
-	/** Selectors */
-	@Selector()
-	static getClient(state: IStoreState) {
-		return currStore.bind(this, state);
 	}
 }

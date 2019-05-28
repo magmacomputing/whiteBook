@@ -1,9 +1,13 @@
 {
+  "angularCompilerOptions": {
+    "enableIvy": true,
+  },
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
-    "sourceMap": true,
+    "outDir": "./public/out-tsc",
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
@@ -13,8 +17,8 @@
       "node_modules/@types"
     ],
     "lib": [
-      "es2017",
-      "dom"
+      "esnext",
+      "dom",
     ],
     "strict": true,
     "noImplicitThis": false,
@@ -23,16 +27,20 @@
         "src/environments/*"
       ],
       "@lib/*": [
-        "src/app/library/*"
+        "lib/*",
       ],
       "@dbase/*": [
-        "src/app/dbase/*"
-      ],
-      "@svc/*": [
-        "src/app/service/*"
+        "src/app/dbase/*",
+			],
+			"@library/*": [
+				"src/app/library/*",
+			],
+      "@service/*": [
+        "src/app/service/*",
       ],
       "@route/*": [
-        "src/app/route/*"
+        "src/app/route/*",
+        "src/app/route/router/*",
       ],
     },
   }

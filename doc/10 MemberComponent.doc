@@ -9,6 +9,8 @@ constructor() {
 checkIn()
 signout()
 status()
+account()
 history()
 topUp()
 onHold()
+plan()

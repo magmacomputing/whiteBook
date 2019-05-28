@@ -1,20 +1,18 @@
-import { Component } from '@angular/core';
-import { Store } from '@ngxs/store';
-import { Navigate } from '@ngxs/router-plugin';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { DataService } from '@dbase/data/data.service';
-import { AuthService } from '@dbase/auth/auth.service';
+import { StateService } from '@dbase/state/state.service';
 
 @Component({
-  selector: 'wb-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+	selector: 'wb-root',
+	templateUrl: './app.component.html',
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+	public app$ = this.state.getMemberData();								// per-member message
 
-  constructor(private readonly data: DataService, private readonly store: Store, private readonly auth: AuthService) { }
+	constructor(readonly data: DataService, readonly state: StateService, private router: Router) { }
 
-  navigate(url: string) {
-    this.store.dispatch(new Navigate([url]));
-  }
+	ngOnInit() { }
+
 }

@@ -1,62 +1,54 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
-import { Select } from '@ngxs/store';
-import { ISelector } from '@dbase/state/store.define';
-import { ClientState } from '@dbase/state/client.state';
-import { getStore } from '@dbase/state/store.state';
+import { ITimetableState } from '@dbase/state/state.define';
+import { StateService } from '@dbase/state/state.service';
+import { DataService } from '@dbase/data/data.service';
+import { MemberService } from '@service/member/member.service';
 
-import { MemberService } from '@dbase/app/member.service';
-import { asAt } from '@dbase/app/member.library';
-import { STORE } from '@dbase/data/data.define';
-import { IClass } from '@dbase/data/data.interface';
-import { IWhere } from '@dbase/fire/fire.interface';
-
-import { fmtDate } from '@lib/date.library';
-import { sortKeys } from '@lib/object.library';
+import { swipe } from '@lib/html.library';
+import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
-  selector: 'wb-attend',
-  templateUrl: './attend.component.html',
-  styleUrls: ['./attend.component.css']
+	selector: 'wb-attend',
+	templateUrl: './attend.component.html',
 })
 export class AttendComponent implements OnInit {
-  @Select(ClientState.getClient) client$!: Observable<ISelector>;
+	private dbg = dbg(this);
+	private date!: number;
 
-  private dbg: Function = dbg.bind(this);
-  private date!: string;
+	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
+	public locations: number = 0;                       // used by UI to swipe between <tabs>
+	public timetable$!: Observable<ITimetableState>;
+	public firstPaint = true;                           // indicate first-paint
 
-  constructor(private readonly member: MemberService) { }
+	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) { }
 
-  ngOnInit() { }
+	ngOnInit() {                                        // wire-up the timetable Observable
+		this.timetable$ = this.state.getScheduleData(this.date).pipe(
+			map(data => {
+				// this.firstPaint = false;                   // TODO: ok to animate if Observable re-emits
+				this.locations = (data.client.location || []).length;
+				this.selectedIndex = 0;                       // start on the first-page
+				// this.dbg('table: %j', data.client);
+				return data;
+			})
+		)
+	}
 
-  get event$() {
-    return getStore(this.client$, STORE.class).pipe(
-      map(table => asAt(table, undefined, this.date))
-    )
-  }
+	// TODO: popup info about a Class
+	showEvent(event: string) {
+		this.dbg('event: %j', event);
+	}
 
-  get schedule$() {
-    const day = fmtDate(this.date).weekDay;
-    const where: IWhere = { fieldPath: 'day', opStr: '==', value: day };
+	swipe(idx: number, event: any) {
+		this.firstPaint = false;                          // ok to animate
+		this.selectedIndex = swipe(idx, this.locations, event);
+	}
 
-    return getStore(this.client$, STORE.schedule).pipe(
-      map(table => asAt(table, where, this.date)),
-      map(table => table.sort(sortKeys('time'))),
-    )
-  }
-
-  checkIn(event: IClass) {
-    this.dbg('event: %j', event);
-  }
+	suffix(idx: number) {
+		return suffix(idx);
+	}
 }
-
-/**
- * get class, plan, uid, and profile
- * use uid to get profile.plan
- * use profile.plan to get price (for each type)
- * use (dt?) to get class
- * use class.type (full/half) to show cost
- */

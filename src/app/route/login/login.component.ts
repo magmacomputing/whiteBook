@@ -1,25 +1,39 @@
-import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
-import { Select } from '@ngxs/store';
-import { ClientState } from '@dbase/state/client.state';
-import { ISelector } from '@dbase/state/store.define';
-import { getStore } from '@dbase/state/store.state';
+import { STORE, FIELD } from '@dbase/data/data.define';
+import { IProvider } from '@dbase/data/data.schema';
+import { AuthService } from '@service/auth/auth.service';
+import { StateService } from '@dbase/state/state.service';
+import { DataService } from '@dbase/data/data.service';
 
-import { AuthService } from '@dbase/auth/auth.service';
-import { STORE } from '@dbase/data/data.define';
+import { drag } from '@lib/html.library';
+import { dbg } from '@lib/logger.library';
 
 @Component({
 	selector: 'wb-login',
-	templateUrl: './login.component.html',
-	styleUrls: ['./login.component.css']
+	templateUrl: './login.component.html'
 })
-export class LoginComponent {
-	@Select(ClientState.getClient) client$!: Observable<ISelector>;
+export class LoginComponent implements OnInit {
+	public provider$= this.state.getCurrent<IProvider>(STORE.provider);
+	private dbg = dbg(this);
 
-	constructor(public readonly auth: AuthService) { }
+	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService) {}
 
-	get provider$() {
-		return getStore(this.client$, STORE.provider, undefined, ['order', 'name']);
+	ngOnInit() { }
+
+	signIn(provider: IProvider) {
+		const opts: { email?: string, password?: string } = {};
+
+		if (provider[FIELD.type] === 'email') {
+			opts.email = prompt('Enter your email address...') || undefined;
+			opts.password = prompt('Enter your password...') || undefined;
+		}
+
+		this.auth.signIn(provider, opts);
+	}
+
+	drop(event: CdkDragDrop<any[]>) {
+		drag(event);
 	}
 }
