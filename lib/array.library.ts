@@ -14,6 +14,13 @@ declare global {
 
 		cartesian: () => T[][];										// TODO
 	}
+
+	interface ArrayExt<T> {
+		/** reduce an Array to remove duplicate values */
+		distinct<U>(callbackfn?: (value: T) => U): T extends U ? ArrayExt<T> : ArrayExt<U>;
+
+		// cartesian<T>(a: T, b?: T, ...c: ArrayExt<T>) => ArrayExt<ArrayExt<T>>;		// TODO
+	}
 }
 
 if (!Array.prototype.hasOwnProperty('distinct'))
@@ -25,3 +32,16 @@ if (!Array.prototype.hasOwnProperty('distinct'))
 
 // if (!Array.prototype.hasOwnProperty('cartesian'))
 // 	Array.prototype.cartesian = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
+
+export class ArrayExt<T> extends Array {
+	constructor(...args: any[]) { super(...args) }
+
+	distinct = function <U>(selector?: <T>(value: T) => U) {
+		return selector
+			? this.map(selector).distinct()
+			: new ArrayExt(...new Set(this))
+	}
+
+	// cartesian = <T>(a: ArrayExt<T>, b?: ArrayExt<T>, ...c: ArrayExt<T>) =>
+	// 	(b ? this.cartesian(cartFn(a, b), ...c) : a);
+}
