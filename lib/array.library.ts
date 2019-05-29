@@ -9,44 +9,46 @@ export const distinct = <T>(...value: T[]) => [... new Set(value)];
 const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));
 export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
 
-// declare global {
-// 	interface Array<T> {												// change the global interface for Array
-// 		/** reduce an Array to remove duplicate values */
-// 		distinct<U>(callbackfn?: (value: T) => U): T extends U ? Array<T> : Array<U>;
+declare global {
+	// 	interface Array<T> {												// change the global interface for Array
+	// 		/** reduce an Array to remove duplicate values */
+	// 		distinct<U>(callbackfn?: (value: T) => U): T extends U ? Array<T> : Array<U>;
 
-// 		cartesian: () => T[][];										// TODO
-// 	}
+	// 		cartesian: () => T[][];										// TODO
+	// 	}
 
-// 	interface ArrayExt<T> {
-// 		/** reduce an Array to remove duplicate values */
-// 		distinct<U>(callbackfn?: (value: T) => U): T extends U ? ArrayExt<T> : ArrayExt<U>;
+	interface ArrayExt<T> {
+		filter(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => any, thisArg?: any): ArrayExt<T>;
+		map<U>(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => U, thisArg?: any): ArrayExt<U>;
+		distinct<U>(callbackfn?: <T>(value: T) => U): T extends U ? ArrayExt<T> : ArrayExt<U>;
+		// cartesian<T>(a: T, b?: T, ...c: ArrayExt<T>) => ArrayExt<ArrayExt<T>>;		// TODO
+	}
 
-// 		// cartesian<T>(a: T, b?: T, ...c: ArrayExt<T>) => ArrayExt<ArrayExt<T>>;		// TODO
-// 	}
-// }
+	// export class ArrayExt<T> extends Array<T> {
+	// 	private _map = Array.prototype.map;
+	// 	private _filter = Array.prototype.filter;
 
-// if (!Array.prototype.hasOwnProperty('distinct'))
-// 	// Array.prototype.distinct = function <U>(selector?: <T>(value: T) => U) {
-// 	Array.prototype.distinct = (selector?) => {
-// 		return selector
-// 			? this.map(selector).distinct()
-// 			: [...new Set(this)]
-// 	}
+	// 	constructor(...args: any[]) {
+	// 		super(...args);
+	// 		Object.setPrototypeOf(this, ArrayExt.prototype);
+	// 	}
 
-// // if (!Array.prototype.hasOwnProperty('cartesian'))
-// // 	Array.prototype.cartesian = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
+	// 		filter(callback: (value: T, index: number, arr: T[]) => T[]) :T[]{
+	// 			return this._filter(callback);
+	// return new ArrayExt<T>(...this._filter<T>(callback))
+	// }
 
-// export class ArrayExt<T> extends Array {
-// 	private self: any;
+	// 	map<S extends T>(callbackfn: (value: T, index: number, arr: T[]) => any): T extends S ? ArrayExt<T> : ArrayExt<S> {
+	// 		return new ArrayExt<T>(...this._map(callbackfn));
+	// 	}
 
-// 	constructor(...args: any[]) { super(...args); this.self = this; }
+	// 	distinct<S extends T>(callbackfn?: (value: T, index: number, array: T[]) => S[]) {
+	// 		return callbackfn
+	// 			? this._map<T>(callbackfn).distinct()
+	// 			: [...new Set<T>(this)]
+	// 	}
 
-// 	distinct = function <U>(selector?: <T>(value: T) => U) {
-// 		return selector
-// 			? this.self.map(selector).distinct()
-// 			: [...new Set(this)]
-// 	}
-
-// 	// cartesian = <T>(a: ArrayExt<T>, b?: ArrayExt<T>, ...c: ArrayExt<T>) =>
-// 	// 	(b ? this.cartesian(cartFn(a, b), ...c) : a);
-// }
+	// 	// 	// cartesian = <T>(a: ArrayExt<T>, b?: ArrayExt<T>, ...c: ArrayExt<T>) =>
+	// 	// 	// 	(b ? this.cartesian(cartFn(a, b), ...c) : a);
+	// 
+}
