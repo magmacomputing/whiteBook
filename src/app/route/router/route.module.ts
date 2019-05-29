@@ -14,9 +14,9 @@ const routes: Routes = [
 	{ path: ROUTE.oauth, component: OAuthComponent, canDeactivate: [DeactivateGuard] },				// todo: cannot be lazy-loaded
 	{ path: ROUTE.login, component: LoginComponent },
 	{ path: ROUTE.attend, component: AttendComponent, canActivate: [AuthGuard, ProfileGuard] },
-	{ path: ROUTE.profile, loadChildren: '@route/profile/profile.module#ProfileModule', canActivate: [AuthGuard] },
-	{ path: ROUTE.admin, loadChildren: '@route/admin/admin.module#AdminModule', canActivate: [AuthGuard] },
-	{ path: 'migrate', loadChildren: '@route/migrate/migrate.module#MigrateModule', canActivate: [AuthGuard] },
+	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AuthGuard] },
+	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), canActivate: [AuthGuard] },
+	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), canActivate: [AuthGuard] },
 	{ path: '**', redirectTo: '/attend', pathMatch: 'full' },
 ];
 
