@@ -18,29 +18,30 @@ declare global {
 	// 	}
 
 	interface ArrayExt<T> {
-		filter(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => any, thisArg?: any): ArrayExt<T>;
-		map<U>(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => U, thisArg?: any): ArrayExt<U>;
+		filter(callbackfn: (value: T, index: number, array: T[]) => any, thisArg?: any): ArrayExt<T>;
+		map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): ArrayExt<U>;
 		distinct<U>(callbackfn?: <T>(value: T) => U): T extends U ? ArrayExt<T> : ArrayExt<U>;
 		// cartesian<T>(a: T, b?: T, ...c: ArrayExt<T>) => ArrayExt<ArrayExt<T>>;		// TODO
 	}
+}
 
-	// export class ArrayExt<T> extends Array<T> {
-	// 	private _map = Array.prototype.map;
-	// 	private _filter = Array.prototype.filter;
+export class ArrayExt<T> extends Array<T> {
+	private _map = Array.prototype.map;
+	private _filter = Array.prototype.filter;
 
-	// 	constructor(...args: any[]) {
-	// 		super(...args);
-	// 		Object.setPrototypeOf(this, ArrayExt.prototype);
-	// 	}
+	constructor(...args: any[]) {
+		super(...args);
+		Object.setPrototypeOf(this, ArrayExt.prototype);
+	}
 
 	// 		filter(callback: (value: T, index: number, arr: T[]) => T[]) :T[]{
 	// 			return this._filter(callback);
 	// return new ArrayExt<T>(...this._filter<T>(callback))
 	// }
 
-	// 	map<S extends T>(callbackfn: (value: T, index: number, arr: T[]) => any): T extends S ? ArrayExt<T> : ArrayExt<S> {
-	// 		return new ArrayExt<T>(...this._map(callbackfn));
-	// 	}
+	// map<S extends T>(callbackfn: (value: T, index: number, arr: T[]) => any): T extends S ? ArrayExt<T> : ArrayExt<S> {
+	// 	return new ArrayExt(...this._map(callbackfn));
+	// }
 
 	// 	distinct<S extends T>(callbackfn?: (value: T, index: number, array: T[]) => S[]) {
 	// 		return callbackfn
@@ -50,5 +51,4 @@ declare global {
 
 	// 	// 	// cartesian = <T>(a: ArrayExt<T>, b?: ArrayExt<T>, ...c: ArrayExt<T>) =>
 	// 	// 	// 	(b ? this.cartesian(cartFn(a, b), ...c) : a);
-	// 
 }
