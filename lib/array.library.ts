@@ -10,13 +10,6 @@ const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any)
 export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
 
 declare global {
-	// 	interface Array<T> {												// change the global interface for Array
-	// 		/** reduce an Array to remove duplicate values */
-	// 		distinct<U>(callbackfn?: (value: T) => U): T extends U ? Array<T> : Array<U>;
-
-	// 		cartesian: () => T[][];										// TODO
-	// 	}
-
 	interface ArrayExt<T> {
 		filter(callbackfn: (value: T, index: number, array: T[]) => any, thisArg?: any): ArrayExt<T>;
 		map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: any): ArrayExt<U>;
