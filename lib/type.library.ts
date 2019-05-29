@@ -1,6 +1,8 @@
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
-	const type = Object.prototype.toString.call(obj).slice(8, -1);
+	const type = obj === null
+		? 'Null'
+		: Object.prototype.toString.call(obj).slice(8, -1);
 
 	switch (true) {
 		case type === 'Object':

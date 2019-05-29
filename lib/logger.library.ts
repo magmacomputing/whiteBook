@@ -1,4 +1,5 @@
 import { format } from 'util';
+
 import { isString, isObject } from '@lib/type.library';
 
 /** setup a copy for debug(), bind the current component name */

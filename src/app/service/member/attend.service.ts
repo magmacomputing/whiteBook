@@ -17,9 +17,8 @@ import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, IB
 import { getDate, DATE_FMT, TDate, Instant } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
 import { getPath, isEmpty, IObject } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
+import { asArray, distinct } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { randomString } from '@lib/string.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
@@ -131,13 +130,17 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
 			 */
 			case scheme.week
-				&& attendWeek
+				&& distinct(...attendWeek
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					.distinct(row => row.track[FIELD.date])
+					.map(row => row.track[FIELD.date])
+				)
+					// .distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.week.level
-				&& attendWeek
+				&& distinct(...attendWeek
 					.filter(row => row.bonus === scheme.week[FIELD.id])
-					.distinct(row => row.track[FIELD.date])
+					.map(row => row.track[FIELD.date])
+				)
+					// .distinct(row => row.track[FIELD.date])
 					.length < scheme.week.free:
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
@@ -171,13 +174,17 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
 			 */
 			case scheme.month
-				&& attendMonth
+				&& distinct(...attendMonth
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					.distinct(row => row.track[FIELD.date])
+					.map(row => row.track[FIELD.date])
+				)
+					// .distinct(row => row.track[FIELD.date])
 					.length + 1 > scheme.month.level
-				&& attendMonth
+				&& distinct(...attendMonth
 					.filter(row => row.bonus === scheme.month[FIELD.id])
-					.distinct(row => row.track[FIELD.date])
+					.map(row => row.track[FIELD.date])
+				)
+					// .distinct(row => row.track[FIELD.date])
 					.length < scheme.month.free:
 				bonus = {
 					[FIELD.id]: scheme.month[FIELD.id],
@@ -356,8 +363,9 @@ export class AttendService {
 		const updates: IStoreMeta[] = [];
 		const deletes: IStoreMeta[] = [...attends];
 
-		let pays = attends														// count the number of Attends per Payment
-			.distinct(row => row.payment[FIELD.id])
+		let pays = distinct(...attends														// count the number of Attends per Payment
+			.map(row => row.payment[FIELD.id])
+		)
 			.reduce((acc, itm) => {
 				acc[itm] = payments.filter(row => row[FIELD.id] === itm).length;
 				return acc;

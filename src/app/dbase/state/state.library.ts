@@ -11,7 +11,7 @@ import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice,
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
-import { asArray } from '@lib/array.library';
+import { asArray, distinct } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
 import { DATE_FMT, getDate, TDate } from '@lib/date.library';
@@ -157,7 +157,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 const decodeFilter = (parent: any, filter: TWhere = []) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
 
-		cond.value = asArray(cond.value)
+		cond.value = distinct(...asArray(cond.value)
 			.flatMap(value => {    																// loop through filter's <value>
 				const isPath = isString(value) && value.startsWith('{{');
 				let lookup = value;
@@ -174,7 +174,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 
 				return lookup;                              				// rebuild filter's <value>
 			})
-			.distinct()
+		)
 
 		if (cond.value.length === 1)
 			cond.value = cond.value[0];                           // an array of only one value, return as string
