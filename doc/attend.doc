@@ -1,0 +1,22 @@
+* determine the <active> account profile for a user
+
+*~~
+* determine the attend price from user's plan & class-type
+
+*~~
+* calculate the credit from account profiles where !expire
+-> payment = sum of amount where isApproved
+-> bank = sum of bank where active
+-> pending = sum amount where !isApproved
+-> attend = sum cost from /attend where account = <active>/accountId
+=> credit = payment + bank - attend
+
+*~~
+* loop until (credit + pending) > attend price
+		expire <active> account
+		move to next pre-pay and mark <active>
+			else create new account topUp and mark <active>
+		calc credit
+
+*~~
+* write attend
