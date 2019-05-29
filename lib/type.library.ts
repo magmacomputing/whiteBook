@@ -1,12 +1,14 @@
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
-	const type = obj === null
-		? 'Null'
-		: Object.prototype.toString.call(obj).slice(8, -1);
+	const type = Object.prototype.toString.call(obj).slice(8, -1);
 
 	switch (true) {
 		case type === 'Object':
 			return obj.constructor.name;							// return Class name
+		case type === 'Window' && obj === undefined:
+			return 'Undefined';
+		case type === 'Window' && obj === null:
+			return 'Null';
 		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 			return 'Class';
 		default:
