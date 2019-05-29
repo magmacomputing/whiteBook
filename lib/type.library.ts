@@ -6,9 +6,9 @@ export const getType = (obj?: any): string => {
 		case type === 'Object':
 			return obj.constructor.name;							// return Class name
 		case type === 'Window' && obj === undefined:
-			return 'Undefined';
+			return 'Undefined';												// after Angular8
 		case type === 'Window' && obj === null:
-			return 'Null';
+			return 'Null';														// after Angular8
 		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 			return 'Class';
 		default:
