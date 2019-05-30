@@ -2,7 +2,7 @@ import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere } from '@dbase/fire/fire.interface';
 
-import { asArray, cartesian, distinct } from '@lib/array.library';
+import { asArray, cartesian } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
 import { isUndefined } from '@lib/type.library';
 
@@ -52,9 +52,9 @@ export const fnQuery = (query: IQuery = {}) => {
  */
 const splitQuery = (query: IQuery = {}) => {
 	const vals = asArray(query.where)							// for each 'where' clause
-		.map(where => distinct(...asArray(where.value))					// for each 'value'
-			// .distinct<any>()													// remove duplicates
-			.map<IWhere>(value => ({													// build an array of separate IWhere
+		.map(where => asArray(where.value)					// for each 'value'
+			.distinct()																// remove duplicates
+			.map<IWhere>(value => ({									// build an array of separate IWhere
 				fieldPath: where.fieldPath,
 				opStr: where.opStr,
 				value: value,

@@ -149,7 +149,7 @@ export class FireService {
 		}
 
 		// if (!this.online)
-		// 	all.length = 0;													// dont wait for Batch if offline
+		// 	all.truncate();													// dont wait for Batch if offline
 		return Promise.all(all);
 	}
 
