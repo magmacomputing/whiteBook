@@ -1,6 +1,4 @@
-import { isArray } from '@lib/type.library';
-
-export const asArray = <T>(arr: T | T[] = []) => isArray(arr) ? [...arr] : [arr];
+export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
 
 // useful for cartesian product of arrays
 const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));

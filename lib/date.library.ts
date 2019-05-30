@@ -1,6 +1,6 @@
 import { fix } from '@lib/number.library';
 import { asString } from '@lib/string.library';
-import { isString, isNumber, getType, TString } from '@lib/type.library';
+import { isString, isNumber, getType, TString, isObject, isUndefined } from '@lib/type.library';
 
 interface IInstant {											// Date components
 	yy: number;															// year[4]
@@ -38,7 +38,14 @@ export enum DATE_FMT {										// pre-configured format names
 	yearMonthDay = 'yyyymmdd',
 }
 
-export type TDate = string | number | Date | Instant;
+export type TDate = string | number | Date | Instant | Timestamp;
+export class Timestamp {								// this mirrors what Firestore already does
+	constructor(public seconds = 0, public nanoseconds = 0) {
+		this.seconds = seconds;
+		this.nanoseconds = nanoseconds;
+	}
+	public toDate = () => new Date(this.seconds * Math.floor(this.nanoseconds / 1000000));
+}
 
 type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
@@ -51,7 +58,7 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get Timestamp */	export const getStamp = (dt?: TDate) => getDate(dt).ts;
 /** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
-
+const isTimestamp = (ts: any): ts is Timestamp => ts instanceof Timestamp;
 
 /**
  * An Instant is a object that is used to manage Dates.  
@@ -119,6 +126,11 @@ export class Instant {
 				const val = (nbr < Instant.maxStamp ? nbr * 1000 : nbr);// assume timestamp to milliseconds
 				date = new Date(val);
 				break;
+			case 'Object':
+				if (dt instanceof Timestamp) {
+					date = dt.toDate();
+					break;
+				}
 			default:																								// unexpected input
 				date = new Date();
 		}
