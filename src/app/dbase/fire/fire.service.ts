@@ -114,6 +114,7 @@ export class FireService {
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
 	private removeMeta(doc: firestore.DocumentData) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
+
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value))								// remove top-level keys with 'undefined' values
 				// delete rest[key];										// TODO: recurse?
@@ -121,6 +122,7 @@ export class FireService {
 			if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
 				rest[key] = firestore.FieldValue.delete();	// TODO: workaround
 		})
+
 		return rest;
 	}
 
@@ -134,7 +136,7 @@ export class FireService {
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));
 		const limit = 300;
-		const all: Promise<void>[] = [];
+		const commits: Promise<void>[] = [];
 
 		while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
 			const c = cloneCreate.splice(0, limit);
@@ -145,12 +147,12 @@ export class FireService {
 			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
 			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
-			all.push(bat.commit());
+			commits.push(bat.commit());
 		}
 
 		// if (!this.online)
 		// 	all.truncate();													// dont wait for Batch if offline
-		return Promise.all(all);
+		return Promise.all(commits);
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
