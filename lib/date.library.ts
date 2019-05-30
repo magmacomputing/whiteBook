@@ -38,13 +38,25 @@ export enum DATE_FMT {										// pre-configured format names
 	yearMonthDay = 'yyyymmdd',
 }
 
-export type TDate = string | number | Date | Instant | Timestamp;
+export type TDate = string | number | Date | Instant | Timestamp | TTimestamp;
+export type TTimestamp = { seconds: number; nanoseconds: number; };
 export class Timestamp {								// this mirrors what Firestore already does
-	constructor(public seconds = 0, public nanoseconds = 0) {
-		this.seconds = seconds;
-		this.nanoseconds = nanoseconds;
+	seconds: number;
+	nanoseconds: number;
+
+	constructor(seconds?: number, nanoseconds?: number) {
+		const now = new Date();
+		this.seconds = isUndefined(seconds)
+			? now.getSeconds() / 1000
+			: seconds
+		this.nanoseconds = isUndefined(nanoseconds)
+			? now.getMilliseconds() * 1000000
+			: nanoseconds
 	}
 	public toDate = () => new Date(this.seconds * Math.floor(this.nanoseconds / 1000000));
+	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1000000);
+	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
+	static now = new Timestamp();
 }
 
 type TMutate = 'add' | 'start' | 'mid' | 'end';
@@ -58,7 +70,6 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 /** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
 /** get Timestamp */	export const getStamp = (dt?: TDate) => getDate(dt).ts;
 /** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
-const isTimestamp = (ts: any): ts is Timestamp => ts instanceof Timestamp;
 
 /**
  * An Instant is a object that is used to manage Dates.  
@@ -126,9 +137,13 @@ export class Instant {
 				const val = (nbr < Instant.maxStamp ? nbr * 1000 : nbr);// assume timestamp to milliseconds
 				date = new Date(val);
 				break;
-			case 'Object':
-				if (dt instanceof Timestamp) {
-					date = dt.toDate();
+			case 'Timestamp':																				// instance of Timestamp
+				date = (dt as Timestamp).toDate();
+				break;
+			case 'Object':																					// shape of Timestamp
+				const ts = dt as TTimestamp;
+				if (isNumber(ts.seconds) && isNumber(ts.nanoseconds)) {
+					date = new Timestamp(ts.seconds, ts.nanoseconds).toDate();
 					break;
 				}
 			default:																								// unexpected input
