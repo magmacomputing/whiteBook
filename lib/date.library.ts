@@ -41,19 +41,20 @@ export enum DATE_FMT {										// pre-configured format names
 export type TDate = string | number | Date | Instant | Timestamp | TTimestamp;
 export type TTimestamp = { seconds: number; nanoseconds: number; };
 export class Timestamp {								// this mirrors what Firestore already does
-	seconds: number;
-	nanoseconds: number;
+	readonly seconds: number;
+	readonly nanoseconds: number;
 
 	constructor(seconds?: number, nanoseconds?: number) {
 		const now = new Date();
 		this.seconds = isUndefined(seconds)
-			? now.getSeconds() / 1000
+			? now.getSeconds()
 			: seconds
 		this.nanoseconds = isUndefined(nanoseconds)
 			? now.getMilliseconds() * 1000000
 			: nanoseconds
 	}
-	public toDate = () => new Date(this.seconds * Math.floor(this.nanoseconds / 1000000));
+
+	public toDate = () => new Date((this.seconds * 1000) + Math.floor(this.nanoseconds / 1000000));
 	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1000000);
 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
 	static now = new Timestamp();
