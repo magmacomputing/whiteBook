@@ -7,11 +7,11 @@ export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesi
 declare global {
 	interface Array<T> {
 		distinct(): T[];
-		distinct<S>(callbackfn: (value: T, index: number, array: T[]) => S, thisArg?: any): S[];
+		distinct<S>(mapfn: (value: T, index: number, array: T[]) => S, thisArg?: any): S[];
 
 		truncate(base?: number): T[];
 
-		// cartesian<T>(a: T, b?: T, ...c: ArrayExt<T>) => ArrayExt<ArrayExt<T>>;		// TODO
+		cartesian(a?: T, b?: T, ...c: T[]): T;
 	}
 }
 
@@ -27,5 +27,15 @@ if (!Array.prototype.hasOwnProperty('distinct')) {
 		return selector
 			? this.map(selector).distinct()
 			: [...new Set(this)];
+	}
+}
+
+if (!Array.prototype.hasOwnProperty('cartesian')) {
+	Array.prototype.cartesian = function (b?, ...c) {
+		return this[1]
+			? this.cartesian(
+				(b: any) => [].concat(...this.map((d: any) => b.map((e: any) => [].concat(d, e)))),
+				...c)
+			: this
 	}
 }
