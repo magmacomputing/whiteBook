@@ -1,8 +1,8 @@
 export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
 
 // useful for cartesian product of arrays
-const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));
-export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
+// const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));
+// export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
 
 declare global {
 	interface Array<T> {
@@ -11,7 +11,7 @@ declare global {
 
 		truncate(base?: number): T[];
 
-		cartesian(a?: T, b?: T, ...c: T[]): T;
+		cartesian(...args: T[][]): T[];
 	}
 }
 
@@ -31,11 +31,12 @@ if (!Array.prototype.hasOwnProperty('distinct')) {
 }
 
 if (!Array.prototype.hasOwnProperty('cartesian')) {
-	Array.prototype.cartesian = function (b?, ...c) {
-		return this[1]
-			? this.cartesian(
-				(b: any) => [].concat(...this.map((d: any) => b.map((e: any) => [].concat(d, e)))),
-				...c)
-			: this
+	Array.prototype.cartesian = function (...args: any[]) {
+		const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
+		const [a, b, ...c] = args.length === 0 ? this : args;
+
+		return b
+			? this.cartesian(cartFn(a, b), ...c)
+			: [...a || []]
 	}
 }

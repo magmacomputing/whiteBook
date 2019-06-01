@@ -38,9 +38,18 @@ export enum DATE_FMT {										// pre-configured format names
 	yearMonthDay = 'yyyymmdd',
 }
 
+type TMutate = 'add' | 'start' | 'mid' | 'end';
+type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
+type TUnitOffset = 'month' | 'week' | 'day';
+type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
+
 export type TDate = string | number | Date | Instant | Timestamp | TTimestamp;
-export type TTimestamp = { seconds: number; nanoseconds: number; };
-export class Timestamp {								// this mirrors what Firestore already does
+
+/**
+ * Mirror the Firestore Timestamp
+ */
+type TTimestamp = { seconds: number; nanoseconds: number; };
+export class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
 
@@ -59,11 +68,6 @@ export class Timestamp {								// this mirrors what Firestore already does
 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
 	static now = new Timestamp();
 }
-
-type TMutate = 'add' | 'start' | 'mid' | 'end';
-type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
-type TUnitOffset = 'month' | 'week' | 'day';
-type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
