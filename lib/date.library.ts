@@ -3,18 +3,18 @@ import { asString } from '@lib/string.library';
 import { isString, isNumber, getType, TString, isUndefined } from '@lib/type.library';
 
 interface IInstant {											// Date components
-	yy: number;															// year[4]
-	mm: number;															// month; Jan=1, Dec=12
-	dd: number;															// day; 1-31
-	HH: number;															// hour[24]
-	MI: number;															// minute
-	SS: number;															// second
-	ts: number;															// timestamp
-	ms: number;															// milliseconds
-	ww: number;															// number of weeks
-	mmm: string;														// short month-name
-	ddd: string;														// short day-name
-	dow: number;														// weekday; Mon=1, Sun=7
+	readonly yy: number;										// year[4]
+	readonly mm: number;										// month; Jan=1, Dec=12
+	readonly dd: number;										// day; 1-31
+	readonly HH: number;										// hour[24]
+	readonly MI: number;										// minute
+	readonly SS: number;										// second
+	readonly ts: number;										// timestamp
+	readonly ms: number;										// milliseconds
+	readonly ww: number;										// number of weeks
+	readonly mmm: string;										// short month-name
+	readonly ddd: string;										// short day-name
+	readonly dow: number;										// weekday; Mon=1, Sun=7
 }
 
 interface IDateFmt {											// pre-configured format strings
