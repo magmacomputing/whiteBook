@@ -1,6 +1,8 @@
+import { format } from 'util';
+
 import { fix } from '@lib/number.library';
 import { asString } from '@lib/string.library';
-import { isString, isNumber, getType, TString, isUndefined } from '@lib/type.library';
+import { isString, isNumber, getType, isUndefined } from '@lib/type.library';
 
 interface IInstant {											// Date components
 	readonly yy: number;										// year[4]
@@ -44,7 +46,7 @@ type TUnitOffset = 'month' | 'week' | 'day';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 type TTimestamp = { seconds: number; nanoseconds: number; };
 
-export type TDate = string | number | Date | Instant | Timestamp | TTimestamp;
+export type TDate = string | string[] | number | Date | Instant | Timestamp | TTimestamp;
 
 /**
  * Mirror the Firestore Timestamp
@@ -85,7 +87,7 @@ export class Timestamp {
 export class Instant {
 	private date: IInstant;																			// Date parsed into components
 
-	constructor(dt?: TDate, fmt?: TString) { this.date = this.parseDate(dt, fmt); }
+	constructor(dt?: TDate) { this.date = this.parseDate(dt); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.date.yy }
@@ -114,9 +116,9 @@ export class Instant {
 	/** get raw object */	toObject = () => ({ ...this.date });
 	/** as Date object */	asDate = () => new Date(this.date.ts * 1000 + this.date.ms);
 
-	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	private parseDate = (dt?: TDate, fmt?: TString) => {				// TODO: allow for <fmt> when parsing a :string argument
+	private parseDate = (dt?: TDate) => {
 		let date: Date;
 
 		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...
@@ -131,16 +133,20 @@ export class Instant {
 			case 'Date':																						// already is a valid Date
 				date = dt as Date;
 				break;
-			case 'Instant':																					// already have a valid Instant
-				date = (dt as Instant).asDate();
+			case 'String':
+				date = new Date(dt as string);
 				break;
-			case 'String':																					// TODO: use fmt to parse date-string
-				date = new Date(dt as string);												// attempt to parse date-string
+			case 'Array':																						// free-format string
+				const [fmt, ...str] = dt as string[];									// treat [0] as format
+				date = new Date(format(fmt, ...str));
 				break;
 			case 'Number':																					// check whether milliseconds or microseconds
 				const nbr = dt as number;
 				const val = (nbr < Instant.maxStamp ? nbr * 1000 : nbr);// assume timestamp to milliseconds
 				date = new Date(val);
+				break;
+			case 'Instant':																					// already have a valid Instant
+				date = (dt as Instant).asDate();
 				break;
 			case 'Timestamp':																				// instance of Timestamp
 				date = (dt as Timestamp).toDate();

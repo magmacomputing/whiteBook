@@ -1,3 +1,6 @@
+import { isUndefined } from 'util';
+import { getType } from './type.library';
+
 export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
 
 // useful for cartesian product of arrays
@@ -30,12 +33,12 @@ if (!Array.prototype.hasOwnProperty('distinct')) {
 	}
 }
 
+const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
 if (!Array.prototype.hasOwnProperty('cartesian')) {
 	Array.prototype.cartesian = function (...args: any[]) {
-		const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
-		const [a, b, ...c] = args.length === 0 ? this : args;
+		const [a, b = [], ...c] = args.length === 0 ? this : args;
 
-		return b
+		return b.length
 			? this.cartesian(cartFn(a, b), ...c)
 			: [...a || []]
 	}

@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AngularFireAuthGuardModule, AngularFireAuthGuard, customClaims, canActivate } from '@angular/fire/auth-guard';
 
 import { pipe } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import { ROUTE } from '@route/route.define';
 import { ProfileGuard, DeactivateGuard } from '@route/route.guard';
@@ -14,15 +14,19 @@ import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
 
-const admin = pipe(customClaims, map(claims => claims.roles && claims.roles.includes('admin')));
+import { getPath } from '@lib/object.library';
+
+const isAdmin = pipe(customClaims,
+	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes('admin')),
+);
 
 const routes: Routes = [
 	{ path: ROUTE.oauth, component: OAuthComponent, canDeactivate: [DeactivateGuard] },				// todo: cannot be lazy-loaded
 	{ path: ROUTE.login, component: LoginComponent },
 	{ path: ROUTE.attend, component: AttendComponent, canActivate: [AngularFireAuthGuard, ProfileGuard] },
 	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
-	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), ...canActivate(admin) },
-	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), ...canActivate(admin) },
+	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), ...canActivate(isAdmin) },
+	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), ...canActivate(isAdmin) },
 	{ path: '**', redirectTo: '/attend', pathMatch: 'full' },
 ];
 
