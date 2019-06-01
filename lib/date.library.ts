@@ -1,6 +1,6 @@
 import { fix } from '@lib/number.library';
 import { asString } from '@lib/string.library';
-import { isString, isNumber, getType, TString, isObject, isUndefined } from '@lib/type.library';
+import { isString, isNumber, getType, TString, isUndefined } from '@lib/type.library';
 
 interface IInstant {											// Date components
 	yy: number;															// year[4]
@@ -42,13 +42,13 @@ type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
 type TUnitOffset = 'month' | 'week' | 'day';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
+type TTimestamp = { seconds: number; nanoseconds: number; };
 
 export type TDate = string | number | Date | Instant | Timestamp | TTimestamp;
 
 /**
  * Mirror the Firestore Timestamp
  */
-type TTimestamp = { seconds: number; nanoseconds: number; };
 export class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
