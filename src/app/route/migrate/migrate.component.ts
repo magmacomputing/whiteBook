@@ -23,7 +23,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
+import { DATE_FMT, getDate, getStamp, fmtDate, Instant } from '@lib/date.library';
 import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
 import { asString } from '@lib/string.library';
@@ -97,6 +97,8 @@ export class MigrateComponent implements OnInit {
 			.pipe(take(1))
 			.toPromise()
 			.then(auth => this.user = auth.auth.user)
+
+			this.dbg('date: %j', new Instant('%s-%s-%s', '20','May', '1957'));
 	}
 
 	ngOnInit() { }

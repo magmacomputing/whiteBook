@@ -1,8 +1,9 @@
 import { format } from 'util';
 
 import { fix } from '@lib/number.library';
-import { asString } from '@lib/string.library';
+import { asString, toNumeric, asNumber } from '@lib/string.library';
 import { isString, isNumber, getType, isUndefined } from '@lib/type.library';
+import { worker } from 'cluster';
 
 interface IInstant {											// Date components
 	readonly yy: number;										// year[4]
@@ -46,7 +47,7 @@ type TUnitOffset = 'month' | 'week' | 'day';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 type TTimestamp = { seconds: number; nanoseconds: number; };
 
-export type TDate = string | string[] | number | Date | Instant | Timestamp | TTimestamp;
+export type TDate = string | number | Date | Instant | IInstant | Timestamp | TTimestamp;
 
 /**
  * Mirror the Firestore Timestamp
@@ -74,9 +75,9 @@ export class Timestamp {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-/** get new Instant */export const getDate = (dt?: TDate) => new Instant(dt);
-/** get Timestamp */	export const getStamp = (dt?: TDate) => getDate(dt).ts;
-/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate) => getDate(dt).format(fmt);
+/** get new Instant */export const getDate = (dt?: TDate, ...args: string[] | number[]) => new Instant(dt, ...args);
+/** get Timestamp */	export const getStamp = (dt?: TDate, ...args: string[] | number[]) => getDate(dt, ...args).ts;
+/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate, ...args: string[] | number[]) => getDate(dt, ...args).format(fmt);
 
 /**
  * An Instant is a object that is used to manage Dates.  
@@ -85,9 +86,10 @@ export class Timestamp {
  * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
  */
 export class Instant {
-	private date: IInstant;																			// Date parsed into components
+	private date: IInstant;																				// Date parsed into components
+	private self!: { -readonly [P in keyof Instant]: Instant[P] };// hidden reference to self
 
-	constructor(dt?: TDate) { this.date = this.parseDate(dt); }
+	constructor(dt?: TDate, ...args: string[] | number[]) { this.date = this.parseDate(dt, args); this.self = this; }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.date.yy }
@@ -118,7 +120,7 @@ export class Instant {
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	private parseDate = (dt?: TDate) => {
+	private parseDate = (dt?: TDate, args: string[] | number[] = []) => {
 		let date: Date;
 
 		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...
@@ -134,11 +136,10 @@ export class Instant {
 				date = dt as Date;
 				break;
 			case 'String':
-				date = new Date(dt as string);
-				break;
-			case 'Array':																						// free-format string
-				const [fmt, ...str] = dt as string[];									// treat [0] as format
-				date = new Date(format(fmt, ...str));
+				const fmt = dt as string;
+				date = new Date(args.length
+					? this.formatString(fmt, ...args)										// free-format string
+					: fmt)																							// let Javascript interpret string
 				break;
 			case 'Number':																					// check whether milliseconds or microseconds
 				const nbr = dt as number;
@@ -151,10 +152,15 @@ export class Instant {
 			case 'Timestamp':																				// instance of Timestamp
 				date = (dt as Timestamp).toDate();
 				break;
-			case 'Object':																					// shape of Timestamp
-				const ts = dt as TTimestamp;
+			case 'Object':
+				const ts = dt as TTimestamp;													// shape of Timestamp
+				const obj = dt as IInstant;														// shape of Instant
 				if (isNumber(ts.seconds) && isNumber(ts.nanoseconds)) {
 					date = new Timestamp(ts.seconds, ts.nanoseconds).toDate();
+					break;
+				}
+				if (isNumber(obj.yy) && isNumber(obj.mm) && isNumber(obj.dd)) {
+					date = this.makeDate(obj);
 					break;
 				}
 			default:																								// unexpected input
@@ -250,7 +256,11 @@ export class Instant {
 				break;
 		}
 
-		return new Instant(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms));
+		return new Instant(this.makeDate(date));
+	}
+
+	private makeDate = (date: IInstant) => {
+		return new Date(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms));
 	}
 
 	/** combine Instant components to apply some standard / free-format rules */
@@ -287,9 +297,61 @@ export class Instant {
 		}
 	}
 
+	private formatString = (fmt: string, ...args: string[] | number[]) => {
+		const date = new Instant().startOf('day').toObject()					// date components
+		let cnt = 0;
+
+		fmt.split('%')
+			.forEach(word => {
+				const word4 = word.substring(0, 4),
+					word3 = word.substring(0, 3),
+					word2 = word.substring(0, 2);
+				let param = args[cnt];
+
+				switch (true) {
+					case word2 === 'yy' && word4 !== 'yyyy':
+						param = parseInt('20' + param) < (date.yy + 10)
+							? '20' + param
+							: '19' + param
+					case word4 === 'yyyy':
+						date.yy = asNumber(param);
+						break;
+
+					case word3 === 'mmm':
+						param = Instant.MONTH[param as keyof typeof Instant.MONTH];
+					case word2 === 'mm':
+						date.mm = asNumber(param);
+						break;
+
+					case word3 === 'ddd':
+						let nbr = Instant.DAY[param as keyof typeof Instant.DAY];
+						param = (date.dd - date.dow + nbr).toString();
+					case word2 === 'dd':
+						date.dd = asNumber(param);
+						break;
+
+					case word2 === 'HH':
+						date.HH = asNumber(param);
+						break;
+					case word2 === 'MM':
+					case word2 === 'MI':
+						date.MI = asNumber(param);
+						break;
+					case word2 === 'SS':
+						date.SS = asNumber(param)
+						break;
+					default:
+						cnt -= 1;
+				}
+				cnt += 1;
+			})
+
+		return new Instant(date).asDate();
+	}
+
 	/** calculate the difference between dates */
-	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate) => {
-		const offset = this.parseDate(dt2);
+	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: string[]) => {
+		const offset = this.parseDate(dt2, args);
 		return Math.floor(((offset.ts * 1000 + offset.ms) - (this.date.ts * 1000 + this.date.ms)) / Instant.divideBy[unit]);
 	}
 }
@@ -302,6 +364,7 @@ export namespace Instant {
 
 	export const hhmi = /^\d\d:\d\d$/;								// regex to match HH:MI
 	export const yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD
+	export const ddmmyyyy = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19\d{2}|20\d{2})$/;
 	export const maxStamp = new Date('9999-12-31').valueOf() / 1000;
 	export const minStamp = new Date('1000-01-01').valueOf() / 1000;
 	export const divideBy = {													// approx date-offset divisors (unix-timestamp precision)

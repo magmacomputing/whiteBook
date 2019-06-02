@@ -16,6 +16,11 @@ export const toNumeric = (str: string | number, stripZero: boolean = false) =>
 		? parseInt(str.toString(), 10)
 		: str
 
+export const asNumber = (str: string | number) =>
+	isNumeric(str)
+		? parseInt(str.toString(), 10)
+		: NaN
+
 export const randomString = (len = 36) =>
 	Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15);
 
