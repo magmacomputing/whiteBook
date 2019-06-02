@@ -25,9 +25,7 @@ export class AttendComponent implements OnInit {
 	public timetable$!: Observable<ITimetableState>;
 	public firstPaint = true;                           // indicate first-paint
 
-	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) {
-		this.dbg('DATE: %j', getDate('%ddd', 'Mon').add(1, 'week').format('ddd, yyyy-mm-dd HH:MI:SS'));
-	}
+	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) { }
 
 	ngOnInit() {                                        // wire-up the timetable Observable
 		this.timetable$ = this.state.getScheduleData(this.date).pipe(
