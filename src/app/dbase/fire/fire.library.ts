@@ -2,7 +2,7 @@ import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere } from '@dbase/fire/fire.interface';
 
-import { asArray, cartesian } from '@lib/array.library';
+import { asArray } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
 import { isUndefined } from '@lib/type.library';
 
