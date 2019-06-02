@@ -1,11 +1,5 @@
-import { isUndefined } from 'util';
-import { getType } from './type.library';
 
 export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
-
-// useful for cartesian product of arrays
-// const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));
-// export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
 
 declare global {
 	interface Array<T> {

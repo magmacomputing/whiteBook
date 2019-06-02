@@ -159,7 +159,7 @@ export class Instant {
 					break;
 				}
 				if (isNumber(obj.yy) && isNumber(obj.mm) && isNumber(obj.dd)) {
-					date = this.makeDate(obj);
+					date = this.composeDate(obj);
 					break;
 				}
 			default:																								// unexpected input
@@ -258,12 +258,11 @@ export class Instant {
 				break;
 		}
 
-		return new Instant(this.makeDate(date));
+		return new Instant(this.composeDate(date));
 	}
 
-	private makeDate = (date: IInstant) => {
-		return new Date(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms));
-	}
+	private composeDate = (date: IInstant) =>
+		new Date(new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms));
 
 	/** combine Instant components to apply some standard / free-format rules */
 	private formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
@@ -299,6 +298,11 @@ export class Instant {
 		}
 	}
 
+	/**
+	 * a fmt string contains '%' markers plus Instant components (eg. %dd-%mmm).  
+	 * args contains values that will replace the marker-components.  
+	 * this will return a new Date based on the interpolated fmt string.
+	 */
 	private formatString = (fmt: string, ...args: TArgs) => {
 		const date = new Instant().startOf('day').toObject()					// date components
 		let cnt = 0;
@@ -313,19 +317,19 @@ export class Instant {
 				switch (true) {
 					case word2 === 'yy' && word4 !== 'yyyy':
 						param = parseInt('20' + param) < (date.yy + 10)
-							? '20' + param
-							: '19' + param
+							? '20' + param							// if less than ten-years, assume this century
+							: '19' + param							// if more than ten-years, assume last century
 					case word4 === 'yyyy':
 						date.yy = asNumber(param);
 						break;
 
-					case word3 === 'mmm':
+					case word3 === 'mmm':						// change the month-name into a month-number
 						param = Instant.MONTH[param as keyof typeof Instant.MONTH];
 					case word2 === 'mm':
 						date.mm = asNumber(param);
 						break;
 
-					case word3 === 'ddd':
+					case word3 === 'ddd':						// set the day to the last occurrence of %ddd
 						let weekDay = Instant.DAY[param as keyof typeof Instant.DAY];
 						param = (date.dd - date.dow + weekDay).toString();
 					case word2 === 'dd':
@@ -348,7 +352,7 @@ export class Instant {
 				cnt += 1;
 			})
 
-		return new Instant(date).asDate();
+		return this.composeDate(date);
 	}
 
 	/** calculate the difference between dates */
