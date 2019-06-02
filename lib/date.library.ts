@@ -1,9 +1,8 @@
 import { format } from 'util';
 
 import { fix } from '@lib/number.library';
-import { asString, toNumeric, asNumber } from '@lib/string.library';
+import { asString, asNumber } from '@lib/string.library';
 import { isString, isNumber, getType, isUndefined } from '@lib/type.library';
-import { worker } from 'cluster';
 
 interface IInstant {											// Date components
 	readonly yy: number;										// year[4]
@@ -87,9 +86,8 @@ export class Timestamp {
  */
 export class Instant {
 	private date: IInstant;																				// Date parsed into components
-	private self!: { -readonly [P in keyof Instant]: Instant[P] };// hidden reference to self
 
-	constructor(dt?: TDate, ...args: string[] | number[]) { this.date = this.parseDate(dt, args); this.self = this; }
+	constructor(dt?: TDate, ...args: string[] | number[]) { this.date = this.parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.date.yy }
