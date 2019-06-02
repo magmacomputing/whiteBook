@@ -40,6 +40,7 @@ export enum DATE_FMT {										// pre-configured format names
 	yearMonthDay = 'yyyymmdd',
 }
 
+type TArgs = string[] | number[];
 type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
 type TUnitOffset = 'month' | 'week' | 'day';
@@ -74,9 +75,9 @@ export class Timestamp {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-/** get new Instant */export const getDate = (dt?: TDate, ...args: string[] | number[]) => new Instant(dt, ...args);
-/** get Timestamp */	export const getStamp = (dt?: TDate, ...args: string[] | number[]) => getDate(dt, ...args).ts;
-/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate, ...args: string[] | number[]) => getDate(dt, ...args).format(fmt);
+/** get new Instant */export const getDate = (dt?: TDate, ...args: TArgs) => new Instant(dt, ...args);
+/** get Timestamp */	export const getStamp = (dt?: TDate, ...args: TArgs) => getDate(dt, ...args).ts;
+/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate, ...args: TArgs) => getDate(dt, ...args).format(fmt);
 
 /**
  * An Instant is a object that is used to manage Dates.  
@@ -87,7 +88,7 @@ export class Timestamp {
 export class Instant {
 	private date: IInstant;																				// Date parsed into components
 
-	constructor(dt?: TDate, ...args: string[] | number[]) { this.date = this.parseDate(dt, args); }
+	constructor(dt?: TDate, ...args: TArgs) { this.date = this.parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.date.yy }
@@ -105,7 +106,7 @@ export class Instant {
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
-	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate) => this.diffDate(unit, dt2);
+	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
 	/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
 
 	/** start offset */		startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
@@ -118,7 +119,7 @@ export class Instant {
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	private parseDate = (dt?: TDate, args: string[] | number[] = []) => {
+	private parseDate = (dt?: TDate, args: TArgs = []) => {
 		let date: Date;
 
 		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...
@@ -249,6 +250,9 @@ export class Instant {
 			case 'add.day':
 				date.dd += offset;
 				break;
+			case 'add.week':
+				date.dd += offset * 7;
+				break;
 			case 'add.month':
 				date.mm += offset;
 				break;
@@ -295,7 +299,7 @@ export class Instant {
 		}
 	}
 
-	private formatString = (fmt: string, ...args: string[] | number[]) => {
+	private formatString = (fmt: string, ...args: TArgs) => {
 		const date = new Instant().startOf('day').toObject()					// date components
 		let cnt = 0;
 
@@ -348,7 +352,7 @@ export class Instant {
 	}
 
 	/** calculate the difference between dates */
-	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: string[]) => {
+	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => {
 		const offset = this.parseDate(dt2, args);
 		return Math.floor(((offset.ts * 1000 + offset.ms) - (this.date.ts * 1000 + this.date.ms)) / Instant.divideBy[unit]);
 	}
@@ -356,7 +360,7 @@ export class Instant {
 
 export namespace Instant {
 	export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
-	export enum WEEKDAY { Monday = 1, Tuesday, Wedddesday, Thursday, Friday, Saturday, Sunday }
+	export enum WEEKDAY { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
 	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
 

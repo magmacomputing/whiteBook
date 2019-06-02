@@ -10,6 +10,7 @@ import { MemberService } from '@service/member/member.service';
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
+import { fmtDate, getDate } from '@lib/date.library';
 
 @Component({
 	selector: 'wb-attend',
@@ -24,7 +25,9 @@ export class AttendComponent implements OnInit {
 	public timetable$!: Observable<ITimetableState>;
 	public firstPaint = true;                           // indicate first-paint
 
-	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) { }
+	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) {
+		this.dbg('DATE: %j', getDate('%ddd', 'Mon').add(1, 'week').format('ddd, yyyy-mm-dd HH:MI:SS'));
+	}
 
 	ngOnInit() {                                        // wire-up the timetable Observable
 		this.timetable$ = this.state.getScheduleData(this.date).pipe(
