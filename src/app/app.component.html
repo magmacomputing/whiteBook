@@ -1,14 +1,14 @@
 <div *ngIf="(app$ | async); let app">
 	<button [disabled]="!app.auth.user" (click)="data.auth.signOut()">Logout</button>
 	<p></p>
-	<button [disabled]="!app.auth.user" (click)="router.navigateByUrl('/profile/plan')">Plan</button>
+	<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/plan')">Plan</button>
 	<p></p>
-	<button [disabled]="!app.auth.user" (click)="router.navigateByUrl('/profile/account')">Account</button>
+	<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/account')">Account</button>
 	<p> </p>
 	<button [hidden]="!app.auth.token ||
 	!app.auth.token.claims.claims ||
 	!app.auth.token.claims.claims.roles || 
-	!app.auth.token.claims.claims.roles.includes('admin')" (click)="router.navigateByUrl('/migrate/attend')">Migrate
+	!app.auth.token.claims.claims.roles.includes('admin')" (click)="this.navigate.route('migrate')">Migrate
 		Attend</button>
 
 	<div *ngFor="let message of app.member.message">

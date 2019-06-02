@@ -299,9 +299,10 @@ export class Instant {
 	}
 
 	/**
-	 * a fmt string contains '%' markers plus Instant components (eg. %dd-%mmm).  
-	 * args contains values that will replace the marker-components.  
-	 * this will return a new Date based on the interpolated fmt string.
+	 * a fmt string contains '%' markers plus Instant components.  
+	 * args contains array of values that will replace the marker-components.  
+	 * this will return a new Date based on the interpolated fmt string.  
+	 * e.g. ('%dd-%mmm', 20, 'May') will return new Date('20-May') in current year.
 	 */
 	private formatString = (fmt: string, ...args: TArgs) => {
 		const date = new Instant().startOf('day').toObject()					// date components

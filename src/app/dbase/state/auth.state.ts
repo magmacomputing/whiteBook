@@ -69,8 +69,11 @@ export class AuthState implements NgxsOnInit {
 	/** Commands */
 	@Action(CheckSession)														// check Authentication status
 	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
-		const state = ctx.getState();
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
+
+		if (isNull(user) && isNull(this.user)) {
+			this.navigate.route(ROUTE.login);						// redirect to LoginComponent
+		}
 
 		if (isNull(user) && !isNull(this.user)) {			// TODO: does this affect OAuth logins
 			ctx.dispatch(new Logout());									// User logged-out
@@ -197,7 +200,9 @@ export class AuthState implements NgxsOnInit {
 	@Action(Logout)																	// process signOut()
 	async logout(ctx: StateContext<IAuthState>) {
 		this.user = null;
+		this.dbg('logout1: ');
 		await this.afAuth.auth.signOut();
+		this.dbg('logout2: ');
 
 		ctx.dispatch(new LogoutSuccess());
 		return;

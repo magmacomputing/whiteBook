@@ -97,8 +97,6 @@ export class MigrateComponent implements OnInit {
 			.pipe(take(1))
 			.toPromise()
 			.then(auth => this.user = auth.auth.user)
-
-			this.dbg('date: %j', new Instant('%s-%s-%s', '20','May', '1957'));
 	}
 
 	ngOnInit() { }

@@ -130,7 +130,7 @@ export class SyncService {
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
+		this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
 			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0) {                           // initial snapshot
