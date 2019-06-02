@@ -326,8 +326,8 @@ export class Instant {
 						break;
 
 					case word3 === 'ddd':
-						let nbr = Instant.DAY[param as keyof typeof Instant.DAY];
-						param = (date.dd - date.dow + nbr).toString();
+						let weekDay = Instant.DAY[param as keyof typeof Instant.DAY];
+						param = (date.dd - date.dow + weekDay).toString();
 					case word2 === 'dd':
 						date.dd = asNumber(param);
 						break;

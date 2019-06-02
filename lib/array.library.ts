@@ -14,13 +14,14 @@ declare global {
 
 		truncate(base?: number): T[];
 
+		cartesian(): T[];
 		cartesian(...args: T[][]): T[];
 	}
 }
 
 if (!Array.prototype.hasOwnProperty('truncate')) {
-	Array.prototype.truncate = function (nbr = 0) {
-		this.length === nbr;
+	Array.prototype.truncate = function (base = 0) {
+		this.length === base;
 		return this;
 	}
 }
