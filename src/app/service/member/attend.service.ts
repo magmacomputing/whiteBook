@@ -226,7 +226,7 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
 		let [bonus, calcPrice] = await Promise.all([
-			data.client.plan[0].bonus
+			data.client.plan[0].bonus												// Plan is allowed to claim bonus?
 				? this.getBonus(schedule[FIELD.key], date, schedule.elect)// any bonus entitlement
 				: {} as TBonus,
 			this.member.getEventPrice(schedule[FIELD.key], data),

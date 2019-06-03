@@ -23,7 +23,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, getStamp, fmtDate, Instant } from '@lib/date.library';
+import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
 import { asString } from '@lib/string.library';
@@ -419,6 +419,10 @@ export class MigrateComponent implements OnInit {
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
 
+			if (row.note && row.note.startsWith('Gift #')) {
+				obj.full.amount = 0;
+				price = 0;
+			}																							// this shouldn't have happened... one Gift to cover 3 classes !
 			row.elect = 'sunday';
 			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep
 
@@ -429,7 +433,7 @@ export class MigrateComponent implements OnInit {
 		}
 
 		switch (true) {
-			case this.special.includes(prefix):									// special event match by <colour>, so we need to prompt for the 'class'
+			case this.special.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -454,7 +458,7 @@ export class MigrateComponent implements OnInit {
 				}
 				break;
 
-			case (!isUndefined(caldr)):											// special event match by <date>, so we already know the 'class'
+			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
 				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				if (what === 'MultiStep' && !event.classes.includes(what))
 					what = 'SingleStep';
