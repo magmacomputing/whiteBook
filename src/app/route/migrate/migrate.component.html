@@ -16,7 +16,7 @@
 					<button (click)="addAttend()" [disabled]="1 === 0 && !data.account.payment?.length">Add Attends</button>
 					<br>
 					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
-					<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
+					<button (click)="delAttend()"  [disabled]="!data.account.attend?.length">Del Attends</button>
 					<br>
 					<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
 					<button (click)="setProfile()" [disabled]="1 == 0">Set Profile</button>

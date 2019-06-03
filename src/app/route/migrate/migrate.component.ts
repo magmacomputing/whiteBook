@@ -295,7 +295,7 @@ export class MigrateComponent implements OnInit {
 					const nbr = parseInt(str[0]);
 					if (nbr === 1) {
 						if (gift && start && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts)) {
-							creates.push(this.setGift(gift, start));
+							creates.push(this.setGift(gift, start, true));								// TODO: some Gifts have a start-time.
 							gift = 0;
 						}
 						start = row.stamp;
@@ -305,7 +305,7 @@ export class MigrateComponent implements OnInit {
 				}
 			})
 		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
-			creates.push(this.setGift(gift, start));
+			creates.push(this.setGift(gift, start, true));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.member.updAccount())
@@ -330,9 +330,9 @@ export class MigrateComponent implements OnInit {
 		return expiry;
 	}
 
-	private setGift(gift: number, start: number) {
+	private setGift(gift: number, start: number, late?: boolean) {
 		return {
-			[FIELD.effect]: getDate(start).startOf('day').ts,
+			[FIELD.effect]: late ? start : getDate(start).startOf('day').ts,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			count: gift,
@@ -420,10 +420,10 @@ export class MigrateComponent implements OnInit {
 			const free = asArray(sunday.free as TString)
 
 			if (row.note && row.note.startsWith('Gift #')) {
-				obj.full.amount = 0;
+				obj.full.amount = 0;												// this shouldn't have happened... one Gift to cover 3 classes !
 				price = 0;
-			}																							// this shouldn't have happened... one Gift to cover 3 classes !
-			row.elect = 'sunday';
+			}
+			else row.elect = 'sunday';										// dont 'elect' to skip Gifts on a Pack
 			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep
 
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : price).toString() });
@@ -512,6 +512,8 @@ export class MigrateComponent implements OnInit {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				sched.price = price;											// to allow AttendService to check what was charged
 				sched.elect = row.elect;
+				if (row.note && row.note.includes('elect false'))
+					sched.elect = row.note;									// Member elected to not receive a Bonus
 		}
 
 		const p = createPromise<boolean>();

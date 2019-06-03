@@ -100,7 +100,8 @@ export class AttendService {
 			 * the start-date, and count of free classes (and an optional expiry for the Gift).  
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
-			case gifts.length > 0:														// Member has some open Gifts
+			case gifts.length > 0															// Member has some open Gifts
+				&& isUndefined(elect):													//   and has elected to *not* take this Bonus
 				let curr = -1;																	// the Gift to use in determining eligibility
 				gifts.forEach((gift, idx) => {
 					if (attendGift[idx].length >= gifts[idx].count// max number of Attends against this gift
@@ -137,7 +138,8 @@ export class AttendService {
 				&& attendWeek
 					.filter(row => row.bonus === scheme.week[FIELD.id])
 					.distinct(row => row.track[FIELD.date])
-					.length < scheme.week.free:
+					.length < scheme.week.free
+				&& isUndefined(elect):															// if defined, then Bonus will not apply
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
 					[FIELD.type]: BONUS.week,
