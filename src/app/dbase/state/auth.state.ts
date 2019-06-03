@@ -26,6 +26,7 @@ import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
 import { getPath } from '@lib/object.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
+import { MemberService } from '@service/member/member.service';
 
 @State<IAuthState>({
 	name: SLICE.auth,
@@ -198,13 +199,10 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(Logout)																	// process signOut()
-	async logout(ctx: StateContext<IAuthState>) {
+	logout(ctx: StateContext<IAuthState>) {
 		this.user = null;
-		this.dbg('logout1: ');
-		await this.afAuth.auth.signOut();
-		this.dbg('logout2: ');
-
-		ctx.dispatch(new LogoutSuccess());
+		this.afAuth.auth.signOut()
+			.then(_ => ctx.dispatch(new LogoutSuccess()))
 		return;
 	}
 
@@ -217,6 +215,7 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
+				.then(_ => this._memberSubject.next(null))
 				.then(_ => this.dbg('route: %j', this.navigate.url))
 				.then(_ => {
 					if (['/', '/login'].includes(this.navigate.url))

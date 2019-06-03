@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { take } from 'rxjs/operators';
+import { take, first } from 'rxjs/operators';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
@@ -8,6 +8,7 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
+import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount } from '@dbase/data/data.schema';
 
@@ -15,15 +16,29 @@ import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@lib/logger.library';
-import { AuthState } from '@dbase/state/auth.state';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg = dbg(this);
+	private isListen = false;
 
 	constructor(private readonly data: DataService, private readonly auth: AuthState, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
-		this.auth.memberSubject.subscribe(info => info && this.getAuthProfile(info));
+		this.listenInfo();
+	}
+
+	public listenInfo() {
+		if (!this.isListen) {
+			this.isListen = true;
+			this.dbg('listen');
+			this.auth.memberSubject
+				.pipe(first(info => !isNull(info)))					// subscribe until the first non-null response
+				.subscribe(
+					info => this.getAuthProfile(info),
+					undefined,
+					() => this.isListen = false								// onDone, stop listening
+				)
+		}
 	}
 
 	async setPlan(plan: TPlan, dt?: TDate) {
@@ -119,7 +134,8 @@ export class MemberService {
 	}
 
 	/** check for change of User.additionalInfo */
-	async getAuthProfile(info: firebase.auth.AdditionalUserInfo, uid?: string) {
+	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
+		this.dbg('info: %j', info);
 		if (isNull(info) || isUndefined(info))
 			return;																				// No AdditionalUserInfo available
 

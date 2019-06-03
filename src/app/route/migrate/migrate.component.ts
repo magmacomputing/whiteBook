@@ -286,18 +286,21 @@ export class MigrateComponent implements OnInit {
 
 		let gift = 0;
 		let start = 0;
+		let rest: string | undefined = undefined;
 		hist
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const str = row.note && row.note.substring(row.note.search('Gift #') + 6).match(/\d+/g);
-				if (str) {
-					const nbr = parseInt(str[0]);
+				const search = row.note && row.note.search('Gift #') + 6 || 0;
+				const match = search && row.note!.substring(search).match(/\d+/g);
+				if (match) {
+					const nbr = parseInt(match[0]);
 					if (nbr === 1) {
 						if (gift && start && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts)) {
-							creates.push(this.setGift(gift, start, true));								// TODO: some Gifts have a start-time.
+							creates.push(this.setGift(gift, start, rest));
 							gift = 0;
 						}
+						rest = row.note!.substring(search + match.length);
 						start = row.stamp;
 					}
 					if (nbr > gift)
@@ -305,7 +308,7 @@ export class MigrateComponent implements OnInit {
 				}
 			})
 		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
-			creates.push(this.setGift(gift, start, true));
+			creates.push(this.setGift(gift, start, rest));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.member.updAccount())
@@ -330,12 +333,13 @@ export class MigrateComponent implements OnInit {
 		return expiry;
 	}
 
-	private setGift(gift: number, start: number, late?: boolean) {
+	private setGift(gift: number, start: number, note?: string) {
 		return {
-			[FIELD.effect]: late ? start : getDate(start).startOf('day').ts,
+			[FIELD.effect]: getDate(start).startOf('day').ts,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			count: gift,
+			note: note,
 		} as IGift
 	}
 
