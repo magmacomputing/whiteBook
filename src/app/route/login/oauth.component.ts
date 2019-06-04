@@ -31,6 +31,7 @@ export class OAuthComponent implements OnInit {
 
 					this.http.post<any>(url, {})
 						.subscribe(res => this.auth.signInToken(res))
+						.unsubscribe()
 				})
 				.catch(err => this.dbg('error: %s', err.message))
 		}
