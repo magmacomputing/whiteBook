@@ -26,8 +26,8 @@ export class AttendService {
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
-	/** look back up-to-seven days to find when className was last scheduled */
-	lkpDate = async (className: string, location?: string, date?: TDate) => {
+	/** look back up-to seven days to find when className was last scheduled */
+	private lkpDate = async (className: string, location?: string, date?: TDate) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
 		let now = getDate(date);													// start with date-argument
 		let ctr = 0;
@@ -38,7 +38,7 @@ export class AttendService {
 		for (ctr; ctr < 7; ctr++) {
 			const classes = timetable.client.schedule!			// loop through schedule
 				.filter(row => row.day === now.dow)						// finding a match in 'day'
-				// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times
+				// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
 				.filter(row => row[FIELD.key] === className)	// and match in 'class'
 				.filter(row => row.location === location)			// and match in 'location'
 
@@ -53,20 +53,20 @@ export class AttendService {
 		return now.ts;																		// timestamp
 	}
 
-	/**
-	 * Determine the eligibility for free Attend
-	 */
-	async getBonus(event: string, date?: TDate, elect?: string) {
+	/** Determine the eligibility for free Attend */
+	private getBonus = async (event: string, date?: TDate, elect?: string) => {
+		const now = getDate(date);
+		const uid = await this.data.auth.current
+			.then(user => user!.uid);																				// the currently active User UID
+		const isMine = addWhere(FIELD.uid, uid);													// where-clause for current user
+
 		/**
 		 * uid is the Member to check-in 
 		 * gifts is array of active Gifts effective (not expired) on this date  
 		 * scheme is definition of active Bonus schemes effective on this date
 		 */
-		const [uid, gifts, scheme] = await Promise.all([
-			this.data.auth.current
-				.then(user => user!.uid),
-
-			this.data.getStore<IGift>(STORE.gift, undefined, date),					// any active Gifts
+		const [gifts, scheme] = await Promise.all([
+			this.data.getStore<IGift>(STORE.gift, isMine, date),						// any active Gifts
 
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
 				.then(bonus => bonus.reduce((acc, row) => {
@@ -80,15 +80,14 @@ export class AttendService {
 		 * attendWeek		is array of Attends so far in the week, less than <now>
 		 * attendMonth	is array of Attends so far in the month, less than <now>
 		 */
-		const now = getDate(date);
-		const where = addWhere(FIELD.uid, uid);
+
 		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
 		const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
 			Promise.all(																			// return an array of Attend per Gift
-				gifts.map(gift => this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, gift[FIELD.id])]))
+				gifts.map(gift => this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere(`bonus.${FIELD.id}`, gift[FIELD.id])]))
 			),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
+			this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
+			this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
@@ -191,10 +190,8 @@ export class AttendService {
 		return bonus;
 	}
 
-	/**
-	 * Insert an Attend document, matched to an active Payment  
-	 */
-	async setAttend(schedule: ISchedule, note?: TString, date?: TDate) {
+	/** Insert an Attend document, matched to an active Payment  */
+	 public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 

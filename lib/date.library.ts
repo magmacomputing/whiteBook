@@ -1,5 +1,3 @@
-import { format } from 'util';
-
 import { fix } from '@lib/number.library';
 import { asString, asNumber } from '@lib/string.library';
 import { isString, isNumber, getType, isUndefined } from '@lib/type.library';
@@ -18,6 +16,11 @@ interface IInstant {											// Date components
 	readonly ddd: string;										// short day-name
 	readonly dow: number;										// weekday; Mon=1, Sun=7
 }
+
+interface ITimestamp {
+	seconds: number;
+	nanoseconds: number;
+};
 
 interface IDateFmt {											// pre-configured format strings
 	[str: string]: string | number;					// allow for dynamic format-codes
@@ -45,13 +48,10 @@ type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'month' | 'months' | 'week' | 'weeks' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes';
 type TUnitOffset = 'month' | 'week' | 'day';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
-type TTimestamp = { seconds: number; nanoseconds: number; };
 
-export type TDate = string | number | Date | Instant | IInstant | Timestamp | TTimestamp;
+export type TDate = string | number | Date | Instant | IInstant | Timestamp | ITimestamp;
 
-/**
- * Mirror the Firestore Timestamp
- */
+/** Mirror the Firestore Timestamp */
 export class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
@@ -81,7 +81,7 @@ export class Timestamp {
 
 /**
  * An Instant is a object that is used to manage Dates.  
- * It has properties to break a Date into components ('yy', 'dd', etc.)  
+ * It has properties that break a Date into components ('yy', 'dd', etc.)  
  * It has methods to perform Date manipulations (add(), format(), diff(), startOf(), etc.)  
  * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
  */
@@ -152,7 +152,7 @@ export class Instant {
 				date = (dt as Timestamp).toDate();
 				break;
 			case 'Object':
-				const ts = dt as TTimestamp;													// shape of Timestamp
+				const ts = dt as ITimestamp;													// shape of Timestamp
 				const obj = dt as IInstant;														// shape of Instant
 				if (isNumber(ts.seconds) && isNumber(ts.nanoseconds)) {
 					date = new Timestamp(ts.seconds, ts.nanoseconds).toDate();
