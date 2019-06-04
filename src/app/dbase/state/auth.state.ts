@@ -215,8 +215,8 @@ export class AuthState implements NgxsOnInit {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
-				.then(_ => this._memberSubject.next(null))
-				.then(_ => this.dbg('route: %j', this.navigate.url))
+				.then(_ => this._memberSubject.next(null))// then wipe the BehaviourSubject
+				.then(_ => this.dbg('route: %s', this.navigate.url))
 				.then(_ => {
 					if (['/', '/login'].includes(this.navigate.url))
 						this.navigate.route(ROUTE.attend)

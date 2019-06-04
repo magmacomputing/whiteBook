@@ -269,7 +269,7 @@ export class MigrateComponent implements OnInit {
 						row.note = 'Write-off part topUp amount';
 				}
 				if (row.debit === undefined && row.credit === undefined)
-					throw new Error(`cannot find amount: ${row}`)
+					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
 
 				return {
 					[FIELD.store]: STORE.payment,
@@ -300,7 +300,7 @@ export class MigrateComponent implements OnInit {
 							creates.push(this.setGift(gift, start, rest));
 							gift = 0;
 						}
-						rest = row.note!.substring(search + match.length);
+						rest = row.note!.substring(search + match.length).replace(/[^\x20-\x7E]/g, '').trim();
 						start = row.stamp;
 					}
 					if (nbr > gift)
@@ -339,7 +339,7 @@ export class MigrateComponent implements OnInit {
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			count: gift,
-			note: note,
+			note: note || undefined,
 		} as IGift
 	}
 

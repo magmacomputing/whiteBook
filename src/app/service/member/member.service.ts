@@ -36,7 +36,7 @@ export class MemberService {
 				.subscribe(
 					info => this.getAuthProfile(info),
 					undefined,
-					() => this.isListen = false								// onDone, stop listening
+					() => this.isListen = false								// onDone, not listening
 				)
 		}
 	}
@@ -135,9 +135,9 @@ export class MemberService {
 
 	/** check for change of User.additionalInfo */
 	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
-		this.dbg('info: %j', info);
 		if (isNull(info) || isUndefined(info))
-			return;																				// No AdditionalUserInfo available
+		return;																				// No AdditionalUserInfo available
+		this.dbg('info: %s', info.providerId);
 
 		const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
