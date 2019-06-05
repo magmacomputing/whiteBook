@@ -101,8 +101,8 @@ export class AuthService {
 			(authProvider as TParams).setCustomParameters(provider.params);
 
 		return this.store.dispatch(new LoginIdentity(authProvider))
-			// .toPromise()
-			// .then(_ => this.fire.setState(CONNECT.active))
+		// .toPromise()
+		// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	/** This runs in the main thread */
@@ -112,9 +112,9 @@ export class AuthService {
 			.then(config => getConfig(config, 'oauth'))
 			.then(oauth => oauth.value)
 
-		const parent = this.openChannel('token');
-		parent.onmessage = (msg) => {
-			parent.close();												// close BroadcastChannel
+		const child = this.openChannel('token');// the child popup
+		child.onmessage = (msg) => {						// when child sends a message...
+			child.close();												// 	close BroadcastChannel
 			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
 		}
 
@@ -128,14 +128,13 @@ export class AuthService {
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
 		this.dbg('signInToken: %j', response);
-		const child = this.openChannel('token');
+		const parent = this.openChannel('token');// the parent of this popup
 
 		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
-				if (state.auth.info) 								// tell the main thread to update State
-					child
-						.postMessage(JSON.stringify(state.auth.info));
+				if (state.auth.info) 								// tell the parent to update State
+					parent.postMessage(JSON.stringify(state.auth.info));
 
 				if (state.auth.user) //&& open) {
 					window.close();										// only close on valid user
@@ -144,14 +143,14 @@ export class AuthService {
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password))
-			// .toPromise()
-			// .then(_ => this.fire.setState(CONNECT.active))
+		// .toPromise()
+		// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon())
-			// .toPromise()
-			// .then(_ => this.fire.setState(CONNECT.active))
+		// .toPromise()
+		// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInOIDC(provider: IProvider) { }

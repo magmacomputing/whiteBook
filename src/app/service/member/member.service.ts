@@ -20,25 +20,22 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg = dbg(this);
-	private isListen = false;
 
 	constructor(private readonly data: DataService, private readonly auth: AuthState, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
-		this.listenInfo();
+		this.listenInfo(true);
 	}
 
-	public listenInfo() {
-		if (!this.isListen) {
-			this.isListen = true;
-			this.dbg('listen');
-			this.auth.memberSubject
-				.pipe(first(info => !isNull(info)))					// subscribe until the first non-null response
-				.subscribe(
-					info => this.getAuthProfile(info),
-					undefined,
-					() => this.isListen = false								// onDone, not listening
-				)
+	public async listenInfo(init: boolean = false) {
+		if (init) {
+			const user = await this.auth.auth;
+			if (!user) return;														// dont listen if not logged-in on constructor()
 		}
+
+		this.dbg('listen');
+		this.auth.memberSubject													// this.auth will call complete() on first emit
+			.pipe(first(info => !isNull(info)))						// subscribe until the first non-null response
+			.subscribe(info => this.getAuthProfile(info))
 	}
 
 	async setPlan(plan: TPlan, dt?: TDate) {
@@ -136,7 +133,7 @@ export class MemberService {
 	/** check for change of User.additionalInfo */
 	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
 		if (isNull(info) || isUndefined(info))
-		return;																				// No AdditionalUserInfo available
+			return;																				// No AdditionalUserInfo available
 		this.dbg('info: %s', info.providerId);
 
 		const user = this.state.asPromise(this.state.getAuthData());

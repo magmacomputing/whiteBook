@@ -1,6 +1,6 @@
 import * as firebase from 'firebase/app';
 import { BehaviorSubject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 
 import { AngularFireAuth } from '@angular/fire/auth';
 import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
@@ -26,7 +26,6 @@ import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
 import { getPath } from '@lib/object.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
-import { MemberService } from '@service/member/member.service';
 
 @State<IAuthState>({
 	name: SLICE.auth,
@@ -38,14 +37,12 @@ import { MemberService } from '@service/member/member.service';
 		current: null,																	// the effective User (used in 'impersonate' mode)
 	}
 })
-export class AuthState implements NgxsOnInit {
+export class AuthState {
 	private dbg = dbg(this);
 	private user: firebase.User | null = null;
 	private _memberSubject = new BehaviorSubject(null as firebase.auth.AdditionalUserInfo | null);
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private store: Store, private snack: SnackService, private navigate: NavigateService) { this.init(); }
-
-	ngxsOnInit(ctx: StateContext<IAuthState>) { this.init(); }
 
 	private init() {
 		this.dbg('init');
@@ -54,7 +51,15 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	get memberSubject() {
+		if (this._memberSubject.isStopped)							// start a new Subject
+			this._memberSubject = new BehaviorSubject(null as firebase.auth.AdditionalUserInfo | null);
 		return this._memberSubject;
+	}
+
+	get auth() {
+		return this.afAuth.authState
+			.pipe(take(1))
+			.toPromise();
 	}
 
 	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
@@ -69,7 +74,7 @@ export class AuthState implements NgxsOnInit {
 
 	/** Commands */
 	@Action(CheckSession)														// check Authentication status
-	checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
+	private checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && isNull(this.user)) {
@@ -93,7 +98,7 @@ export class AuthState implements NgxsOnInit {
 	 * Or, an anonymous user can link a Facebook account and then, later, sign in with Facebook to continue using our App.
 	 */
 	@Action(LoginCredential)													// attempt to link multiple providers
-	async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginCredential) {
+	private async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginCredential) {
 		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
 
 		switch (methods[0]) {														// check the first-method
@@ -119,7 +124,7 @@ export class AuthState implements NgxsOnInit {
 
 	/** Attempt to sign-in a User via authentication by a federated identity provider */
 	@Action(LoginIdentity)														// process signInWithPopup()
-	async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
+	private async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
 		try {
 			const response = await this.afAuth.auth.signInWithPopup(authProvider);
 
@@ -134,7 +139,7 @@ export class AuthState implements NgxsOnInit {
 
 	/** Attempt to sign in a User via authentication with a Custom Token */
 	@Action(LoginToken)
-	async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
+	private async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),
@@ -149,7 +154,7 @@ export class AuthState implements NgxsOnInit {
 
 	/** Attempt to sign in a User via an emailAddress / Password combination. */
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
-	loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
+	private loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
 		const thisMethod = `${method}WithEmailAndPassword` as TEmailMethod;
 		this.dbg('loginEmail: %s', method);
@@ -173,14 +178,14 @@ export class AuthState implements NgxsOnInit {
 
 	/** Attempt to sign in a User anonymously */
 	@Action(LoginAnon)
-	LoginAnon(ctx: StateContext<IAuthState>) {
+	private loginAnon(ctx: StateContext<IAuthState>) {
 		return this.afAuth.auth.signInAnonymously()
 			.catch(error => ctx.dispatch(new LoginFailed(error)));
 	}
 
 	/** Attempt to sign in a User via a link sent to their emailAddress */
 	@Action(LoginLink)
-	async loginLink(ctx: StateContext<IAuthState>, { link, credential }: LoginLink) {
+	private async loginLink(ctx: StateContext<IAuthState>, { link, credential }: LoginLink) {
 		const localItem = 'emailForSignIn';
 
 		if (this.afAuth.auth.isSignInWithEmailLink(link)) {
@@ -199,7 +204,7 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(Logout)																	// process signOut()
-	logout(ctx: StateContext<IAuthState>) {
+	private logout(ctx: StateContext<IAuthState>) {
 		this.user = null;
 		this.afAuth.auth.signOut()
 			.then(_ => ctx.dispatch(new LogoutSuccess()))
@@ -208,14 +213,15 @@ export class AuthState implements NgxsOnInit {
 
 	/** Events */
 	@Action(LoginSuccess)														// on each LoginSuccess, fetch /member collection
-	onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
+	private onMember(ctx: StateContext<IAuthState>, { user }: LoginSuccess) {
 		const query: IQuery = { where: addWhere(FIELD.uid, user.uid) };
 
 		if (this.afAuth.auth.currentUser) {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
-				.then(_ => this._memberSubject.next(null))// then wipe the BehaviourSubject
+				.then(_ => this._memberSubject.complete())
+				// .then(_ => this._memberSubject.next(null))// then wipe the BehaviourSubject
 				.then(_ => this.dbg('route: %s', this.navigate.url))
 				.then(_ => {
 					if (['/', '/login'].includes(this.navigate.url))
@@ -225,12 +231,12 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(AuthInfo)
-	async authInfo(ctx: StateContext<IAuthState>, { info }: AuthInfo) {
+	private async authInfo(ctx: StateContext<IAuthState>, { info }: AuthInfo) {
 		ctx.patchState(info);
 	}
 
 	@Action(AuthOther)															// mimic another User
-	otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
+	private otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
 		const state = ctx.getState();
 
 		if (state.current && state.current.uid === member)
@@ -248,7 +254,7 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
-	setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
+	private setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult()
 				.then(token => {
@@ -265,7 +271,7 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action(AuthToken)															// fetch latest IdToken
-	setToken(ctx: StateContext<IAuthState>) {
+	private setToken(ctx: StateContext<IAuthState>) {
 		let token: firebase.auth.IdTokenResult;
 		if (this.afAuth.auth.currentUser) {
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
@@ -283,7 +289,7 @@ export class AuthState implements NgxsOnInit {
 	}
 
 	@Action([LoginFailed, LogoutSuccess])
-	notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
+	private notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
 		this.sync.off(COLLECTION.member, true);
 		this.sync.off(COLLECTION.attend, true);
 		this.sync.off(COLLECTION.admin, true);
