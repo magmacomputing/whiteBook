@@ -140,7 +140,6 @@ export class AuthService {
 				if (state.auth.user) //&& open) {
 					window.close();										// only close on valid user
 			})
-			.unsubscribe()
 	}
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
