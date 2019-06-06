@@ -423,9 +423,10 @@ export class MigrateComponent implements OnInit {
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
 
-			if (row.note && row.note.startsWith('Gift #')) {
-				obj.full.amount = 0;												// this shouldn't have happened... one Gift to cover 3 classes !
+			if (row.note && row.note.includes('Bonus: Week Level reached')) {
+				obj.full.amount = 0;
 				price = 0;
+				row.elect = 'week';													// Week bonus takes precedence
 			}
 			else row.elect = 'sunday';										// dont 'elect' to skip Gifts on a Pack
 			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep

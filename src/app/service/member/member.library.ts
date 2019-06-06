@@ -58,7 +58,12 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 export const getMemberAge = (info: IProfileInfo[] = []) =>
 	getDate(getMemberBirthDay(info)).diff('years');				// diff from today
 
-/** A Member's payment will auto-expire (i.e. unused funds lapse) after a number of months */
+/**
+ * A Member's payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months.  
+ * 1. Expiry will not be set until a Payment becomes active (all earlier Payments expired).
+ * 2. When the nightly batch expires a prior Payment, it uses the Payment.stamp as the 'from' date.
+ * 3. When the first Attend against a Payment is made, it uses the Attend.stamp to reset the 'from' date.  
+ */
 export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState["client"]) => {
 	const plan = client.plan[0] || {};								// description of Member's current Plan
 	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
