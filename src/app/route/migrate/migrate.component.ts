@@ -356,7 +356,7 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2015-Jun-08').format(DATE_FMT.yearMonthDay)).length;
+		// const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
 		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
@@ -536,7 +536,7 @@ export class MigrateComponent implements OnInit {
 		} else {
 			p.resolve(flag)
 			if (!rest.length)
-				return this.check.resolve(true);
+				this.check.resolve(true);
 		}
 
 		p.promise

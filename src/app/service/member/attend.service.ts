@@ -59,6 +59,7 @@ export class AttendService {
 		const uid = await this.data.auth.current
 			.then(user => user!.uid);																				// the currently active User UID
 		const isMine = addWhere(FIELD.uid, uid);													// where-clause for current user
+		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
 
 		/**
 		 * uid is the Member to check-in 
@@ -70,18 +71,16 @@ export class AttendService {
 
 			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
 				.then(bonus => bonus.reduce((acc, row) => {
-					acc[row[FIELD.key]] = row;
+					acc[row[FIELD.key]] = row;																	// break out by Bonus key
 					return acc;
 				}, {} as IObject<IBonus>))
 		]);
 
 		/**
-		 * attendGift		is array of Attends[] against each active Gifts
-		 * attendWeek		is array of Attends so far in the week, less than <now>
-		 * attendMonth	is array of Attends so far in the month, less than <now>
+		 * attendGift		is array of Attends per row in gifts[]
+		 * attendWeek		is array of Attends so far this ISO week, less than <now>
+		 * attendMonth	is array of Attends so far this calendar month, less than <now>
 		 */
-
-		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
 		const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
 			Promise.all(																			// return an array of Attend per Gift
 				gifts.map(gift => this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere(`bonus.${FIELD.id}`, gift[FIELD.id])]))
@@ -128,7 +127,7 @@ export class AttendService {
 
 			/**
 			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price or gift classes in a week (scheme.week.level).  
-			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
+			 * The Member must also have claimed less than the free limit (scheme.week.free)
 			 */
 			case scheme.week
 				&& attendWeek																		// sum the non-Bonus / non-Gift Attends
@@ -136,29 +135,28 @@ export class AttendService {
 					.distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
 					.length >= scheme.week.level									// must attend the 'level' number
 				&& attendWeek																		// sum the 'week' bonus claimed
-					.filter(row => row.bonus === scheme.week[FIELD.id])
-					.distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
+					.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week)
 					.length < scheme.week.free										// must attend less than 'free' number
-				&& isUndefined(elect):													// if defined, then Bonus will not apply
+				&& (isUndefined(elect) || elect === BONUS.week):// if not skipped, then Bonus will apply
 
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
 					[FIELD.type]: BONUS.week,
-					count: attendWeek.length + 1,
+					count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week).length + 1,
 					gift: upd,
 				}
 				break;
 
 			/**
 			 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.sunday.level),
-			 * and does not qualify for the Week scheme (already claimed yesterday?).    
+			 * and did not qualify for the Week scheme previously (e.g. already claimed yesterday?).    
 			 * The class must be in the free list (scheme.week.free) to claim this bonus
 			 */
 			case scheme.sunday
 				&& attendWeek																				// count Attends this week either Gift or non-Bonus
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					// .distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
-					.length + 1 > scheme.sunday.level									// required number of Attends this week
+					.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
+					.length >= scheme.sunday.level										// required number of Attends this week
 				&& now.dow === Instant.DAY.Sun											// today is 'Sunday'
 				&& elect == BONUS.sunday														// Member elected to take Bonus
 				&& (scheme.sunday.free as TString).includes(event):	// Event is offered on Bonus
@@ -179,16 +177,16 @@ export class AttendService {
 				&& attendMonth
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 					.distinct(row => row.track[FIELD.date])
-					.length + 1 > scheme.month.level
+					.length >= scheme.month.level
 				&& attendMonth
-					.filter(row => row.bonus === scheme.month[FIELD.id])
-					.distinct(row => row.track[FIELD.date])
-					.length < scheme.month.free:
+					.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month)
+					.length < scheme.month.free
+				&& (isUndefined(elect) || elect === BONUS.month):
 
 				bonus = {
 					[FIELD.id]: scheme.month[FIELD.id],
 					[FIELD.type]: BONUS.month,
-					count: attendMonth.length + 1,
+					count: attendMonth.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month).length + 1,
 					gift: upd,
 				}
 				break;
