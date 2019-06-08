@@ -356,7 +356,7 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+		// const endAt = table.filter(row => row.date >= getDate('2015-Jun-08').format(DATE_FMT.yearMonthDay)).length;
 		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
@@ -423,16 +423,20 @@ export class MigrateComponent implements OnInit {
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
 
-			if (row.note && row.note.includes('Bonus: Week Level reached')) {
+			if (row.note && (row.note.includes('Bonus: Week Level reached'))) {
 				obj.full.amount = 0;
 				price = 0;
 				row.elect = 'week';													// Week bonus takes precedence
+			} else if (row.note && row.note.includes('Gift #')) {
+				obj.full.amount = 0;
+				price = 0;
+				row.elect = 'gift';													// special: accidental one-gift claimed against three classes
+			} else {
+				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
+				row.elect = 'sunday';												// dont 'elect' to skip Gifts on a Pack
 			}
-			else row.elect = 'sunday';										// dont 'elect' to skip Gifts on a Pack
-			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep
-
-			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : price).toString() });
-			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : price).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : Math.abs(price)).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : Math.abs(price)).toString() });
 			what = 'MultiStep';
 			price = obj.full.amount;											// set this row's price to MultiSTep
 		}

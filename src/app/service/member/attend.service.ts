@@ -86,8 +86,8 @@ export class AttendService {
 			Promise.all(																			// return an array of Attend per Gift
 				gifts.map(gift => this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere(`bonus.${FIELD.id}`, gift[FIELD.id])]))
 			),
-			this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
-			this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
+			this.data.getStore<IAttend>(STORE.attend, [isMine, prior, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
+			this.data.getStore<IAttend>(STORE.attend, [isMine, prior, addWhere('track.month', now.format(DATE_FMT.yearMonth))]),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
@@ -99,8 +99,9 @@ export class AttendService {
 			 * the start-date, and count of free classes (and an optional expiry for the Gift).  
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
-			case gifts.length > 0															// Member has some open Gifts
-				&& isUndefined(elect):													//   and has elected to *not* take this Bonus
+			case gifts.length > 0															// if Member has some open Gifts
+				&& (isUndefined(elect) || elect === BONUS.gift)://   and has not elected to *skip* this Bonus
+
 				let curr = -1;																	// the Gift to use in determining eligibility
 				gifts.forEach((gift, idx) => {
 					if (attendGift[idx].length >= gifts[idx].count// max number of Attends against this gift
@@ -130,18 +131,20 @@ export class AttendService {
 			 * The Member must also have attended less than the free limit (scheme.week.free) to claim this bonus
 			 */
 			case scheme.week
-				&& attendWeek
+				&& attendWeek																		// sum the non-Bonus / non-Gift Attends
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					.distinct(row => row.track[FIELD.date])
-					.length + 1 > scheme.week.level
-				&& attendWeek
+					.distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
+					.length >= scheme.week.level									// must attend the 'level' number
+				&& attendWeek																		// sum the 'week' bonus claimed
 					.filter(row => row.bonus === scheme.week[FIELD.id])
-					.distinct(row => row.track[FIELD.date])
-					.length < scheme.week.free
-				&& isUndefined(elect):															// if defined, then Bonus will not apply
+					.distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
+					.length < scheme.week.free										// must attend less than 'free' number
+				&& isUndefined(elect):													// if defined, then Bonus will not apply
+
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
 					[FIELD.type]: BONUS.week,
+					count: attendWeek.length + 1,
 					gift: upd,
 				}
 				break;
@@ -159,9 +162,11 @@ export class AttendService {
 				&& now.dow === Instant.DAY.Sun											// today is 'Sunday'
 				&& elect == BONUS.sunday														// Member elected to take Bonus
 				&& (scheme.sunday.free as TString).includes(event):	// Event is offered on Bonus
+
 				bonus = {
 					[FIELD.id]: scheme.sunday[FIELD.id],
 					[FIELD.type]: BONUS.sunday,
+					count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.sunday).length + 1,
 					gift: upd,
 				}
 				break;
@@ -179,9 +184,11 @@ export class AttendService {
 					.filter(row => row.bonus === scheme.month[FIELD.id])
 					.distinct(row => row.track[FIELD.date])
 					.length < scheme.month.free:
+
 				bonus = {
 					[FIELD.id]: scheme.month[FIELD.id],
 					[FIELD.type]: BONUS.month,
+					count: attendMonth.length + 1,
 					gift: upd,
 				}
 				break;
@@ -191,7 +198,7 @@ export class AttendService {
 	}
 
 	/** Insert an Attend document, matched to an active Payment  */
-	 public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
