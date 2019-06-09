@@ -301,6 +301,8 @@ export class MigrateComponent implements OnInit {
 							gift = 0;
 						}
 						rest = row.note!.substring(search + match.length).replace(/[^\x20-\x7E]/g, '').trim();
+						if (rest && rest.startsWith(':'))
+							rest = rest.substring(1).trim();
 						start = row.stamp;
 					}
 					if (nbr > gift)
