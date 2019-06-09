@@ -494,6 +494,8 @@ export class MigrateComponent implements OnInit {
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
 					note: row.note ? [row.note, caldr.name] : caldr.name, price,
 				}
+				// if (row.note && row.note.includes('elect false'))
+				// 	sched.elect = row.note;									// Member elected to not receive a Bonus
 				break;
 
 			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
@@ -523,12 +525,14 @@ export class MigrateComponent implements OnInit {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				sched.price = price;											// to allow AttendService to check what was charged
 				sched.elect = row.elect;
-				if (row.note && row.note.includes('elect false'))
-					sched.elect = row.note;									// Member elected to not receive a Bonus
+				// if (row.note && row.note.includes('elect false'))
+				// 	sched.elect = row.note;									// Member elected to not receive a Bonus
 		}
 
 		const p = createPromise<boolean>();
 		if (flag) {
+			if (row.note && row.note.includes('elect false'))
+				sched.elect = row.note;									// Member elected to not receive a Bonus
 			this.attend.setAttend(sched, row.note, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
