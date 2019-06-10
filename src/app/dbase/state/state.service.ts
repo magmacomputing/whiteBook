@@ -231,7 +231,7 @@ export class StateService {
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
-		const filterSpan = [addWhere(FIELD.type, `{{client.schedule.${FIELD.type}}}`), addWhere(FIELD.key, `{{client.class.${FIELD.type}}}`),];
+		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
 		const filterBonus = addWhere(FIELD.key, 'XXXXXX');																		// placeholder
 		const filterGift = addWhere(FIELD.key, 'XXXXXX');																			// placeholder
 		const filterAlert = [

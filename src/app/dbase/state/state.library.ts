@@ -320,7 +320,6 @@ export const buildTimetable = (source: ITimetableState) => {
 				addWhere(FIELD.type, STORE.event),
 			])
 			const duration = spanClass.duration || span.duration;
-
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
 				[FIELD.type]: eventList[FIELD.store],

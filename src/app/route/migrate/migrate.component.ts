@@ -26,7 +26,7 @@ import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
-import { asString } from '@lib/string.library';
+import { asString, asNumber } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
@@ -291,16 +291,17 @@ export class MigrateComponent implements OnInit {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const search = row.note && row.note.search('Gift #') + 6 || 0;
+				const search = (row.note && row.note.search('Gift #') + 6) || 0;
 				const match = search && row.note!.substring(search).match(/\d+/g);
 				if (match) {
 					const nbr = parseInt(match[0]);
 					if (nbr === 1) {
-						if (gift && start && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts)) {
+						if (gift && start && !gifts.find(row => row[FIELD.stamp] === start)) {
 							creates.push(this.setGift(gift, start, rest));
-							gift = 0;
 						}
-						rest = row.note!.substring(search + match.length).replace(/[^\x20-\x7E]/g, '').trim();
+						gift = 0;
+						if (rest)
+							rest = row.note!.substring(search + match.length).replace(/[^\x20-\x7E]/g, '').trim();
 						if (rest && rest.startsWith(':'))
 							rest = rest.substring(1).trim();
 						start = row.stamp;
@@ -309,7 +310,8 @@ export class MigrateComponent implements OnInit {
 						gift = nbr;
 				}
 			})
-		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
+
+		if (gift && !gifts.find(row => row[FIELD.stamp] === start))
 			creates.push(this.setGift(gift, start, rest));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
@@ -336,8 +338,16 @@ export class MigrateComponent implements OnInit {
 	}
 
 	private setGift(gift: number, start: number, note?: string) {
+		let offset = getDate(start).startOf('day').ts;
+		if (note && note.includes('start: ')) {
+			debugger;
+			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
+			if (!isNull(time)) {
+				offset = getDate(start).startOf('day').add(asNumber(time[0]), 'hours').add(asNumber(time[1]), 'minutes').ts;
+			}
+		}
 		return {
-			[FIELD.effect]: getDate(start).startOf('day').ts,
+			[FIELD.effect]: offset,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			count: gift,
@@ -494,8 +504,6 @@ export class MigrateComponent implements OnInit {
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
 					note: row.note ? [row.note, caldr.name] : caldr.name, price,
 				}
-				// if (row.note && row.note.includes('elect false'))
-				// 	sched.elect = row.note;									// Member elected to not receive a Bonus
 				break;
 
 			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
@@ -523,16 +531,16 @@ export class MigrateComponent implements OnInit {
 				sched = asAt(this.schedule, where, row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
+				if (row.note && row.note.includes('Bonus: Week Level reached'))
+					row.elect = 'week';
 				sched.price = price;											// to allow AttendService to check what was charged
 				sched.elect = row.elect;
-				// if (row.note && row.note.includes('elect false'))
-				// 	sched.elect = row.note;									// Member elected to not receive a Bonus
 		}
 
 		const p = createPromise<boolean>();
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
-				sched.elect = row.note;									// Member elected to not receive a Bonus
+				sched.elect = row.note;										// Member elected to not receive a Bonus
 			this.attend.setAttend(sched, row.note, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)

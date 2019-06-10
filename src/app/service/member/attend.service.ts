@@ -29,36 +29,36 @@ export class AttendService {
 	/** look back up-to seven days to find when className was last scheduled */
 	private lkpDate = async (className: string, location?: string, date?: TDate) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
-		let now = getDate(date);													// start with date-argument
+		let now = getDate(date);																// start with date-argument
 		let ctr = 0;
 
 		if (!location)
 			location = this.state.getDefault(timetable, STORE.location);
 
 		for (ctr; ctr < 7; ctr++) {
-			const classes = timetable.client.schedule!			// loop through schedule
-				.filter(row => row.day === now.dow)						// finding a match in 'day'
+			const classes = timetable.client.schedule!						// loop through schedule
+				.filter(row => row.day === now.dow)									// finding a match in 'day'
 				// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
-				.filter(row => row[FIELD.key] === className)	// and match in 'class'
-				.filter(row => row.location === location)			// and match in 'location'
+				.filter(row => row[FIELD.key] === className)				// and match in 'class'
+				.filter(row => row.location === location)						// and match in 'location'
 
-			if (classes.length)															// is this class offered on this 'day'   
+			if (classes.length)																		// is this class offered on this 'day'   
 				break;
-			now = now.add(-1, 'day');												// move pointer to previous day
+			now = now.add(-1, 'day');															// move pointer to previous day
 		}
 
-		if (ctr >= 7)																			// cannot find className on timetable
-			now = getDate(date);														// so default back to today's date	
+		if (ctr >= 7)																						// cannot find className on timetable
+			now = getDate(date);																	// so default back to today's date	
 
-		return now.ts;																		// timestamp
+		return now.ts;																					// timestamp
 	}
 
 	/** Determine the eligibility for free Attend */
 	private getBonus = async (event: string, date?: TDate, elect?: string) => {
 		const now = getDate(date);
 		const uid = await this.data.auth.current
-			.then(user => user!.uid);																				// the currently active User UID
-		const isMine = addWhere(FIELD.uid, uid);													// where-clause for current user
+			.then(user => user!.uid);															// the currently active User UID
+		const isMine = addWhere(FIELD.uid, uid);								// where-clause for current user
 		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
 
 		/**
@@ -67,11 +67,11 @@ export class AttendService {
 		 * scheme is definition of active Bonus schemes effective on this date
 		 */
 		const [gifts, scheme] = await Promise.all([
-			this.data.getStore<IGift>(STORE.gift, isMine, date),						// any active Gifts
+			this.data.getStore<IGift>(STORE.gift, isMine, date),	// any active Gifts
 
-			this.data.getStore<IBonus>(STORE.bonus, undefined, date)				// any active Bonuses
+			this.data.getStore<IBonus>(STORE.bonus, undefined, date)// any active Bonuses
 				.then(bonus => bonus.reduce((acc, row) => {
-					acc[row[FIELD.key]] = row;																	// break out by Bonus key
+					acc[row[FIELD.key]] = row;												// break out by Bonus key
 					return acc;
 				}, {} as IObject<IBonus>))
 		]);
@@ -82,7 +82,7 @@ export class AttendService {
 		 * attendMonth	is array of Attends so far this calendar month, less than <now>
 		 */
 		const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
-			Promise.all(																			// return an array of Attend per Gift
+			Promise.all(																					// return an array of Attend per Gift
 				gifts.map(gift => this.data.getStore<IAttend>(STORE.attend, [isMine, addWhere(`bonus.${FIELD.id}`, gift[FIELD.id])]))
 			),
 			this.data.getStore<IAttend>(STORE.attend, [isMine, prior, addWhere('track.week', now.format(DATE_FMT.yearWeek))]),
@@ -91,53 +91,53 @@ export class AttendService {
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
 		let bonus = {} as TBonus;
-		const upd: IGift[] = [];														// an array of updates to Gifts
+		const upd: IGift[] = [];																// an array of updates to Gifts
 		switch (true) {
 			/**
 			 * Admin adds 'Gift' records to a Member's account which will detail
 			 * the start-date, and count of free classes (and an optional expiry for the Gift).  
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
-			case gifts.length > 0															// if Member has some open Gifts
-				&& (isUndefined(elect) || elect === BONUS.gift)://   and has not elected to *skip* this Bonus
+			case gifts.length > 0																	// if Member has some open Gifts
+				&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
 
-				let curr = -1;																	// the Gift to use in determining eligibility
+				let curr = -1;																			// the Gift to use in determining eligibility
 				gifts.forEach((gift, idx) => {
-					if (attendGift[idx].length >= gifts[idx].count// max number of Attends against this gift
-						|| (gifts[idx].expiry || 0) > now.ts)				// 	or this Gift expiry has passed
-						upd.push({ [FIELD.expire]: now.ts, ...gift })// auto-expire it
-					else if (curr === -1) curr = idx;							// else found a Gift that might apply
+					if (attendGift[idx].length >= gifts[idx].count		// max number of Attends against this gift
+						|| (gifts[idx].expiry || 0) > now.ts)						// 	or this Gift expiry has passed
+						upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
+					else if (curr === -1) curr = idx;									// else found a Gift that might apply
 				})
 
 				if (curr !== -1) {
-					const attendCnt = attendGift[curr].length;		// how many Attends already against this Gift
-					const gift = gifts[curr];											// this is the Gift to book against
+					const attendCnt = attendGift[curr].length;				// how many Attends already against this Gift
+					const gift = gifts[curr];													// this is the Gift to book against
 					bonus = {
-						[FIELD.id]: gift[FIELD.id],									// Bonus id is the Gift Id
-						[FIELD.type]: BONUS.gift,										// Bonus type is 'gift'
-						count: attendCnt + 1,												// to help with tracking
+						[FIELD.id]: gift[FIELD.id],											// Bonus id is the Gift Id
+						[FIELD.type]: BONUS.gift,												// Bonus type is 'gift'
+						count: attendCnt + 1,														// to help with tracking
 						gift: [...upd, {
 							[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
 							[FIELD.expire]: gift.count - attendCnt <= 1 ? now.ts : undefined,
 							...gift,
 						}],
 					}
-					break;																				// exit switch-case
-				}																								// drop through to next switch-case
+					break;																						// exit switch-case
+				}																										// drop through to next switch-case
 
 			/**
 			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price or gift classes in a week (scheme.week.level).  
 			 * The Member must also have claimed less than the free limit (scheme.week.free)
 			 */
 			case scheme.week
-				&& attendWeek																		// sum the non-Bonus / non-Gift Attends
+				&& attendWeek																				// sum the non-Bonus / non-Gift Attends
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-					.distinct(row => row.track[FIELD.date])				// de-dup by day-of-week
-					.length >= scheme.week.level									// must attend the 'level' number
-				&& attendWeek																		// sum the 'week' bonus claimed
+					.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
+					.length >= scheme.week.level											// must attend the 'level' number
+				&& attendWeek																				// sum the 'week' bonus claimed
 					.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week)
-					.length < scheme.week.free										// must attend less than 'free' number
-				&& (isUndefined(elect) || elect === BONUS.week):// if not skipped, then Bonus will apply
+					.length < scheme.week.free												// must attend less than 'free' number
+				&& (isUndefined(elect) || elect === BONUS.week):		// if not skipped, then Bonus will apply
 
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
