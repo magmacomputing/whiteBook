@@ -5,7 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { AngularFireAuthGuardModule, AngularFireAuthGuard, customClaims, canActivate, redirectUnauthorizedTo, redirectLoggedInTo } from '@angular/fire/auth-guard';
 
 import { pipe } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { ROUTE } from '@route/route.define';
 import { ProfileGuard, DeactivateGuard } from '@route/route.guard';
@@ -36,5 +36,6 @@ const routes: Routes = [
 	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule],
 	declarations: [LoginComponent, AttendComponent, OAuthComponent],
+	providers: [DeactivateGuard],
 })
 export class RoutingModule { }
