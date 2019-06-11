@@ -43,8 +43,8 @@ export class MigrateComponent implements OnInit {
 	public creditIdx = 0;
 	public credit = ['value', 'zero', 'all'];
 
+	public dash$!: Observable<IAdminState["dash"]>;
 	private account$!: Observable<IAccountState>;
-	private dash$!: Observable<IAdminState["dash"]>;
 	private history: IPromise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
@@ -112,7 +112,7 @@ export class MigrateComponent implements OnInit {
 		return this.data.batch(undefined, undefined, deletes.flat());
 	}
 
-	private filter(key?: string) {
+	public filter(key?: string) {
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row.register.migrate)

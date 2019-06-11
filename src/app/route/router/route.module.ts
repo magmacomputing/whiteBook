@@ -13,19 +13,20 @@ import { MaterialModule } from '@route/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
+import { EMailComponent } from '@route/login/email.component';
 
 import { getPath } from '@lib/object.library';
 
+const toLogin = redirectUnauthorizedTo([ROUTE.login]);
+const toAttend = redirectLoggedInTo([ROUTE.attend]);
 const isAdmin = pipe(customClaims,
 	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes('admin')),
 );
-const toLogin = redirectUnauthorizedTo([ROUTE.login]);																			// TODO: remove navigate from AuthState
-const toAttend = redirectLoggedInTo([ROUTE.attend]);																				// TODO: add to ROUTE.login
 
 const routes: Routes = [
-	{ path: ROUTE.oauth, component: OAuthComponent, canDeactivate: [DeactivateGuard] },				// TODO: cannot be lazy-loaded
-	{ path: ROUTE.login, component: LoginComponent },
-	{ path: ROUTE.attend, component: AttendComponent, canActivate: [AngularFireAuthGuard, ProfileGuard] },
+	{ path: ROUTE.oauth, component: OAuthComponent, ...canActivate(toLogin), canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
+	{ path: ROUTE.login, component: LoginComponent, ...canActivate(toAttend) },
+	{ path: ROUTE.attend, component: AttendComponent, ...canActivate(toLogin), canActivate: [ProfileGuard] },
 	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
 	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), ...canActivate(isAdmin) },
 	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), ...canActivate(isAdmin) },
@@ -35,7 +36,7 @@ const routes: Routes = [
 @NgModule({
 	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule],
-	declarations: [LoginComponent, AttendComponent, OAuthComponent],
+	declarations: [LoginComponent, AttendComponent, OAuthComponent, EMailComponent],
 	providers: [DeactivateGuard],
 })
 export class RoutingModule { }

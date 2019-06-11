@@ -50,7 +50,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		map(obs => isUndefined(date)
 			? filterTable<T>(obs[store], filter)
 			: asAt<T>(obs[store], filter, date)),
-		map(table => table.sort(sortKeys(...SORTBY[store]))),
+		map(table => table.sort(sortKeys(...asArray(SORTBY[store])))),
 	)
 }
 export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
@@ -63,7 +63,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
 		map(table => isUndefined(date) ? filterTable<T>(table, filter) : asAt<T>(table, filter, date)),
-		map(table => table.sort(sortKeys(...SORTBY[store]))),
+		map(table => table.sort(sortKeys(...asArray(SORTBY[store])))),
 	)
 }
 

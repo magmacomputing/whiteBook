@@ -101,7 +101,7 @@ export class StateService {
 				account: source.account as IStatusAccount[],
 				connect: source.connect as IStatusConnect[],
 				dash: (source[STORE.register] || [])
-					.sort(sortKeys(...SORTBY[STORE.register]))
+					.sort(sortKeys(...asArray(SORTBY[STORE.register])))
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
 						account: (source.account || [])

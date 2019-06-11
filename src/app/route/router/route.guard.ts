@@ -42,7 +42,7 @@ export class AuthGuard implements CanActivate {
 export class ProfileGuard implements CanActivate {
 	private dbg = dbg(this);
 
-	constructor(private auth: AuthService, private navigate: NavigateService) { this.dbg('new') }
+	constructor(private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
 		const localState = getLocalStore<LState>(StoreStorage) || {};
@@ -51,10 +51,10 @@ export class ProfileGuard implements CanActivate {
 		if (getPath<string>(planProfile, 'plan'))
 			return true;															// found a current 'plan' in localStorage
 
-		const state = await this.auth.user;
-		const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
-		if (!isUndefined(planClaim))
-			return true;															// found a 'plan' on customClaims token
+		// const state = await this.auth.user;
+		// const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
+		// if (!isUndefined(planClaim))
+		// 	return true;															// found a 'plan' on customClaims token
 
 		this.navigate.route(ROUTE.plan);						// redirect to PlanComponent
 		return false;
