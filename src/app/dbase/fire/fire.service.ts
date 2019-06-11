@@ -17,10 +17,12 @@ import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, isObject } from '@lib/type.library';
+import { getDeviceId } from '@lib/window.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
-import { getDeviceId } from '@lib/window.library';
 import { dbg } from '@lib/logger.library';
+
+type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -29,7 +31,7 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	private dbg = dbg(this);
-	private ref!: database.Reference;
+	private ref: database.Reference;
 	private uid: string | null = null;
 	private online: boolean = false;
 
@@ -40,19 +42,19 @@ export class FireService {
 
 		this.afd.database.ref('.info/connected')
 			.on('value', snap => {
-				this.online = snap.val();						// keep local track of online/offline status
+				this.online = snap.val();								// keep local track of online/offline status
 				if (this.online)
-					this.setState(CONNECT.active);			// set initial state
+					this.setState(CONNECT.active);				// set initial state
 			})
 	}
 
 	setState(state: CONNECT) {
 		if (this.uid && !this.afa.auth.currentUser)
-			this.uid = null;											// User has logged-out
+			this.uid = null;													// User has logged-out
 		if (!this.uid && this.afa.auth.currentUser)
 			this.uid = this.afa.auth.currentUser.uid;
-		if (!this.uid && state == CONNECT.active)// Connected, authenticated
-			state = CONNECT.connect								// Connected, not authenticated
+		if (!this.uid && state == CONNECT.active)		// Connected, authenticated
+			state = CONNECT.connect										// Connected, not authenticated
 
 		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
 		this.ref
@@ -67,28 +69,28 @@ export class FireService {
 	 */
 	colRef<T>(collection: COLLECTION, query?: IQuery) {
 		return !query
-			? [this.afs.collection<T>(collection)]// reference against the entire collection
-			: fnQuery(query)											// else register an array of Querys over a collection reference
+			? [this.afs.collection<T>(collection)]		// reference against the entire collection
+			: fnQuery(query)													// else register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
-	merge<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+	merge<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
 		return merge(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
 	}
 
-	combine<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+	combine<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
 		return combineLatest(colRefs.map(colRef => colRef[type]())) as (Observable<U extends 'valueChanges' ? T[][] : DocumentChangeAction<T>[][]>);
 	}
 
-	concat<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+	concat<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
 		return concat(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
 	}
 
 	/** Document Reference, for existing or new */
 	docRef(store: STORE, docId?: string) {
 		const col = store.includes('/')
-			? store																// already a '/{collection}' path
-			: getSlice(store)											// lookup parent collection name for a 'store'
+			? store																		// already a '/{collection}' path
+			: getSlice(store)													// lookup parent collection name for a 'store'
 
 		docId = isUndefined(docId) ? this.newId() : docId;	// use supplied Id, else generate a new Id
 

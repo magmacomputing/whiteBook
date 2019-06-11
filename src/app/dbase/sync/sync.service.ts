@@ -143,9 +143,9 @@ export class SyncService {
 				.toPromise();
 		}
 
-		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();
-		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();
-		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();
+		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();	// do 'additions' first
+		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();	// then 'changes'
+		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'deletes'
 
 		if (listen.cnt !== 0) {
 			snaps.forEach(async snap => {										// look for special actions to fire
