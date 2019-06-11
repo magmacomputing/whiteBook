@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "whitefire-dev": {
+      "hosting": {
+        "whiteBook": [
+          "whitefire-dev"
+        ]
+      }
+    }
+  }
+}

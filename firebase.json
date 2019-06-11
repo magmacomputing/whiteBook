@@ -1,0 +1,19 @@
+{
+  "hosting": [
+    {
+      "target": "whiteBook",
+      "public": "dist/whiteBook",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}
