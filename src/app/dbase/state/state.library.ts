@@ -47,7 +47,9 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(obs => isUndefined(date) ? filterTable<T>(obs[store], filter) : asAt<T>(obs[store], filter, date)),
+		map(obs => isUndefined(date)
+			? filterTable<T>(obs[store], filter)
+			: asAt<T>(obs[store], filter, date)),
 		map(table => table.sort(sortKeys(...SORTBY[store]))),
 	)
 }

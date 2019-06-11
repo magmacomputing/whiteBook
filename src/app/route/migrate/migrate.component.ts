@@ -284,7 +284,7 @@ export class MigrateComponent implements OnInit {
 				} as IPayment
 			});
 
-		let gift = 0;
+		let giftCnt = 0;
 		let start = 0;
 		let rest: string | undefined = undefined;
 		hist
@@ -296,23 +296,25 @@ export class MigrateComponent implements OnInit {
 				if (match) {
 					const nbr = parseInt(match[0]);
 					if (nbr === 1) {
-						if (gift && start && !gifts.find(row => row[FIELD.stamp] === start)) {
-							creates.push(this.setGift(gift, start, rest));
+						if (giftCnt && start && !gifts.find(row => row[FIELD.stamp] === start)) {
+							creates.push(this.setGift(giftCnt, start, rest));
 						}
-						gift = 0;
-						if (rest)
-							rest = row.note!.substring(search + match.length).replace(/[^\x20-\x7E]/g, '').trim();
+						giftCnt = 0;
+						rest = row.note!
+							.substring(search + match[0].length)
+							// .replace(/[^\x20-\x7E]/g, '')
+							.trim();
 						if (rest && rest.startsWith(':'))
 							rest = rest.substring(1).trim();
 						start = row.stamp;
 					}
-					if (nbr > gift)
-						gift = nbr;
+					if (nbr > giftCnt)
+						giftCnt = nbr;
 				}
 			})
 
-		if (gift && !gifts.find(row => row[FIELD.stamp] === start))
-			creates.push(this.setGift(gift, start, rest));
+		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
+			creates.push(this.setGift(giftCnt, start, rest));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.member.updAccount())
@@ -340,7 +342,7 @@ export class MigrateComponent implements OnInit {
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getDate(start).startOf('day').ts;
 		if (note && note.includes('start: ')) {
-			debugger;
+			debugger;																					// TODO: only for one Member
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
 			if (!isNull(time)) {
 				offset = getDate(start).startOf('day').add(asNumber(time[0]), 'hours').add(asNumber(time[1]), 'minutes').ts;
@@ -401,7 +403,7 @@ export class MigrateComponent implements OnInit {
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere('location', 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
-		const [prefix, suffix, ...none] = what.split('*');
+		const [prefix, suffix] = what.split('*');
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;

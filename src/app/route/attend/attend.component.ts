@@ -5,12 +5,11 @@ import { map } from 'rxjs/operators';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
-import { MemberService } from '@service/member/member.service';
+import { AttendService } from '@service/member/attend.service';
 
 import { swipe } from '@lib/html.library';
 import { suffix } from '@lib/number.library';
 import { dbg } from '@lib/logger.library';
-import { fmtDate, getDate } from '@lib/date.library';
 
 @Component({
 	selector: 'wb-attend',
@@ -25,7 +24,7 @@ export class AttendComponent implements OnInit {
 	public timetable$!: Observable<ITimetableState>;
 	public firstPaint = true;                           // indicate first-paint
 
-	constructor(private readonly member: MemberService, public readonly state: StateService, public readonly data: DataService) { }
+	constructor(private readonly attend: AttendService, public readonly state: StateService, public readonly data: DataService) { }
 
 	ngOnInit() {                                        // wire-up the timetable Observable
 		this.timetable$ = this.state.getScheduleData(this.date).pipe(
