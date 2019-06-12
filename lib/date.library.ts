@@ -127,30 +127,38 @@ export class Instant {
 		if ((isString(dt) || isNumber(dt)) && Instant.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
 			dt = asString(dt).replace(Instant.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
 
-		switch (getType(dt)) {																		// translate supplied parameter into a Date
+		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Undefined':																				// set to 'now'
 				date = new Date();
 				break;
-			case 'Date':																						// already is a valid Date
+
+			case 'Date':																						// already is a valid Date	
 				date = dt as Date;
 				break;
+
 			case 'String':
 				const fmt = dt as string;
 				date = new Date(args.length
 					? this.formatString(fmt, ...args)										// free-format string
 					: fmt)																							// let Javascript interpret string
 				break;
-			case 'Number':																					// check whether milliseconds or microseconds
+
+			case 'Number':																					// could be timestamp, or (with args) date-components
 				const nbr = dt as number;
-				const val = (nbr < Instant.maxStamp ? nbr * 1000 : nbr);// assume timestamp to milliseconds
-				date = new Date(val);
+				const vals = args as number[];												// assumed as [MM, DD, HH, MI, SS, ms]
+				date = vals.length
+					? new Date(nbr, vals[0] - 1, ...vals.slice(1))			// change month-number to zero-indexed
+					: new Date(nbr < Instant.maxStamp ? nbr * 1000 : nbr)	// assume timestamp to milliseconds
 				break;
+
 			case 'Instant':																					// already have a valid Instant
 				date = (dt as Instant).asDate();
 				break;
+
 			case 'Timestamp':																				// instance of Timestamp
 				date = (dt as Timestamp).toDate();
 				break;
+
 			case 'Object':
 				const ts = dt as ITimestamp;													// shape of Timestamp
 				const obj = dt as IInstant;														// shape of Instant
@@ -162,6 +170,7 @@ export class Instant {
 					date = this.composeDate(obj);
 					break;
 				}
+
 			default:																								// unexpected input
 				date = new Date();
 		}

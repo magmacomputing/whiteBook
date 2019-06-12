@@ -122,10 +122,8 @@ export class MigrateComponent implements OnInit {
 						case 'all':
 							return true;
 						case 'value':
-							// return row.account && row.account.summary.credit;
 							return getPath(row.account, 'summary.credit');
 						case 'zero':
-							// return row.account && !row.account.summary.credit;
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
