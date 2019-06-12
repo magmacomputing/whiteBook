@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 
 import { AngularFireAuth } from '@angular/fire/auth';
-import { State, StateContext, Action, NgxsOnInit, Store } from '@ngxs/store';
+import { State, StateContext, Action, Store } from '@ngxs/store';
 import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
 	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, LoginAnon, AuthOther
@@ -221,9 +221,7 @@ export class AuthState {
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this._memberSubject.complete())
-				// .then(_ => this._memberSubject.next(null))// then wipe the BehaviourSubject
-				.then(_ => this.dbg('route: %s', this.navigate.url))
-				.then(_ => {
+				.then(_ => {															// if on "/" or "/login", redirect to "/attend"
 					if (['/', '/login'].includes(this.navigate.url))
 						this.navigate.route(ROUTE.attend)
 				})

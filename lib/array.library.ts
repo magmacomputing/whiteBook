@@ -24,7 +24,7 @@ if (!Array.prototype.hasOwnProperty('distinct')) {
 	Array.prototype.distinct = function (selector?: (value: any, index: number, array: any[]) => {}) {
 		return selector
 			? this.map(selector).distinct()
-			: [...Array.from(new Set(this))];
+			: Array.from(new Set(this))
 	}
 }
 

@@ -7,7 +7,6 @@ import { NavigateService } from '@route/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
 import { AuthModule } from '@service/auth/auth.module';
-import { AuthService } from '@service/auth/auth.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { LState } from '@dbase/state/state.define';
 import { StoreStorage } from '@dbase/sync/sync.define';
@@ -16,24 +15,23 @@ import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
 import { getLocalStore } from '@lib/window.library';
-import { isUndefined } from '@lib/type.library';
 import { getPath } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
+/**
+ * TODO: The ROUTE.oauth should not be accessible by the Member.
+ * It is provided solely so that an OAuth provider has a redirect back to the App
+ * (after the Member authenticates).  
+ */
 @Injectable({ providedIn: AuthModule })
-export class AuthGuard implements CanActivate {
+export class OAuthGuard implements CanActivate {
 	private dbg = dbg(this);
 
-	constructor(private auth: AuthService, private navigate: NavigateService) { this.dbg('new') }
+	constructor(private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const state = await this.auth.user;
-
-		if (state.auth.user)												// is logged-on
-			return true;
-
-		this.navigate.route(ROUTE.login);						// redirect to LoginComponent
-		return false;
+		this.dbg('oauth: %s', this.navigate.url);
+		return true;
 	}
 }
 

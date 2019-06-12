@@ -2,13 +2,13 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { AngularFireAuthGuardModule, AngularFireAuthGuard, customClaims, canActivate, redirectUnauthorizedTo, redirectLoggedInTo } from '@angular/fire/auth-guard';
+import { AngularFireAuthGuardModule, AngularFireAuthGuard, customClaims, canActivate, redirectUnauthorizedTo, redirectLoggedInTo, } from '@angular/fire/auth-guard';
 
 import { pipe } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ROUTE } from '@route/route.define';
-import { ProfileGuard, DeactivateGuard } from '@route/route.guard';
+import { ProfileGuard, DeactivateGuard, OAuthGuard } from '@route/route.guard';
 import { MaterialModule } from '@route/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
@@ -24,7 +24,7 @@ const isAdmin = pipe(customClaims,
 );
 
 const routes: Routes = [
-	{ path: ROUTE.oauth, component: OAuthComponent, ...canActivate(toLogin), canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
+	{ path: ROUTE.oauth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
 	{ path: ROUTE.login, component: LoginComponent, ...canActivate(toAttend) },
 	{ path: ROUTE.attend, component: AttendComponent, ...canActivate(toLogin), canActivate: [ProfileGuard] },
 	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
@@ -37,6 +37,6 @@ const routes: Routes = [
 	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule],
 	declarations: [LoginComponent, AttendComponent, OAuthComponent, EMailComponent],
-	providers: [DeactivateGuard],
+	providers: [AngularFireAuthGuard, DeactivateGuard, OAuthGuard],
 })
 export class RoutingModule { }
