@@ -276,15 +276,14 @@ export class AttendService {
 			if (data.account.payment.length <= 1 || data.account.attend.length >= 100) {	// create a new Payment
 				const payDate = schedule.price <= data.account.summary.funds ? stamp : undefined;
 				const gap = schedule.price - data.account.summary.credit;
-				const topUp = await this.member.getPayPrice(data);
-				const payment = await this.member.setPayment(Math.max(gap, topUp), payDate);
+				const topUp = payDate ? 0 : Math.max(gap, await this.member.getPayPrice(data));
+				const payment = await this.member.setPayment(topUp, payDate);
 
-				if (topUp === 0)
+				if (topUp === 0)															// auto-approve
 					payment.approve = { uid: 'Auto-Approve', stamp: stamp }
 
 				creates.push(payment);												// stack the topUp Payment into the batch
 				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
-				// data.account.payment.push(payment);						// append to the Payment array
 			}
 
 			const next = data.account.payment[1];
