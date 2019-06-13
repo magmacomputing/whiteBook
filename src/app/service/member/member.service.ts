@@ -52,7 +52,7 @@ export class MemberService {
 	}
 
 	/** Create a new TopUp payment */
-	async setPayment(amount?: number) {
+	async setPayment(amount?: number, stamp?: TDate) {
 		const data = await this.getAccount();
 		const topUp = await this.getPayPrice(data);			// find the topUp price for this Member
 
@@ -61,7 +61,7 @@ export class MemberService {
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: 'topUp',
 			amount: isUndefined(amount) ? topUp : amount,
-			stamp: getStamp(),
+			stamp: getStamp(stamp),
 		} as IPayment
 	}
 

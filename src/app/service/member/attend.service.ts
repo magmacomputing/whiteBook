@@ -130,7 +130,7 @@ export class AttendService {
 			 * The Member must also have claimed less than the free limit (scheme.week.free)
 			 */
 			case scheme.week
-				&& attendWeek																				// sum the non-Bonus / non-Gift Attends
+				&& attendWeek																				// sum the non-Bonus -or- Gift Attends
 					.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 					.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 					.length >= scheme.week.level											// must attend the 'level' number
@@ -273,16 +273,18 @@ export class AttendService {
 			this.dbg('funds: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
 			this.dbg('expiry: %j, %j, %j', now.ts < expiry, now.ts, expiry);
 
-			if (data.account.payment.length <= 1) {					// create a new Payment
+			if (data.account.payment.length <= 1 || data.account.attend.length >= 100) {	// create a new Payment
+				const payDate = schedule.price <= data.account.summary.funds ? stamp : undefined;
 				const gap = schedule.price - data.account.summary.credit;
 				const topUp = await this.member.getPayPrice(data);
-				const payment = await this.member.setPayment(Math.max(gap, topUp));
+				const payment = await this.member.setPayment(Math.max(gap, topUp), payDate);
 
 				if (topUp === 0)
-					payment.approve = { uid: 'Auto-Approve', stamp: now.ts }
+					payment.approve = { uid: 'Auto-Approve', stamp: stamp }
 
 				creates.push(payment);												// stack the topUp Payment into the batch
-				data.account.payment.push(payment);						// append to the Payment array
+				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
+				// data.account.payment.push(payment);						// append to the Payment array
 			}
 
 			const next = data.account.payment[1];

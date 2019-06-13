@@ -342,9 +342,8 @@ export class MigrateComponent implements OnInit {
 		if (note && note.includes('start: ')) {
 			debugger;																					// TODO: only for one Member
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
-			if (!isNull(time)) {
+			if (!isNull(time))
 				offset = getDate(start).startOf('day').add(asNumber(time[0]), 'hours').add(asNumber(time[1]), 'minutes').ts;
-			}
 		}
 		return {
 			[FIELD.effect]: offset,
