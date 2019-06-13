@@ -309,11 +309,11 @@ export interface IPayment extends IUserBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: TPayment;
 	[FIELD.stamp]: number;						// create-date
-	amount: number;										// how much actually paid (may be different from plan.topUp.amount)
+	amount?: number;									// how much actually paid (may be different from plan.topUp.amount)
 	adjust?: number;									// a manual adjustment to a topUp
 	bank?: number;										// un-used funds from previous payment
 	hold?: number;										// number of days to extend expiry
-	expiry?: number;									// six-months from _effect
+	expiry?: number;									// usually six-months from _effect
 	approve?: {												// acknowledge receipt of payment
 		[FIELD.uid]: string;
 		[FIELD.stamp]: number;
@@ -324,7 +324,7 @@ export interface IPayment extends IUserBase {
 //	/member/gift
 export interface IGift extends IUserBase {
 	[FIELD.store]: STORE.gift,
-	// [FIELD.type]: string;
+	[FIELD.type]?: string;
 	[FIELD.stamp]: number;
 	count: number;
 	desc?: TString;

@@ -6,6 +6,7 @@ import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
 import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 
+import { PAY, MEMBER } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
@@ -254,8 +255,7 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which is <active>
-		const tests = new Set<boolean>();									// Set of test results
-		let active: IPayment;															// Payment[0]
+		let active: IPayment;															// Payment[0] is assumed active, by default
 
 		while (true) {
 			data = sumPayment(data);												// calc Payment summary
@@ -263,24 +263,33 @@ export class AttendService {
 			active = data.account.payment[0];								// current Payment
 			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
-			tests.add(data.account.attend.length < 100);						// arbitrary limit of Attends against a Payment             
-			tests.add(schedule.price <= data.account.summary.funds);// enough funds to cover this Attend
-			tests.add(now.ts < expiry);															// Payment expired
-			if (!tests.has(false))
-				break;																				// all tests passed
-			tests.clear();																	// reset the test Set
-			this.dbg('limit: %j, %j', data.account.attend.length < 100, data.account.attend.length);
-			this.dbg('funds: %j, %j, %j', schedule.price <= data.account.summary.funds, schedule.price, data.account.summary);
-			this.dbg('expiry: %j, %j, %j', now.ts < expiry, now.ts, expiry);
+			const tests: boolean[] = [];										// Set of test results
+			tests[PAY.under_limit] = data.account.attend.length < MEMBER.maxColumn;
+			tests[PAY.enough_funds] = schedule.price < data.account.summary.funds;
+			tests[PAY.not_expired] = now.ts < expiry;
+			if (!tests.includes(false))											// if tests do not include at-least one <false>
+				break;																				// 	all tests passed; we have found a Payment
 
-			if (data.account.payment.length <= 1 || data.account.attend.length >= 100) {	// create a new Payment
-				const payDate = schedule.price <= data.account.summary.funds ? stamp : undefined;
+			this.dbg('limit: %j, %j', tests[PAY.under_limit], data.account.attend.length);
+			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.price, data.account.summary);
+			this.dbg('expiry: %j, %j, %j', tests[PAY.not_expired], now.ts, expiry);
+
+			// If over-limit (100+ Attends per Payment) but still have sufficient funds,
+			// 	insert an auto-approved $0 Payment
+			if (!tests[PAY.under_limit] && tests[PAY.enough_funds] && tests[PAY.not_expired]) {
+				const payment = await this.member.setPayment(0, stamp);
+				payment.approve = { uid: MEMBER.autoApprove, stamp };
+
+				creates.push(payment);												// stack the topUpPayment into the batch
+				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
+			}
+
+			// If there are no future Payments, create a new Payment with the higher of
+			// a. the usual topUp amount, or b. the amount needed to cover this Attend
+			if (data.account.payment.length <= 1) {
 				const gap = schedule.price - data.account.summary.credit;
-				const topUp = payDate ? 0 : Math.max(gap, await this.member.getPayPrice(data));
-				const payment = await this.member.setPayment(topUp, payDate);
-
-				if (topUp === 0)															// auto-approve
-					payment.approve = { uid: 'Auto-Approve', stamp: stamp }
+				const topUp = Math.max(gap, await this.member.getPayPrice(data));
+				const payment = await this.member.setPayment(topUp, stamp);
 
 				creates.push(payment);												// stack the topUp Payment into the batch
 				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
@@ -305,8 +314,8 @@ export class AttendService {
 		if (!active.expiry && active.approve)							// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
-		if (Object.keys(upd).length)
-			updates.push({ ...active, ...upd });						// batch the Payment update
+		if (Object.keys(upd).length)											// changes to the active Payment
+			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document

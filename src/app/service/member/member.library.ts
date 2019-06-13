@@ -1,6 +1,6 @@
 import * as firebase from 'firebase/app';
 
-import { IPlanState } from '@dbase/state/state.define';
+import { IPlanState, ISummary } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
@@ -47,12 +47,12 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 	return profileInfo;
 }
 
-// each Provider might report a different birthday; take latest
+// each Provider might report a different birthday; take earliest
 export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	const birthDays = asArray(info)
 		.map(row => row.info.birthDay)
 		.filter(isNumber)
-	return birthDays.length ? Math.max(...birthDays) : undefined;
+	return birthDays.length ? Math.min(...birthDays) : undefined;
 }
 
 export const getMemberAge = (info: IProfileInfo[] = []) =>
@@ -65,13 +65,17 @@ export const getMemberAge = (info: IProfileInfo[] = []) =>
  * 3. When the first Attend against a Payment is made, it uses the Attend.stamp to reset the 'from' date.  
  */
 export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState["client"]) => {
-	const plan = client.plan[0] || {};								// description of Member's current Plan
+	const plan = client.plan[0] || {};										// description of Member's current Plan
 	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
 	const hold = payment.hold || 0;
+	let paid = (payment.amount || 0) + (payment.adjust || 0);
+
+	if (paid === 0 && payment.bank)
+		paid = payment.bank || 0;														// an Auto-Approve topUp of $0, but with Funds avail
 
 	if (topUp && !isUndefined(plan.expiry)) {							// plan.expiry is usually six-months
 		const offset = topUp.amount
-			? Math.round(payment.amount / (topUp.amount / plan.expiry)) || 1
+			? Math.round(paid / (topUp.amount / plan.expiry)) || 1
 			: plan.expiry;																		// allow for gratis account expiry
 		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
 	}

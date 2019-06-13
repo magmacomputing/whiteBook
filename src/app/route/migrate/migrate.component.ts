@@ -319,16 +319,18 @@ export class MigrateComponent implements OnInit {
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
 
+	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
 	private getExpiry(row: MHistory, profile: IProfilePlan[], plans: IPlan[], prices: IPrice[]) {
 		let expiry: number | undefined = undefined;
 		const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
 		const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
 		const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
 		const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
+		const paid = parseFloat(row.credit || '0') + parseFloat(row.debit || '0');
 
 		if (topUp && !isUndefined(desc.expiry)) {
 			const offset = topUp.amount
-				? Math.round(parseFloat(row.credit!) / (topUp.amount / desc.expiry)) || 1
+				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
 				: desc.expiry;
 			expiry = getDate(row.approved || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
 			if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
@@ -367,8 +369,8 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
-		// table.splice(table.length - endAt);
+		const endAt = table.filter(row => row.date >= getDate('2013-Nov-16').format(DATE_FMT.yearMonthDay)).length;
+		table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
