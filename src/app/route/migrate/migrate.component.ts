@@ -369,8 +369,8 @@ export class MigrateComponent implements OnInit {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		const endAt = table.filter(row => row.date >= getDate('2013-Nov-16').format(DATE_FMT.yearMonthDay)).length;
-		table.splice(table.length - endAt);
+		// const endAt = table.filter(row => row.date >= getDate('2013-Nov-16').format(DATE_FMT.yearMonthDay)).length;
+		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;

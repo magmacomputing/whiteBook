@@ -68,16 +68,16 @@ export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState[
 	const plan = client.plan[0] || {};										// description of Member's current Plan
 	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
 	const hold = payment.hold || 0;
-	let paid = (payment.amount || 0) + (payment.adjust || 0);
-
-	if (paid === 0 && payment.bank)
-		paid = payment.bank || 0;														// an Auto-Approve topUp of $0, but with Funds avail
+	const paid = (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
 
 	if (topUp && !isUndefined(plan.expiry)) {							// plan.expiry is usually six-months
-		const offset = topUp.amount
+		const offset = topUp.amount													// number of months to extend expiry-date
 			? Math.round(paid / (topUp.amount / plan.expiry)) || 1
 			: plan.expiry;																		// allow for gratis account expiry
-		return getDate(stamp).add(offset, 'months').add(hold, 'days').startOf('day').ts;
+		return getDate(stamp)
+			.add(offset, 'months')														// number of months to extend expiry-date
+			.add(hold, 'days')																// number of days to *hold* off expiry
+			.startOf('day').ts																// set to beginning of day
 	}
 
 	return undefined;

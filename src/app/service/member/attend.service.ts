@@ -265,8 +265,8 @@ export class AttendService {
 
 			const tests: boolean[] = [];										// Set of test results
 			tests[PAY.under_limit] = data.account.attend.length < MEMBER.maxColumn;
-			tests[PAY.enough_funds] = schedule.price < data.account.summary.funds;
-			tests[PAY.not_expired] = now.ts < expiry;
+			tests[PAY.enough_funds] = schedule.price <= data.account.summary.funds;
+			tests[PAY.not_expired] = now.ts <= expiry;
 			if (!tests.includes(false))											// if tests do not include at-least one <false>
 				break;																				// 	all tests passed; we have found a Payment
 
@@ -282,6 +282,7 @@ export class AttendService {
 
 				creates.push(payment);												// stack the topUpPayment into the batch
 				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
+			// <BUG>  sort insert the above Payment
 			}
 
 			// If there are no future Payments, create a new Payment with the higher of
@@ -292,7 +293,7 @@ export class AttendService {
 				const payment = await this.member.setPayment(topUp, stamp);
 
 				creates.push(payment);												// stack the topUp Payment into the batch
-				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
+				data.account.payment.push(payment);						// make this the 'next' Payment
 			}
 
 			const next = data.account.payment[1];

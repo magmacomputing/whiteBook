@@ -105,13 +105,19 @@ export class Instant {
 	/** short month name*/get mmm() { return this.date.mmm }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** apply formatting*/format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
-	/** calc diff Dates */diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
-	/** add date offset */add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
+	/** apply formatting*/
+	format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
+	/** calc diff Dates, default as <years> */
+	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
+	/** add date offset, default as <minutes> */
+	add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
 
-	/** start offset */		startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
-	/** middle offset */	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
-	/** ending offset */	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
+	/** start offset, default as <week> */
+	startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
+	/** middle offset, default as <week> */
+	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
+	/** ending offset, default as <week> */
+	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 	/** get raw object */	toObject = () => ({ ...this.date });
