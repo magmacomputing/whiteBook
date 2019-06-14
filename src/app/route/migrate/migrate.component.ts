@@ -97,6 +97,12 @@ export class MigrateComponent implements OnInit {
 			.pipe(take(1))
 			.toPromise()
 			.then(auth => this.user = auth.auth.user)
+		
+		// const where: TWhere = [
+		// 	addWhere(FIELD.uid, 'MichaelM'),
+		// 	addWhere('track.date', 20171112, '>='),
+		// ]
+		// this.attend.delAttend(where)
 	}
 
 	ngOnInit() { }

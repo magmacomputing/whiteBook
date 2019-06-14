@@ -275,14 +275,15 @@ export class AttendService {
 			this.dbg('expiry: %j, %j, %j', tests[PAY.not_expired], now.ts, expiry);
 
 			// If over-limit (100+ Attends per Payment) but still have sufficient funds,
-			// 	insert an auto-approved $0 Payment
+			// 	insert an auto-approved $0 Payment (only if the next Attend is earlier than any future Payments)
 			if (!tests[PAY.under_limit] && tests[PAY.enough_funds] && tests[PAY.not_expired]) {
-				const payment = await this.member.setPayment(0, stamp);
-				payment.approve = { uid: MEMBER.autoApprove, stamp };
+				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
+					const payment = await this.member.setPayment(0, stamp);
+					payment.approve = { uid: MEMBER.autoApprove, stamp };
 
-				creates.push(payment);												// stack the topUpPayment into the batch
-				data.account.payment.splice(1, 0, payment);		// make this the 'next' Payment
-			// <BUG>  sort insert the above Payment
+					creates.push(payment);											// stack the topUpPayment into the batch
+					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment
+				}
 			}
 
 			// If there are no future Payments, create a new Payment with the higher of
@@ -305,14 +306,14 @@ export class AttendService {
 				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
-		}
+		}																									// now, repeat the loop to test if this now-Active Payment is useable
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
 		if (data.account.summary.funds === schedule.price && schedule.price)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve)							// calc an Expiry for this Payment
+		if (!active.expiry && active.approve && isEmpty(bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
 		if (Object.keys(upd).length)											// changes to the active Payment
@@ -320,6 +321,7 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document
+
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
@@ -327,7 +329,7 @@ export class AttendService {
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
 				[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
-				[FIELD.store]: schedule[FIELD.type] === 'class' ? 'schedule' : 'calendar',
+				[FIELD.store]: schedule[FIELD.type] === 'class' ? STORE.schedule : STORE.calendar,
 				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},
 			payment: {
@@ -340,7 +342,7 @@ export class AttendService {
 				week: now.format(DATE_FMT.yearWeek),					// week-number of year
 				month: now.format(DATE_FMT.yearMonth),				// month-number of year
 			},
-			bonus: !isEmpty(bonus) ? bonus : undefined,			// <id>/<type> of Bonus
+			bonus: !isEmpty(bonus) ? bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 
