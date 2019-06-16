@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/firestore';
-import { AngularFireDatabaseModule } from '@angular/fire/database';
+// import { AngularFireDatabaseModule } from '@angular/fire/database';
 import { AngularFireFunctionsModule, FunctionsRegionToken } from '@angular/fire/functions';
 import { environment } from '@env/environment';
 
@@ -24,11 +24,11 @@ const fb = environment.firebase || {};
 		NgxsModule.forFeature([ClientState, MemberState, AttendState, AdminState]),
 		AngularFireModule.initializeApp(fb.app, fb.config),
 		AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
-		AngularFireDatabaseModule,
+		// AngularFireDatabaseModule,
 		AngularFireFunctionsModule,
 	],
 	providers: [
-		{ provide: FunctionsRegionToken, useValue: 'us-central1' },
+		{ provide: FunctionsRegionToken, useValue: fb.config.region },
 		{ provide: FirestoreSettingsToken, useValue: {} },				// TODO: is this still necessary after @angular/fire is upgraded from 5.1.1
 	],
 	declarations: [InfoSnackBar, WarnSnackBar, ErrorSnackBar, InfoDialogComponent],

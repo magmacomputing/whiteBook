@@ -65,7 +65,7 @@ export class AuthState {
 	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
 		if (user) {
 			if (credential) {														// have we been redirected here, via credential?
-				const response = await user.linkAndRetrieveDataWithCredential(credential);
+				const response = await user.linkWithCredential(credential);
 				ctx.patchState({ info: response.additionalUserInfo });
 			}
 		}
@@ -220,7 +220,7 @@ export class AuthState {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
-				.then(_ => this._memberSubject.complete())	// TODO: close the BehaviourSubject
+				.then(_ => this._memberSubject.complete())	// TODO: close the BehaviourSubject after first emit
 				.then(_ => {															// if on "/" or "/login", redirect to "/attend"
 					if (['/', '/login'].includes(this.navigate.url))
 						this.navigate.route(ROUTE.attend)
@@ -255,7 +255,6 @@ export class AuthState {
 	private setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
 		const clone = cloneObj(user);									// safe copy of User
 		if (this.afAuth.auth.currentUser) {
-			// if (user) {
 			this.afAuth.auth.currentUser!.getIdTokenResult()
 				.then(token => {
 					ctx.patchState({ user: clone, token, current: clone });

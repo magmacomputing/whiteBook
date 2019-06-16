@@ -36,6 +36,7 @@ export class MemberService {
 		this.auth.memberSubject													// this.auth will call complete() on first emit
 			.pipe(first(info => !isNull(info)))						// subscribe until the first non-null response
 			.subscribe(info => this.getAuthProfile(info))
+			.unsubscribe()																// not really needed
 	}
 
 	async setPlan(plan: TPlan, dt?: TDate) {

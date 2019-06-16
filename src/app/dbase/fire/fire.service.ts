@@ -5,7 +5,7 @@ import { firestore, database } from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireAuth } from '@angular/fire/auth';
-import { AngularFireDatabase } from '@angular/fire/database';
+// import { AngularFireDatabase } from '@angular/fire/database';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -31,21 +31,21 @@ type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChange
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	private dbg = dbg(this);
-	private ref: database.Reference;
+	// private ref: database.Reference;
 	private uid: string | null = null;
 	private online: boolean = false;
 
-	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, private readonly afd: AngularFireDatabase, private readonly aff: AngularFireFunctions,
+	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, /** private readonly afd: AngularFireDatabase, */ private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
-		this.ref = this.afd.database.ref(`status/${getDeviceId()}`);
+		// this.ref = this.afd.database.ref(`status/${getDeviceId()}`);
 
-		this.afd.database.ref('.info/connected')
-			.on('value', snap => {
-				this.online = snap.val();								// keep local track of online/offline status
-				if (this.online)
-					this.setState(CONNECT.active);				// set initial state
-			})
+		// this.afd.database.ref('.info/connected')
+		// 	.on('value', snap => {
+		// 		this.online = snap.val();								// keep local track of online/offline status
+		// 		if (this.online)
+		// 			this.setState(CONNECT.active);				// set initial state
+		// 	})
 	}
 
 	setState(state: CONNECT) {
@@ -57,10 +57,10 @@ export class FireService {
 			state = CONNECT.connect										// Connected, not authenticated
 
 		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
-		this.ref
-			.onDisconnect()
-			.set({ ...status, state: CONNECT.offline, stamp: database.ServerValue.TIMESTAMP })
-			.then(_ => this.ref.set({ ...status, state: state, stamp: database.ServerValue.TIMESTAMP }))
+		// this.ref
+		// 	.onDisconnect()
+		// 	.set({ ...status, state: CONNECT.offline, stamp: database.ServerValue.TIMESTAMP })
+		// 	.then(_ => this.ref.set({ ...status, state: state, stamp: database.ServerValue.TIMESTAMP }))
 	}
 
 	/**
@@ -100,10 +100,10 @@ export class FireService {
 	/** this will auto-manage '.info/connected' Realtime reference */
 	connect(onOff: boolean) {
 		if (onOff) {
-			this.afd.database.goOnline();							// disconnect Realtime database
+			// this.afd.database.goOnline();							// disconnect Realtime database
 			return this.afs.firestore.enableNetwork();// disconnect Cloud Firestore
 		} else {
-			this.afd.database.goOffline();						// reconnect Realtime database
+			// this.afd.database.goOffline();						// reconnect Realtime database
 			return this.afs.firestore.disableNetwork();// reconnect Cloud Firestore
 		}
 	}
