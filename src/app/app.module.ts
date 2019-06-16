@@ -20,7 +20,7 @@ import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/sna
 		AppComponent,
 	],
 	imports: [
-		NgxsModule.forRoot([], { developmentMode: environment.production }),
+		NgxsModule.forRoot([], { developmentMode: !environment.production }),
 		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 		BrowserModule,
 		DBaseModule,

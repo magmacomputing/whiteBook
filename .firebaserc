@@ -1,9 +1,9 @@
 {
   "targets": {
-    "whitefire-dev": {
+    "whitefire-51840": {
       "hosting": {
         "whiteBook": [
-          "whitefire-dev"
+          "whitefire-51840"
         ]
       }
     }

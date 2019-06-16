@@ -5,6 +5,7 @@ import { SetMember, DelMember, TruncMember, filterState } from '@dbase/state/sta
 
 import { FIELD } from '@dbase/data/data.define';
 import { asArray } from '@lib/array.library';
+import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -24,7 +25,7 @@ export class MemberState implements NgxsOnInit {
 
 	@Action(SetMember)
 	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetMember) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
@@ -40,7 +41,7 @@ export class MemberState implements NgxsOnInit {
 
 	@Action(DelMember)
 	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelMember) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
 		asArray(payload).forEach(doc => {

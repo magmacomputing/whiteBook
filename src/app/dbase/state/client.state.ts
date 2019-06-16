@@ -8,7 +8,7 @@ import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, ISchema } from '@dbase/data/data.schema';
 
 import { asArray } from '@lib/array.library';
-import { isEmpty } from '@lib/object.library';
+import { isEmpty, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
@@ -32,7 +32,7 @@ export class ClientState implements NgxsOnInit {
 
 	@Action(SetClient)
 	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 		const schema: IStoreMeta[] = [];
 
 		asArray(payload).forEach(doc => {
@@ -53,7 +53,7 @@ export class ClientState implements NgxsOnInit {
 
 	@Action(DelClient)
 	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 		const schema: IStoreMeta[] = [];
 
 		asArray(payload).forEach(doc => {

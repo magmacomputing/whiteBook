@@ -23,7 +23,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
-import { getPath } from '@lib/object.library';
+import { getPath, cloneObj } from '@lib/object.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -220,7 +220,7 @@ export class AuthState {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
-				.then(_ => this._memberSubject.complete())
+				.then(_ => this._memberSubject.complete())	// TODO: close the BehaviourSubject
 				.then(_ => {															// if on "/" or "/login", redirect to "/attend"
 					if (['/', '/login'].includes(this.navigate.url))
 						this.navigate.route(ROUTE.attend)
@@ -253,10 +253,12 @@ export class AuthState {
 
 	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
 	private setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
+		const clone = cloneObj(user);									// safe copy of User
 		if (this.afAuth.auth.currentUser) {
-			this.afAuth.auth.currentUser.getIdTokenResult()
+			// if (user) {
+			this.afAuth.auth.currentUser!.getIdTokenResult()
 				.then(token => {
-					ctx.patchState({ user, token, current: user });
+					ctx.patchState({ user: clone, token, current: clone });
 					if (this.hasRole(token, 'admin'))
 						this.sync.on(COLLECTION.admin, undefined,
 							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);

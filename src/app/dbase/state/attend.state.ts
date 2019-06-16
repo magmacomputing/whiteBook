@@ -4,8 +4,9 @@ import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/stat
 
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
-import { dbg } from '@lib/logger.library';
 import { asArray } from '@lib/array.library';
+import { cloneObj } from '@lib/object.library';
+import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.attend,
@@ -24,7 +25,7 @@ export class AttendState implements NgxsOnInit {
 
 	@Action(SetAttend)
 	setStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 		let empty: { [segment: string]: boolean; } = {};
 
 		asArray(payload).forEach(doc => {
@@ -45,7 +46,7 @@ export class AttendState implements NgxsOnInit {
 
 	@Action(DelAttend)																	// very rare Event
 	delStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
 			const payment = doc.payment[FIELD.id];
