@@ -274,9 +274,9 @@ export class AttendService {
 			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.price, data.account.summary);
 			this.dbg('expiry: %j, %j, %j', tests[PAY.not_expired], now.ts, expiry);
 
-			// If over-limit (100+ Attends per Payment) but still have sufficient funds,
+			// If over-limit (100+ Attends per Payment) but still have sufficient funds to cover this Class price,
 			// 	insert an auto-approved $0 Payment (only if the next Attend is earlier than any future Payments)
-			if (!tests[PAY.under_limit] && tests[PAY.enough_funds] && tests[PAY.not_expired]) {
+			if (!tests[PAY.under_limit] && tests[PAY.enough_funds] /** && tests[PAY.not_expired] */) {
 				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
 					const payment = await this.member.setPayment(0, stamp);
 					payment.approve = { uid: ATTEND.autoApprove, stamp };
@@ -306,7 +306,7 @@ export class AttendService {
 				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
-		}																									// now, repeat the loop to test if this now-Active Payment is useable
+		}																									// repeat the loop to test if this now-Active Payment is useable
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])

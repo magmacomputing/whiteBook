@@ -362,7 +362,7 @@ export const buildTimetable = (source: ITimetableState) => {
 		})
 
 		/**
-		 * Special Events take priority over Classes.  
+		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
 		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
