@@ -4,9 +4,9 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, MEMBER } from '@dbase/data/data.define';
 
-import { PAY, MEMBER } from '@service/member/attend.define';
+import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
@@ -254,17 +254,17 @@ export class AttendService {
 		schedule.price = calcPrice;
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// loop through Payments to determine which is <active>
+		// loop through Payments to determine which should be <active>
 		let active: IPayment;															// Payment[0] is assumed active, by default
 
-		while (true) {
+		while (true) {																		// TODO:  check for endless-loop
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
 			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
 			const tests: boolean[] = [];										// Set of test results
-			tests[PAY.under_limit] = data.account.attend.length < MEMBER.maxColumn;
+			tests[PAY.under_limit] = data.account.attend.length < ATTEND.maxColumn;
 			tests[PAY.enough_funds] = schedule.price <= data.account.summary.funds;
 			tests[PAY.not_expired] = now.ts <= expiry;
 			if (!tests.includes(false))											// if tests do not include at-least one <false>
@@ -279,7 +279,7 @@ export class AttendService {
 			if (!tests[PAY.under_limit] && tests[PAY.enough_funds] && tests[PAY.not_expired]) {
 				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
 					const payment = await this.member.setPayment(0, stamp);
-					payment.approve = { uid: MEMBER.autoApprove, stamp };
+					payment.approve = { uid: ATTEND.autoApprove, stamp };
 
 					creates.push(payment);											// stack the topUpPayment into the batch
 					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment

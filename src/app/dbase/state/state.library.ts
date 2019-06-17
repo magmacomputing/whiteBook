@@ -7,7 +7,7 @@ import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@library/config.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState } from '@dbase/state/state.define';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
 import { STORE, FIELD } from '@dbase/data/data.define';
 
@@ -187,7 +187,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 
 /**
  * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
- * The IPayment array is reverse-sorted by 'stamp', meaning payment[0] is the 'active' value.  
+ * The IPayment array is reverse-sorted by 'stamp', meaning payment[0] is the earliest 'active' value.  
  * paid		: is amount from active payment, if topUp
  * adjust : is amount from active payment, if debit  
  * bank		: is any unspent funds (brought forward from previous payment)  
@@ -197,10 +197,12 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account) {
+		const sum: ISummary = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 }
+
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
 			.reduce((sum, payment, indx) => {
-				if (indx === 0/** && payment[FIELD.effect] */) {		// only 1st Payment
+				if (indx === 0) {																		// only 1st Payment
 					sum.bank += payment.bank || 0;
 					sum.adjust += payment.adjust || 0;
 					sum.paid += payment.amount || 0;
@@ -211,8 +213,7 @@ export const sumPayment = (source: IAccountState) => {
 				sum.funds = sum.bank + sum.paid + sum.adjust;
 
 				return sum;
-			}, { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 })
-
+			}, sum)
 	}
 
 	return { ...source };
@@ -227,10 +228,10 @@ export const sumAttend = (source: IAccountState) => {
 				sum.credit -= attend.payment.amount;
 				sum.funds -= attend.payment.amount;
 				return sum;
-			}, source.account.summary);
+			}, source.account.summary)
 	}
 
-	return { ...source };
+	return { ...source }
 }
 
 /** calc a 'day' field for a Calendar row */
@@ -239,7 +240,7 @@ export const calendarDay = (source: ITimetableState) => {
 		source.client.calendar = source.client.calendar
 			.map(row => ({ ...row, day: getDate(row[FIELD.key]).dow }))
 	}
-	return { ...source };
+	return { ...source }
 }
 
 /** Assemble a Plan-view */
@@ -274,7 +275,7 @@ export const buildPlan = (source: IPlanState) => {
 		return plan
 	});
 
-	return { ...source };
+	return { ...source }
 }
 
 /**

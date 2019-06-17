@@ -32,15 +32,17 @@ export enum STORE {
 	migrate = 'migrate',
 	status = 'status',
 	local = '@config@',
+	setting = 'setting',
 	log = 'log',
 }
 
 export enum MEMBER {
-	profile = 'profile',
-	payment = 'payment',
-	diary = 'diary',
-	gift = 'gift',
-	status = 'status',
+	profile = 'profile',						// 'claims', 'info', 'plan'
+	payment = 'payment',						// Payments
+	diary = 'diary',								// notes from Member
+	gift = 'gift',									// Gifts to Member
+	status = 'status',							// online / offline status
+	setting = 'setting',						// Member / device preferences
 }
 
 export enum FIELD {								// common Field names
