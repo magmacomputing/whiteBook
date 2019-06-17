@@ -6,7 +6,7 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, ICustomClaims, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -66,9 +66,9 @@ export class DataService {
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
 
-	writeClaim(claim: ICustomClaims) {
-		return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
-	}
+	// writeClaim(claim: ICustomClaims) {												// TODO: remove
+	// 	return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
+	// }
 
 	createToken(uid: string) {
 		return this.fire.createToken(uid);

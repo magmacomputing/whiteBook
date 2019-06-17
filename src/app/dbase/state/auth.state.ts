@@ -239,13 +239,13 @@ export class AuthState {
 
 		if (state.current && state.current.uid === member)
 			return;																			// nothing to do
-		if (state.current && getPath(state.current, 'customClaims.memberName') === member)
+		if (state.current && getPath(state.current, 'customClaims.alias') === member)
 			return;																			// nothing to do
 
 		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
 			.pipe(
 				map(admin => admin[STORE.register]),			// get the Register segment
-				map(table => table.find(row => row[FIELD.uid] === member || getPath(row, 'user.customClaims.memberName') === member)),
+				map(table => table.find(row => row[FIELD.uid] === member || getPath(row, 'user.customClaims.alias') === member)),
 			)
 			.subscribe(reg => ctx.patchState({ current: reg && reg.user }))
 			.unsubscribe()

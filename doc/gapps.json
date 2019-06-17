@@ -57,7 +57,7 @@
 				"name": "Michael McRae",
 				"picture": "https://lh3.googleusercontent.com/-YxC6HKwc7ZI/AAAAAAAAAAI/AAAAAAAABek/YyJpvtMHwwg/photo.jpg",
 				"claims": {
-					"memberName": "MichaelM",
+					"alias": "MichaelM",
 					"roles": [
 						"admin"
 					]
@@ -125,7 +125,7 @@
 		},
 		"current": {
 			"customClaims": {
-				"memberName": "ZoeW"
+				"alias": "ZoeW"
 			},
 			"disabled": false,
 			"displayName": "Dr Zoe Wong",

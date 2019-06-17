@@ -366,10 +366,10 @@ export interface IAttend extends IUserBase {
 type TRole = 'admin' | 'member' | 'guest';
 export interface ICustomClaims {		// a special sub-set of fields from the User Token
 	roles?: TRole[];
-	plan?: TPlan;											// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
-	memberName?: string;
-	memberAllow?: string[];
-	memberDeny?: string[];
+	// plan?: TPlan;											// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
+	alias?: string;
+	allow?: string[];
+	deny?: string[];
 }
 export type TUser = UserInfo & {
 	customClaims?: ICustomClaims;

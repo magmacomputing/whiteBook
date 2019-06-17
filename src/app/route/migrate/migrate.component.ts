@@ -148,8 +148,8 @@ export class MigrateComponent implements OnInit {
 	}
 
 	async signIn(register: IRegister) {
-		if (this.current && this.current!.user.customClaims!.memberName === register.user.customClaims!.memberName)
-			return this.signOut();
+		if (this.current && this.current!.user.customClaims!.alias === register.user.customClaims!.alias)
+			return this.signOut();																// <click> on picture will signIn / signOut
 		this.current = register;																// stash current Member
 
 		this.store.dispatch(new AuthOther(register.uid))

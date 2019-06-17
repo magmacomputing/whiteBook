@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
+import { firestore, database } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
-import { firestore, database } from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireAuth } from '@angular/fire/auth';
@@ -12,7 +12,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 
 import { FIELD, COLLECTION, STORE, CONNECT } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { IStoreMeta, ICustomClaims, IStatusConnect } from '@dbase/data/data.schema';
+import { IStoreMeta, IStatusConnect } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -212,9 +212,9 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
-	writeClaim(claim: ICustomClaims) {
-		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
-	}
+	// writeClaim(claim: ICustomClaims) {											// TODO: remove
+	// 	return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
+	// }
 
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
