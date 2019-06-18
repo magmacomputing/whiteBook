@@ -1,19 +1,9 @@
 
-*> add createDate / updateDate to State?
-but remove on fire.write?
-(skip:  takes too long on UI thread)
-
 *> spinner when initial-loading ?  or add 'plan' to customClaims so quicker?
 so no false 'select plan'
 
 *> account component
 allow payment, hold
-
-*> migrate User
-test if multiple instances of same source
-
-*> logon as other User
-set authState.user ?  or authState.delegate
 
 *> add 'note' to /attend
 

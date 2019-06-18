@@ -29,20 +29,18 @@ type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChange
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	private dbg = dbg(this);
-	private uid: string | null = null;
-	private online: boolean = false;
 
-	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, /** private readonly afd: AngularFireDatabase, */ private readonly aff: AngularFireFunctions,
+	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
 	}
 
 	/**
-	 * return Collection References (against an optional query).  
-	 * If a 'logical-or' is detected in the 'value' of any Where-clause, multiple Collection References are returned.
+	 * return Collection References (limited by an optional query).  
+	 * If a 'logical-or' is detected in the 'value' of any query's Where-clause, multiple Collection References are returned.
 	 */
 	colRef<T>(collection: COLLECTION, query?: IQuery) {
-		return !query
+		return isUndefined(query)
 			? [this.afs.collection<T>(collection)]		// reference against the entire collection
 			: fnQuery(query)													// else register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
