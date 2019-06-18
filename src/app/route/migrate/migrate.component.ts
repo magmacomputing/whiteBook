@@ -97,26 +97,6 @@ export class MigrateComponent implements OnInit {
 			.pipe(take(1))
 			.toPromise()
 			.then(auth => this.user = auth.auth.user)
-
-		// const updates: IStoreMeta[] = [];
-		// const deletes: IStoreMeta[] = [];
-		// // this.data.getStore<IProfileClaim>(STORE.profile, addWhere(FIELD.type, 'claim'))
-		// this.data.getFire<IProfileClaim>(COLLECTION.member, {
-		// 	where: [
-		// 		addWhere(FIELD.store, STORE.profile),
-		// 		addWhere(FIELD.type, 'claim'),
-		// 	]
-		// })
-		// 	.then(profiles => {
-		// 		this.dbg('profiles: %j, %j', profiles.length, profiles.map(profile => profile[FIELD.id]));
-		// 		profiles.forEach(profile => {
-		// 			if (profile[FIELD.expire]) {
-		// 				profile[FIELD.expire] = firestore.FieldValue.delete();
-		// 				updates.push({ ...profile });
-		// 			}
-		// 		})
-		// 	})
-		// 	.then(_ => this.data.batch(undefined, updates, deletes))
 	}
 
 	ngOnInit() { }
