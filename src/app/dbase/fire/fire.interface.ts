@@ -6,7 +6,7 @@ import { FIELD } from '@dbase/data/data.define';
 /** Query.where */
 export interface IWhere {
 	fieldPath: string | FieldPath;
-	opStr?: firebase.firestore.WhereFilterOp | '!=';				// this is a *special* to allow additional operator (do not use on Firestore database!)
+	opStr?: firebase.firestore.WhereFilterOp | '!=';				// this is a *special* to allow additional operator (do not use on Cloud Firestore!)
 	value: any | any[];
 }
 export type TWhere = IWhere | IWhere[];
