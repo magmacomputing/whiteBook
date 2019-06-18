@@ -281,7 +281,7 @@ export interface IProfilePlan extends IProfile {
 }
 export interface IProfileClaim extends IProfile {
 	[FIELD.type]: 'claim';
-	claim: ICustomClaims;
+	claims: ICustomClaims;
 }
 export interface IProfileInfo extends IProfile {
 	[FIELD.type]: 'info';
@@ -365,9 +365,8 @@ export interface IAttend extends IUserBase {
 //	/admin/register
 type TRole = 'admin' | 'member' | 'guest';
 export interface ICustomClaims {		// a special sub-set of fields from the User Token
-	roles?: TRole[];
-	// plan?: TPlan;											// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
 	alias?: string;
+	roles?: TRole[];
 	allow?: string[];
 	deny?: string[];
 }

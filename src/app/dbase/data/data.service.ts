@@ -66,10 +66,6 @@ export class DataService {
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
 
-	// writeClaim(claim: ICustomClaims) {												// TODO: remove
-	// 	return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
-	// }
-
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
 	}

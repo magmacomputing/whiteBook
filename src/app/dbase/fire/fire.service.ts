@@ -1,23 +1,21 @@
 import { Injectable, NgZone } from '@angular/core';
-import { firestore, database } from 'firebase/app';
+import { firestore } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireAuth } from '@angular/fire/auth';
-// import { AngularFireDatabase } from '@angular/fire/database';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD, COLLECTION, STORE, CONNECT } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { IStoreMeta, IStatusConnect } from '@dbase/data/data.schema';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, isObject } from '@lib/type.library';
-import { getDeviceId } from '@lib/window.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
@@ -31,36 +29,12 @@ type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChange
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	private dbg = dbg(this);
-	// private ref: database.Reference;
 	private uid: string | null = null;
 	private online: boolean = false;
 
 	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, /** private readonly afd: AngularFireDatabase, */ private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
-		// this.ref = this.afd.database.ref(`status/${getDeviceId()}`);
-
-		// this.afd.database.ref('.info/connected')
-		// 	.on('value', snap => {
-		// 		this.online = snap.val();								// keep local track of online/offline status
-		// 		if (this.online)
-		// 			this.setState(CONNECT.active);				// set initial state
-		// 	})
-	}
-
-	setState(state: CONNECT) {
-		if (this.uid && !this.afa.auth.currentUser)
-			this.uid = null;													// User has logged-out
-		if (!this.uid && this.afa.auth.currentUser)
-			this.uid = this.afa.auth.currentUser.uid;
-		if (!this.uid && state == CONNECT.active)		// Connected, authenticated
-			state = CONNECT.connect										// Connected, not authenticated
-
-		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
-		// this.ref
-		// 	.onDisconnect()
-		// 	.set({ ...status, state: CONNECT.offline, stamp: database.ServerValue.TIMESTAMP })
-		// 	.then(_ => this.ref.set({ ...status, state: state, stamp: database.ServerValue.TIMESTAMP }))
 	}
 
 	/**
@@ -97,15 +71,11 @@ export class FireService {
 		return this.afs.firestore.collection(col).doc(docId);
 	}
 
-	/** this will auto-manage '.info/connected' Realtime reference */
+	/** manage connectivity */
 	connect(onOff: boolean) {
-		if (onOff) {
-			// this.afd.database.goOnline();							// disconnect Realtime database
-			return this.afs.firestore.enableNetwork();// disconnect Cloud Firestore
-		} else {
-			// this.afd.database.goOffline();						// reconnect Realtime database
-			return this.afs.firestore.disableNetwork();// reconnect Cloud Firestore
-		}
+		return onOff
+			? this.afs.firestore.enableNetwork()			// disconnect Cloud Firestore
+			: this.afs.firestore.disableNetwork()			// reconnect Cloud Firestore
 	}
 
 	/** allocate a new meta-field _id */
@@ -211,10 +181,6 @@ export class FireService {
 	callMeta(store: STORE, docId: string) {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
-
-	// writeClaim(claim: ICustomClaims) {											// TODO: remove
-	// 	return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
-	// }
 
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
