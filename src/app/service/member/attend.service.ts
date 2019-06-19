@@ -45,7 +45,7 @@ export class AttendService {
 
 			if (classes.length)																		// is this class offered on this 'day'   
 				break;
-			now = now.add(-1, 'day');															// move pointer to previous day
+			now = now.add(-1, 'day');															// else move pointer to previous day
 		}
 
 		if (ctr >= 7)																						// cannot find className on timetable
@@ -257,7 +257,7 @@ export class AttendService {
 		// loop through Payments to determine which should be <active>
 		let active: IPayment;															// Payment[0] is assumed active, by default
 
-		while (true) {																		// TODO:  check for endless-loop
+		while (true) {
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
@@ -305,6 +305,11 @@ export class AttendService {
 
 				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
+			}
+
+			if (isUndefined(next)) {
+				this.snack.error('Could not allocate a new Payment');
+				throw new Error('Could not allocate a new Payment');
 			}
 		}																									// repeat the loop to test if this now-Active Payment is useable
 

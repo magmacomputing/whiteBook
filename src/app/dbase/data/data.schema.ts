@@ -109,7 +109,7 @@ export interface IPrice extends IClientBase {
 //	/client/bonus
 export interface IBonus extends IClientBase {
 	[FIELD.store]: STORE.bonus;
-	[FIELD.key]: 'week' | 'month' | 'sunday' | 'sun3';
+	[FIELD.key]: 'week' | 'month' | 'sunday';
 	free: number | TString;							// number of free classes available, or string[] of classes available
 	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
@@ -169,7 +169,8 @@ export interface ISchedule extends IClientBase {
 	start: string;
 	span?: string;
 	price?: number;											// infer the member's price for this class
-	elect?: string;											// name the Bonus the Member chooses
+	elect?: string;											// name the Bonus the Member chooses (override calc)
+	bonus?: TBonus;
 }
 
 //	/client/location
@@ -337,7 +338,6 @@ export interface TBonus {
 	[FIELD.type]?: BONUS;
 	gift?: IGift[];										// the /member/gift updates for this payment
 	count?: number;										// the number of this Gift
-	scheme?: IBonus;									// the /client/bonus _id for this payment
 }
 interface TTrack {
 	day: number;											// weekDay attended

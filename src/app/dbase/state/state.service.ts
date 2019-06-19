@@ -4,7 +4,7 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IBonusState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
 
@@ -18,6 +18,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { asArray } from '@lib/array.library';
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
+import { TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -211,7 +212,7 @@ export class StateService {
 	//TODO: apply bonus-pricing to client.schedule
 	/**
 	 * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
-	 * schedule   -> has an array of Schedule info for the weekday of the supplied date  
+	 * schedule   -> has an array of Schedule info for the weekday of the date  
 	 * calendar		-> has the Calendar event for that date (to override regular class)  
 	 * event			-> has the Events that are indicated on that calendar
 	 * class      -> has the Classes that are available on that schedule or event  
@@ -220,7 +221,7 @@ export class StateService {
 	 * span				-> has the Class Duration definitions ('full' or 'half')
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 * bonus			-> has an array of active Bonus schemes
-	 * gift				-> has an array of active Gifts available to a Member on the supplied date
+	 * gift				-> has an array of active Gifts available to a Member on the date
 	 */
 	getScheduleData(date?: TDate) {
 		const now = getDate(date);
@@ -232,8 +233,7 @@ export class StateService {
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
-		const filterBonus = addWhere(FIELD.key, 'XXXXXX');																		// placeholder
-		const filterGift = addWhere(FIELD.key, 'XXXXXX');																			// placeholder
+		const filterGift = addWhere(FIELD.uid, '{{auth.current.uid}}');
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
@@ -254,10 +254,10 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
-			joinDoc(this.states, 'client', STORE.bonus, filterBonus, date),											// get any Bonus
+			joinDoc(this.states, 'client', STORE.bonus, undefined, date),												// get any active Bonus
 			joinDoc(this.states, 'member', STORE.gift, filterGift, date),												// get any Gifts
 			map(table => buildTimetable(table)),																								// assemble the Timetable
-		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)
+		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s limit of nine)
 	}
 
 	/**
@@ -284,16 +284,4 @@ export class StateService {
 			take(1),
 		)
 	}
-
-	/**
-	 * Assemble a Object describing the eligibility of a Member for special pricing
-	 */
-	// getBonusData(date?: TDate, event?: TString): Observable<IBonusState> {
-	/**
-	 * uid is the Member to check-in 
-	 * gift is array of active Gifts effective (not expired) on this date  
-	 * scheme is definition of active Bonus schemes effective on this date
-	 */
-
-	// }
 }
