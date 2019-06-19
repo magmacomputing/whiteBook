@@ -220,7 +220,7 @@ export class AuthState {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
-				.then(_ => this._memberSubject.complete())	// TODO: close the BehaviourSubject after first emit
+				.then(_ => this._memberSubject.complete())
 				.then(_ => {															// if on "/" or "/login", redirect to "/attend"
 					if (['/', '/login'].includes(this.navigate.url))
 						this.navigate.route(ROUTE.attend)
@@ -251,22 +251,18 @@ export class AuthState {
 			.unsubscribe()
 	}
 
-	@Action([LoginSetup, LoginSuccess])							// on each LoginSuccess, fetch latest UserInfo, IdToken
+	@Action([LoginSetup, LoginSuccess])
 	private setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginSetup) {
-		const clone = cloneObj(user);									// safe copy of User
 		if (this.afAuth.auth.currentUser) {
-			this.afAuth.auth.currentUser!.getIdTokenResult()
-				.then(token => {
-					ctx.patchState({ user: clone, token, current: clone });
-					if (this.hasRole(token, 'admin'))
-						this.sync.on(COLLECTION.admin, undefined,
-							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
-				})
-		}
-	}
+			const clone = cloneObj(user);								// safe copy of User
 
-	private hasRole = (token: firebase.auth.IdTokenResult, role: string) => {
-		return getPath<string[]>({ ...token }, 'claims.claims.roles', [])!.includes(role);
+			if (!clone.email) {
+				this.snack.error('Must have a valid email address');
+				return ctx.dispatch(new Logout());
+			}
+			ctx.patchState({ user: clone, current: clone });
+			ctx.dispatch(new AuthToken());
+		}
 	}
 
 	@Action(AuthToken)															// fetch latest IdToken
@@ -278,11 +274,14 @@ export class AuthState {
 				.then(_ => ctx.patchState({ token }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
 				.then(_ => {
-					if (this.hasRole(token, 'admin'))
+					const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
+					if (roles.includes('admin'))
 						this.sync.on(COLLECTION.admin, undefined,
 							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
-					else
+					else {
 						this.sync.off(COLLECTION.admin);
+						this.navigate.route(ROUTE.attend);
+					}
 				})
 		}
 	}

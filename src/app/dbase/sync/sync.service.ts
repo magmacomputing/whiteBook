@@ -119,6 +119,7 @@ export class SyncService {
 	private async sync(collection: COLLECTION, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
+		const isAdmin = listen.collection === COLLECTION.admin;
 
 		const source = getSource(snaps);
 		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
@@ -133,7 +134,7 @@ export class SyncService {
 		this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
 			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-		if (listen.cnt === 0) {                           // initial snapshot
+		if (listen.cnt === 0 && !isAdmin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps))
 				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
