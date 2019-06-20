@@ -46,16 +46,20 @@ export class FireService {
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
+	private subRef<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
+		return colRefs.map(colRef => colRef[type]()) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>[];
+	}
+
 	merge<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return merge(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
+		return merge(...this.subRef(colRefs, type));
 	}
 
 	combine<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return combineLatest(colRefs.map(colRef => colRef[type]())) as (Observable<U extends 'valueChanges' ? T[][] : DocumentChangeAction<T>[][]>);
+		return combineLatest(...this.subRef(colRefs, type));// TODO: .pipe(obs => obs.flat());
 	}
 
 	concat<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return concat(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
+		return concat(...this.subRef(colRefs, type));
 	}
 
 	/** Document Reference, for existing or new */

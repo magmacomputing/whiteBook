@@ -19,9 +19,9 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { IObject } from '@lib/object.library';
-import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
+import { isFunction } from '@lib/type.library';
+import { IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -32,7 +32,7 @@ export class SyncService {
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
 	/**
-	 * establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
+	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
 	 * Additional collections can be defined, and merged into the same slice
 	 */
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {

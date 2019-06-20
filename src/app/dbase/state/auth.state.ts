@@ -267,8 +267,9 @@ export class AuthState {
 
 	@Action(AuthToken)															// fetch latest IdToken
 	private setToken(ctx: StateContext<IAuthState>) {
-		let token: firebase.auth.IdTokenResult;
 		if (this.afAuth.auth.currentUser) {
+			let token: firebase.auth.IdTokenResult;
+			
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
 				.then(result => token = result)
 				.then(_ => ctx.patchState({ token }))
