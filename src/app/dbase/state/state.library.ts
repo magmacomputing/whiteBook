@@ -290,10 +290,12 @@ export const buildTimetable = (source: ITimetableState) => {
 		event: events = [],													// the event-description for the calendar type
 		span: spans = [],														// the duration of classes / events
 		alert: alerts = [],													// any alert notes for this date
+		bonus: bonus = [],													// any bonus schemes for this date
+		price: prices = [],													// the prices as per member's plan
 	} = source.client;
 	const {
-		price: prices = [],
-	} = source.client;														// the prices as per member's plan
+		gift: gifts = [],
+	} = source.member;
 
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));

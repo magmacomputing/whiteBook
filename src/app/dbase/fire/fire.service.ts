@@ -1,10 +1,9 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
-import { tap, take } from 'rxjs/operators';
+import { tap, take, debounceTime } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
-import { AngularFireAuth } from '@angular/fire/auth';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
