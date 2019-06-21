@@ -255,7 +255,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
 			joinDoc(this.states, 'client', STORE.bonus, undefined, date),												// get any active Bonus
-			joinDoc(this.states, 'member', STORE.gift, filterGift, date),												// get any Gifts
+			joinDoc(this.states, 'member', STORE.gift, filterGift, date),												// get any active Gifts
 			map(table => buildTimetable(table)),																								// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s limit of nine)
 	}

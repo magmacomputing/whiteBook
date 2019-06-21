@@ -128,7 +128,8 @@ export class AttendService {
 
 			/**
 			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price or gift classes in a week (scheme.week.level).  
-			 * The Member must also have claimed less than the free limit (scheme.week.free)
+			 * (even Gifts count towards a Bonus)
+			 * The Member must also have claimed less than the free limit (scheme.week.free) to enable this bonus
 			 */
 			case scheme.week
 				&& attendWeek																				// sum the non-Bonus -or- Gift Attends
@@ -151,7 +152,7 @@ export class AttendService {
 			/**
 			 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a week (scheme.sunday.level),
 			 * and did not qualify for the Week scheme previously (e.g. already claimed yesterday?).    
-			 * The class must be in the free list (scheme.week.free) to claim this bonus
+			 * The class must be in the free list (scheme.week.free) to enable this bonus
 			 */
 			case scheme.sunday
 				&& attendWeek																				// count Attends this week either Gift or non-Bonus
@@ -172,7 +173,7 @@ export class AttendService {
 
 			/**
 			 * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
-			 * The Member must also have attended less than the free limit (scheme.month.free) to claim this bonus
+			 * The Member must also have attended less than the free limit (scheme.month.free) to enable this bonus
 			 */
 			case scheme.month
 				&& attendMonth

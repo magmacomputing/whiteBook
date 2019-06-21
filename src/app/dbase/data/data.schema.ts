@@ -109,7 +109,7 @@ export interface IPrice extends IClientBase {
 //	/client/bonus
 export interface IBonus extends IClientBase {
 	[FIELD.store]: STORE.bonus;
-	[FIELD.key]: 'week' | 'month' | 'sunday';
+	[FIELD.key]: Exclude<BONUS, BONUS.gift>;	// all Except 'gift'
 	free: number | TString;							// number of free classes available, or string[] of classes available
 	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
@@ -159,6 +159,12 @@ export interface ICalendar extends IClientBase {
 }
 
 //	/client/schedule
+export interface TBonus {						// a sub-type of IBonus
+	[FIELD.id]: string;
+	[FIELD.type]: BONUS;
+	gift?: IGift[];										// the /member/gift updates for this payment
+	count?: number;										// the number of this Gift
+}
 export interface ISchedule extends IClientBase {
 	[FIELD.store]: STORE.schedule;
 	[FIELD.type]: TSchedule;
@@ -169,8 +175,8 @@ export interface ISchedule extends IClientBase {
 	start: string;
 	span?: string;
 	price?: number;											// infer the member's price for this class
+	bonus?: TBonus;											// the Bonus which can be applied to this Schedule
 	elect?: string;											// name the Bonus the Member chooses (override calc)
-	bonus?: TBonus;
 }
 
 //	/client/location
@@ -333,12 +339,6 @@ export interface IGift extends IUserBase {
 }
 
 // /attend
-export interface TBonus {
-	[FIELD.id]?: string;
-	[FIELD.type]?: BONUS;
-	gift?: IGift[];										// the /member/gift updates for this payment
-	count?: number;										// the number of this Gift
-}
 interface TTrack {
 	day: number;											// weekDay attended
 	date: number;											// yearMonthDay attended
@@ -357,7 +357,11 @@ export interface IAttend extends IUserBase {
 		[FIELD.type]: TSchedule;
 		[FIELD.key]: TClass;
 	}
-	bonus?: TBonus;										// override standard price
+	bonus?: {
+		[FIELD.id]: string;
+		[FIELD.type]: BONUS;
+		count?: number;									// the count of this Bonus
+	},
 	track: TTrack;										// to use in bonus-checking, attend-analysis, etc.
 }
 

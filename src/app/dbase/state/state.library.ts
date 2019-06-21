@@ -372,7 +372,10 @@ export const buildTimetable = (source: ITimetableState) => {
 	return { ...source }
 }
 
-/** Calculate tracking against Bonus schemes */
+/**
+ * Calculate tracking against Bonus schemes.  
+ * TODO: I'm still not sure about this... calculating a possible Bonus for every Schedule?
+ */
 export const calcBonus = (event: string, date?: TDate) => {
 
 }
