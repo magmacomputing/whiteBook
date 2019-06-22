@@ -382,7 +382,6 @@ export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDat
 	const now = getDate(date);
 	let bonus: TBonus | undefined = undefined;
 
-	const events: string[] = source.client.class!.map(row => row[FIELD.key]);
 	const gifts = source.member.gift;												// the active Gifts for this Member
 	const plans = source.client.plan || [];
 	const { attendGift = [], attendWeek = [], attendMonth = [] } = source.attend;
