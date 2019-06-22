@@ -8,13 +8,13 @@ import { SLICES, SORTBY } from '@library/config.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, TBonus, IAttend, IBonus } from '@dbase/data/data.schema';
+import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
-import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
-import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { DATE_FMT, getDate, TDate } from '@lib/date.library';
+import { getPath, sortKeys, cloneObj, isEmpty, IObject } from '@lib/object.library';
+import { isString, isArray, isFunction, isUndefined, TString } from '@lib/type.library';
+import { DATE_FMT, getDate, TDate, Instant } from '@lib/date.library';
 import { addWhere } from '@dbase/fire/fire.library';
 
 /**
@@ -107,10 +107,14 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
-				const segment = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
+				// const segment = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
 
 				parent = data;                                        // stash the original parent data state
-				return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, segment));
+				// return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, segment));
+				return combineLatest(store === STORE.attend
+					? getStore<TStoreBase>(states, store, filters, date)
+					: getCurrent<TStoreBase>(states, store, filters, date)
+				);
 			}),
 
 			map(res => {
@@ -282,7 +286,7 @@ export const buildPlan = (source: IPlanState) => {
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  
  */
-export const buildTimetable = (source: ITimetableState) => {
+export const buildTimetable = (source: ITimetableState, date?: TDate) => {
 	const {
 		schedule: times = [],												// the schedule for the requested date
 		class: classes = [],    										// the classes offered on that date
@@ -290,12 +294,8 @@ export const buildTimetable = (source: ITimetableState) => {
 		event: events = [],													// the event-description for the calendar type
 		span: spans = [],														// the duration of classes / events
 		alert: alerts = [],													// any alert notes for this date
-		bonus: bonus = [],													// any bonus schemes for this date
 		price: prices = [],													// the prices as per member's plan
 	} = source.client;
-	const {
-		gift: gifts = [],
-	} = source.member;
 
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));
@@ -342,12 +342,15 @@ export const buildTimetable = (source: ITimetableState) => {
 		})
 	})
 
-	// for each item on the schedule, poke in 'price' and 'icon'
-	// TODO: determine bonus-pricing
+	// for each item on the schedule, poke in 'price' and 'icon',
+	// override plan-price if bonus
 	source.client.schedule = times
 		.map(time => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
-			const price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
+			const bonus = calcBonus(source, classDoc, date);
+			const price = isUndefined(bonus)
+				? firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]))
+				: { amount: 0 }
 
 			if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
 				time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
@@ -373,9 +376,104 @@ export const buildTimetable = (source: ITimetableState) => {
 }
 
 /**
- * Calculate tracking against Bonus schemes.  
- * TODO: I'm still not sure about this... calculating a possible Bonus for every Schedule?
+ * Calculate tracking against Gifts / Bonus schemes.  
  */
-export const calcBonus = (event: string, date?: TDate) => {
+export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDate) => {
+	const now = getDate(date);
+	let bonus: TBonus | undefined = undefined;
 
+	const events: string[] = source.client.class!.map(row => row[FIELD.key]);
+	const gifts = source.member.gift;												// the active Gifts for this Member
+	const plans = source.client.plan || [];
+	const { attendGift = [], attendWeek = [], attendMonth = [] } = source.attend;
+	const scheme = (source.client.bonus || []).reduce((acc, row) => {
+		acc[row[FIELD.key]] = row;
+		return acc;
+	}, {} as IObject<IBonus>);
+
+	if (!plans[0].bonus)
+		return;																								// Plan does not allow for Gift / Bonus
+
+	switch (true) {
+		/**
+		 * Admin adds 'Gift' records to a Member's account which will detail
+		 * the start-date, and count of free classes (and an optional expiry for the Gift).  
+		 * This gift will be used in preference to any other bonus-pricing scheme.
+		 */
+		case gifts.length > 0:																// if Member has some open Gifts
+			const counts = gifts.map(gift => attendGift.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id]).length);
+			const idx = gifts.findIndex((gift, idx) => counts[idx] < gift.count && (gift.expiry || 0) < now.ts)
+			if (idx > -1) {
+				const attendCnt = counts[idx];										// how many Attends already against this Gift
+				bonus = {
+					[FIELD.id]: gifts[idx][FIELD.id],								// Bonus id is the Gift Id
+					[FIELD.type]: BONUS.gift,												// Bonus type is 'gift'
+					count: attendCnt + 1,														// to help with tracking
+				}
+				break;																						// exit switch-case
+			}
+
+		/**
+		 * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.week.level).  
+		 * (note: even Gift Attends count towards a Bonus)
+		 * The Member must also have claimed less than the free limit (scheme.week.free) to enable this bonus
+		 */
+		case scheme.week
+			&& attendWeek																				// sum the non-Bonus -or- Gift Attends
+				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
+				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
+				.length >= scheme.week.level											// must attend the 'level' number
+			&& attendWeek																				// sum the 'week' bonus claimed
+				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week)
+				.length < scheme.week.free:												// must attend less than 'free' number
+
+			bonus = {
+				[FIELD.id]: scheme.week[FIELD.id],
+				[FIELD.type]: BONUS.week,
+				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week).length + 1,
+			}
+			break;
+
+		/**
+		 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.sunday.level),
+		 * and did not qualify for the Week scheme previously (e.g. already claimed yesterday?).    
+		 * The class must be in the free list (scheme.week.free) to qualify for this bonus
+		 */
+		case scheme.sunday
+			&& attendWeek																				// count Attends this week either Gift or non-Bonus
+				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
+				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
+				.length >= scheme.sunday.level										// required number of Attends this week
+			&& now.dow === Instant.DAY.Sun											// today is 'Sunday'
+			&& (asArray(scheme.sunday.free as TString)).includes(classDoc[FIELD.key]):
+
+			bonus = {
+				[FIELD.id]: scheme.sunday[FIELD.id],
+				[FIELD.type]: BONUS.sunday,
+				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.sunday).length + 1,
+			}
+			break;
+
+		/**
+	 * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
+	 * The Member must also have attended less than the free limit (scheme.month.free) to qualify for this bonus
+	 */
+		case scheme.month
+			&& attendMonth
+				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
+				.distinct(row => row.track[FIELD.date])
+				.length >= scheme.month.level
+			&& attendMonth
+				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month)
+				.length < scheme.month.free:
+
+			bonus = {
+				[FIELD.id]: scheme.month[FIELD.id],
+				[FIELD.type]: BONUS.month,
+				count: attendMonth.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month).length + 1,
+			}
+			break;
+	}
+
+	return bonus;
 }

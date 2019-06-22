@@ -115,6 +115,7 @@ export interface IBonus extends IClientBase {
 	rule: TString;
 	desc?: TString;
 	sort?: number;
+	count?: number;
 }
 
 //	/client/plan

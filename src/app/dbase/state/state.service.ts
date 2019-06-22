@@ -4,7 +4,7 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IBonusState } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
 
@@ -18,7 +18,6 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { asArray } from '@lib/array.library';
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
-import { TString } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -37,7 +36,6 @@ export class StateService {
 	private dbg = dbg(this);
 	public states: IState;
 
-	// constructor(private fire: FireService, private sync: SyncService) {
 	constructor() {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
@@ -225,6 +223,9 @@ export class StateService {
 	 */
 	getScheduleData(date?: TDate) {
 		const now = getDate(date);
+		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
+		const isPrior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
+
 		const filterSchedule = addWhere('day', now.dow);
 		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
@@ -233,7 +234,6 @@ export class StateService {
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
-		const filterGift = addWhere(FIELD.uid, '{{auth.current.uid}}');
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
@@ -242,6 +242,9 @@ export class StateService {
 			addWhere(FIELD.effect, Number.MIN_SAFE_INTEGER, '>'),
 			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
 		]
+		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
+		const attendWeek = [isMine, isPrior, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
+		const attendMonth = [isMine, isPrior, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -255,8 +258,11 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
 			joinDoc(this.states, 'client', STORE.bonus, undefined, date),												// get any active Bonus
-			joinDoc(this.states, 'member', STORE.gift, filterGift, date),												// get any active Gifts
-			map(table => buildTimetable(table)),																								// assemble the Timetable
+			joinDoc(this.states, 'member', STORE.gift, isMine, date),														// get any active Gifts
+			joinDoc(this.states, 'attend.attendGift', STORE.attend, attendGift),								// get any Attends against active Gifts
+			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends against the week
+			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
+			map(table => buildTimetable(table, date)),																					// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s limit of nine)
 	}
 

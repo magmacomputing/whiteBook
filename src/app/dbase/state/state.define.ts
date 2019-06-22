@@ -128,9 +128,15 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		calendar?: ICalendar[];
 		location?: ILocation[];
 		instructor?: IInstructor[];
+		plan?: IPlan[];
 		price?: IPrice[];
 		span?: ISpan[];
 		alert?: IAlert[];
 		bonus?: IBonus[];
-	}
+	},
+	attend: {
+		attendGift: IAttend[];
+		attendWeek: IAttend[];
+		attendMonth: IAttend[];
+	},
 }
