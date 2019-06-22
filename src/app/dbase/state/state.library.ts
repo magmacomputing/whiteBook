@@ -8,7 +8,7 @@ import { SLICES, SORTBY } from '@library/config.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, TBonus, IAttend, IBonus } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, TBonus, IAttend, IBonus, IGift } from '@dbase/data/data.schema';
 import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
@@ -381,6 +381,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate) => {
 export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDate) => {
 	const now = getDate(date);
 	let bonus: TBonus | undefined = undefined;
+	const upd: IGift[] = [];																// an array of updates to Gifts
 
 	const gifts = source.member.gift;												// the active Gifts for this Member
 	const plans = source.client.plan || [];
@@ -401,13 +402,28 @@ export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDat
 		 */
 		case gifts.length > 0:																// if Member has some open Gifts
 			const counts = gifts.map(gift => attendGift.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id]).length);
-			const idx = gifts.findIndex((gift, idx) => counts[idx] < gift.count && (gift.expiry || 0) < now.ts)
-			if (idx > -1) {
-				const attendCnt = counts[idx];										// how many Attends already against this Gift
+			let curr = -1;																			// the Gift to use in determining eligibility
+
+			gifts.forEach((gift, idx) => {
+				if (counts[idx] >= gifts[idx].count								// max number of Attends against this gift
+					|| (gifts[idx].expiry || 0) > now.ts)						// 	or this Gift expiry has passed
+					upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
+				else if (curr === -1) curr = idx;									// else found a Gift that might apply
+			})
+
+			if (curr > -1) {
+				const attendCnt = counts[curr];										// how many Attends already against this Gift
+				const gift = gifts[curr];
 				bonus = {
-					[FIELD.id]: gifts[idx][FIELD.id],								// Bonus id is the Gift Id
+					[FIELD.id]: gift[FIELD.id],											// Bonus id is the Gift Id
 					[FIELD.type]: BONUS.gift,												// Bonus type is 'gift'
 					count: attendCnt + 1,														// to help with tracking
+					desc: `${gift.count - attendCnt} gifts left`,
+					gift: [...upd, {
+						[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
+						[FIELD.expire]: gift.count - attendCnt <= 1 ? now.ts : undefined,
+						...gift,
+					}],
 				}
 				break;																						// exit switch-case
 			}
@@ -430,6 +446,8 @@ export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDat
 				[FIELD.id]: scheme.week[FIELD.id],
 				[FIELD.type]: BONUS.week,
 				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week).length + 1,
+				desc: scheme.week.desc,
+				gift: upd,
 			}
 			break;
 
@@ -450,6 +468,8 @@ export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDat
 				[FIELD.id]: scheme.sunday[FIELD.id],
 				[FIELD.type]: BONUS.sunday,
 				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.sunday).length + 1,
+				desc: scheme.sunday.desc,
+				gift: upd,
 			}
 			break;
 
@@ -470,6 +490,8 @@ export const calcBonus = (source: ITimetableState, classDoc: IClass, date?: TDat
 				[FIELD.id]: scheme.month[FIELD.id],
 				[FIELD.type]: BONUS.month,
 				count: attendMonth.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month).length + 1,
+				desc: scheme.month.desc,
+				gift: upd,
 			}
 			break;
 	}

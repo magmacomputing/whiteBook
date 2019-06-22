@@ -117,6 +117,7 @@ export class AttendService {
 						[FIELD.id]: gift[FIELD.id],											// Bonus id is the Gift Id
 						[FIELD.type]: BONUS.gift,												// Bonus type is 'gift'
 						count: attendCnt + 1,														// to help with tracking
+						desc: `${gifts[curr].count - attendCnt} gifts left`,
 						gift: [...upd, {
 							[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
 							[FIELD.expire]: gift.count - attendCnt <= 1 ? now.ts : undefined,
@@ -145,6 +146,7 @@ export class AttendService {
 					[FIELD.id]: scheme.week[FIELD.id],
 					[FIELD.type]: BONUS.week,
 					count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week).length + 1,
+					desc: scheme.week.desc,
 					gift: upd,
 				}
 				break;
@@ -167,6 +169,7 @@ export class AttendService {
 					[FIELD.id]: scheme.sunday[FIELD.id],
 					[FIELD.type]: BONUS.sunday,
 					count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.sunday).length + 1,
+					desc: scheme.sunday.desc,
 					gift: upd,
 				}
 				break;
@@ -189,6 +192,7 @@ export class AttendService {
 					[FIELD.id]: scheme.month[FIELD.id],
 					[FIELD.type]: BONUS.month,
 					count: attendMonth.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month).length + 1,
+					desc: scheme.month.desc,
 					gift: upd,
 				}
 				break;

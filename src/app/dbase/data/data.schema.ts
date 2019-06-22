@@ -113,7 +113,7 @@ export interface IBonus extends IClientBase {
 	free: number | TString;							// number of free classes available, or string[] of classes available
 	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
-	desc?: TString;
+	desc: TString;
 	sort?: number;
 	count?: number;
 }
@@ -160,11 +160,12 @@ export interface ICalendar extends IClientBase {
 }
 
 //	/client/schedule
-export interface TBonus {						// a sub-type of IBonus
+export interface TBonus {							// a sub-type of IBonus
 	[FIELD.id]: string;
 	[FIELD.type]: BONUS;
-	gift?: IGift[];										// the /member/gift updates for this payment
-	count?: number;										// the number of this Gift
+	count: number;											// the number of this Gift
+	desc: TString;											// message to Member
+	gift?: IGift[];											// the /member/gift updates for this payment
 }
 export interface ISchedule extends IClientBase {
 	[FIELD.store]: STORE.schedule;
