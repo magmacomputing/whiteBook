@@ -16,6 +16,9 @@ export const toNumeric = (str: string | number, stripZero: boolean = false) =>
 		? parseInt(str.toString(), 10)
 		: str
 
+export const randomString = (len = 36) =>
+	Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15);
+
 /** make an Object's values into a Template Literals, and evaluate */
 export const makeTemplate = (templateString: Object) =>
 	(templateData: Object) =>

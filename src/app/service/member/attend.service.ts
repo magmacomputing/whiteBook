@@ -19,6 +19,7 @@ import { isUndefined, isNumber, TString } from '@lib/type.library';
 import { getPath, isEmpty, IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { randomString } from '@lib/string.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
@@ -76,7 +77,7 @@ export class AttendService {
 		]);
 
 		/**
-		 * attendGift		is array of Attends so far against 1st active Gift
+		 * attendGift		is array of Attends[] against each active Gifts
 		 * attendWeek		is array of Attends so far in the week, less than <now>
 		 * attendMonth	is array of Attends so far in the month, less than <now>
 		 */
@@ -84,35 +85,46 @@ export class AttendService {
 		const where = addWhere(FIELD.uid, uid);
 		const prior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
 		const [attendGift, attendWeek, attendMonth] = await Promise.all([		// get tracking data
-			this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, (gifts[0] || { [FIELD.id]: 'xYz' })[FIELD.id])]),
+			Promise.all(																			// return an array of Attend per Gift
+				gifts.map(gift => this.data.getStore<IAttend>(STORE.attend, [where, addWhere(`bonus.${FIELD.id}`, gift[FIELD.id])]))
+			),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.week', now.format(DATE_FMT.yearWeek)), prior]),
 			this.data.getStore<IAttend>(STORE.attend, [where, addWhere('track.month', now.format(DATE_FMT.yearMonth)), prior]),
 		]);
 
 		// We de-dup the Attends by date (yyyymmdd), as multiple attends on a single-day do not count towards a Bonus
 		let bonus = {} as TBonus;
+		const upd: IGift[] = [];														// an array of updates to Gifts
 		switch (true) {
 			/**
 			 * Admin adds 'Gift' records to a Member's account which will detail
 			 * the start-date, and count of free classes (and an optional expiry for the Gift).  
 			 * This bonus will be used in preference to any other bonus-pricing scheme.
 			 */
-			case gifts.length > 0:														// qualify for a Gift bonus?
-				const close = attendGift.length >= gifts[0].count
-					|| (gifts[0].expiry && gifts[0].expiry > now.ts);	// TODO: check for future Gifts, if this is now expired
-				bonus = close																		// close a Gift
-					? { gift: { [FIELD.expire]: now.ts, ...gifts[0] } }
-					: {
-						[FIELD.id]: gifts[0][FIELD.id],
-						[FIELD.type]: BONUS.gift,
-						count: attendGift.length + 1,
-						gift: {
-							[FIELD.effect]: gifts[0][FIELD.effect] || (attendGift.length === 0 ? now.startOf('day').ts : undefined),
-							[FIELD.expire]: gifts[0].count - attendGift.length <= 1 ? now.ts : undefined,
-							...gifts[0],
-						},
+			case gifts.length > 0:														// Member has some open Gifts
+				let curr = -1;																	// the Gift to use in determining eligibility
+				gifts.forEach((gift, idx) => {
+					if (attendGift[idx].length >= gifts[idx].count// max number of Attends against this gift
+						|| (gifts[idx].expiry || 0) > now.ts)				// 	or this Gift expiry has passed
+						upd.push({ [FIELD.expire]: now.ts, ...gift })// auto-expire it
+					else if (curr === -1) curr = idx;							// else found a Gift that might apply
+				})
+
+				if (curr !== -1) {
+					const attendCnt = attendGift[curr].length;		// how many Attends already against this Gift
+					const gift = gifts[curr];											// this is the Gift to book against
+					bonus = {
+						[FIELD.id]: gift[FIELD.id],									// Bonus id is the Gift Id
+						[FIELD.type]: BONUS.gift,										// Bonus type is 'gift'
+						count: attendCnt + 1,												// to help with tracking
+						gift: [...upd, {
+							[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
+							[FIELD.expire]: gift.count - attendCnt <= 1 ? now.ts : undefined,
+							...gift,
+						}],
 					}
-				break;
+					break;																				// exit switch-case
+				}																								// drop through to next switch-case
 
 			/**
 			 * The Week scheme qualifies as a Bonus if the Member attends the required number of full-price or gift classes in a week (scheme.week.level).  
@@ -130,6 +142,7 @@ export class AttendService {
 				bonus = {
 					[FIELD.id]: scheme.week[FIELD.id],
 					[FIELD.type]: BONUS.week,
+					gift: upd,
 				}
 				break;
 
@@ -149,6 +162,7 @@ export class AttendService {
 				bonus = {
 					[FIELD.id]: scheme.sunday[FIELD.id],
 					[FIELD.type]: BONUS.sunday,
+					gift: upd,
 				}
 				break;
 
@@ -168,6 +182,7 @@ export class AttendService {
 				bonus = {
 					[FIELD.id]: scheme.month[FIELD.id],
 					[FIELD.type]: BONUS.month,
+					gift: upd,
 				}
 				break;
 		}
@@ -220,7 +235,7 @@ export class AttendService {
 
 		if (!isEmpty(bonus)) {
 			if (bonus.gift) {
-				updates.push({ ...bonus.gift });							// batch the Gift update
+				updates.push(...bonus.gift);									// batch the Gift updates
 				delete bonus.gift;														// not needed
 			}
 			if (bonus[FIELD.id])

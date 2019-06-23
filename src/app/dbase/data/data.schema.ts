@@ -332,11 +332,10 @@ export interface IGift extends IUserBase {
 }
 
 // /attend
-
 export interface TBonus {
 	[FIELD.id]?: string;
 	[FIELD.type]?: BONUS;
-	gift?: IGift;											// the /member/gift _id for this payment
+	gift?: IGift[];										// the /member/gift updates for this payment
 	count?: number;										// the number of this Gift
 	scheme?: IBonus;									// the /client/bonus _id for this payment
 }
@@ -365,9 +364,9 @@ export interface IAttend extends IUserBase {
 
 //	/admin/register
 type TRole = 'admin' | 'member' | 'guest';
-export interface ICustomClaims {				// a special sub-set of fields from the User Token
+export interface ICustomClaims {		// a special sub-set of fields from the User Token
 	roles?: TRole[];
-	plan?: TPlan;													// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
+	plan?: TPlan;											// if set, we know the Member is fully-defined, otherwise check /member/profile/plan
 	memberName?: string;
 	memberAllow?: string[];
 	memberDeny?: string[];
