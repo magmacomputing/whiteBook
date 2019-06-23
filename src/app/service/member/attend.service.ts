@@ -246,6 +246,7 @@ export class AttendService {
 			if (bonus.gift) {
 				updates.push(...bonus.gift);									// batch the Gift updates
 				delete bonus.gift;														// not needed
+				delete bonus.desc;														// not needed
 			}
 			if (bonus[FIELD.id])
 				calcPrice = 0;																// override calculated price
