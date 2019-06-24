@@ -78,6 +78,12 @@ export class StateService {
 			.toPromise();
 	}
 
+	getLatest<T>(...obs: Observable<T>[]) {
+		return combineLatest(...obs)
+			.pipe(take(1))
+			.toPromise()
+	}
+
 	/**
 	* Assemble a UserState Object describing an authenticated User
 	*/
