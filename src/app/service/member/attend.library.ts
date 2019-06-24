@@ -34,7 +34,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 		 * This gift will be used in preference to any other bonus-pricing scheme.
 		 */
 		case gifts.length > 0																// if Member has some open Gifts
-			&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
+			&& (isUndefined(elect) || elect === BONUS.gift):	//   and has not elected to *skip* this Bonus
 
 			const counts = gifts.map(gift => attendGift.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id]).length);
 			let curr = -1;																			// the Gift to use in determining eligibility
