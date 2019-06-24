@@ -1,30 +1,22 @@
-<div *ngIf="app$ | async as app">
-	<mat-toolbar color="primary">
-		<span>The WhiteBook App</span>
-		<span class="title-spacer"></span>
+<div *ngIf="(app$ | async); let app">
+	<button [disabled]="!app.auth.user" (click)="data.auth.signOut()">Logout</button>
+	<p></p>
+	<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/plan')">Plan</button>
+	<p></p>
+	<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/account')">Account</button>
+	<p> </p>
+	<button [hidden]="!app.auth.token ||
+	!app.auth.token.claims.claims ||
+	!app.auth.token.claims.claims.roles || 
+	!app.auth.token.claims.claims.roles.includes('admin')" (click)="this.navigate.route('migrate')">Migrate
+		Attend</button>
 
-		<button>
-			<img src="{{ app.auth.user.photoURL }}">
-		</button>
-		<!-- <button [disabled]="!app.auth.user" (click)="data.auth.signOut()">Logout</button>
-		<p></p>
-		<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/plan')">Plan</button>
-		<p></p>
-		<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/account')">Account</button>
-		<p> </p>
-		<button [hidden]="!app.auth.token ||
-			!app.auth.token.claims.claims ||
-			!app.auth.token.claims.claims.roles || 
-			!app.auth.token.claims.claims.roles.includes('admin')" (click)="this.navigate.route('migrate')">Migrate
-			Attend</button> -->
-
-		<!-- <div *ngFor="let message of app.member.message">
-				<div *ngIf="message.type == 'alert'">
-					<p>{{ message.note }}</p>
-				</div>
-			</div> -->
-
-	</mat-toolbar>
+	<div *ngFor="let message of app.member.message">
+		<div *ngIf="message.type == 'alert'">
+			<p>{{ message.note }}</p>
+		</div>
+	</div>
 </div>
+<hr>
 
 <router-outlet></router-outlet>
