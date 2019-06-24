@@ -33,7 +33,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 		 * the start-date, and count of free classes (and an optional expiry for the Gift).  
 		 * This gift will be used in preference to any other bonus-pricing scheme.
 		 */
-		case gifts.length > 0																// if Member has some open Gifts
+		case gifts.length > 0																	// if Member has some open Gifts
 			&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
 
 			const counts = gifts.map(gift => attendGift.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id]).length);

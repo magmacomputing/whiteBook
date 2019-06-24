@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { RoutingModule } from '@route/route.module';
+import { MaterialModule } from '@route/material.module';
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthModule } from '@service/auth/auth.module';
 import { AppComponent } from './app.component';
@@ -26,6 +27,7 @@ import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/sna
 		DBaseModule,
 		AuthModule,
 		RoutingModule,
+		MaterialModule,
 		BrowserAnimationsModule,
 		ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 	],
