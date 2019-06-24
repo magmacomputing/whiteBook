@@ -14,6 +14,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 	const now = getDate(date);
 	let bonus = {} as TBonus;
 	const upd: IGift[] = [];																// an array of updates to Gifts
+	const elect: BONUS | undefined = undefined;							// TODO: migration can specify 'bonus-elect'
 
 	const gifts = source.member.gift;												// the active Gifts for this Member
 	const plans = source.client.plan || [];
@@ -32,7 +33,9 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 		 * the start-date, and count of free classes (and an optional expiry for the Gift).  
 		 * This gift will be used in preference to any other bonus-pricing scheme.
 		 */
-		case gifts.length > 0:																// if Member has some open Gifts
+		case gifts.length > 0																// if Member has some open Gifts
+			&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
+
 			const counts = gifts.map(gift => attendGift.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id]).length);
 			let curr = -1;																			// the Gift to use in determining eligibility
 
@@ -72,7 +75,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 				.length >= scheme.week.level											// must attend the 'level' number
 			&& attendWeek																				// sum the 'week' bonus claimed
 				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week)
-				.length < scheme.week.free:												// must attend less than 'free' number
+				.length < scheme.week.free												// must attend less than 'free' number
+			&& (isUndefined(elect) || elect === BONUS.week):		// if not skipped, then Bonus will apply
 
 			bonus = {
 				[FIELD.id]: scheme.week[FIELD.id],
@@ -94,6 +98,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.sunday.level										// required number of Attends this week
 			&& now.dow === Instant.DAY.Sun											// today is 'Sunday'
+			&& elect == BONUS.sunday														// Member elected to take Bonus
 			&& (asArray(scheme.sunday.free as TString)).includes(event):
 
 			bonus = {
@@ -116,7 +121,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 				.length >= scheme.month.level
 			&& attendMonth
 				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month)
-				.length < scheme.month.free:
+				.length < scheme.month.free
+			&& (isUndefined(elect) || elect === BONUS.month):
 
 			bonus = {
 				[FIELD.id]: scheme.month[FIELD.id],
