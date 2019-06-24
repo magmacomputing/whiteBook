@@ -16,7 +16,7 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, TBonus } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift, TBonus, IPrice } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
@@ -226,8 +226,15 @@ export class AttendService {
 			.pipe(take(1))																	// complete Observable after first emit
 			.toPromise();																		// await first emit
 
+		const timetable = source.client.schedule!.find(row => row[FIELD.id] === schedule[FIELD.id]);
+		if (!timetable) {																	// this schedule is not actually offered on this date!
+			this.dbg(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
+			this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
+			return false;																		// this should not happen
+		}
+
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// check we are not re-booking same Class on same Day at same Location at same Time
+		// check we are not re-booking same Class on same Day in same Location at same Time
 		const attendFilter = [
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
@@ -244,30 +251,22 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
-		let [bonus, calcPrice] = await Promise.all([
-			data.client.plan[0].bonus												// Plan is allowed to claim bonus?
-				// ? calcBonus(schedule[FIELD.key], date, schedule.elect)// any bonus entitlement
-				? calcBonus(source, schedule[FIELD.key], date)
-				: {} as TBonus,
-			this.member.getEventPrice(schedule[FIELD.key], data),
-		]);
-
-		if (!isEmpty(bonus)) {
-			if (bonus.gift) {
-				updates.push(...bonus.gift);									// batch the Gift updates
-				delete bonus.gift;														// not needed
-				delete bonus.desc;														// not needed
+		if (!isEmpty(source.bonus) && source.bonus) {
+			if (source.bonus.gift) {
+				updates.push(...source.bonus.gift);						// batch any Gift updates
+				delete source.bonus.gift;											// not needed
+				delete source.bonus.desc;											// not needed
 			}
-			if (bonus[FIELD.id])
-				calcPrice = 0;																// override calculated price
+			timetable.price!.amount = 0;										// override scheduled price
 		}
 
-		if (!isUndefined(schedule.price) && schedule.price !== calcPrice) {// calculation mis-match
-			this.dbg('bonus: %j', bonus);
-			this.snack.error(`Price discrepancy: paid ${schedule.price}, but should be ${calcPrice}`);
-			throw new Error(`Price discrepancy: paid ${schedule.price}, but should be ${calcPrice}`);
+		// if the caller provided a schedule.amount, and it is different to the calculated amount!
+		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price!.amount) {// calculation mis-match
+			this.dbg('bonus: %j', source.bonus);
+			this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
+			throw new Error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
 		}
-		schedule.price = calcPrice;
+		schedule.amount = timetable.price!.amount;				// the price to use for this class
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which should be <active>
@@ -281,7 +280,7 @@ export class AttendService {
 
 			const tests: boolean[] = [];										// Set of test results
 			tests[PAY.under_limit] = data.account.attend.length < ATTEND.maxColumn;
-			tests[PAY.enough_funds] = schedule.price <= data.account.summary.funds;
+			tests[PAY.enough_funds] = schedule.amount <= data.account.summary.funds;
 			tests[PAY.not_expired] = now.ts <= expiry;
 			if (!tests.includes(false))											// if tests do not include at-least one <false>
 				break;																				// 	all tests passed; we have found a Payment
@@ -305,7 +304,7 @@ export class AttendService {
 			// If there are no future Payments, create a new Payment with the higher of
 			// a. the usual topUp amount, or b. the amount needed to cover this Attend
 			if (data.account.payment.length <= 1) {
-				const gap = schedule.price - data.account.summary.credit;
+				const gap = schedule.amount - data.account.summary.credit;
 				const topUp = Math.max(gap, await this.member.getPayPrice(data));
 				const payment = await this.member.setPayment(topUp, stamp);
 
@@ -332,9 +331,9 @@ export class AttendService {
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
-		if (data.account.summary.funds === schedule.price && schedule.price)
+		if (data.account.summary.funds === schedule.amount && schedule.price)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve && isEmpty(bonus))	// calc an Expiry for this Payment
+		if (!active.expiry && active.approve && isEmpty(source.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
 		if (Object.keys(upd).length)											// changes to the active Payment
@@ -355,7 +354,7 @@ export class AttendService {
 			},
 			payment: {
 				[FIELD.id]: active[FIELD.id],									// <id> of Account's current active document
-				amount: schedule.price,												// calculated price of the Attend
+				amount: schedule.amount,											// calculated price of the Attend
 			},
 			track: {
 				[FIELD.date]: when,														// yyyymmdd of the Attend
@@ -363,7 +362,7 @@ export class AttendService {
 				week: now.format(DATE_FMT.yearWeek),					// week-number of year
 				month: now.format(DATE_FMT.yearMonth),				// month-number of year
 			},
-			bonus: !isEmpty(bonus) ? bonus : undefined,			// <id>/<type>/<count> of Bonus
+			bonus: !isEmpty(source.bonus) ? source.bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 

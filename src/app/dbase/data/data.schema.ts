@@ -176,7 +176,8 @@ export interface ISchedule extends IClientBase {
 	instructor?: string;
 	start: string;
 	span?: string;
-	price?: number;											// infer the member's price for this class
+	price?: IPrice;											// the regular price detail for this class
+	amount?: number;										// infer the member's price for this class
 	bonus?: TBonus;											// the Bonus which can be applied to this Schedule
 	elect?: string;											// name the Bonus the Member chooses (override calc)
 }

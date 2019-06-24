@@ -349,14 +349,15 @@ export const buildTimetable = (source: ITimetableState, date?: TDate) => {
 		.map(time => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
 			source.bonus = calcBonus(source, classDoc[FIELD.key], date);
-			const price = isUndefined(source.bonus[FIELD.id])	// no Bonus for this class
-				? firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]))
-				: { amount: 0 }
+			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
+			time.amount = isUndefined(source.bonus[FIELD.id])	// no Bonus for this class
+				? time.price.amount
+				: 0
 
-			if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
-				time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
-			}
-			else time[FIELD.disable] = true;						// cannot determine the event
+			// if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
+			// 	time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
+			// }
+			// else time[FIELD.disable] = true;						// cannot determine the event
 
 			if (!time[FIELD.icon])											// if no schedule-specific icon...
 				time[FIELD.icon] = classDoc.icon || icon[FIELD.key];				//	use class icon, else default icon

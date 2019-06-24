@@ -503,7 +503,7 @@ export class MigrateComponent implements OnInit {
 				sched = {
 					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					note: row.note ? [row.note, caldr.name] : caldr.name, price,
+					note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 				}
 				break;
 
@@ -524,7 +524,7 @@ export class MigrateComponent implements OnInit {
 				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${klass}`);
-				sched.price = price;											// to allow AttendService to check what was charged
+				sched.amount = price;											// to allow AttendService to check what was charged
 				break;
 
 			default:
@@ -534,7 +534,7 @@ export class MigrateComponent implements OnInit {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
 					row.elect = 'week';
-				sched.price = price;											// to allow AttendService to check what was charged
+				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.elect = row.elect;
 		}
 
