@@ -250,6 +250,7 @@ export class StateService {
 		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
 		const attendWeek = [isMine, isPrior, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
 		const attendMonth = [isMine, isPrior, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
+		const attendToday = [isMine, addWhere('track.date', now.format(DATE_FMT.yearMonthDay))];
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -267,6 +268,7 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendGift', STORE.attend, attendGift),								// get any Attends against active Gifts
 			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends against the week
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
+			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends against this day
 			map(table => buildTimetable(table, date)),																					// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s limit of nine)
 	}

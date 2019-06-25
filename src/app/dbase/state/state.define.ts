@@ -138,6 +138,7 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		attendGift: IAttend[];
 		attendWeek: IAttend[];
 		attendMonth: IAttend[];
+		attendToday: IAttend[];
 	},
 	bonus?: TBonus,
 }
