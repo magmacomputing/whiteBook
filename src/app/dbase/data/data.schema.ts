@@ -336,9 +336,10 @@ export interface IPayment extends IUserBase {
 export interface IGift extends IUserBase {
 	[FIELD.store]: STORE.gift,
 	[FIELD.type]?: string;
-	count: number;
+	limit: number;
 	desc?: TString;
 	expiry?: number;
+	count?: number;									// number of Attends so-far for this Gift
 }
 
 // /attend

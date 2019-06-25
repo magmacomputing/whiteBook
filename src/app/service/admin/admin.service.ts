@@ -47,7 +47,7 @@ export class AdminService {
 	}
 
 	/** Create a Gift for a Member to use in future check-ins */
-	addGift = async (uid: string, count: number, type?: string, start?: TDate, expiry?: TDate) => {
+	addGift = async (uid: string, limit: number, type?: string, start?: TDate, expiry?: TDate) => {
 		return this.data.setDoc(STORE.gift, {
 			[FIELD.effect]: getDate(start).startOf('day').ts,
 			[FIELD.store]: STORE.gift,
@@ -55,7 +55,7 @@ export class AdminService {
 			[FIELD.uid]: uid,
 			stamp: getStamp(),
 			expiry: expiry && getStamp(expiry),
-			count: count,
+			limit: limit,
 		} as IGift)
 	}
 

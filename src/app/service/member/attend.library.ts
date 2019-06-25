@@ -12,60 +12,62 @@ import { TString, isUndefined } from '@lib/type.library';
  */
 export const calcBonus = (source: ITimetableState, event: string, date?: TDate) => {
 	const now = getDate(date);
-	let bonus = {} as TBonus;
 	const upd: IGift[] = [];																// an array of updates to Gifts
 	const elect: BONUS | undefined = undefined;							// TODO: migration can specify 'bonus-elect'
+	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
 	const gifts = source.member.gift;												// the active Gifts for this Member
 	const plans = source.client.plan || [];
-	const { attendGift = [], attendWeek = [], attendMonth = [] } = source.attend;
+	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
 	const scheme = (source.client.bonus || []).reduce((acc, row) => {
-		acc[row[FIELD.key]] = row;
+		acc[row[FIELD.key]] = row;														// get the <rules> for each Bonus
 		return acc;
 	}, {} as IObject<IBonus>);
-
-	if (!plans[0].bonus)
-		return bonus;																					// Plan does not allow for Gift / Bonus
 
 	switch (true) {
 		/**
 		 * Admin adds 'Gift' records to a Member's account which will detail
-		 * the start-date, and count of free classes (and an optional expiry for the Gift).  
-		 * This gift will be used in preference to any other bonus-pricing scheme.
+		 * the start-date and count of free classes (and an optional expiry-date for the Gift).  
+		 * This gift will be used in preference to any other Bonus scheme.
 		 */
 		case gifts.length > 0																	// if Member has some open Gifts
 			&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
 
-			const counts = gifts.map(gift => attendGift.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id]).length);
 			let curr = -1;																			// the Gift to use in determining eligibility
-
 			gifts.forEach((gift, idx) => {
-				if (counts[idx] >= gifts[idx].count								// max number of Attends against this gift
-					|| (gifts[idx].expiry || 0) > now.ts)						// 	or this Gift expiry has passed
-					upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
-				else if (curr === -1) curr = idx;									// else found a Gift that might apply
-			})
+				gift.count = attendGift														// attendGift might relate to multiple-Gifts
+					.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id])
+					.length;																				// count the Attends per active Gift
 
-			if (curr > -1) {
-				const attendCnt = counts[curr];										// how many Attends already against this Gift
-				const gift = gifts[curr];
-				bonus = {
-					[FIELD.id]: gift[FIELD.id],											// Bonus id is the Gift Id
-					[FIELD.type]: BONUS.gift,												// Bonus type is 'gift'
-					count: attendCnt + 1,														// to help with tracking
-					desc: `${gift.count - attendCnt} gifts left`,
-					gift: [...upd, {
-						[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
-						[FIELD.expire]: gift.count - attendCnt <= 1 ? now.ts : undefined,
-						...gift,
-					}],
+				const giftLeft = gift.limit - gift.count;					// how many remain
+				if (giftLeft <= 0																	// max number of Attends against this gift reached
+					|| (gift.expiry || 0) > now.ts)									// 	or this Gift expiry has passed
+					upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
+				else if (curr === -1) {														// found the first useable Gift
+					curr = idx;
+					bonus = {																				// create a Bonus object
+						[FIELD.id]: gift[FIELD.id],
+						[FIELD.type]: BONUS.gift,
+						count: gift.count + 1,
+						desc: `${giftLeft} gift${giftLeft > 1 ? 's' : ''} left`,
+						gift: [...upd, {
+							[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
+							[FIELD.expire]: gift.limit - gift.count <= 1 ? now.ts : undefined,
+							...gift,
+						}],
+					}
 				}
+			});
+
+			if (curr > -1)																			// processed a Gift
 				break;																						// exit switch-case
-			}
+
+		case !plans[0].bonus:																	// Member's Plan does not allow Bonus
+			break;																							//	so no further checking
 
 		/**
 		 * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.week.level).  
-		 * (note: even Gift Attends count towards a Bonus)
+		 * (note: even 'Gift Attends' count towards a Bonus)
 		 * The Member must also have claimed less than the free limit (scheme.week.free) to enable this bonus
 		 */
 		case scheme.week

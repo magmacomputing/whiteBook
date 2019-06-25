@@ -58,7 +58,7 @@ export class AttendService {
 		return now.ts;																					// timestamp
 	}
 
-	/** Insert an Attend document, matched to an active Payment  */
+	/** Insert an Attend document, aligned to an active Payment  */
 	public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
@@ -77,8 +77,8 @@ export class AttendService {
 			this.state.getAccountData(date),								// get Member's current account details
 			this.state.getScheduleData(date),								// get Schedule for this date
 		)
-			.pipe(take(1))
-			.toPromise()
+			.pipe(take(1))																	// unsubscribe on first-emit
+			.toPromise()																		// emit observables
 
 		const timetable = source.client.schedule!.find(row => row[FIELD.id] === schedule[FIELD.id]);
 		if (!timetable) {																	// this schedule is not actually offered on this date!

@@ -351,7 +351,7 @@ export class MigrateComponent implements OnInit {
 			[FIELD.effect]: offset,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
-			count: gift,
+			limit: gift,
 			note: note || undefined,
 		} as IGift
 	}
