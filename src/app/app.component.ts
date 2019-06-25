@@ -20,9 +20,4 @@ export class AppComponent implements OnInit {
 	clickMe() {
 		console.log('click me');
 	}
-
-	// getBackground(image: string) {
-	// 	console.log('image: %j', image);
-	// 	return this.sanitize.bypassSecurityTrustStyle(`linear-gradient(rgba(29, 29, 29, 0), rgba(16, 16, 23, 0.5)), url(${image})`);
-	// }
 }
