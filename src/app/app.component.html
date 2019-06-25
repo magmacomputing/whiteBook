@@ -2,9 +2,12 @@
 	<mat-toolbar color="primary">
 		<span>The WhiteBook App</span>
 		<span class="title-spacer"></span>
-		<button>
-			<img src="{{ app.auth.user.photoURL }}">
-		</button>
+
+		<div matRipple>
+			<button mat-icon-button (click)="clickMe()" [style.background-image]="app.auth.user.photoURL | safe: 'style' ">
+			</button>
+		</div>
+
 		<!-- <button [disabled]="!app.auth.user" (click)="data.auth.signOut()">Logout</button>
 		<p></p>
 		<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/plan')">Plan</button>
@@ -22,7 +25,7 @@
 				<p>{{ message.note }}</p>
 			</div>
 		</div> -->
-		</mat-toolbar>
+	</mat-toolbar>
 </div>
 
 <router-outlet></router-outlet>
