@@ -270,7 +270,7 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
 			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends against this day
 			map(table => buildTimetable(table, date)),																					// assemble the Timetable
-		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s limit of nine)
+		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
 
 	/**

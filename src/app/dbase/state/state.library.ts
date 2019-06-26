@@ -352,7 +352,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate) => {
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
 			time.amount = isUndefined(source.bonus[FIELD.id])	// no Bonus for this class
 				? time.price.amount
-				: 0
+				: (source.bonus.amount || 0)							// a specific-amount, else $0
 
 			// if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
 			// 	time.price = time.price || price.amount;	// add-on the member's price for each scheduled event

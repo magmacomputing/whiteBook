@@ -45,16 +45,16 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 					upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
 				else if (curr === -1) {														// found the first useable Gift
 					curr = idx;
+					upd.push({																			// stack the Gift update
+						[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
+						[FIELD.expire]: gift.limit - gift.count <= 1 ? now.ts : undefined,
+						...gift,
+					})
 					bonus = {																				// create a Bonus object
 						[FIELD.id]: gift[FIELD.id],
 						[FIELD.type]: BONUS.gift,
 						count: gift.count + 1,
 						desc: `${giftLeft} gift${giftLeft > 1 ? 's' : ''} left`,
-						gift: [...upd, {
-							[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
-							[FIELD.expire]: gift.limit - gift.count <= 1 ? now.ts : undefined,
-							...gift,
-						}],
 					}
 				}
 			});
@@ -85,7 +85,6 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 				[FIELD.type]: BONUS.week,
 				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week).length + 1,
 				desc: scheme.week.desc,
-				gift: upd,
 			}
 			break;
 
@@ -108,7 +107,6 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 				[FIELD.type]: BONUS.sunday,
 				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.sunday).length + 1,
 				desc: scheme.sunday.desc,
-				gift: upd,
 			}
 			break;
 
@@ -131,10 +129,12 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate) 
 				[FIELD.type]: BONUS.month,
 				count: attendMonth.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month).length + 1,
 				desc: scheme.month.desc,
-				gift: upd,
 			}
 			break;
 	}
 
+	if (upd.length)																		// whether or not we found an applicable Bonus
+		bonus.gift = upd;																//	let caller know about any pending Gift updates
+	
 	return bonus;
 }

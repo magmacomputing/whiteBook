@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
@@ -11,13 +10,10 @@ import { NavigateService } from '@route/router/navigate.service';
 	styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
-	public app$ = this.state.getMemberData();								// per-member message
+	public app$ = this.state.getMemberData();
 
-	constructor(readonly data: DataService, readonly state: StateService, private navigate: NavigateService, private sanitize: DomSanitizer) { }
+	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService) { }
 
 	ngOnInit() { }
 
-	clickMe() {
-		console.log('click me');
-	}
 }

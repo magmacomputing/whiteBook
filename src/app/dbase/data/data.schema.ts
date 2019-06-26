@@ -116,6 +116,7 @@ export interface IBonus extends IClientBase {
 	desc: TString;
 	sort?: number;
 	count?: number;
+	amount?: number;										// an optional amount to apply
 }
 
 //	/client/plan
@@ -166,9 +167,10 @@ export interface TBonus {							// a sub-type of IBonus
 	count: number;											// the number of this Gift
 	desc: TString;											// message to Member
 	gift?: IGift[];											// the /member/gift updates for this payment
+	amount?: number;										// an optional amount (if other than $0)
 }
 export interface ISchedule extends IClientBase {
-	[FIELD.store]: STORE.schedule;
+	[FIELD.store]: STORE.schedule | STORE.calendar;
 	[FIELD.type]: TSchedule;
 	[FIELD.key]: TClass | string;
 	day: number;

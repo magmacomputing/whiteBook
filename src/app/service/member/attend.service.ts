@@ -80,7 +80,9 @@ export class AttendService {
 			.pipe(take(1))																	// unsubscribe on first-emit
 			.toPromise()																		// emit observables
 
-		const timetable = source.client.schedule!.find(row => row[FIELD.id] === schedule[FIELD.id]);
+		const timetable = schedule[FIELD.store] === STORE.schedule
+			? source.client.schedule!.find(row => row[FIELD.id] === schedule[FIELD.id])
+			: source.client.schedule!.find(row => row[FIELD.key] === schedule[FIELD.key])
 		if (!timetable) {																	// this schedule is not actually offered on this date!
 			this.dbg(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
 			this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
@@ -111,7 +113,8 @@ export class AttendService {
 				delete source.bonus.gift;											// not needed
 				delete source.bonus.desc;											// not needed
 			}
-			timetable.price!.amount = 0;										// override scheduled price
+			if (source.bonus[FIELD.id])
+				timetable.price!.amount = source.bonus.amount || 0;	// override Plan price
 		}
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!
@@ -140,7 +143,7 @@ export class AttendService {
 				break;																				// 	all tests passed; we have found a Payment
 
 			this.dbg('limit: %j, %j', tests[PAY.under_limit], data.account.attend.length);
-			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.price, data.account.summary);
+			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.amount, data.account.summary);
 			this.dbg('expiry: %j, %j, %j', tests[PAY.not_expired], now.ts, expiry);
 
 			// If over-limit (100+ Attends per Payment) but still have sufficient funds to cover this Class price,

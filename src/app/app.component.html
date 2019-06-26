@@ -1,31 +1,53 @@
 <div *ngIf="app$ | async as app">
 	<mat-toolbar color="primary">
-		<span>The WhiteBook App</span>
+		<span>The WhiteBook</span>
 		<span class="title-spacer"></span>
 
-		<div matRipple>
-			<button mat-icon-button (click)="clickMe()" [style.background-image]="app.auth.user.photoURL | safe: 'style' ">
-			</button>
-		</div>
+		<div *ngIf="app.auth.user; else noLogin">
+			<mat-menu #appMenu="matMenu">
+				<button mat-menu-item [matMenuTriggerFor]="acctMenu">
+					<mat-icon>face</mat-icon>Account
+				</button>
+				<div [hidden]="!app.auth.token ||
+				!app.auth.token.claims.claims ||
+				!app.auth.token.claims.claims.roles || 
+				!app.auth.token.claims.claims.roles.includes('admin')">
+					<button mat-menu-item [matMenuTriggerFor]="adminMenu">
+						<mat-icon>supervisor_account</mat-icon>Admin
+					</button>
+				</div>
+				<button mat-menu-item>
+					<mat-icon>settings</mat-icon>Settings
+				</button>
+				<button mat-menu-item (click)="data.auth.signOut()">
+					<mat-icon>highlight_off</mat-icon>Logout
+				</button>
+			</mat-menu>
 
-		<!-- <button [disabled]="!app.auth.user" (click)="data.auth.signOut()">Logout</button>
-		<p></p>
-		<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/plan')">Plan</button>
-		<p></p>
-		<button [disabled]="!app.auth.user" (click)="this.navigate.route('profile/account')">Account</button>
-		<p> </p>
-		<button [hidden]="!app.auth.token ||
-	!app.auth.token.claims.claims ||
-	!app.auth.token.claims.claims.roles || 
-	!app.auth.token.claims.claims.roles.includes('admin')" (click)="this.navigate.route('migrate')">Migrate
-			Attend</button> -->
+			<mat-menu #acctMenu="matMenu">
+				<button mat-menu-item (click)="this.navigate.route('profile/plan')">Plan</button>
+				<button mat-menu-item (click)="this.navigate.route('profile/account')">Status</button>
+				<button mat-menu-item (click)="this.navigate.route('profile/history')">History</button>
+			</mat-menu>
 
-		<!-- <div *ngFor="let message of app.member.message">
-			<div *ngIf="message.type == 'alert'">
-				<p>{{ message.note }}</p>
+			<mat-menu #adminMenu="matMenu">
+				<button mat-menu-item (click)="this.navigate.route('migrate')">Migrate User</button>
+			</mat-menu>
+
+			<div matRipple>
+				<button [matMenuTriggerFor]="appMenu" mat-icon-button
+					[style.background-image]=" app.auth.user.photoURL | safe: 'style' ">
+				</button>
 			</div>
-		</div> -->
+		</div>
 	</mat-toolbar>
+
+	<div *ngFor="let message of app.member.message">
+		<div *ngIf="message.type == 'alert'">
+			<p>{{ message.note }}</p>
+		</div>
+	</div>
 </div>
 
+<ng-template #noLogin></ng-template>
 <router-outlet></router-outlet>

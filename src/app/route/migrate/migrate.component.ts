@@ -13,7 +13,7 @@ import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, IClass } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -57,7 +57,8 @@ export class MigrateComponent implements OnInit {
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
-	private events!: IEvent[];
+	private events!: IObject<IEvent>;
+	private classes!: IObject<IClass>;
 
 	private lookup: IObject<string> = {
 		oldStep: 'MultiStep',
@@ -86,12 +87,19 @@ export class MigrateComponent implements OnInit {
 		this.history = createPromise<MHistory[]>();
 		this.filter();
 
-		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
-			.then(schedule => this.schedule = schedule);
-		this.data.getFire<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) })
-			.then(calendar => this.calendar = calendar);
-		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
-			.then(events => this.events = events);
+		Promise																										// get some static data
+			.all([
+				this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) }),
+				this.data.getFire<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) }),
+				this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) }),
+				this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) }),
+			])
+			.then(([schedule, calendar, events, classes]) => {
+				this.schedule = schedule;
+				this.calendar = calendar;
+				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {})
+				this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {});
+			})
 
 		this.state.getAuthData()																	// stash the Auth'd user
 			.pipe(take(1))
@@ -459,7 +467,8 @@ export class MigrateComponent implements OnInit {
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+				// event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+				event = this.events[caldr[FIELD.type]];
 				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
 				if (!migrate.attend[sfx]) {
@@ -473,15 +482,17 @@ export class MigrateComponent implements OnInit {
 					migrate.attend[sfx] = event.classes[idx];
 					await this.writeMigrate(migrate);
 				}
+				what = migrate.attend[sfx];
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: migrate.attend[sfx],
+					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
 
 			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
-				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+				// event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+				event = this.events[caldr[FIELD.type]];
 				if (what === 'MultiStep' && !event.classes.includes(what))
 					what = 'SingleStep';
 				if (!event.classes.includes(what as TClass)) {
@@ -501,7 +512,7 @@ export class MigrateComponent implements OnInit {
 				}
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
 					note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 				}
