@@ -1,6 +1,6 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
-import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/state.action';
+import { SetAttend, DelAttend, TruncAttend, SyncAttend, filterState } from '@dbase/state/state.action';
 
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
@@ -24,7 +24,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(SetAttend)
-	setStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
+	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
 		const state = cloneObj(getState()) || {};
 		let empty: { [segment: string]: boolean; } = {};
 
@@ -40,12 +40,12 @@ export class AttendState implements NgxsOnInit {
 			if (debug) this.dbg('setAttend: %j', doc);
 		})
 
-		patchState({ ...state });
+		setState({ ...state });
 		dispatch(new SyncAttend(payload));								// tell any listener we have sync'd
 	}
 
 	@Action(DelAttend)																	// very rare Event
-	delStore({ patchState, getState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
+	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -58,7 +58,7 @@ export class AttendState implements NgxsOnInit {
 			if (debug) this.dbg('delAttend: %j', doc);
 		})
 
-		patchState({ ...state });
+		setState({ ...state });
 		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
 	}
 
@@ -70,7 +70,8 @@ export class AttendState implements NgxsOnInit {
 
 	/** remove an item from the Attend Store */
 	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
-		const curr = state && state[payload.payment[FIELD.id]] || [];
+		const slice = payload.payment[FIELD.id];
+		const curr = state && slice && state[slice] || [];
 
 		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 	}

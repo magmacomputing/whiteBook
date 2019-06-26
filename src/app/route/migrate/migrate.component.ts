@@ -30,6 +30,7 @@ import { asString, asNumber } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { dbg } from '@lib/logger.library';
+import { setLocalStore, getLocalStore } from '@lib/window.library';
 
 @Component({
 	selector: 'wb-migrate',
@@ -85,6 +86,10 @@ export class MigrateComponent implements OnInit {
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
 
 		this.history = createPromise<MHistory[]>();
+		
+		const local = getLocalStore('admin.migrate.filter') || {} as any;
+		this.creditIdx = local.idx;
+		this.hidden = local.hidden;
 		this.filter();
 
 		Promise																										// get some static data
@@ -147,6 +152,7 @@ export class MigrateComponent implements OnInit {
 					this.creditIdx = 0;
 				break;
 		}
+		setLocalStore('admin.migrate.filter', { hidden: this.hidden, idx: this.creditIdx });
 	}
 
 	async signIn(register: IRegister) {
@@ -350,7 +356,6 @@ export class MigrateComponent implements OnInit {
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getDate(start).startOf('day').ts;
 		if (note && note.includes('start: ')) {
-			debugger;																					// TODO: only for one Member
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
 			if (!isNull(time))
 				offset = getDate(start).startOf('day').add(asNumber(time[0]), 'hours').add(asNumber(time[1]), 'minutes').ts;
@@ -371,13 +376,12 @@ export class MigrateComponent implements OnInit {
 			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
 			this.history.promise,
 		])
-
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2013-Nov-16').format(DATE_FMT.yearMonthDay)).length;
+		// const endAt = table.filter(row => row.date >= getDate('2019-Apr-23').format(DATE_FMT.yearMonthDay)).length;
 		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
