@@ -9,7 +9,7 @@ import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUser
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
 import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -226,7 +226,7 @@ export class StateService {
 	 * bonus			-> has an array of active Bonus schemes
 	 * gift				-> has an array of active Gifts available to a Member on the date
 	 */
-	getScheduleData(date?: TDate) {
+	getScheduleData(date?: TDate, elect?: BONUS) {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
 		const isPrior = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '<');
@@ -269,7 +269,7 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends against this week
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
 			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends against this day
-			map(table => buildTimetable(table, date)),																					// assemble the Timetable
+			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
 

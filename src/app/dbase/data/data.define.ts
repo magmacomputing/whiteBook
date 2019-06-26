@@ -78,4 +78,5 @@ export enum BONUS {
 	week = 'week',
 	month = 'month',
 	sunday = 'sunday',
+	none = 'none',
 }

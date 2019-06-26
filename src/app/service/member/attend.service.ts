@@ -22,8 +22,6 @@ import { isUndefined, isNumber, TString } from '@lib/type.library';
 import { getPath, isEmpty, IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { getLocaleTimeFormat } from '@angular/common';
-import { getMultipleValuesInSingleSelectionError } from '@angular/cdk/collections';
 
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
@@ -75,7 +73,7 @@ export class AttendService {
 		// There is a bit of overlap in these Observables, but they serve different purposes
 		let [data, source] = await combineLatest(
 			this.state.getAccountData(date),								// get Member's current account details
-			this.state.getScheduleData(date),								// get Schedule for this date
+			this.state.getScheduleData(date, schedule.elect),// get Schedule for this date
 		)
 			.pipe(take(1))																	// unsubscribe on first-emit
 			.toPromise()																		// emit observables

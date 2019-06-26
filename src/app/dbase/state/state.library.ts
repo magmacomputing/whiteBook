@@ -11,7 +11,7 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
@@ -287,7 +287,7 @@ export const buildPlan = (source: IPlanState) => {
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  
  */
-export const buildTimetable = (source: ITimetableState, date?: TDate) => {
+export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BONUS) => {
 	const {
 		schedule: times = [],												// the schedule for the requested date
 		class: classes = [],    										// the classes offered on that date
@@ -348,7 +348,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate) => {
 	source.client.schedule = times
 		.map(time => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
-			source.bonus = calcBonus(source, classDoc[FIELD.key], date);
+			source.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
 			time.amount = isUndefined(source.bonus[FIELD.id])	// no Bonus for this class
 				? time.price.amount

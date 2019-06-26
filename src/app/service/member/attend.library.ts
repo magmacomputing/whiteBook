@@ -10,10 +10,9 @@ import { TString, isUndefined } from '@lib/type.library';
 /**
  * Determine if provided event is entitled to a Gift or a Bonus Scheme
  */
-export const calcBonus = (source: ITimetableState, event: string, date?: TDate) => {
+export const calcBonus = (source: ITimetableState, event: string, date?: TDate, elect?: BONUS) => {
 	const now = getDate(date);
 	const upd: IGift[] = [];																// an array of updates to Gifts
-	const elect: BONUS | undefined = undefined;							// TODO: migration can specify 'bonus-elect'
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
 	const gifts = source.member.gift;												// the active Gifts for this Member

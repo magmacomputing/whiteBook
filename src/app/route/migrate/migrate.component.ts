@@ -12,7 +12,7 @@ import { getProviderId } from '@service/auth/auth.library';
 import { MHistory } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE, BONUS } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, IClass } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
@@ -451,14 +451,14 @@ export class MigrateComponent implements OnInit {
 			if (row.note && (row.note.includes('Bonus: Week Level reached'))) {
 				obj.full.amount = 0;
 				price = 0;
-				row.elect = 'week';													// Week bonus takes precedence
+				row.elect = BONUS.week;											// Week bonus takes precedence
 			} else if (row.note && row.note.includes('Gift #')) {
 				obj.full.amount = 0;
 				price = 0;
-				row.elect = 'gift';													// special: accidental one-gift claimed against three classes
+				row.elect = BONUS.gift;											// special: accidental one-gift claimed against three classes
 			} else {
 				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
-				row.elect = 'sunday';												// dont 'elect' to skip Gifts on a Pack
+				row.elect = BONUS.sunday;										// dont elect to skip Bonus on a Pack
 			}
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : Math.abs(price)).toString() });
@@ -548,7 +548,7 @@ export class MigrateComponent implements OnInit {
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
-					row.elect = 'week';
+					row.elect = BONUS.week;
 				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.elect = row.elect;
 		}
@@ -556,7 +556,7 @@ export class MigrateComponent implements OnInit {
 		const p = createPromise<boolean>();
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
-				sched.elect = row.note;										// Member elected to not receive a Bonus
+				sched.elect = BONUS.none;										// Member elected to not receive a Bonus
 			this.attend.setAttend(sched, row.note, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
