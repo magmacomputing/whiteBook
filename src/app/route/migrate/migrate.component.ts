@@ -86,7 +86,7 @@ export class MigrateComponent implements OnInit {
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
 
 		this.history = createPromise<MHistory[]>();
-		
+
 		const local = getLocalStore('admin.migrate.filter') || {} as any;
 		this.creditIdx = local.idx;
 		this.hidden = local.hidden;
@@ -371,10 +371,10 @@ export class MigrateComponent implements OnInit {
 
 	/** Add Attendance records for a Member */
 	public async addAttend() {
-		const [migrate, attend, history] = await Promise.all([
+		const history = await this.history.promise;
+		const [migrate, attend] = await Promise.all([
 			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
-			this.history.promise,
 		])
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
