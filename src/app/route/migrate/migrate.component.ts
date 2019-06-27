@@ -358,7 +358,11 @@ export class MigrateComponent implements OnInit {
 		if (note && note.includes('start: ')) {
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
 			if (!isNull(time))
-				offset = getDate(start).startOf('day').add(asNumber(time[0]), 'hours').add(asNumber(time[1]), 'minutes').ts;
+				offset = getDate(start)
+					.startOf('day')
+					.add(asNumber(time[0]), 'hours')
+					.add(asNumber(time[1]), 'minutes')
+					.ts
 		}
 		return {
 			[FIELD.effect]: offset,
@@ -495,7 +499,7 @@ export class MigrateComponent implements OnInit {
 
 			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
 				event = this.events[caldr[FIELD.type]];
-				
+
 				if (what === 'MultiStep' && !event.classes.includes(what))
 					what = 'SingleStep';
 				if (!event.classes.includes(what as TClass)) {
