@@ -102,8 +102,8 @@ export class MigrateComponent implements OnInit {
 			.then(([schedule, calendar, events, classes]) => {
 				this.schedule = schedule;
 				this.calendar = calendar;
-				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {})
-				this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {});
+				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as IObject<IEvent>)
+				this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as IObject<IClass>);
 			})
 
 		this.state.getAuthData()																	// stash the Auth'd user

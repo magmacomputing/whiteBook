@@ -70,16 +70,14 @@ export class MemberService {
 	}
 
 	private async upgradePlan(stamp?: TDate) {				// auto-bump 'intro' to 'member'
-		this.setPlan('member');													// expire 'intro', effect 'member'
-		const prices = await this.data.getFire<IPrice>(COLLECTION.client, {	// use getFire to directly query the database (instead of the data-store)
-			where: [
-				addWhere(FIELD.store, STORE.price),
-				addWhere(FIELD.type, 'topUp'),
-				addWhere(FIELD.key, 'member'),
-			]
-		})
-		const topUp = asAt(prices, undefined, stamp)[0];
-		return topUp.amount;														// the current Member topUp amount
+		const prices = await this.data.getStore<IPrice>(STORE.price, [
+			addWhere(FIELD.type, 'topUp'),
+			addWhere(FIELD.key, 'member'),
+		], getStamp(stamp))
+		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
+
+		this.setPlan('member', stamp);									// expire 'intro', effect 'member'
+		return topUp.amount;
 	}
 
 	/** Current Account status */
