@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { firestore } from 'firebase/app';
-import { DocumentReference } from '@angular/fire/firestore';
+import { DocumentReference, DocumentChangeAction } from '@angular/fire/firestore';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
@@ -80,7 +80,7 @@ export class DataService {
 			.pipe(take(1))																				// wait for first emit from each Observable in value-array
 			.toPromise()
 			.then(obs => obs.flat())															// flatten the array-of-values results
-			.then(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
+			.then(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() } as T)))
 	}
 
 	get newId() {

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { take, first } from 'rxjs/operators';
 
+import { asAt } from '@library/app.library';
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/material/snack.service';
@@ -9,8 +10,8 @@ import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount } from '@dbase/data/data.schema';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -54,7 +55,10 @@ export class MemberService {
 	/** Create a new TopUp payment */
 	async setPayment(amount?: number, stamp?: TDate) {
 		const data = await this.getAccount();
-		const topUp = await this.getPayPrice(data);			// find the topUp price for this Member
+		const plan = data.member.plan[0];								// only initial topUp on 'intro' allowed
+		const topUp = (plan.plan === 'intro' && data.account.payment.length !== 0)
+			? await this.upgradePlan(stamp)
+			: await this.getPayPrice(data)
 
 		return {
 			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
@@ -63,6 +67,19 @@ export class MemberService {
 			amount: isUndefined(amount) ? topUp : amount,
 			stamp: getStamp(stamp),
 		} as IPayment
+	}
+
+	private async upgradePlan(stamp?: TDate) {				// auto-bump 'intro' to 'member'
+		this.setPlan('member');													// expire 'intro', effect 'member'
+		const prices = await this.data.getFire<IPrice>(COLLECTION.client, {	// use getFire to directly query the database (instead of the data-store)
+			where: [
+				addWhere(FIELD.store, STORE.price),
+				addWhere(FIELD.type, 'topUp'),
+				addWhere(FIELD.key, 'member'),
+			]
+		})
+		const topUp = asAt(prices, undefined, stamp)[0];
+		return topUp.amount;														// the current Member topUp amount
 	}
 
 	/** Current Account status */

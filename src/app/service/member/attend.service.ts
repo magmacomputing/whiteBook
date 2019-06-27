@@ -78,9 +78,10 @@ export class AttendService {
 			.pipe(take(1))																	// unsubscribe on first-emit
 			.toPromise()																		// emit observables
 
-		const timetable = schedule[FIELD.store] === STORE.schedule
-			? source.client.schedule!.find(row => row[FIELD.id] === schedule[FIELD.id])
-			: source.client.schedule!.find(row => row[FIELD.key] === schedule[FIELD.key])
+		const field = schedule[FIELD.store] === STORE.schedule
+			? FIELD.id																			// compare requested schedule to timetable's ID
+			: FIELD.key																			// compare requested event to class's Key
+		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
 		if (!timetable) {																	// this schedule is not actually offered on this date!
 			this.dbg(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
 			this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
@@ -194,6 +195,8 @@ export class AttendService {
 		if (Object.keys(upd).length)											// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
+		if (data.member.plan[0].plan === 'intro' && (data.account.summary.funds - schedule.amount) <= 0)
+			this.member.setPlan('member', stamp + 1);				// auto-bump 'intro' to 'member' Plan
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document
 
