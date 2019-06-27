@@ -471,7 +471,6 @@ export class MigrateComponent implements OnInit {
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-				// event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				event = this.events[caldr[FIELD.type]];
 				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
@@ -495,8 +494,8 @@ export class MigrateComponent implements OnInit {
 				break;
 
 			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
-				// event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
 				event = this.events[caldr[FIELD.type]];
+				
 				if (what === 'MultiStep' && !event.classes.includes(what))
 					what = 'SingleStep';
 				if (!event.classes.includes(what as TClass)) {
