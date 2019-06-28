@@ -41,7 +41,7 @@
 
 							<mat-card-content>
 								<button mat-raised-button [disabled]="item._disable" (click)="attend.setAttend(item)"
-									matBadge="{{timetable.attend.attendToday.length}}" matBadgeHidden="{{timetable.attend.attendToday.length == 0}}">
+									matBadge="{{ item.count }}" matBadgeHidden="{{ item.count == 0 }}">
 									Check-in: {{ item.amount | currency }}
 								</button>
 							</mat-card-content>

@@ -33,6 +33,7 @@ export enum STORE {
 	status = 'status',
 	local = '@config@',
 	setting = 'setting',
+	react = 'react',
 	log = 'log',
 }
 

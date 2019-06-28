@@ -6,7 +6,7 @@ import { TString } from '@lib/type.library';
 import { getSlice } from '@dbase/state/state.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
-type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert;
+type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.react;
 type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
 type TTypeDefault = TStoreClient | 'icon';
 
@@ -20,6 +20,7 @@ type TCalendar = 'event' | 'special'
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
+export type TReact = 'Like' | 'Love' | 'Wow' | 'Laugh' | 'Sad' | 'Angry';
 
 export type FBoolean = boolean | undefined | firebase.firestore.FieldValue;
 export type FNumber = number | undefined | firebase.firestore.FieldValue;
@@ -182,6 +183,8 @@ export interface ISchedule extends IClientBase {
 	amount?: number;										// infer the member's price for this class
 	bonus?: TBonus;											// the Bonus which can be applied to this Schedule
 	elect?: BONUS;											// name the Bonus the Member chooses (override calc)
+	count?: number;											// number of Attends
+	react?: TReact;											// Member reaction
 }
 
 //	/client/location
@@ -229,9 +232,16 @@ export interface ISpan extends IClientBase {
 //	/client/alert									// <key> is immaterial
 export interface IAlert extends IClientBase {
 	[FIELD.store]: STORE.alert;
-	[FIELD.type]: 'schedule'
+	[FIELD.type]: STORE.schedule | STORE.event;
 	[FIELD.note]: TString;
 	location?: string;
+}
+
+//	/client/react									// Member reaction icons
+export interface IReact extends IClientBase {
+	[FIELD.store]: STORE.react;
+	[FIELD.key]: TReact;
+	sort: number;
 }
 
 //	/client/schedule

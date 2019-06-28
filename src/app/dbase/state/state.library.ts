@@ -297,6 +297,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		alert: alerts = [],													// any alert notes for this date
 		price: prices = [],													// the prices as per member's plan
 	} = source.client;
+	const attendToday = source.attend.attendToday;
 
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));
@@ -353,6 +354,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			time.amount = isUndefined(source.bonus[FIELD.id])	// no Bonus for this class
 				? time.price.amount
 				: (source.bonus.amount || 0)							// a specific-amount, else $0
+
+			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
 
 			// if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
 			// 	time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
