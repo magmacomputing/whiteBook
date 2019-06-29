@@ -81,3 +81,12 @@ export enum BONUS {
 	sunday = 'sunday',
 	none = 'none',
 }
+
+export enum REACT {
+	like = 'like',
+	love = 'love',
+	wow = 'wow',
+	laugh = 'laugh',
+	sad = 'sad',
+	angry = 'angry',
+}

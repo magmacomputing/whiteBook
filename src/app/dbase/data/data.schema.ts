@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, CONNECT, BONUS } from '@dbase/data/data.define';
+import { FIELD, STORE, CONNECT, BONUS, REACT } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { TString } from '@lib/type.library';
 import { getSlice } from '@dbase/state/state.library';
@@ -20,7 +20,6 @@ type TCalendar = 'event' | 'special'
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
-export type TReact = 'Like' | 'Love' | 'Wow' | 'Laugh' | 'Sad' | 'Angry';
 
 export type FBoolean = boolean | undefined | firebase.firestore.FieldValue;
 export type FNumber = number | undefined | firebase.firestore.FieldValue;
@@ -184,7 +183,7 @@ export interface ISchedule extends IClientBase {
 	bonus?: TBonus;											// the Bonus which can be applied to this Schedule
 	elect?: BONUS;											// name the Bonus the Member chooses (override calc)
 	count?: number;											// number of Attends
-	react?: TReact;											// Member reaction
+	react?: REACT;											// Member reaction
 }
 
 //	/client/location
@@ -240,7 +239,7 @@ export interface IAlert extends IClientBase {
 //	/client/react									// Member reaction icons
 export interface IReact extends IClientBase {
 	[FIELD.store]: STORE.react;
-	[FIELD.key]: TReact;
+	[FIELD.key]: REACT;
 	sort: number;
 }
 
