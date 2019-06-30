@@ -15,11 +15,13 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 import { StoreStorage } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
+import { ReactionComponent } from './service/reaction/reaction.component';
 import { SafePipe } from './service/material/safe.pipe';
 
 @NgModule({
 	declarations: [
 		AppComponent,
+		ReactionComponent,
 		SafePipe,
 	],
 	imports: [

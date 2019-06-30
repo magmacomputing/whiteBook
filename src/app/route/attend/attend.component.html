@@ -46,35 +46,6 @@
 								</button>
 							</mat-card-content>
 
-							<div class="wrapper" (mouseenter)="toggle(true)" (mouseleave)="toggle(false)">
-								<div class="emojis" *ngIf="showEmojis">
-
-									<span *ngFor="let react of react$ | async; index as i;">
-										<img [src]="react.icon" width='75px' (click)="react(i)">
-									</span>
-
-								</div>
-
-								<span class="like" (click)="react(0)" [class.liked]="userReaction != null">
-									Like
-								</span>
-
-								<span *ngIf="userReaction != null">
-									| You reacted <strong>{{ emojiList[userReaction] }}</strong>
-								</span>
-
-								<div class="reactions">
-
-									<div *ngFor="let emoji of emojiList; index as i;" class="reaction-counts">
-
-										<span *ngIf="hasReactions(i)">
-											<img [src]="emojiPath(emoji)"> {{ reactionCount[i] }}
-										</span>
-
-									</div>
-								</div>
-							</div>
-
 						</mat-card-header>
 
 					</mat-card>
