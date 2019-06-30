@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { STORE } from '@dbase/data/data.define';
+import { IReact } from '@dbase/data/data.schema';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
@@ -14,6 +16,7 @@ import { dbg } from '@lib/logger.library';
 @Component({
 	selector: 'wb-attend',
 	templateUrl: './attend.component.html',
+	styleUrls: ['./attend.component.scss'],
 })
 export class AttendComponent implements OnInit {
 	private dbg = dbg(this);
@@ -22,6 +25,8 @@ export class AttendComponent implements OnInit {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;
+	public react$ = this.state.getCurrent<IReact>(STORE.react);
+	public showEmojis = false;
 	public firstPaint = true;                           // indicate first-paint
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService, public readonly data: DataService) { }
@@ -49,5 +54,9 @@ export class AttendComponent implements OnInit {
 
 	suffix(idx: number) {
 		return suffix(idx);
+	}
+
+	toggle(show: boolean) {
+		this.showEmojis = !this.showEmojis;
 	}
 }
