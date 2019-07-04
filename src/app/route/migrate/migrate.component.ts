@@ -291,7 +291,7 @@ export class MigrateComponent implements OnInit {
 					hold: row.hold,
 					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
-					approve: approve.stamp && approve,
+					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
 					note: row.note,
 				} as IPayment
