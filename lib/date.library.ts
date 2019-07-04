@@ -182,7 +182,7 @@ export class Instant {
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
-			console.error('Invalid Date: ', dt, date);							// log the Invalid Date
+			console.error('Invalid Date: ', dt, date);							// TODO: log the Invalid Date
 
 		let [yy, mm, dd, HH, MI, SS, ts, ms, dow] = [
 			date.getFullYear(), date.getMonth(), date.getDate(),
