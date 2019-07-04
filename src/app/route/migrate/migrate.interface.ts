@@ -26,3 +26,8 @@ export interface MHistory {
 	approved?: number;
 	elect?: BONUS;
 }
+
+export interface ILocalStore {
+	hidden: false;
+	idx: number;
+}

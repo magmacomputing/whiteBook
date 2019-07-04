@@ -1,11 +1,11 @@
-import { parseObj } from '@lib/object.library';
+import { ifObject } from '@lib/object.library';
 import { isObject } from '@lib/type.library';
 
 export const setLocalStore = (key: string, obj: any) =>
 	setStorage(key, obj, window.localStorage);
 
-export const getLocalStore = <T>(key: string) =>
-	getStorage<T>(key, window.localStorage);
+export const getLocalStore = <T>(key: string, dflt?: T) =>
+	getStorage<T>(key, window.localStorage) || dflt;
 
 export const delLocalStore = (key: string) =>
 	window.localStorage.removeItem(key);
@@ -13,8 +13,8 @@ export const delLocalStore = (key: string) =>
 export const setSessionStore = (key: string, obj: any) =>
 	setStorage(key, obj, window.sessionStorage);
 
-export const getSessionStore = <T>(key: string) =>
-	getStorage<T>(key, window.sessionStorage);
+export const getSessionStore = <T>(key: string, dflt?: T) =>
+	getStorage<T>(key, window.sessionStorage) || dflt;
 
 export const delSessionStore = (key: string) =>
 	delStorage(key, window.sessionStorage);
@@ -32,8 +32,8 @@ const setStorage = (key: string, obj: any, target: Storage) => {
 		: obj))
 }
 
-const getStorage = <T>(key: string, target: Storage) =>
-	parseObj<T>(target.getItem(key));
+const getStorage = <T>(key: string, target: Storage, dflt?: T) =>
+	ifObject<T>(target.getItem(key)) || dflt;
 
 const delStorage = (key: string, target: Storage) =>
 	target.removeItem(key);

@@ -9,7 +9,7 @@ import { AdminService } from '@service/admin/admin.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { getProviderId } from '@service/auth/auth.library';
-import { MHistory } from '@route/migrate/migrate.interface';
+import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS } from '@dbase/data/data.define';
@@ -27,10 +27,10 @@ import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
-import { asArray } from '@lib/array.library';
 import { IPromise, createPromise } from '@lib/utility.library';
-import { dbg } from '@lib/logger.library';
 import { setLocalStore, getLocalStore } from '@lib/window.library';
+import { asArray } from '@lib/array.library';
+import { dbg } from '@lib/logger.library';
 
 @Component({
 	selector: 'wb-migrate',
@@ -87,7 +87,7 @@ export class MigrateComponent implements OnInit {
 
 		this.history = createPromise<MHistory[]>();
 
-		const local = getLocalStore('admin.migrate.filter') || {} as any;
+		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 0 };
 		this.creditIdx = local.idx;
 		this.hidden = local.hidden;
 		this.filter();

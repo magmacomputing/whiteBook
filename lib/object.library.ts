@@ -62,7 +62,14 @@ export const cloneObj = <T>(obj: T) => {
 		: clone
 }
 
-export const parseObj = <T>(str?: string | null) => {
+export const ifObject = <T>(str: string | null) => {
+	if (isString(str) && str.startsWith('{') && str.endsWith('}')) {
+		return JSON.parse(str);
+	}
+	return str;
+}
+
+const parseObj = <T>(str?: string | null) => {
 	if (!isString(str))
 		return {} as T;
 
