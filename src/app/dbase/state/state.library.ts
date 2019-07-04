@@ -349,11 +349,11 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	source.client.schedule = times
 		.map(time => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
-			source.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
+			time.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
-			time.amount = isUndefined(source.bonus[FIELD.id])	// no Bonus for this class
+			time.amount = isUndefined(time.bonus[FIELD.id])	// no Bonus for this class
 				? time.price.amount
-				: (source.bonus.amount || 0)							// a specific-amount, else $0
+				: (time.bonus.amount || 0)							// a specific-amount, else $0
 
 			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
 

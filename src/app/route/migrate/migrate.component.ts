@@ -83,7 +83,8 @@ export class MigrateComponent implements OnInit {
 	private pack = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
+		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService,
+		private admin: AdminService) {
 
 		this.history = createPromise<MHistory[]>();
 
@@ -357,12 +358,14 @@ export class MigrateComponent implements OnInit {
 		let offset = getDate(start).startOf('day').ts;
 		if (note && note.includes('start: ')) {
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
-			if (!isNull(time))
+			if (!isNull(time)) {
+				let hhmm = time[0].split(':');
 				offset = getDate(start)
 					.startOf('day')
-					.add(asNumber(time[0]), 'hours')
-					.add(asNumber(time[1]), 'minutes')
+					.add(asNumber(hhmm[0]), 'hours')
+					.add(asNumber(hhmm[1]), 'minutes')
 					.ts
+			}
 		}
 		return {
 			[FIELD.effect]: offset,
@@ -437,7 +440,7 @@ export class MigrateComponent implements OnInit {
 
 		if (this.pack.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
-				this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.type, 'plan'), now),
+				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, 'plan'), addWhere(FIELD.uid, this.current!.user.uid)], now),
 				this.data.getStore<IPrice>(STORE.price, undefined, now),
 				this.data.getStore<IBonus>(STORE.bonus, undefined, now),
 			])

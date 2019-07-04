@@ -106,19 +106,19 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
-		if (!isEmpty(source.bonus) && source.bonus) {
-			if (source.bonus.gift) {
-				updates.push(...source.bonus.gift);						// batch any Gift updates
-				delete source.bonus.gift;											// not needed
-				delete source.bonus.desc;											// not needed
+		if (!isEmpty(timetable.bonus) && timetable.bonus) {
+			if (timetable.bonus.gift) {
+				updates.push(...timetable.bonus.gift);						// batch any Gift updates
+				delete timetable.bonus.gift;											// not needed
+				delete timetable.bonus.desc;											// not needed
 			}
-			if (source.bonus[FIELD.id])
-				timetable.price!.amount = source.bonus.amount || 0;	// override Plan price
+			if (timetable.bonus[FIELD.id])
+				timetable.price!.amount = timetable.bonus.amount || 0;	// override Plan price
 		}
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!
 		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price!.amount) {// calculation mis-match
-			this.dbg('bonus: %j', source.bonus);
+			this.dbg('bonus: %j', timetable.bonus);
 			this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
 			throw new Error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
 		}
@@ -189,7 +189,7 @@ export class AttendService {
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
 		if (data.account.summary.funds === schedule.amount && schedule.price)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve && isEmpty(source.bonus))	// calc an Expiry for this Payment
+		if (!active.expiry && active.approve && isEmpty(timetable.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
 		if (Object.keys(upd).length)											// changes to the active Payment
@@ -220,7 +220,7 @@ export class AttendService {
 				week: now.format(DATE_FMT.yearWeek),					// week-number of year
 				month: now.format(DATE_FMT.yearMonth),				// month-number of year
 			},
-			bonus: !isEmpty(source.bonus) ? source.bonus : undefined,			// <id>/<type>/<count> of Bonus
+			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 

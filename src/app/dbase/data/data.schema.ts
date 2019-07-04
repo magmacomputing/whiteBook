@@ -180,7 +180,7 @@ export interface ISchedule extends IClientBase {
 	span?: string;
 	price?: IPrice;											// the regular price detail for this class
 	amount?: number;										// infer the member's price for this class
-	bonus?: TBonus;											// the Bonus which can be applied to this Schedule
+	bonus?: TBonus;											// the Bonus tracking which can be applied to this Schedule
 	elect?: BONUS;											// name the Bonus the Member chooses (override calc)
 	count?: number;											// number of Attends
 	react?: REACT;											// Member reaction
@@ -350,7 +350,7 @@ export interface IGift extends IUserBase {
 	limit: number;
 	desc?: TString;
 	expiry?: number;
-	count?: number;									// number of Attends so-far for this Gift
+	count?: number;										// number of Attends so-far for this Gift
 }
 
 // /attend
