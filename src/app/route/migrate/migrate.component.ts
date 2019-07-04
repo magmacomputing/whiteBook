@@ -88,7 +88,7 @@ export class MigrateComponent implements OnInit {
 
 		this.history = createPromise<MHistory[]>();
 
-		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 0 };
+		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
 		this.creditIdx = local.idx;
 		this.hidden = local.hidden;
 		this.filter();
