@@ -26,8 +26,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	switch (true) {
 		/**
 		 * Admin adds 'Gift' records to a Member's account which will detail
-		 * the start-date and count of free classes (and an optional expiry-date for the Gift).  
-		 * This gift will be used in preference to any other Bonus scheme.
+		 * the start-date and limit of free classes (and an optional expiry-date for the Gift).  
+		 * These gifts will be used in preference to any other Bonus scheme.
 		 */
 		case gifts.length > 0																	// if Member has some open Gifts
 			&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
@@ -36,7 +36,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			gifts.forEach((gift, idx) => {
 				gift.count = attendGift														// attendGift might relate to multiple-Gifts
 					.filter(attd => attd.bonus![FIELD.id] === gift[FIELD.id])
-					.length;																				// count the Attends per active Gift
+					.length + 1;																		// count the Attends per active Gift, plus one for this Gift
 
 				const giftLeft = gift.limit - gift.count;					// how many remain
 				if (giftLeft <= 0																	// max number of Attends against this gift reached
@@ -45,14 +45,14 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				else if (curr === -1) {														// found the first useable Gift
 					curr = idx;
 					upd.push({																			// stack the Gift update
-						[FIELD.effect]: gift[FIELD.effect] || now.startOf('day').ts,
-						[FIELD.expire]: gift.limit - gift.count <= 1 ? now.ts : undefined,
+						[FIELD.effect]: now.startOf('day').ts,
+						[FIELD.expire]: giftLeft <= 0 ? now.ts : undefined,
 						...gift,
 					})
 					bonus = {																				// create a Bonus object
 						[FIELD.id]: gift[FIELD.id],
 						[FIELD.type]: BONUS.gift,
-						count: gift.count + 1,
+						count: gift.count,
 						desc: `${giftLeft} gift${giftLeft > 1 ? 's' : ''} left`,
 					}
 				}
@@ -134,6 +134,6 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 
 	if (upd.length)																		// whether or not we found an applicable Bonus
 		bonus.gift = upd;																//	let caller know about any pending Gift updates
-	
+
 	return bonus;
 }
