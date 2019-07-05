@@ -259,6 +259,11 @@ export class MigrateComponent implements OnInit {
 		const creates: IStoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note && row.note.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => isUndefined(payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
+			.filter(row => {
+				if (isUndefined(row.approved))
+					this.dbg('warn: unapproved: %j', row);
+				return !isUndefined(row.approved);
+			})
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
@@ -658,8 +663,9 @@ export class MigrateComponent implements OnInit {
 		if (full)
 			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		await this.member.setAccount(creates, updates);
-		return this.data.batch(creates, updates, deletes)
+		return this.data.batch(creates, updates, deletes, SetMember)
+			.then(_ => this.member.updAccount())
+			.finally(() => this.dbg('done'))
 	}
 
 	async delAttend() {

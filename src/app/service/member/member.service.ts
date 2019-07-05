@@ -127,7 +127,6 @@ export class MemberService {
 		return data.member.plan[0];
 	}
 
-	// TODO: apply bonus-tracking to determine discount price
 	getEventPrice = async (event: string, data?: IAccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan

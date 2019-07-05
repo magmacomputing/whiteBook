@@ -224,10 +224,11 @@ export class AttendService {
 		}
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 
-		data.account.attend.push(attendDoc as IAttend);
-		await this.member.setAccount(creates, updates, data);
+		// data.account.attend.push(attendDoc as IAttend);
+		// await this.member.setAccount(creates, updates, data);
 
 		return this.data.batch(creates, updates, undefined, SyncAttend)
+			.then(_ => this.member.setAccount(creates, updates, data))
 	}
 
 	/**

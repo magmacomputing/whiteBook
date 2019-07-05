@@ -1,4 +1,5 @@
-import { isString } from '@lib/type.library';
+import { format } from 'util';
+import { isString, isObject } from '@lib/type.library';
 
 // General <string> functions
 
@@ -23,6 +24,22 @@ export const asNumber = (str: string | number) =>
 
 export const randomString = (len = 36) =>
 	Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15);
+
+
+/**
+ * use sprintf-style formatting on a string.  
+ * if the format does not contain a corresponding '%'-char, then de-construct the arguments
+ */
+export const sprintf = (fmt: any, ...msg: any[]) => {
+	if (isString(fmt) && !fmt.includes('%')) {
+		msg.unshift(fmt);						// put the format into the msg array
+		fmt = msg     							// and build a new format string
+			.map(arg => isObject(arg) ? '%j' : '%s')
+			.join(', ')								// re-assemble as a comma-separated string
+	}
+
+	return format(fmt, ...msg);		// NodeJS.format()
+}
 
 /** make an Object's values into a Template Literals, and evaluate */
 export const makeTemplate = (templateString: Object) =>
