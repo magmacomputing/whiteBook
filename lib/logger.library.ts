@@ -7,20 +7,28 @@ export const dbg = (self: any) =>
 
 /** console.log() formatter */
 export const lprintf = (name: string = '', fmt?: any, ...msg: any[]) => {
-	const isStr = isString(fmt);
-	const sep = isStr && (fmt.includes(':') || msg.length === 0)
+	const [type, log] = fprintf(fmt, ...msg);
+	const sep = isString(fmt) && (fmt.includes(':') || msg.length === 0)
 		? '.'
 		: ': '
-	let out: keyof Console = 'log';
 
-	if (isStr) {
+	console[type as keyof Console](`${name}${sep}${log}`);
+}
+
+/** break a fmt/msg into a 'Console.type' and 'message' */
+export const fprintf = (fmt?: any, ...msg: any[]) => {
+	let type = 'log';
+
+	if (isString(fmt)) {
 		const match = fmt.match(/(\w*)/i) || [];
-		const word = match[1];
-		if (['log', 'info', 'debug', 'warn', 'error'].includes(word)) {
-			out = word as keyof Console;
-			fmt = fmt.substring(word.length + 1).trim();
+		const part = match[1];
+		if (['log', 'info', 'debug', 'warn', 'error'].includes(part)) {
+			type = part;
+			fmt = fmt.substring(type.length + 1).trim();
 		}
 	}
 
-	console[out](sprintf(`${name}${sep}${fmt}`, ...msg));
+	const result = sprintf(fmt, ...msg);
+
+	return [type, result];
 }

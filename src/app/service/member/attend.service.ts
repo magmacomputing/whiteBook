@@ -19,7 +19,7 @@ import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift } f
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
-import { getPath, isEmpty, IObject } from '@lib/object.library';
+import { getPath, isEmpty } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -256,7 +256,7 @@ export class AttendService {
 			.reduce((acc, itm) => {
 				acc[itm] = payments.filter(row => row[FIELD.id] === itm).length;
 				return acc;
-			}, {} as IObject<number>);
+			}, {} as Record<string, number>);
 
 		attends.forEach(attend => {
 			if (attend.bonus && attend.bonus[FIELD.type] === BONUS.gift) {

@@ -3,7 +3,6 @@ import { FIELD, BONUS } from '@dbase/data/data.define';
 import { IGift, TBonus, IBonus } from '@dbase/data/data.schema';
 
 import { TDate, getDate, Instant } from '@lib/date.library';
-import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { TString, isUndefined } from '@lib/type.library';
 
@@ -21,7 +20,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const scheme = (source.client.bonus || []).reduce((acc, row) => {
 		acc[row[FIELD.key]] = row;														// get the <rules> for each Bonus
 		return acc;
-	}, {} as IObject<IBonus>);
+	}, {} as Record<string, IBonus>);
 
 	switch (true) {
 		/**

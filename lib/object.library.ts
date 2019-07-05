@@ -1,6 +1,5 @@
 import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero, isType } from '@lib/type.library';
 
-export interface IObject<T> { [key: string]: T; }
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 
 /** Get nested value; allow for array-references in <path> */

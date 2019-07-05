@@ -21,13 +21,12 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { createPromise } from '@lib/utility.library';
 import { isFunction } from '@lib/type.library';
-import { IObject } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: IObject<IListen> = {};
+	private listener: Record<string, IListen> = {};
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 

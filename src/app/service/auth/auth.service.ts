@@ -13,7 +13,6 @@ import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
-import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { getConfig } from '@library/config.library';
 import { dbg } from '@lib/logger.library';
@@ -49,7 +48,7 @@ export class AuthService {
 		this.store.dispatch(new Logout());
 	}
 
-	public async signIn(provider: IProvider, opts: IObject<any> = {}) {
+	public async signIn(provider: IProvider, opts: Record<string, any> = {}) {
 		this.dbg('signIn: %j', provider);
 
 		switch (provider[FIELD.type]) {

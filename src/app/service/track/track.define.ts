@@ -10,6 +10,7 @@ export interface ITrack {
 	[FIELD.type]: ETrack;
 	[FIELD.uid]?: string;
 	msg: string;
+	level: number;
 	data?: ITrackData;
 	event?: object;
 	memberId?: string;
@@ -22,11 +23,11 @@ export interface ITrack {
 }
 
 export enum ETrack {
-	all,
-	debug,
-	info,
-	warn,
-	error,
-	fatal,
-	off
+	all = 'all',
+	debug = 'debug',
+	info = 'info',
+	warn = 'warn',
+	error = 'error',
+	fatal = 'fatal',
+	off = 'off',
 }

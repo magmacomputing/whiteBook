@@ -24,7 +24,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
-import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
+import { sortKeys, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
@@ -58,10 +58,10 @@ export class MigrateComponent implements OnInit {
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
-	private events!: IObject<IEvent>;
-	private classes!: IObject<IClass>;
+	private events!: Record<string, IEvent>;
+	private classes!: Record<string, IClass>;
 
-	private lookup: IObject<string> = {
+	private lookup: Record<string, string> = {
 		oldStep: 'MultiStep',
 		Step: 'MultiStep',
 		oldStepDown: 'StepDown',
@@ -103,8 +103,8 @@ export class MigrateComponent implements OnInit {
 			.then(([schedule, calendar, events, classes]) => {
 				this.schedule = schedule;
 				this.calendar = calendar;
-				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as IObject<IEvent>)
-				this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as IObject<IClass>);
+				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
+				this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IClass>);
 			})
 
 		this.state.getAuthData()																	// stash the Auth'd user
@@ -454,7 +454,7 @@ export class MigrateComponent implements OnInit {
 				.reduce((accum, row) => {
 					accum[row[FIELD.type]] = row;
 					return accum;
-				}, {} as IObject<IPrice>)
+				}, {} as Record<string, IPrice>)
 			const sunday = bonus.find(row => row[FIELD.key] === 'sunday');
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
