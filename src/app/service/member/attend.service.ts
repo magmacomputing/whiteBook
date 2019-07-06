@@ -23,6 +23,7 @@ import { getPath, isEmpty } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
+/** Manage the 'attend' store */
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
 	private dbg = dbg(this);

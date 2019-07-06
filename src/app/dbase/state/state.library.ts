@@ -11,7 +11,7 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
-import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
@@ -39,7 +39,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
 /** Get all documents by filter, do not exclude _expire unless <date> specified */
 export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
-	if (store === slice)													// top-level slice
+	if (store === slice.toString())													// top-level slice
 		return getState<T>(states, store, filter, date);
 
 	const state: Observable<TStateSlice<T>> = states[slice] as any;
@@ -70,7 +70,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 
 export const getSlice = (store: STORE) => {			// determine the state-slice based on the <store> field
 	const slices = Object.keys(SLICES)
-		.filter(col => SLICES[col].includes(store));// find which slice holds the requested store
+		.filter(key => SLICES[key as COLLECTION]!.includes(store));// find which slice holds the requested store
 
 	if (isEmpty<object>(SLICES))									// nothing in State yet, on first-time connect
 		slices.push(SLICE.client);									// special: assume 'client' slice.
@@ -80,7 +80,7 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
 
-	return slices[0];
+	return slices[0] as COLLECTION;
 }
 
 export const getDefault = (state: IApplicationState, type: string) => {

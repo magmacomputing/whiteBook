@@ -1,37 +1,32 @@
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { FILTER, SLICES, SORTBY } from '@library/config.define';
 import { ISchema, IConfig } from '@dbase/data/data.schema';
 
-import { makeTemplate } from '@lib/string.library';
 import { isString } from '@lib/type.library';
+import { sortInsert } from '@lib/array.library';
+import { makeTemplate } from '@lib/string.library';
 
-/** rebuild values for STORES, SORTBY, FILTER variables */
-export const setSchema = async (schemas: ISchema[]) => {
-	const acc = schemas.reduce((acc, schema) => {
+/** rebuild values for SLICES, SORTBY, FILTER variables */
+export const setSchema = (schemas: ISchema[]) => {
+	Object.keys(FILTER)
+		.forEach(key => delete FILTER[key as COLLECTION])
+	Object.keys(SLICES)
+		.forEach(key => delete SLICES[key as COLLECTION])
+	Object.keys(SORTBY)
+		.forEach(key => delete SORTBY[key as STORE])
+
+	schemas.forEach(schema => {
 		const { [FIELD.key]: key, [FIELD.type]: type, [FIELD.hidden]: hidden } = schema;
 
-		if (!hidden) {
-			acc.slices[type] = acc.slices[type] || [];
-			acc.slices[type].push(schema[FIELD.key] as STORE);
-		}
+		if (!hidden)
+			SLICES[type] = sortInsert(SLICES[type] || [], schema[FIELD.key]);
 
 		if (schema.sort)
-			acc.sortby[key] = schema.sort;
+			SORTBY[key] = schema.sort;
 
-		if (schema.filter)
-			acc.filter[key] = schema.filter;
-
-		return acc;													// return accumulator
-	}, {                                  // init accumulator
-			slices: {} as typeof SLICES,
-			sortby: {} as typeof SORTBY,
-			filter: {} as typeof FILTER,
-		}
-	);
-
-	Object.keys(acc.slices).forEach(type => SLICES[type] = acc.slices[type].sort());
-	Object.keys(acc.sortby).forEach(type => SORTBY[type] = acc.sortby[type]);
-	Object.keys(acc.filter).forEach(type => FILTER[type] = acc.filter[type]);
+		if (schema.filter && schema[FIELD.type].toString() === schema[FIELD.key].toString())
+			FILTER[type] = schema.filter;					// Collection filter
+	})
 }
 
 // This is called so infrequently, its not worth making it reactive

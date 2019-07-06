@@ -1,9 +1,10 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, CONNECT, BONUS, REACT } from '@dbase/data/data.define';
+import { FIELD, STORE, CONNECT, BONUS, REACT, COLLECTION } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
-import { TString } from '@lib/type.library';
 import { getSlice } from '@dbase/state/state.library';
+
+import { TString } from '@lib/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.react;
@@ -74,7 +75,7 @@ export interface IStoreMeta extends IMeta {
 export type TStoreMeta = IStoreMeta | IStoreMeta[];
 // client documents have a '<key>' field, user documents have a '<uid>' field
 export const isClientDocument = (document: TStoreBase): document is IClientBase =>
-	getSlice(document[FIELD.store]) === 'client' || getSlice(document[FIELD.store]) === 'local';
+	getSlice(document[FIELD.store]).toString() === 'client' || getSlice(document[FIELD.store]).toString() === 'local';
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
@@ -91,8 +92,8 @@ export interface IConfig extends IClientBase {
 //	/client/_schema_
 export interface ISchema extends IClientBase {
 	[FIELD.store]: STORE.schema;
-	[FIELD.type]: string;
-	[FIELD.key]: string;
+	[FIELD.type]: COLLECTION;
+	[FIELD.key]: STORE;
 	desc: string;
 	filter?: TString;
 	sort?: TString;

@@ -1,3 +1,4 @@
+import { cloneObj } from '@lib/object.library';
 
 export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
 
@@ -37,4 +38,20 @@ if (!Array.prototype.hasOwnProperty('cartesian')) {
 			? this.cartesian(cartFn(a, b), ...c)
 			: [...a || []]
 	}
+}
+
+// insert a value into an array by its sorted position
+export const sortInsert = <T>(arr: T[], val: T) => {
+	let low = 0, high = arr.length;
+	let clone = cloneObj(arr);
+
+	while (low < high) {
+		const mid = (low + high) >>> 1;				// divide by 2
+		if (clone[mid] < val)
+			low = mid + 1
+		else high = mid
+	}
+
+	clone.splice(low, 0, val);
+	return clone;
 }
