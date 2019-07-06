@@ -332,6 +332,11 @@ export interface IMemberInfo {				// Conformed Info across Providers
 export interface IPayment extends IUserBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: TPayment;
+	link?: {
+		child?: string;									// the child Payment
+		parent?: string;								// the parent Payment
+		index?: number;									// the Payment position
+	}
 	amount?: number;									// how much actually paid (may be different from plan.topUp.amount)
 	adjust?: number;									// a manual adjustment to a topUp
 	bank?: number;										// un-used funds from previous payment

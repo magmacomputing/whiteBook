@@ -19,7 +19,7 @@ import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift } f
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
-import { getPath, isEmpty } from '@lib/object.library';
+import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -238,50 +238,101 @@ export class AttendService {
 	 * Take great care when deleting a non-latest Attend, as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
 	 */
 	public delAttend = async (where: TWhere) => {
-		const memberUid = addWhere(FIELD.uid, (await this.data.auth.current)!.uid);
+		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
 			filter.push(memberUid);
 
-		const [attends, payments, gifts] = await Promise.all([
-			this.data.getStore<IAttend>(STORE.attend, filter),
-			this.data.getStore<IPayment>(STORE.payment, [memberUid, addWhere(FIELD.store, STORE.payment)]),
-			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.store, STORE.gift)]),
-		])
-		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
-		const deletes: IStoreMeta[] = [...attends];
+		const deletes: IStoreMeta[] = await this.data.getStore<IAttend>(STORE.attend, filter);
+
+		if (deletes.length === 0) {
+			this.dbg('No items to delete');
+			return;
+		}
+
+		const payIds = deletes												// the Payment IDs related to this reversal
+			.map(attend => attend.payment[FIELD.id])
+			.distinct()
+		const giftIds = deletes												// the Gift IDs related to this reversal
+			.filter(attend => attend.bonus && attend.bonus[FIELD.type] === BONUS.gift)
+			.map(row => row.bonus[FIELD.id])
+			.distinct()
+
+		/**
+		 * attends:		all the Attends that relate to the payIds (even those about to be deleted)
+		 * payments:	all the Payments related to this Member
+		 * gifts:			all the Gifts related to this reversal
+		 */
+		const [attends, payments, gifts] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
+			this.data.getStore<IPayment>(STORE.payment, memberUid),
+			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
+		])
+
+		// build a link-link of Payments, assume pre-sorted by stamp [desc]
+		payments
+			.sort(sortKeys('-' + FIELD.stamp, FIELD.type))
+			.forEach((payment, idx, arr) => {
+				payment.link = {
+					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,
+					child: idx !== 0 && arr[idx - 1][FIELD.id] || undefined,
+					index: idx,
+				}
+			})
 
 		let pays = attends														// count the number of Attends per Payment
-			.distinct(row => row.payment[FIELD.id])
+			.map(row => row.payment[FIELD.id])
 			.reduce((acc, itm) => {
-				acc[itm] = payments.filter(row => row[FIELD.id] === itm).length;
+				if (isUndefined(acc[itm]))
+					acc[itm] = 0;
+				acc[itm] += 1;
 				return acc;
 			}, {} as Record<string, number>);
 
-		attends.forEach(attend => {
+		const chg = new Set<string>();
+		deletes.forEach(attend => {
+			let idx: number;
 			if (attend.bonus && attend.bonus[FIELD.type] === BONUS.gift) {
-				const idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]!);
-				if (idx >= 0 && isNumber(gifts[idx][FIELD.expire])) {
-					gifts[idx][FIELD.expire] = undefined;
-					updates.push({ ...gifts[idx] });				// re-open a Gift
+				idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]);
+				const gift = gifts[idx];
+				if (gift) {
+					if (isNumber(gift.count))
+						gift.count! -= 1;											// decrement running-total
+					if (gift.count === 0)
+						gift.count = undefined;								// discard running-total
+					if (isNumber(gift[FIELD.expire]))
+						gift[FIELD.expire] = undefined;				// re-open a Gift
 				}
 			}
 
 			const payId = attend.payment[FIELD.id];			// get the Payment id
-			pays[payId] -= 1;														// reduce the number of Attends for this Payment
-			if (pays[payId] === 0) {
-				const idx = payments.findIndex(row => row[FIELD.id] === payId);
-				if (idx > 0) {														// re-open a Payment
-					payments[idx][FIELD.expire] = undefined;
-					payments[idx].bank = undefined;
-					updates.push({ ...payments[idx] })
+			idx = payments.findIndex(row => row[FIELD.id] === payId);
+			const payment = payments[idx];
+			if (payment) {
+				if (isNumber(payment[FIELD.expire]))
+					payment[FIELD.expire] = undefined;			// re-open a Payment
+				pays[payId] -= 1;													// reduce the number of Attends for this Payment
+				if (pays[payId] === 0) {									// no other Attend booked against this Payment
+					payment[FIELD.effect] = undefined;
+					payment.bank = undefined;								// TODO: dont clear down Payment, if parent had $0 funds
+
+					chg.add(payId);													// mark this Payment as 'changed
+					const parent = payment.link!.parent;
+					if (parent) {
+						payments[idx + 1][FIELD.expire] = undefined;
+						chg.add(payments[idx + 1][FIELD.id]);	// mark the parent as 'changed'
+					}
 				}
 			}
-
 		})
+		updates.push(...gifts);												// batch the updates to Gifts
+		updates.push(...payments
+			.filter(row => chg.has(row[FIELD.id]))			// only those that have changed
+			.map(row => ({ ...row, link: undefined }))	// drop the calculated link
+		);
 
-		return this.data.batch(creates, updates, deletes)
+		return this.data.batch(undefined, updates, deletes)
 			.then(_ => this.member.updAccount())
 	}
 }

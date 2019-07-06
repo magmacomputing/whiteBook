@@ -35,13 +35,13 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 export const docPrep = (doc: TStoreBase, uid: string) => {
 	if (!doc[FIELD.store])												// every document needs a <store> field
 		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`);
-	const prep = cloneObj(doc);
+	// const prep = cloneObj(doc);
 
-	if (!isClientDocument(prep))										// if not a /client document
-		if (!prep[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
-			prep[FIELD.uid] = uid;											//  push the current user's uid onto the document
+	if (!isClientDocument(doc))										// if not a /client document
+		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
+			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
 
-	return prep;
+	return doc;
 }
 
 /** Expire current docs */

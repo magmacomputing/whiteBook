@@ -668,6 +668,16 @@ export class MigrateComponent implements OnInit {
 			.finally(() => this.dbg('done'))
 	}
 
+	async revAttend() {
+		const dt = window.prompt('From which date');
+		if (dt) {
+			const now = getDate(dt);
+			const yesNo = window.prompt(`Are you sure you want to delete from ${now.format(DATE_FMT.display)}`, 'Yes');
+			if (yesNo === 'Yes')
+				this.attend.delAttend(addWhere('track.date', now.format(DATE_FMT.yearMonthDay), '>='));
+		}
+	}
+
 	async delAttend() {
 		const where = addWhere(FIELD.uid, this.current!.uid);
 		const [attends, [payments, gifts, profile, plans, prices, hist = []]] = await Promise.all([

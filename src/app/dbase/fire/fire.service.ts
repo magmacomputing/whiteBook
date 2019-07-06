@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
-import { tap, take, debounceTime } from 'rxjs/operators';
+import { tap, take } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
@@ -85,15 +85,18 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private removeMeta(doc: firestore.DocumentData) {
+	private removeMeta(doc: firestore.DocumentData, opts: Record<string, boolean> = {}) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 
 		Object.entries(rest).forEach(([key, value]) => {
-			if (isUndefined(value))								// remove top-level keys with 'undefined' values
-				// delete rest[key];										// TODO: recurse?
-				rest[key] = firestore.FieldValue.delete();
-			if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
-				rest[key] = firestore.FieldValue.delete();	// TODO: workaround
+			if (isUndefined(value)) {
+				if (opts.setUndefined)
+					delete rest[key]										// remove the field if 'set'
+				else rest[key] = firestore.FieldValue.delete(); // delete the target field if 'update'
+
+				if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
+					rest[key] = firestore.FieldValue.delete();	// TODO: workaround
+			}
 		})
 
 		return rest;
@@ -105,9 +108,9 @@ export class FireService {
 	 * If they are Member documents and missing a <uid> field, the current User is inserted
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
-		const cloneCreate = asArray(cloneObj(creates));
-		const cloneUpdate = asArray(cloneObj(updates));
-		const cloneDelete = asArray(cloneObj(deletes));
+		const cloneCreate = [...asArray(creates)];
+		const cloneUpdate = [...asArray(updates)];
+		const cloneDelete = [...asArray(deletes)];
 		const limit = 300;
 		const commits: Promise<void>[] = [];
 
@@ -117,14 +120,12 @@ export class FireService {
 			const d = cloneDelete.splice(0, limit - c.length - u.length);
 
 			const bat = this.afs.firestore.batch();
-			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
+			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins, { setUndefined: true })));
 			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 			commits.push(bat.commit());
 		}
 
-		// if (!this.online)
-		// 	all.truncate();													// dont wait for Batch if offline
 		return Promise.all(commits);
 	}
 

@@ -19,7 +19,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
 	const scheme = (source.client.bonus || [])
 		.reduce((acc, row) => {
-			acc[row[FIELD.key]] = row;													S// get the <rules> for each Bonus
+			acc[row[FIELD.key]] = row;													// get the <rules> for each Bonus
 			return acc;
 		}, {} as Record<BONUS, IBonus>);
 
@@ -39,7 +39,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 					.length + 1;																		// count the Attends per active Gift, plus one for this Gift
 
 				const giftLeft = gift.limit - gift.count;					// how many remain
-				if (giftLeft <= 0																	// max number of Attends against this gift reached
+				if (giftLeft < 0																	// max number of Attends against this gift reached
 					|| (gift.expiry || 0) > now.ts)									// 	or this Gift expiry has passed
 					upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
 				else if (curr === -1) {														// found the first useable Gift
