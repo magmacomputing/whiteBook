@@ -13,7 +13,7 @@ import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, IClass } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, IClass, TPrice } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -59,7 +59,7 @@ export class MigrateComponent implements OnInit {
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: Record<string, IEvent>;
-	private classes!: Record<string, IClass>;
+	// private classes!: Record<TClass, IClass>;
 
 	private lookup: Record<string, string> = {
 		oldStep: 'MultiStep',
@@ -104,7 +104,7 @@ export class MigrateComponent implements OnInit {
 				this.schedule = schedule;
 				this.calendar = calendar;
 				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
-				this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IClass>);
+				// this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<TClass, IClass>);
 			})
 
 		this.state.getAuthData()																	// stash the Auth'd user
@@ -454,7 +454,7 @@ export class MigrateComponent implements OnInit {
 				.reduce((accum, row) => {
 					accum[row[FIELD.type]] = row;
 					return accum;
-				}, {} as Record<string, IPrice>)
+				}, {} as Record<TPrice, IPrice>)
 			const sunday = bonus.find(row => row[FIELD.key] === 'sunday');
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);

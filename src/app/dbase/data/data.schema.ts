@@ -12,12 +12,12 @@ type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | S
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
-type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
 type TPayment = 'topUp' | 'hold' | 'credit' | 'debit';
 type TProfile = 'plan' | 'claim' | 'info' | 'pref';
 type TStatus = 'account' | 'connect';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
+export type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';

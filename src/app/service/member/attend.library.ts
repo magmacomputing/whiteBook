@@ -17,10 +17,11 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const gifts = source.member.gift;												// the active Gifts for this Member
 	const plans = source.client.plan || [];
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
-	const scheme = (source.client.bonus || []).reduce((acc, row) => {
-		acc[row[FIELD.key]] = row;														// get the <rules> for each Bonus
-		return acc;
-	}, {} as Record<string, IBonus>);
+	const scheme = (source.client.bonus || [])
+		.reduce((acc, row) => {
+			acc[row[FIELD.key]] = row;													S// get the <rules> for each Bonus
+			return acc;
+		}, {} as Record<BONUS, IBonus>);
 
 	switch (true) {
 		/**
