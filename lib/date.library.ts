@@ -149,6 +149,11 @@ export class Instant {
 				date = new Date(args.length
 					? this.formatString(fmt, ...args)										// free-format string
 					: fmt)																							// let Javascript interpret string
+
+				if (!args.length && date.getFullYear() === 2001) {
+					if (!fmt.includes('2001'))													// did not specifically request 'year'
+						date.setFullYear(new Date().getFullYear());
+				}
 				break;
 
 			case 'Number':																					// could be timestamp, or (with args) date-components

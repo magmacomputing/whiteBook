@@ -670,8 +670,7 @@ export class MigrateComponent implements OnInit {
 		const dt = window.prompt('From which date');
 		if (dt) {
 			const now = getDate(dt);
-			const yesNo = window.prompt(`Are you sure you want to delete from ${now.format(DATE_FMT.display)}`, 'Yes');
-			if (yesNo === 'Yes')
+			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
 				this.attend.delAttend(addWhere('track.date', now.format(DATE_FMT.yearMonthDay), '>='));
 		}
 	}
