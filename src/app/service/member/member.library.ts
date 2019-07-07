@@ -1,12 +1,13 @@
 import * as firebase from 'firebase/app';
 
-import { IPlanState, ISummary } from '@dbase/state/state.define';
+import { IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
-import { asArray } from '@lib/array.library';
-import { getStamp, getDate } from '@lib/date.library';
 import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
+import { asArray } from '@lib/array.library';
+import { cloneObj } from '@lib/object.library';
+import { getStamp, getDate } from '@lib/date.library';
 
 // Library of member-related functions
 
@@ -44,7 +45,7 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 	if (profileInfo.birthDay)															// as number
 		profileInfo.birthDay = getStamp(profileInfo.birthDay)
 
-	return profileInfo;
+	return cloneObj(profileInfo);													// removed 'undefined' fields
 }
 
 // each Provider might report a different birthday; take earliest

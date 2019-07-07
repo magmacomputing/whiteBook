@@ -10,7 +10,7 @@ import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE, TYPE } from '@dbase/data/data.define';
 import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
@@ -63,7 +63,7 @@ export class MemberService {
 		return {
 			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.store]: STORE.payment,
-			[FIELD.type]: 'topUp',
+			[FIELD.type]: TYPE.topUp,
 			amount: isUndefined(amount) ? topUp : amount,
 			stamp: getStamp(stamp),
 		} as IPayment
@@ -71,7 +71,7 @@ export class MemberService {
 
 	private async upgradePlan(stamp?: TDate) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<IPrice>(STORE.price, [
-			addWhere(FIELD.type, 'topUp'),
+			addWhere(FIELD.type, TYPE.topUp),
 			addWhere(FIELD.key, 'member'),
 		], getStamp(stamp))
 		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
@@ -141,7 +141,7 @@ export class MemberService {
 		data = data || await this.getAccount();
 
 		return data.client.price
-			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
+			.filter(row => row[FIELD.type] === TYPE.topUp)[0].amount || 0;
 	}
 
 	/** check for change of User.additionalInfo */
@@ -150,18 +150,18 @@ export class MemberService {
 			return;																				// No AdditionalUserInfo available
 		this.dbg('info: %s', info.providerId);
 
-		const user = this.state.asPromise(this.state.getAuthData());
+		// const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
-			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
-			[FIELD.type]: 'info',
-			[FIELD.uid]: uid || (await user).auth.user!.uid,
-			info: { ...memberInfo },											// spread the conformed member info
+			[FIELD.type]: TYPE.info,
+			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
+			[FIELD.uid]: uid || (await this.data.getUID()),
+			[TYPE.info]: { ...memberInfo },								// spread the conformed member info
 		}
 
-		const where = addWhere('info.providerId', info.providerId);
-		this.data.insDoc(profileInfo as IProfileInfo, where, 'info');
+		const where = addWhere(`${TYPE.info}.providerId`, info.providerId);
+		this.data.insDoc(profileInfo as IProfileInfo, where, TYPE.info);
 	}
 
 }

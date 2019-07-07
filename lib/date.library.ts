@@ -15,6 +15,7 @@ interface IInstant {											// Date components
 	readonly mmm: string;										// short month-name
 	readonly ddd: string;										// short day-name
 	readonly dow: number;										// weekday; Mon=1, Sun=7
+	readonly value?: TDate;									// original value to constructor
 }
 
 interface ITimestamp {
@@ -127,6 +128,7 @@ export class Instant {
 	/** parse a Date, return components */
 	private parseDate = (dt?: TDate, args: TArgs = []) => {
 		let date: Date;
+		let value = dt;																						// actual value parsed (useful for debugging)
 
 		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
@@ -182,7 +184,7 @@ export class Instant {
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
-			console.error('Invalid Date: ', dt, date);							// TODO: log the Invalid Date
+			console.error('Invalid Date: ', value, date);						// TODO: log the Invalid Date
 
 		let [yy, mm, dd, HH, MI, SS, ts, ms, dow] = [
 			date.getFullYear(), date.getMonth(), date.getDate(),
@@ -197,7 +199,7 @@ export class Instant {
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.DAY[dow], mmm: Instant.MONTH[mm] } as IInstant;
+		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.DAY[dow], mmm: Instant.MONTH[mm], value } as IInstant;
 	}
 
 	/** mutate an Instant */

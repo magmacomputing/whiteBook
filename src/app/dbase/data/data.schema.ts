@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, CONNECT, BONUS, REACT, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, STORE, CONNECT, BONUS, REACT, COLLECTION, TYPE } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -12,12 +12,12 @@ type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | S
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
-type TPayment = 'topUp' | 'hold' | 'credit' | 'debit';
-type TProfile = 'plan' | 'claim' | 'info' | 'pref';
+type TPayment = TYPE.topUp | 'hold' | 'credit' | 'debit';
+type TProfile = TYPE.plan | TYPE.claim | TYPE.info | TYPE.pref;
 type TStatus = 'account' | 'connect';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special'
-export type TPrice = TSpan | 'topUp' | 'hold' | 'expiry';
+export type TPrice = TSpan | TYPE.topUp | 'hold' | 'expiry';
 export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
@@ -300,19 +300,19 @@ export interface IProfile extends IUserBase {
 	[FIELD.type]: TProfile;
 }
 export interface IProfilePlan extends IProfile {
-	[FIELD.type]: STORE.plan;
+	[FIELD.type]: TYPE.plan;
 	plan: TPlan;
 }
 export interface IProfileClaim extends IProfile {
-	[FIELD.type]: 'claim';
+	[FIELD.type]: TYPE.claim;
 	claims: ICustomClaims;
 }
 export interface IProfileInfo extends IProfile {
-	[FIELD.type]: 'info';
-	'info': IMemberInfo;
+	[FIELD.type]: TYPE.info;
+	[TYPE.info]: IMemberInfo;
 }
 export interface IProfilePref extends IProfile {
-	[FIELD.type]: 'pref';
+	[FIELD.type]: TYPE.pref;
 }
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
 

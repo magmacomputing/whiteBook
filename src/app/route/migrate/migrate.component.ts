@@ -59,7 +59,6 @@ export class MigrateComponent implements OnInit {
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: Record<string, IEvent>;
-	// private classes!: Record<TClass, IClass>;
 
 	private lookup: Record<string, string> = {
 		oldStep: 'MultiStep',
@@ -104,7 +103,6 @@ export class MigrateComponent implements OnInit {
 				this.schedule = schedule;
 				this.calendar = calendar;
 				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
-				// this.classes = classes.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<TClass, IClass>);
 			})
 
 		this.state.getAuthData()																	// stash the Auth'd user

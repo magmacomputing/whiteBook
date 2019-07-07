@@ -37,6 +37,17 @@ export enum STORE {
 	log = 'log',
 }
 
+export enum TYPE {
+	info = 'info',
+	plan = 'plan',
+	pref = 'pref',
+	claim = 'claim',
+	profile = 'profile',
+	message = 'message',
+	account = 'account',
+	topUp = 'topUp',
+}
+
 export enum MEMBER {
 	profile = 'profile',						// 'claims', 'info', 'plan'
 	payment = 'payment',						// Payments
