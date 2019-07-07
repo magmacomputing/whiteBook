@@ -150,9 +150,9 @@ export class Instant {
 					? this.formatString(fmt, ...args)										// free-format string
 					: fmt)																							// let Javascript interpret string
 
-				if (!args.length && date.getFullYear() === 2001) {
-					if (!fmt.includes('2001'))													// did not specifically request 'year'
-						date.setFullYear(new Date().getFullYear());
+				if (date.getFullYear() === 2001) {										// Javascript default year, if none in parse-string
+					if (!fmt.includes('2001'))													// did not specifically request default year
+						date.setFullYear(new Date().getFullYear());				// so, override to current year
 				}
 				break;
 
