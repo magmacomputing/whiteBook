@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, CONNECT, BONUS, REACT, COLLECTION, TYPE } from '@dbase/data/data.define';
+import { FIELD, STORE, TYPE, CONNECT, BONUS, REACT, COLLECTION } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
