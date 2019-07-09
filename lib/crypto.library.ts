@@ -1,11 +1,11 @@
 import { asString } from '@lib/string.library';
 import { toHex } from '@lib/number.library';
 
-const CRYPTO = {
-	algorithm: 'SHA-256',
-	encoding: 'utf-8',
-	signKey: 'RSASSA-PKCS1-v1_5',
-	typeKey: 'AES-CBC',
+enum CRYPTO {
+	algorithm = 'SHA-256',
+	encoding = 'utf-8',
+	signKey = 'RSASSA-PKCS1-v1_5',
+	typeKey = 'AES-CBC',
 }
 
 export const decodeBase64 = <T>(str: string): T =>

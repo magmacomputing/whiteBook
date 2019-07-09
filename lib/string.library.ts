@@ -25,7 +25,6 @@ export const asNumber = (str: string | number) =>
 export const randomString = (len = 36) =>
 	Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15);
 
-
 /**
  * use sprintf-style formatting on a string.  
  * if the format does not contain a corresponding '%'-char, then de-construct the arguments
