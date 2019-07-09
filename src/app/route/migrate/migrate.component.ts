@@ -457,7 +457,7 @@ export class MigrateComponent implements OnInit {
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
-																										// TODO: consider 'override' option on Bonus type
+			// TODO: consider 'override' option on Bonus type
 			if (row.note && (row.note.includes('Bonus: Week Level reached'))) {
 				obj.full.amount = 0;
 				price = 0;
@@ -473,7 +473,7 @@ export class MigrateComponent implements OnInit {
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : Math.abs(price)).toString() });
 			what = 'MultiStep';
-			price = obj.full.amount;											// set this row's price to MultiSTep
+			price = obj.full.amount;											// set this row's price to MultiStep
 		}
 
 		switch (true) {
@@ -670,6 +670,8 @@ export class MigrateComponent implements OnInit {
 		const dt = window.prompt('From which date');
 		if (dt) {
 			const now = getDate(dt);
+			if (!now.isValid())
+				return;
 			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
 				this.attend.delAttend(addWhere('track.date', now.format(DATE_FMT.yearMonthDay), '>='));
 		}
