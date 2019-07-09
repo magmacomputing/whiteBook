@@ -457,7 +457,7 @@ export class MigrateComponent implements OnInit {
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
-
+																										// TODO: consider 'override' option on Bonus type
 			if (row.note && (row.note.includes('Bonus: Week Level reached'))) {
 				obj.full.amount = 0;
 				price = 0;
