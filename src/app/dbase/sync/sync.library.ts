@@ -47,7 +47,7 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback at this time)
-export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: any) => {//FireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire?: any) => {//FireService) => {
 	// const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		[FIELD.id]: snap.payload.doc.id,
