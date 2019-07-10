@@ -17,6 +17,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatRippleModule } from '@angular/material/core';
 import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { InfoDialogComponent } from '@service/material/dialog.service';
 
 const modules = [
 	MatToolbarModule,
@@ -49,6 +50,6 @@ const modules = [
 		{ provide: MATERIAL_SANITY_CHECKS, useValue: false },
 		{ provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 5000 } },
 	],
-	declarations: [],
+	declarations: [InfoDialogComponent],
 })
 export class MaterialModule { }

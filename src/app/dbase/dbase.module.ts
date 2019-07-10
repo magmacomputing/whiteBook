@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AngularFireModule } from '@angular/fire';
-import { AngularFirestoreModule, FirestoreSettingsToken } from '@angular/fire/firestore';
+import { AngularFirestoreModule } from '@angular/fire/firestore';
 import { AngularFireFunctionsModule, FunctionsRegionToken } from '@angular/fire/functions';
 import { environment } from '@env/environment';
 
@@ -13,7 +13,6 @@ import { AttendState } from '@dbase/state/attend.state';
 import { AdminState } from '@dbase/state/admin.state';
 
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
-import { InfoDialogComponent } from '@service/material/dialog.service';
 
 const fb = environment.firebase || {};
 
@@ -27,8 +26,7 @@ const fb = environment.firebase || {};
 	],
 	providers: [
 		{ provide: FunctionsRegionToken, useValue: fb.config.region },
-		// { provide: FirestoreSettingsToken, useValue: {} },				// TODO: is this still necessary after @angular/fire is upgraded from 5.1.1
 	],
-	declarations: [InfoSnackBar, WarnSnackBar, ErrorSnackBar, InfoDialogComponent],
+	declarations: [InfoSnackBar, WarnSnackBar, ErrorSnackBar],
 })
 export class DBaseModule { }

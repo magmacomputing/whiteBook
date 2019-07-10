@@ -6,6 +6,7 @@ import { MaterialModule } from '@route/material.module';
 import { PlanComponent } from '@route/profile/plan/plan.component';
 import { AccountComponent } from '@route/profile/account/account.component';
 import { HistoryComponent } from '@route/profile/history/history.component';
+import { InfoDialogComponent } from '@service/material/dialog.service';
 
 const routes: Routes = [
 	{ path: 'plan', component: PlanComponent },

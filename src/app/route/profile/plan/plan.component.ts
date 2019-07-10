@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { MemberService } from '@service/member/member.service';
+import { DialogService } from '@service/material/dialog.service';
 
 import { IPlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
@@ -19,7 +20,7 @@ export class PlanComponent implements OnInit {
 	public data$!: Observable<IPlanState>;
 	private dbg = dbg(this);
 
-	constructor(private readonly member: MemberService, private readonly state: StateService) { }
+	constructor(private readonly member: MemberService, private readonly state: StateService, public dialog: DialogService) { }
 
 	ngOnInit() {
 		this.data$ = this.state.getPlanData().pipe(
@@ -32,5 +33,6 @@ export class PlanComponent implements OnInit {
 
 	showPlan(plan: string, price: IPrice[]) {
 		this.dbg('show: %j', price.filter(price => price[FIELD.key] === plan));
+		this.dialog.open('Blah, blah, blah');
 	}
 }

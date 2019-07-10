@@ -14,9 +14,11 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
 import { StoreStorage } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
+
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
-import { ReactionComponent } from './service/reaction/reaction.component';
-import { SafePipe } from './service/material/safe.pipe';
+import { InfoDialogComponent } from '@service/material/dialog.service';
+import { ReactionComponent } from '@service/reaction/reaction.component';
+import { SafePipe } from '@service/material/safe.pipe';
 
 @NgModule({
 	declarations: [
@@ -37,7 +39,7 @@ import { SafePipe } from './service/material/safe.pipe';
 	],
 	providers: [],
 	bootstrap: [AppComponent],
-	entryComponents: [InfoSnackBar, WarnSnackBar, ErrorSnackBar],
+	entryComponents: [InfoSnackBar, WarnSnackBar, ErrorSnackBar, InfoDialogComponent],
 })
 export class AppModule {
 	static injector: Injector;

@@ -18,12 +18,10 @@ export class DialogService {
   public open(msg: string, action?: string, config: MatDialogConfig = {}) {
 		this.dismiss();
 		this.ref = this.dialog.open(InfoDialogComponent, config);
-    // this.ref = this.snack.open(msg, action, this.setConfig(config));
   }
 	
 	public dismiss() {                    // dismiss any snackbar, if present
     if (this.ref) {
-      // this.ref.dismiss();
       this.ref = undefined;
 		}
 	}
