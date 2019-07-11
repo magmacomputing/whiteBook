@@ -7,9 +7,10 @@ import { DialogService } from '@service/material/dialog.service';
 
 import { IPlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD } from '@dbase/data/data.define';
-import { IPrice } from '@dbase/data/data.schema';
+import { FIELD, TYPE } from '@dbase/data/data.define';
+import { IPrice, IPlan } from '@dbase/data/data.schema';
 
+import { isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -31,8 +32,43 @@ export class PlanComponent implements OnInit {
 		)
 	}
 
-	showPlan(plan: string, price: IPrice[]) {
-		this.dbg('show: %j', price.filter(price => price[FIELD.key] === plan));
-		this.dialog.open('Blah, blah, blah');
+	/** Describe the clicked Plan */
+	showPlan(plan: IPlan, prices: IPrice[]) {
+		const icon = plan.icon;
+		const title = plan[FIELD.key];
+		const subtitle = `${plan.desc}${isUndefined(plan.rule) ? '' : ', ' + plan.rule}`;
+		const actions = ['Close'];
+
+		let content: string[] = [];
+		content.push(plan.expiry
+			? `Unused funds will expire ${plan.expiry} months after last Attendance.`
+			: 'Your payment amount does not expire.'
+		)
+		content.push('-');											// blank line
+		content.push('This plan is ' + (plan.bonus
+			? 'entitled to Bonus schemes.'
+			: 'not entitled to Bonus schemes.')
+		)
+
+		content.push('-');											// blank line
+		content.push('Pricing...');
+		prices
+			.filter(row => row[FIELD.key] === plan[FIELD.key])
+			.forEach(price => {
+				if (price[FIELD.type] === TYPE.topUp && price.amount)
+					content.push(`$${this.fixString(price.amount)} to topUp your account`);
+				if (price[FIELD.type] === 'hold')
+					content.push(`$${this.fixString(price.amount)} funds on-hold for 90-days`)
+				if (price[FIELD.type] === 'full')
+					content.push(`$${this.fixString(price.amount)} for a standard-length Class`);
+				if (price[FIELD.type] === 'half')
+					content.push(`$${this.fixString(price.amount)} for a half-hour Class`)
+			})
+
+		this.dialog.open({ icon, title, subtitle, actions, content });
+	}
+
+	private fixString(nbr: number) {
+		return nbr.toFixed(2).padStart(6, '\u007F');
 	}
 }

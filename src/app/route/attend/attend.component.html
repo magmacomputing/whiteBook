@@ -28,7 +28,7 @@
 
 						<mat-card-header>
 							<img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'"
-								(click)="showEvent(timetable.client)">
+								(click)="showEvent(timetable.client, idx)">
 
 							<mat-card-title>
 								{{ item.key }}

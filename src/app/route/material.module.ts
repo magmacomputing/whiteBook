@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { MATERIAL_SANITY_CHECKS } from '@angular/material';
@@ -39,6 +40,7 @@ const modules = [
 
 @NgModule({
 	imports: [
+		CommonModule,
 		DragDropModule,
 		...modules,
 	],

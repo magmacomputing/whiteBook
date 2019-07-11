@@ -75,8 +75,8 @@ export interface IMemberState extends IUserState, IApplicationState {
 
 export interface IPlanState extends IMemberState {
 	client: {
-		plan: IPlan[];                      // array of effective Plan documents
-		price: IPrice[];                    // array of effective Price documents
+		plan: IPlan[];                     	// array of effective Plan documents
+		price: IPrice[];                   	// array of effective Price documents
 	}
 }
 

@@ -7,7 +7,7 @@
 		<div *ngFor="let price of data.client?.price">
 			<div *ngIf="price.type == 'topUp' && price.key == plan.key && !plan._hidden">
 				<mat-card-header>
-					<img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(price.key, data.client.price)">
+					<img mat-card-avatar [src]="plan.icon || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan, data.client?.price)">
 					<mat-card-title> {{ plan.key }} </mat-card-title>
 					<mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
 
