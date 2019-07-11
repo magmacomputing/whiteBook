@@ -60,7 +60,7 @@ export class PlanComponent implements OnInit {
 				if (price[FIELD.type] === 'hold')
 					content.push(`$${this.fixString(price.amount)} funds on-hold for 90-days`)
 				if (price[FIELD.type] === 'full')
-					content.push(`$${this.fixString(price.amount)} for a standard-length Class`);
+					content.push(`$${this.fixString(price.amount)} for a one-hour Class`);
 				if (price[FIELD.type] === 'half')
 					content.push(`$${this.fixString(price.amount)} for a half-hour Class`)
 			})

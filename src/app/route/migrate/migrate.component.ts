@@ -97,9 +97,8 @@ export class MigrateComponent implements OnInit {
 				this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) }),
 				this.data.getFire<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) }),
 				this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) }),
-				this.data.getFire<IClass>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.class) }),
 			])
-			.then(([schedule, calendar, events, classes]) => {
+			.then(([schedule, calendar, events]) => {
 				this.schedule = schedule;
 				this.calendar = calendar;
 				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)

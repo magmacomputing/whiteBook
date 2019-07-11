@@ -35,7 +35,6 @@ export class AttendComponent implements OnInit {
 	ngOnInit() {                                        // wire-up the timetable Observable
 		this.timetable$ = this.state.getScheduleData(this.date).pipe(
 			map(data => {
-				// this.firstPaint = false;                   // TODO: ok to animate if Observable re-emits
 				this.locations = (data.client.location || []).length;
 				this.selectedIndex = 0;                       // start on the first-page
 				return data;
