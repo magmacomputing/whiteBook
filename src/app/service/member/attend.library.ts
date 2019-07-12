@@ -110,9 +110,9 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			break;
 
 		/**
-	 * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
-	 * The Member must also have attended less than the free limit (scheme.month.free) to qualify for this bonus
-	 */
+		 * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
+		 * The Member must also have attended less than the free limit (scheme.month.free) to qualify for this bonus
+		 */
 		case scheme.month
 			&& attendMonth
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
