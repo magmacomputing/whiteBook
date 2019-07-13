@@ -54,7 +54,7 @@ export class FireService {
 	}
 
 	combine<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return combineLatest(...this.subRef(colRefs, type));// TODO: .pipe(obs => obs.flat());
+		return combineLatest(...this.subRef(colRefs, type));
 	}
 
 	concat<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {

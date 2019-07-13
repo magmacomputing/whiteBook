@@ -5,6 +5,7 @@ export enum COLLECTION {
 	client = 'client',
 	admin = 'admin',
 	device = 'device',
+	feedback = 'feedback',
 }
 
 export enum STORE {
@@ -30,6 +31,7 @@ export enum STORE {
 	schema = '_schema_',
 	register = 'register',
 	migrate = 'migrate',
+	feedback = 'feedback',
 	status = 'status',
 	local = '@config@',
 	setting = 'setting',
@@ -46,15 +48,6 @@ export enum TYPE {
 	message = 'message',
 	account = 'account',
 	topUp = 'topUp',
-}
-
-export enum MEMBER {
-	profile = 'profile',						// 'claims', 'info', 'plan'
-	payment = 'payment',						// Payments
-	diary = 'diary',								// notes from Member
-	gift = 'gift',									// Gifts to Member
-	status = 'status',							// online / offline status
-	setting = 'setting',						// Member / device preferences
 }
 
 export enum FIELD {								// common Field names

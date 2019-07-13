@@ -94,9 +94,9 @@ export class MigrateComponent implements OnInit {
 
 		Promise																										// get some static data
 			.all([
-				this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) }),
-				this.data.getFire<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) }),
-				this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) }),
+				this.data.getStore<ISchedule>(STORE.schedule),
+				this.data.getStore<ICalendar>(STORE.calendar),
+				this.data.getStore<IEvent>(STORE.event),
 			])
 			.then(([schedule, calendar, events]) => {
 				this.schedule = schedule;
@@ -115,9 +115,12 @@ export class MigrateComponent implements OnInit {
 	async delUser() {
 		const where: TWhere = [addWhere(FIELD.uid, this.current!.uid)];
 		const deletes = await Promise.all([
-			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.member, { where })
+				.pipe(take(1)).toPromise(),
+			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where })
+				.pipe(take(1)).toPromise(),
+			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where })
+				.pipe(take(1)).toPromise(),
 		]);
 
 		return this.data.batch(undefined, undefined, deletes.flat());
