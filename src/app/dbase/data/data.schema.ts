@@ -391,6 +391,7 @@ export interface IFeedBack extends IUserBase {
 	[FIELD.store]: STORE.feedback;
 	[FIELD.type]: STORE.attend;				// currently only 'Attend' feedback
 	[FIELD.key]: string;							// key to document the Member is referencing
+	date: number;											// yyyymmdd of Feedback
 	react?: REACT;
 	comment?: TString;
 }

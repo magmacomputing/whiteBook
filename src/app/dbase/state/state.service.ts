@@ -222,6 +222,7 @@ export class StateService {
 	 * location   -> has the Locations that are indicated on that schedule or calendar
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 * span				-> has the Class Duration definitions ('full' or 'half')
+	 * feedback		-> has an array of Member Feedback about the Classes available on that schedule or event
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 * bonus			-> has an array of active Bonus schemes
 	 * gift				-> has an array of active Gifts available to a Member on the date
@@ -239,6 +240,10 @@ export class StateService {
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
+		const filterFeedback = [
+			addWhere(FIELD.type, STORE.attend),
+			addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`),
+		]
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
