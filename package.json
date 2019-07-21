@@ -18,7 +18,7 @@
     "@angular/material": "^8.0.2",
     "@angular/platform-browser": "~8.1.2",
     "@angular/platform-browser-dynamic": "~8.1.2",
-    "@angular/pwa": "^0.801.1",
+    "@angular/pwa": "^0.801.2",
     "@angular/router": "~8.1.2",
     "@angular/service-worker": "^8.1.2",
     "@ngxs/storage-plugin": "^3.4.3",
