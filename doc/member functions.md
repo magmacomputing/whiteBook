@@ -1,3 +1,4 @@
+---
 Route: /member/${uid}
 Guard: auth.uid = ${uid}
 
