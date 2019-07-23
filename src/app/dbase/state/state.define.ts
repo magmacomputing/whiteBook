@@ -19,20 +19,20 @@ export enum SLICE {
 }
 
 /**
- * State contains a copy of remote documents, sliced into distinct 'store' objects.
- * For example:
- * client: {                                // Client slice, holds public data
- * 		class: [ {class documents} ],       	// Class store, holds documents that describe classes
- *  	price: [ {price documents} ],      		// Price store, holds documents that describe pricing structure
- * 		...
- * 	},
- * member: {																// Member slice, keyed by User.uid
- *      profile: [ {profile documents} ],   // Plan, Claims, User, etc.
- *      payment: [ {payment documents} ],   // describe payments
- *  },
- * attend: {																// Attend slice, keyed by User.uid, linked to /member/payment documents
- *      {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
- *  }
+ * State contains a copy of remote documents, sliced into distinct 'store' objects.  
+ * For example:  
+ * >client: {                                	// Client slice, holds public data  
+ * >		class: [ {class documents} ],       	// Class store, holds documents that describe classes  
+ * > 	price: [ {price documents} ],      			// Price store, holds documents that describe pricing structure  
+ * >		...  
+ * >	},  
+ * >member: {																	// Member slice, keyed by User.uid  
+ * >     profile: [ {profile documents} ],   	// Plan, Claims, User, etc.  
+ * >     payment: [ {payment documents} ],   	// describe payments  
+ * > },  
+ * >attend: {																	// Attend slice, keyed by User.uid, linked to /member/payment documents  
+ * >     {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment  
+ * }  
  */
 
 export type TStateSlice<T> = { [segment: string]: T[] };
