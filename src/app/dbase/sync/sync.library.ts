@@ -13,7 +13,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys } from '@lib/object.library';
-import { getLocalStore } from '@lib/window.library';
+import { getLocalStore } from '@lib/browser.library';
 import { lprintf } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {

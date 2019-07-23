@@ -14,7 +14,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
-import { getLocalStore } from '@lib/window.library';
+import { getLocalStore } from '@lib/browser.library';
 import { getPath } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 

@@ -28,7 +28,7 @@ import { sortKeys, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
-import { setLocalStore, getLocalStore } from '@lib/window.library';
+import { setLocalStore, getLocalStore } from '@lib/browser.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 

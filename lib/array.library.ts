@@ -4,12 +4,16 @@ export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] :
 
 declare global {
 	interface Array<T> {
+		/** return new Array with no repeated elements */
 		distinct(): T[];
+		/** return mapped Array with no repeated elements */
 		distinct<S>(mapfn: (value: T, index: number, array: T[]) => S, thisArg?: any): S[];
 
+		/** Clear down an Array (default to 'empty') */
 		truncate(base?: number): T[];
 
-		cartesian(): T[];
+		/** return cartesian-product of Array of Arrays */
+		cartesian(): T;
 		cartesian(...args: T[][]): T[];
 	}
 }

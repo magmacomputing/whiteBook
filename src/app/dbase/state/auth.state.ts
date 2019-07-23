@@ -22,7 +22,7 @@ import { IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { getLocalStore, delLocalStore, prompt } from '@lib/window.library';
+import { getLocalStore, delLocalStore, prompt } from '@lib/browser.library';
 import { getPath, cloneObj } from '@lib/object.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
