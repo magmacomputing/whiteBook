@@ -8,7 +8,7 @@ import { isUndefined } from '@lib/type.library';
 
 /**
  * Array of Query functions with any limit / order criteria.  
- * If a Where-clause contains an array of <values>, this indicates a logical-or,
+ * If a Where-clause contains an array of <values>, this indicates a logical-OR,
  * and needs to be split into separate Queries, as Firestore does not currently
  * allow 'or' in a single Query
  */
