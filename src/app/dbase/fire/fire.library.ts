@@ -2,14 +2,15 @@ import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere } from '@dbase/fire/fire.interface';
 
-import { asArray, cartesian } from '@lib/array.library';
+import { asArray } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
 import { isUndefined } from '@lib/type.library';
 
-/** Array of Query Functions with any limit / order criteria.  
- * If a Where-clause contains an array of <values>, this indicates a logical-or,
+/**
+ * Array of Query functions with any limit / order criteria.  
+ * If a Where-clause contains an array of <values>, this indicates a logical-OR,
  * and needs to be split into separate Queries, as Firestore does not currently
- * allow 'or' in a single-query
+ * allow 'or' in a single Query
  */
 export const fnQuery = (query: IQuery = {}) => {
 	return splitQuery(query)
@@ -17,8 +18,8 @@ export const fnQuery = (query: IQuery = {}) => {
 			(colRef: Query) => {													// map a Query-function
 				if (split.where)
 					asArray(split.where)
-						.filter(qry => !isUndefined(qry.value))	// discard queries for 'undefined' value
-						.forEach(qry => colRef = colRef.where(qry.fieldPath, (qry.opStr || '==') as firebase.firestore.WhereFilterOp, qry.value));
+						.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value, not supported
+						.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || '==') as firebase.firestore.WhereFilterOp, where.value));
 
 				if (split.orderBy)
 					asArray(split.orderBy)
@@ -47,22 +48,19 @@ export const fnQuery = (query: IQuery = {}) => {
 // TODO: consider split on fieldPath as well?
 /**
  * create a set of Query-clauses to split the logical-or criteria.  
- * for example {fieldPath: 'uid', value: ['abc','def']} will return an array of
- * [ {fieldPath:'uid', value:'abc'}, {fieldPath:'uid', value'def'} ]
+ * for example {fieldPath: 'uid', value: ['abc','def']} will return an array as
+ * [ {fieldPath:'uid', value:'abc'}, {fieldPath:'uid', value'def'} ]  
+ * This allows us to set separate Queries for each split clause
  */
 const splitQuery = (query: IQuery = {}) => {
-	const vals = asArray(query.where)							// for each 'where' clause
+	const wheres = asArray(query.where)						// for each 'where' clause
 		.map(where => asArray(where.value)					// for each 'value'
-			.distinct<any>()													// remove duplicates
-			.map<IWhere>(value => ({													// build an array of separate IWhere
-				fieldPath: where.fieldPath,
-				opStr: where.opStr,
-				value: value,
-			}))
-		);
+			.distinct()																// remove duplicates
+			.map(value => addWhere(where.fieldPath, value, where.opStr))
+		)
+		.cartesian();																// cartesian product of IWhere array
 
-	const wheres: IWhere[] = cartesian(...vals) || [];// cartesian product of IWhere array
-	const split: IQuery[] = wheres.map(where =>		// for each split IWhere
+	const split: IQuery[] = wheres.map(where =>		// for each split IWhere,
 		({																					// build an array of IQuery
 			orderBy: query.orderBy,
 			limitTo: query.limit,
@@ -74,12 +72,9 @@ const splitQuery = (query: IQuery = {}) => {
 		})
 	)
 
-	return split.length ? split : asArray(query);	// if no Where, return array of original Query
+	return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query
 }
 
 /** Make a 'where' clause */
-export const addWhere = (fieldPath: string | FieldPath, value: any, opStr: IWhere["opStr"] = '==') => {
-	const where: IWhere = { fieldPath, value };
-	if (opStr) where.opStr = opStr;
-	return where;
-}
+export const addWhere = (fieldPath: string | FieldPath, value: any, opStr: IWhere["opStr"] = '==') =>
+	({ fieldPath, opStr, value } as IWhere);

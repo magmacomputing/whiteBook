@@ -13,7 +13,7 @@ import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys } from '@lib/object.library';
-import { getLocalStore } from '@lib/window.library';
+import { getLocalStore } from '@lib/browser.library';
 import { lprintf } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
@@ -47,7 +47,7 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback at this time)
-export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: any) => {//FireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire?: any) => {//FireService) => {
 	// const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		[FIELD.id]: snap.payload.doc.id,

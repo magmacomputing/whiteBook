@@ -86,7 +86,7 @@ export class TruncAdmin {									// Truncate Admin object from the Store
 /** helper function to return all except nominated document */
 export const filterState = (state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) => {
 	const slice = payload[segment];
-	const curr = state && state[slice] || [];
+	const curr = state && slice && state[slice] || [];
 
 	return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
 }

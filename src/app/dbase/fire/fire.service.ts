@@ -1,26 +1,25 @@
 import { Injectable, NgZone } from '@angular/core';
+import { firestore } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
 import { tap, take } from 'rxjs/operators';
-import { firestore, database } from 'firebase/app';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
-import { AngularFireAuth } from '@angular/fire/auth';
-import { AngularFireDatabase } from '@angular/fire/database';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
-import { FIELD, COLLECTION, STORE, CONNECT } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { IStoreMeta, ICustomClaims, IStatusConnect } from '@dbase/data/data.schema';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined, isObject } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
-import { getDeviceId } from '@lib/window.library';
 import { dbg } from '@lib/logger.library';
+
+type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
 /**
  * This private service will communicate with the FireStore database,
@@ -29,81 +28,55 @@ import { dbg } from '@lib/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	private dbg = dbg(this);
-	private ref!: database.Reference;
-	private uid: string | null = null;
-	private online: boolean = false;
 
-	constructor(private readonly afa: AngularFireAuth, private readonly afs: AngularFirestore, private readonly afd: AngularFireDatabase, private readonly aff: AngularFireFunctions,
+	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
-		this.ref = this.afd.database.ref(`status/${getDeviceId()}`);
-
-		this.afd.database.ref('.info/connected')
-			.on('value', snap => {
-				this.online = snap.val();						// keep local track of online/offline status
-				if (this.online)
-					this.setState(CONNECT.active);			// set initial state
-			})
-	}
-
-	setState(state: CONNECT) {
-		if (this.uid && !this.afa.auth.currentUser)
-			this.uid = null;											// User has logged-out
-		if (!this.uid && this.afa.auth.currentUser)
-			this.uid = this.afa.auth.currentUser.uid;
-		if (!this.uid && state == CONNECT.active)// Connected, authenticated
-			state = CONNECT.connect								// Connected, not authenticated
-
-		const status: Partial<IStatusConnect> = { [FIELD.store]: STORE.status, [FIELD.type]: 'connect', uid: this.uid as string };
-		this.ref
-			.onDisconnect()
-			.set({ ...status, state: CONNECT.offline, stamp: database.ServerValue.TIMESTAMP })
-			.then(_ => this.ref.set({ ...status, state: state, stamp: database.ServerValue.TIMESTAMP }))
 	}
 
 	/**
-	 * return Collection References (against an optional query).  
-	 * If a 'logical-or' is detected in the 'value' of any Where-clause, multiple Collection References are returned.
+	 * return Collection References (limited by an optional query).  
+	 * If a 'logical-or' is detected in the 'value' of any query's Where-clause, multiple Collection References are returned.
 	 */
 	colRef<T>(collection: COLLECTION, query?: IQuery) {
-		return !query
-			? [this.afs.collection<T>(collection)]// reference against the entire collection
-			: fnQuery(query)											// else register an array of Querys over a collection reference
+		return isUndefined(query)
+			? [this.afs.collection<T>(collection)]		// reference against the entire collection
+			: fnQuery(query)													// else register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
-	merge<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return merge(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
+	private subRef<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
+		return colRefs.map(colRef => colRef[type]()) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>[];
 	}
 
-	combine<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return combineLatest(colRefs.map(colRef => colRef[type]())) as (Observable<U extends 'valueChanges' ? T[][] : DocumentChangeAction<T>[][]>);
+	merge<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+		return merge(...this.subRef(colRefs, type));
 	}
 
-	concat<T, U extends 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges'>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return concat(...(colRefs.map(colRef => colRef[type]()))) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>;
+	combine<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+		return combineLatest(...this.subRef(colRefs, type));
+	}
+
+	concat<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+		return concat(...this.subRef(colRefs, type));
 	}
 
 	/** Document Reference, for existing or new */
 	docRef(store: STORE, docId?: string) {
 		const col = store.includes('/')
-			? store																// already a '/{collection}' path
-			: getSlice(store)											// lookup parent collection name for a 'store'
+			? store																		// already a '/{collection}' path
+			: getSlice(store)													// lookup parent collection name for a 'store'
 
 		docId = isUndefined(docId) ? this.newId() : docId;	// use supplied Id, else generate a new Id
 
 		return this.afs.firestore.collection(col).doc(docId);
 	}
 
-	/** this will auto-manage '.info/connected' Realtime reference */
+	/** manage connectivity */
 	connect(onOff: boolean) {
-		if (onOff) {
-			this.afd.database.goOnline();							// disconnect Realtime database
-			return this.afs.firestore.enableNetwork();// disconnect Cloud Firestore
-		} else {
-			this.afd.database.goOffline();						// reconnect Realtime database
-			return this.afs.firestore.disableNetwork();// reconnect Cloud Firestore
-		}
+		return onOff
+			? this.afs.firestore.enableNetwork()			// disconnect Cloud Firestore
+			: this.afs.firestore.disableNetwork()			// reconnect Cloud Firestore
 	}
 
 	/** allocate a new meta-field _id */
@@ -112,15 +85,20 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private removeMeta(doc: firestore.DocumentData) {
+	private removeMeta(doc: firestore.DocumentData, opts: Record<string, boolean> = {}) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
+
 		Object.entries(rest).forEach(([key, value]) => {
-			if (isUndefined(value))								// remove top-level keys with 'undefined' values
-				// delete rest[key];										// TODO: recurse?
-				rest[key] = firestore.FieldValue.delete();
-			if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
-				rest[key] = firestore.FieldValue.delete();	// TODO: workaround
+			if (isUndefined(value)) {
+				if (opts.setUndefined)
+					delete rest[key]										// remove the field if 'set'
+				else rest[key] = firestore.FieldValue.delete(); // delete the target field if 'update'
+
+				if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
+					rest[key] = firestore.FieldValue.delete();	// TODO: workaround
+			}
 		})
+
 		return rest;
 	}
 
@@ -130,11 +108,11 @@ export class FireService {
 	 * If they are Member documents and missing a <uid> field, the current User is inserted
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
-		const cloneCreate = asArray(cloneObj(creates));
-		const cloneUpdate = asArray(cloneObj(updates));
-		const cloneDelete = asArray(cloneObj(deletes));
+		const cloneCreate = [...asArray(creates)];
+		const cloneUpdate = [...asArray(updates)];
+		const cloneDelete = [...asArray(deletes)];
 		const limit = 300;
-		const all: Promise<void>[] = [];
+		const commits: Promise<void>[] = [];
 
 		while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
 			const c = cloneCreate.splice(0, limit);
@@ -142,15 +120,13 @@ export class FireService {
 			const d = cloneDelete.splice(0, limit - c.length - u.length);
 
 			const bat = this.afs.firestore.batch();
-			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
+			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins, { setUndefined: true })));
 			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
-			all.push(bat.commit());
+			commits.push(bat.commit());
 		}
 
-		// if (!this.online)
-		// 	all.length = 0;													// dont wait for Batch if offline
-		return Promise.all(all);
+		return Promise.all(commits);
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
@@ -206,10 +182,6 @@ export class FireService {
 
 	callMeta(store: STORE, docId: string) {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
-	}
-
-	writeClaim(claim: ICustomClaims) {
-		return this.callHttps('writeClaim', { collection: COLLECTION.admin, customClaims: claim }, `setting claim`);;
 	}
 
 	createToken(uid: string) {

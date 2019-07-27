@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { take } from 'rxjs/operators';
+import { take, first } from 'rxjs/operators';
 
+import { asAt } from '@library/app.library';
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/material/snack.service';
@@ -8,14 +9,14 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
-import { FIELD, STORE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount } from '@dbase/data/data.schema';
+import { AuthState } from '@dbase/state/auth.state';
+import { FIELD, STORE, TYPE } from '@dbase/data/data.define';
+import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@lib/logger.library';
-import { AuthState } from '@dbase/state/auth.state';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -23,7 +24,19 @@ export class MemberService {
 
 	constructor(private readonly data: DataService, private readonly auth: AuthState, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
-		this.auth.memberSubject.subscribe(info => info && this.getAuthProfile(info));
+		this.listenInfo(true);
+	}
+
+	public async listenInfo(init: boolean = false) {
+		if (init) {
+			const user = await this.auth.auth;
+			if (!user) return;														// dont listen if not logged-in on constructor()
+		}
+
+		this.dbg('listen');
+		this.auth.memberSubject													// this.auth will call complete() after first emit
+			.pipe(first(info => !isNull(info)))						// subscribe until the first non-null response
+			.subscribe(info => this.getAuthProfile(info))
 	}
 
 	async setPlan(plan: TPlan, dt?: TDate) {
@@ -40,17 +53,31 @@ export class MemberService {
 	}
 
 	/** Create a new TopUp payment */
-	async setPayment(amount?: number) {
+	async setPayment(amount?: number, stamp?: TDate) {
 		const data = await this.getAccount();
-		const topUp = await this.getPayPrice(data);			// find the topUp price for this Member
+		const plan = data.member.plan[0];								// only initial topUp on 'intro' allowed
+		const topUp = (plan.plan === 'intro' && data.account.payment.length !== 0)
+			? await this.upgradePlan(stamp)
+			: await this.getPayPrice(data)
 
 		return {
 			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.store]: STORE.payment,
-			[FIELD.type]: 'topUp',
+			[FIELD.type]: TYPE.topUp,
 			amount: isUndefined(amount) ? topUp : amount,
-			stamp: getStamp(),
+			stamp: getStamp(stamp),
 		} as IPayment
+	}
+
+	private async upgradePlan(stamp?: TDate) {				// auto-bump 'intro' to 'member'
+		const prices = await this.data.getStore<IPrice>(STORE.price, [
+			addWhere(FIELD.type, TYPE.topUp),
+			addWhere(FIELD.key, 'member'),
+		], getStamp(stamp))
+		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
+
+		this.setPlan('member', stamp);									// expire 'intro', effect 'member'
+		return topUp.amount;
 	}
 
 	/** Current Account status */
@@ -100,7 +127,6 @@ export class MemberService {
 		return data.member.plan[0];
 	}
 
-	// TODO: apply bonus-tracking to determine discount price
 	getEventPrice = async (event: string, data?: IAccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
@@ -115,26 +141,27 @@ export class MemberService {
 		data = data || await this.getAccount();
 
 		return data.client.price
-			.filter(row => row[FIELD.type] === 'topUp')[0].amount || 0;
+			.filter(row => row[FIELD.type] === TYPE.topUp)[0].amount || 0;
 	}
 
 	/** check for change of User.additionalInfo */
-	async getAuthProfile(info: firebase.auth.AdditionalUserInfo, uid?: string) {
+	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
 		if (isNull(info) || isUndefined(info))
 			return;																				// No AdditionalUserInfo available
+		this.dbg('info: %s', info.providerId);
 
-		const user = this.state.asPromise(this.state.getAuthData());
+		// const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
-			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.store]: STORE.profile,
-			[FIELD.type]: 'info',
-			[FIELD.uid]: uid || (await user).auth.user!.uid,
-			info: { ...memberInfo },											// spread the conformed member info
+			[FIELD.type]: TYPE.info,
+			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
+			[FIELD.uid]: uid || (await this.data.getUID()),
+			[TYPE.info]: { ...memberInfo },								// spread the conformed member info
 		}
 
-		const where = addWhere('info.providerId', info.providerId);
-		this.data.insDoc(profileInfo as IProfileInfo, where, 'info');
+		const where = addWhere(`${TYPE.info}.providerId`, info.providerId);
+		this.data.insDoc(profileInfo as IProfileInfo, where, TYPE.info);
 	}
 
 }

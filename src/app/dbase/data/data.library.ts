@@ -7,7 +7,7 @@ import { TStoreBase, isClientDocument, IStoreMeta, FType, FNumber } from '@dbase
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
-import { equalObj, cloneObj, getPath } from '@lib/object.library';
+import { equalObj, getPath } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -35,13 +35,12 @@ export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
 export const docPrep = (doc: TStoreBase, uid: string) => {
 	if (!doc[FIELD.store])												// every document needs a <store> field
 		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`);
-	const prep = cloneObj(doc);
 
-	if (!isClientDocument(prep))										// if not a /client document
-		if (!prep[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
-			prep[FIELD.uid] = uid;											//  push the current user's uid onto the document
+	if (!isClientDocument(doc))										// if not a /client document
+		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
+			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
 
-	return prep;
+	return doc;
 }
 
 /** Expire current docs */
@@ -87,9 +86,13 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+	const discardFields = asArray(discards);				// list of fields to use in comparison
+	if (discardFields.length === 0)
+		return true;																	// nothing to compare
+
 	const isMatch = currDocs
 		.map(currDoc => 															// for each current document
-			asArray(discards)														// for each of the field-names to match...
+			discardFields																// against each of the field-names to match...
 				.map(field => {
 					const bool = isObject(nextDoc[field])		// compare field-by-field
 						? equalObj(nextDoc[field], currDoc[field])

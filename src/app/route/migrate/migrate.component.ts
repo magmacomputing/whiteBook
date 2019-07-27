@@ -9,11 +9,11 @@ import { AdminService } from '@service/admin/admin.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { getProviderId } from '@service/auth/auth.library';
-import { MHistory } from '@route/migrate/migrate.interface';
+import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD, STORE, BONUS } from '@dbase/data/data.define';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, IClass, TPrice } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -24,11 +24,12 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
-import { sortKeys, IObject, cloneObj, getPath } from '@lib/object.library';
+import { sortKeys, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, getType, TString } from '@lib/type.library';
-import { asString } from '@lib/string.library';
-import { asArray } from '@lib/array.library';
+import { asString, asNumber } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
+import { setLocalStore, getLocalStore } from '@lib/browser.library';
+import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
 @Component({
@@ -43,8 +44,8 @@ export class MigrateComponent implements OnInit {
 	public creditIdx = 0;
 	public credit = ['value', 'zero', 'all'];
 
+	public dash$!: Observable<IAdminState["dash"]>;
 	private account$!: Observable<IAccountState>;
-	private dash$!: Observable<IAdminState["dash"]>;
 	private history: IPromise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrateBase[];
@@ -57,9 +58,9 @@ export class MigrateComponent implements OnInit {
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
-	private events!: IEvent[];
+	private events!: Record<string, IEvent>;
 
-	private lookup: IObject<string> = {
+	private lookup: Record<string, string> = {
 		oldStep: 'MultiStep',
 		Step: 'MultiStep',
 		oldStepDown: 'StepDown',
@@ -81,17 +82,27 @@ export class MigrateComponent implements OnInit {
 	private pack = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private admin: AdminService) {
+		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService,
+		private admin: AdminService) {
 
 		this.history = createPromise<MHistory[]>();
+
+		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
+		this.creditIdx = local.idx;
+		this.hidden = local.hidden;
 		this.filter();
 
-		this.data.getFire<ISchedule>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.schedule) })
-			.then(schedule => this.schedule = schedule);
-		this.data.getFire<ICalendar>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.calendar) })
-			.then(calendar => this.calendar = calendar);
-		this.data.getFire<IEvent>(COLLECTION.client, { where: addWhere(FIELD.store, STORE.event) })
-			.then(events => this.events = events);
+		Promise																										// get some static data
+			.all([
+				this.data.getStore<ISchedule>(STORE.schedule),
+				this.data.getStore<ICalendar>(STORE.calendar),
+				this.data.getStore<IEvent>(STORE.event),
+			])
+			.then(([schedule, calendar, events]) => {
+				this.schedule = schedule;
+				this.calendar = calendar;
+				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
+			})
 
 		this.state.getAuthData()																	// stash the Auth'd user
 			.pipe(take(1))
@@ -104,15 +115,18 @@ export class MigrateComponent implements OnInit {
 	async delUser() {
 		const where: TWhere = [addWhere(FIELD.uid, this.current!.uid)];
 		const deletes = await Promise.all([
-			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.member, { where })
+				.pipe(take(1)).toPromise(),
+			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where })
+				.pipe(take(1)).toPromise(),
+			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where })
+				.pipe(take(1)).toPromise(),
 		]);
 
 		return this.data.batch(undefined, undefined, deletes.flat());
 	}
 
-	private filter(key?: string) {
+	public filter(key?: string) {
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row.register.migrate)
@@ -122,10 +136,8 @@ export class MigrateComponent implements OnInit {
 						case 'all':
 							return true;
 						case 'value':
-							// return row.account && row.account.summary.credit;
 							return getPath(row.account, 'summary.credit');
 						case 'zero':
-							// return row.account && !row.account.summary.credit;
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
@@ -141,11 +153,12 @@ export class MigrateComponent implements OnInit {
 					this.creditIdx = 0;
 				break;
 		}
+		setLocalStore('admin.migrate.filter', { hidden: this.hidden, idx: this.creditIdx });
 	}
 
 	async signIn(register: IRegister) {
-		if (this.current && this.current!.user.customClaims!.memberName === register.user.customClaims!.memberName)
-			return this.signOut();
+		if (this.current && this.current!.user.customClaims!.alias === register.user.customClaims!.alias)
+			return this.signOut();																// <click> on picture will signIn / signOut
 		this.current = register;																// stash current Member
 
 		this.store.dispatch(new AuthOther(register.uid))
@@ -246,6 +259,11 @@ export class MigrateComponent implements OnInit {
 		const creates: IStoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note && row.note.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => isUndefined(payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
+			.filter(row => {
+				if (isUndefined(row.approved))
+					this.dbg('warn: unapproved: %j', row);
+				return !isUndefined(row.approved);
+			})
 			.map(row => {
 				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
@@ -269,7 +287,7 @@ export class MigrateComponent implements OnInit {
 						row.note = 'Write-off part topUp amount';
 				}
 				if (row.debit === undefined && row.credit === undefined)
-					throw new Error(`cannot find amount: ${row}`)
+					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
 
 				return {
 					[FIELD.store]: STORE.payment,
@@ -278,50 +296,61 @@ export class MigrateComponent implements OnInit {
 					hold: row.hold,
 					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
-					approve: approve.stamp && approve,
+					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
 					note: row.note,
 				} as IPayment
 			});
 
-		let gift = 0;
+		let giftCnt = 0;
 		let start = 0;
+		let rest: string | undefined = undefined;
 		hist
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const str = row.note && row.note.substring(row.note.search('Gift #') + 6).match(/\d+/g);
-				if (str) {
-					const nbr = parseInt(str[0]);
+				const search = (row.note && row.note.search('Gift #') + 6) || 0;
+				const match = search && row.note!.substring(search).match(/\d+/g);
+				if (match) {
+					const nbr = parseInt(match[0]);
 					if (nbr === 1) {
-						if (gift && start && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts)) {
-							creates.push(this.setGift(gift, start));
-							gift = 0;
+						if (giftCnt && start && !gifts.find(row => row[FIELD.stamp] === start)) {
+							creates.push(this.setGift(giftCnt, start, rest));
 						}
+						giftCnt = 0;
+						rest = row.note!
+							.substring(search + match[0].length)
+							// .replace(/[^\x20-\x7E]/g, '')
+							.trim();
+						if (rest && rest.startsWith(':'))
+							rest = rest.substring(1).trim();
 						start = row.stamp;
 					}
-					if (nbr > gift)
-						gift = nbr;
+					if (nbr > giftCnt)
+						giftCnt = nbr;
 				}
 			})
-		if (gift && !gifts.find(row => row[FIELD.effect] === getDate(start).startOf('day').ts))
-			creates.push(this.setGift(gift, start));
+
+		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
+			creates.push(this.setGift(giftCnt, start, rest));
 
 		this.data.batch(creates, undefined, undefined, SetMember)
 			.then(_ => this.member.updAccount())
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
 
+	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
 	private getExpiry(row: MHistory, profile: IProfilePlan[], plans: IPlan[], prices: IPrice[]) {
 		let expiry: number | undefined = undefined;
 		const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
 		const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
 		const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
 		const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
+		const paid = parseFloat(row.credit || '0') + parseFloat(row.debit || '0');
 
 		if (topUp && !isUndefined(desc.expiry)) {
 			const offset = topUp.amount
-				? Math.round(parseFloat(row.credit!) / (topUp.amount / desc.expiry)) || 1
+				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
 				: desc.expiry;
 			expiry = getDate(row.approved || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
 			if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
@@ -330,29 +359,41 @@ export class MigrateComponent implements OnInit {
 		return expiry;
 	}
 
-	private setGift(gift: number, start: number) {
+	private setGift(gift: number, start: number, note?: string) {
+		let offset = getDate(start).startOf('day').ts;
+		if (note && note.includes('start: ')) {
+			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
+			if (!isNull(time)) {
+				let hhmm = time[0].split(':');
+				offset = getDate(start)
+					.startOf('day')
+					.add(asNumber(hhmm[0]), 'hours')
+					.add(asNumber(hhmm[1]), 'minutes')
+					.ts
+			}
+		}
 		return {
-			[FIELD.effect]: getDate(start).startOf('day').ts,
+			[FIELD.effect]: offset,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
-			count: gift,
+			limit: gift,
+			note: note || undefined,
 		} as IGift
 	}
 
 	/** Add Attendance records for a Member */
 	public async addAttend() {
-		const [migrate, attend, history] = await Promise.all([
+		const history = await this.history.promise;
+		const [migrate, attend] = await Promise.all([
 			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
-			this.history.promise,
 		])
-
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2015-Jan-01').format(DATE_FMT.yearMonthDay)).length;
+		// const endAt = table.filter(row => row.date >= getDate('2019-Apr-23').format(DATE_FMT.yearMonthDay)).length;
 		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
@@ -385,7 +426,7 @@ export class MigrateComponent implements OnInit {
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere('location', 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
-		const [prefix, suffix, ...none] = what.split('*');
+		const [prefix, suffix] = what.split('*');
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
@@ -404,7 +445,7 @@ export class MigrateComponent implements OnInit {
 
 		if (this.pack.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
-				this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.type, 'plan'), now),
+				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, 'plan'), addWhere(FIELD.uid, this.current!.user.uid)], now),
 				this.data.getStore<IPrice>(STORE.price, undefined, now),
 				this.data.getStore<IBonus>(STORE.bonus, undefined, now),
 			])
@@ -413,27 +454,36 @@ export class MigrateComponent implements OnInit {
 				.reduce((accum, row) => {
 					accum[row[FIELD.type]] = row;
 					return accum;
-				}, {} as IObject<IPrice>)
+				}, {} as Record<TPrice, IPrice>)
 			const sunday = bonus.find(row => row[FIELD.key] === 'sunday');
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
-
-			row.elect = 'sunday';
-			price -= obj.full.amount;											// calc the remaining price, after deduct MultiStep
-
-			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : price).toString() });
-			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : price).toString() });
+			// TODO: consider 'override' option on Bonus type
+			if (row.note && (row.note.includes('Bonus: Week Level reached'))) {
+				obj.full.amount = 0;
+				price = 0;
+				row.elect = BONUS.week;											// Week bonus takes precedence
+			} else if (row.note && row.note.includes('Gift #')) {
+				obj.full.amount = 0;
+				price = 0;
+				row.elect = BONUS.gift;											// special: accidental one-gift claimed against three classes
+			} else {
+				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
+				row.elect = BONUS.sunday;										// dont elect to skip Bonus on a Pack
+			}
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : Math.abs(price)).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : Math.abs(price)).toString() });
 			what = 'MultiStep';
-			price = obj.full.amount;											// set this row's price to MultiSTep
+			price = obj.full.amount;											// set this row's price to MultiStep
 		}
 
 		switch (true) {
-			case this.special.includes(prefix):									// special event match by <colour>, so we need to prompt for the 'class'
+			case this.special.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+				event = this.events[caldr[FIELD.type]];
 				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
 				if (!migrate.attend[sfx]) {
@@ -447,15 +497,17 @@ export class MigrateComponent implements OnInit {
 					migrate.attend[sfx] = event.classes[idx];
 					await this.writeMigrate(migrate);
 				}
+				what = migrate.attend[sfx];
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: migrate.attend[sfx],
+					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
 
-			case (!isUndefined(caldr)):											// special event match by <date>, so we already know the 'class'
-				event = asAt(this.events, addWhere(FIELD.key, caldr[FIELD.type]))[0];
+			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
+				event = this.events[caldr[FIELD.type]];
+
 				if (what === 'MultiStep' && !event.classes.includes(what))
 					what = 'SingleStep';
 				if (!event.classes.includes(what as TClass)) {
@@ -475,9 +527,9 @@ export class MigrateComponent implements OnInit {
 				}
 
 				sched = {
-					[FIELD.store]: STORE.schedule, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					note: row.note ? [row.note, caldr.name] : caldr.name, price,
+					note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 				}
 				break;
 
@@ -498,7 +550,7 @@ export class MigrateComponent implements OnInit {
 				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${klass}`);
-				sched.price = price;											// to allow AttendService to check what was charged
+				sched.amount = price;											// to allow AttendService to check what was charged
 				break;
 
 			default:
@@ -506,12 +558,16 @@ export class MigrateComponent implements OnInit {
 				sched = asAt(this.schedule, where, row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
-				sched.price = price;											// to allow AttendService to check what was charged
+				if (row.note && row.note.includes('Bonus: Week Level reached'))
+					row.elect = BONUS.week;
+				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.elect = row.elect;
 		}
 
 		const p = createPromise<boolean>();
 		if (flag) {
+			if (row.note && row.note.includes('elect false'))
+				sched.elect = BONUS.none;										// Member elected to not receive a Bonus
 			this.attend.setAttend(sched, row.note, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
@@ -521,7 +577,7 @@ export class MigrateComponent implements OnInit {
 		} else {
 			p.resolve(flag)
 			if (!rest.length)
-				return this.check.resolve(true);
+				this.check.resolve(true);
 		}
 
 		p.promise
@@ -607,8 +663,22 @@ export class MigrateComponent implements OnInit {
 		if (full)
 			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		await this.member.setAccount(creates, updates);
-		return this.data.batch(creates, updates, deletes)
+		return this.data.batch(creates, updates, deletes, SetMember)
+			.then(_ => this.member.updAccount())
+			.finally(() => this.dbg('done'))
+	}
+
+	async revAttend() {
+		const dt = window.prompt('From which date');
+		if (dt) {
+			const now = getDate(dt);
+			if (!now.isValid()) {
+				window.alert(`'${dt}': Not a valid date`)
+				return;
+			}
+			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
+				this.attend.delAttend(addWhere('track.date', now.format(DATE_FMT.yearMonthDay), '>='));
+		}
 	}
 
 	async delAttend() {

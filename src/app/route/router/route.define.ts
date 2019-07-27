@@ -9,5 +9,5 @@ export enum ROUTE {
 	attend = 'attend',
 	admin = 'admin',
 
-	migrate = 'migrate/migrate',
+	migrate = 'migrate',
 }

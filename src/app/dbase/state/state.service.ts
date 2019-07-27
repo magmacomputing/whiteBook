@@ -9,7 +9,7 @@ import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUser
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
 import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -36,7 +36,6 @@ export class StateService {
 	private dbg = dbg(this);
 	public states: IState;
 
-	// constructor(private fire: FireService, private sync: SyncService) {
 	constructor() {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
@@ -79,6 +78,12 @@ export class StateService {
 			.toPromise();
 	}
 
+	getLatest<T>(...obs: Observable<T>[]) {
+		return combineLatest(...obs)
+			.pipe(take(1))
+			.toPromise()
+	}
+
 	/**
 	* Assemble a UserState Object describing an authenticated User
 	*/
@@ -100,8 +105,8 @@ export class StateService {
 				[STORE.register]: source[STORE.register] as IRegister[],
 				account: source.account as IStatusAccount[],
 				connect: source.connect as IStatusConnect[],
-				dash: (source[STORE.register] || [])
-					.sort(sortKeys(...SORTBY[STORE.register]))
+				dash: [...(source[STORE.register] || [])]
+					.sort(sortKeys(...asArray(SORTBY[STORE.register])))
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
 						account: (source.account || [])
@@ -208,22 +213,25 @@ export class StateService {
 		)
 	}
 
-	//TODO: apply bonus-pricing to client.schedule
 	/**
 	 * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
-	 * schedule   -> has an array of Schedule info for the weekday of the supplied date  
+	 * schedule   -> has an array of Schedule info for the weekday of the date  
 	 * calendar		-> has the Calendar event for that date (to override regular class)  
 	 * event			-> has the Events that are indicated on that calendar
 	 * class      -> has the Classes that are available on that schedule or event  
 	 * location   -> has the Locations that are indicated on that schedule or calendar
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 * span				-> has the Class Duration definitions ('full' or 'half')
+	 * feedback		-> has an array of Member Feedback about the Classes available on that schedule or event
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 * bonus			-> has an array of active Bonus schemes
-	 * gift				-> has an array of active Gifts available to a Member on the supplied date
+	 * gift				-> has an array of active Gifts available to a Member on the date
 	 */
-	getScheduleData(date?: TDate) {
+	getScheduleData(date?: TDate, elect?: BONUS) {
 		const now = getDate(date);
+		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
+		const noToday = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '!=');
+
 		const filterSchedule = addWhere('day', now.dow);
 		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
@@ -231,9 +239,11 @@ export class StateService {
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
-		const filterSpan = [addWhere(FIELD.type, `{{client.schedule.${FIELD.type}}}`), addWhere(FIELD.key, `{{client.class.${FIELD.type}}}`),];
-		const filterBonus = addWhere(FIELD.key, 'XXXXXX');																		// placeholder
-		const filterGift = addWhere(FIELD.key, 'XXXXXX');																			// placeholder
+		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
+		const filterFeedback = [
+			addWhere(FIELD.type, STORE.attend),
+			addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`),
+		]
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
@@ -242,6 +252,10 @@ export class StateService {
 			addWhere(FIELD.effect, Number.MIN_SAFE_INTEGER, '>'),
 			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
 		]
+		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
+		const attendWeek = [isMine, noToday, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
+		const attendMonth = [isMine, noToday, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
+		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
@@ -254,10 +268,14 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations
 			joinDoc(this.states, 'client', STORE.alert, filterAlert, date),											// get any Alert message for this date
-			joinDoc(this.states, 'client', STORE.bonus, filterBonus, date),											// get any Bonus
-			joinDoc(this.states, 'member', STORE.gift, filterGift, date),												// get any Gifts
-			map(table => buildTimetable(table)),																								// assemble the Timetable
-		) as Observable<ITimetableState>																											// declaire Type (to override pipe()'s limit of nine)
+			joinDoc(this.states, 'client', STORE.bonus, undefined, date),												// get any active Bonus
+			joinDoc(this.states, 'member', STORE.gift, isMine, date),														// get any active Gifts
+			joinDoc(this.states, 'attend.attendGift', STORE.attend, attendGift),								// get any Attends against active Gifts
+			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends against this week
+			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
+			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends against this day
+			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
+		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
 
 	/**
@@ -284,16 +302,4 @@ export class StateService {
 			take(1),
 		)
 	}
-
-	/**
-	 * Assemble a Object describing the eligibility of a Member for special pricing
-	 */
-	// getBonusData(date?: TDate, event?: TString): Observable<IBonusState> {
-	/**
-	 * uid is the Member to check-in 
-	 * gift is array of active Gifts effective (not expired) on this date  
-	 * scheme is definition of active Bonus schemes effective on this date
-	 */
-
-	// }
 }

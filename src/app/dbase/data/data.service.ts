@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
 import { firestore } from 'firebase/app';
-import { DocumentReference } from '@angular/fire/firestore';
-import { take } from 'rxjs/operators';
+import { DocumentReference, DocumentChangeAction } from '@angular/fire/firestore';
+
+import { Observable } from 'rxjs';
+import { take, map } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, ICustomClaims, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -66,10 +68,6 @@ export class DataService {
 			: Promise.reject(`Cannot determine slice: ${store}`)
 	}
 
-	writeClaim(claim: ICustomClaims) {
-		return this.fire.writeClaim(claim);											// update some components on /admin/register/{pushId}/user/customClaims
-	}
-
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
 	}
@@ -80,11 +78,17 @@ export class DataService {
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
-		return this.fire.combine('snapshotChanges', this.fire.colRef<T>(collection, query))
-			.pipe(take(1))																				// wait for first emit from each Observable in value-array
+		return this.fire.combine('stateChanges', this.fire.colRef<T>(collection, query))
+			.pipe(
+				map(obs => obs.flat()),															// flatten the array-of-values results
+				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
+			)
+	}
+
+	asPromise<T>(obs: Observable<T[]>) {
+		return obs
+			.pipe(take(1))
 			.toPromise()
-			.then(obs => obs.flat())															// flatten the array-of-values results
-			.then(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
 	}
 
 	get newId() {

@@ -5,6 +5,7 @@ export enum COLLECTION {
 	client = 'client',
 	admin = 'admin',
 	device = 'device',
+	feedback = 'feedback',
 }
 
 export enum STORE {
@@ -30,17 +31,23 @@ export enum STORE {
 	schema = '_schema_',
 	register = 'register',
 	migrate = 'migrate',
+	feedback = 'feedback',
 	status = 'status',
 	local = '@config@',
+	setting = 'setting',
+	react = 'react',
 	log = 'log',
 }
 
-export enum MEMBER {
+export enum TYPE {
+	info = 'info',
+	plan = 'plan',
+	pref = 'pref',
+	claim = 'claim',
 	profile = 'profile',
-	payment = 'payment',
-	diary = 'diary',
-	gift = 'gift',
-	status = 'status',
+	message = 'message',
+	account = 'account',
+	topUp = 'topUp',
 }
 
 export enum FIELD {								// common Field names
@@ -76,4 +83,14 @@ export enum BONUS {
 	week = 'week',
 	month = 'month',
 	sunday = 'sunday',
+	none = 'none',
+}
+
+export enum REACT {
+	like = 'like',
+	love = 'love',
+	wow = 'wow',
+	laugh = 'laugh',
+	sad = 'sad',
+	angry = 'angry',
 }

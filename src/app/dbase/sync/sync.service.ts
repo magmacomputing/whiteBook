@@ -19,20 +19,19 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { IObject } from '@lib/object.library';
-import { isFunction } from '@lib/type.library';
 import { createPromise } from '@lib/utility.library';
+import { isFunction } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: IObject<IListen> = {};
+	private listener: Record<string, IListen> = {};
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
 	/**
-	 * establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
+	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
 	 * Additional collections can be defined, and merged into the same slice
 	 */
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
@@ -119,6 +118,7 @@ export class SyncService {
 	private async sync(collection: COLLECTION, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener[collection];
 		const { setStore, delStore, truncStore } = listen.method;
+		const isAdmin = listen.collection === COLLECTION.admin;
 
 		const source = getSource(snaps);
 		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
@@ -130,10 +130,10 @@ export class SyncService {
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s #%s detected from %s (add:%s, mod:%s, rem:%s)',
+		this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
 			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-		if (listen.cnt === 0) {                           // initial snapshot
+		if (listen.cnt === 0 && !isAdmin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps))
 				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
@@ -143,9 +143,9 @@ export class SyncService {
 				.toPromise();
 		}
 
-		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();
-		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();
-		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();
+		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();	// do 'additions' first
+		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();	// then 'changes'
+		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'deletes'
 
 		if (listen.cnt !== 0) {
 			snaps.forEach(async snap => {										// look for special actions to fire

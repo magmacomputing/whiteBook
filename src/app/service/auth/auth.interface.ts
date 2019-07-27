@@ -58,6 +58,7 @@ export enum JWT {
 
 export enum ROLES {
 	member = 'member',
+	instructor = 'instructor',
 	admin = 'admin',
 	guest = 'guest',
 }

@@ -5,7 +5,7 @@ import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
 	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
-	IStatusConnect, IStatusAccount,
+	IStatusConnect, IStatusAccount, TBonus,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -19,20 +19,20 @@ export enum SLICE {
 }
 
 /**
- * State contains a copy of remote documents, sliced into distinct 'store' objects.
- * For example:
- * client: {                                // Client slice, holds public data
- * 		class: [ {class documents} ],       	// Class store, holds documents that describe classes
- *  	price: [ {price documents} ],      		// Price store, holds documents that describe pricing structure
- * 		...
- * 	},
- * member: {																// Member slice, keyed by User.uid
- *      profile: [ {profile documents} ],   // Plan, Claims, User, etc.
- *      payment: [ {payment documents} ],   // describe payments
- *  },
- * attend: {																// Attend slice, keyed by User.uid, linked to /member/payment documents
- *      {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment
- *  }
+ * State contains a copy of remote documents, sliced into distinct 'store' objects.  
+ * For example:  
+ * >client: {                                	// Client slice, holds public data  
+ * >		class: [ {class documents} ],       	// Class store, holds documents that describe classes  
+ * > 	price: [ {price documents} ],      			// Price store, holds documents that describe pricing structure  
+ * >		...  
+ * >	},  
+ * >member: {																	// Member slice, keyed by User.uid  
+ * >     profile: [ {profile documents} ],   	// Plan, Claims, User, etc.  
+ * >     payment: [ {payment documents} ],   	// describe payments  
+ * > },  
+ * >attend: {																	// Attend slice, keyed by User.uid, linked to /member/payment documents  
+ * >     {paymentId}: [ {attendance documents} ],// hold a number of Attendances against a particular account-payment  
+ * }  
  */
 
 export type TStateSlice<T> = { [segment: string]: T[] };
@@ -75,8 +75,8 @@ export interface IMemberState extends IUserState, IApplicationState {
 
 export interface IPlanState extends IMemberState {
 	client: {
-		plan: IPlan[];                      // array of effective Plan documents
-		price: IPrice[];                    // array of effective Price documents
+		plan: IPlan[];                     	// array of effective Plan documents
+		price: IPrice[];                   	// array of effective Price documents
 	}
 }
 
@@ -128,9 +128,17 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		calendar?: ICalendar[];
 		location?: ILocation[];
 		instructor?: IInstructor[];
+		plan?: IPlan[];
 		price?: IPrice[];
 		span?: ISpan[];
 		alert?: IAlert[];
 		bonus?: IBonus[];
-	}
+	},
+	attend: {
+		attendGift: IAttend[];
+		attendWeek: IAttend[];
+		attendMonth: IAttend[];
+		attendToday: IAttend[];
+	},
+	bonus?: TBonus,
 }

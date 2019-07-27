@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { MATERIAL_SANITY_CHECKS } from '@angular/material';
@@ -15,7 +16,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatRippleModule } from '@angular/material/core';
 import { MatSnackBarModule, MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { InfoDialogComponent } from '@service/material/dialog.service';
 
 const modules = [
 	MatToolbarModule,
@@ -32,10 +35,12 @@ const modules = [
 	MatSnackBarModule,
 	MatTabsModule,
 	MatBadgeModule,
+	MatRippleModule,
 ]
 
 @NgModule({
 	imports: [
+		CommonModule,
 		DragDropModule,
 		...modules,
 	],
@@ -47,6 +52,6 @@ const modules = [
 		{ provide: MATERIAL_SANITY_CHECKS, useValue: false },
 		{ provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 5000 } },
 	],
-	declarations: [],
+	declarations: [InfoDialogComponent],
 })
 export class MaterialModule { }

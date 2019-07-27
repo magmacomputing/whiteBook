@@ -5,6 +5,10 @@ export const getType = (obj?: any): string => {
 	switch (true) {
 		case type === 'Object':
 			return obj.constructor.name;							// return Class name
+		case type === 'Window' && obj === undefined:
+			return 'Undefined';												// after Angular8
+		case type === 'Window' && obj === null:
+			return 'Null';														// after Angular8
 		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 			return 'Class';
 		default:
@@ -39,11 +43,18 @@ export type TNumber = number | number[];
 const getType = (obj) => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
 
-	return type === 'Object'
-		? obj.constructor.name											// return Class name
-		: type === 'Function' && obj.valueOf().toString().startsWith('class ')
-			? 'Class'
-			: type
+	switch (true) {
+		case type === 'Object':
+			return obj.constructor.name;							// return Class name
+		case type === 'Window' && obj === undefined:
+			return 'Undefined';												// after Angular8
+		case type === 'Window' && obj === null:
+			return 'Null';														// after Angular8
+		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
+			return 'Class';
+		default:
+			return type;
+	}
 }
 const isType = (obj, type = 'Object') => getType(obj).toLowerCase() === type.toLowerCase();
 const isString = (obj) => isType(obj, 'String');

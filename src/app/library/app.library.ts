@@ -4,7 +4,7 @@ import { IMeta } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isString, isUndefined, isArray } from '@lib/type.library';
-import { IObject, cloneObj, getPath } from '@lib/object.library';
+import { cloneObj, getPath } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { toLower } from '@lib/string.library';
 
@@ -26,7 +26,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 	const clone = cloneObj(table);											// clone to avoid mutating original array
 
 	return clone 																				// clone to avoid mutating original array
-		.filter((row: IObject<any>) => {									// for each row, ...
+		.filter((row: Record<string, any>) => {						// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
 					const key = getPath(row, clause.fieldPath.toString()) as any;
@@ -79,8 +79,9 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
 export const asAt = <T>(table: T[], cond: TWhere = [], date?: TDate) => {
 	const stamp = getStamp(date);
 
-	return filterTable(table as (T & IMeta)[], cond)										// return the rows where date is between _effect and _expire
+	return filterTable(table as (T & IMeta)[], cond)		// return the rows where date is between _effect and _expire
 		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
+		.filter(row => !row[FIELD.hidden])								// discard rows that are not visible
 		.map(row => row as T)
 }

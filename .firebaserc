@@ -1,5 +1,11 @@
 {
-  "projects": {
-    "default": "whitefire-dev"
+  "targets": {
+    "whitefire-51840": {
+      "hosting": {
+        "whiteBook": [
+          "whitefire-51840"
+        ]
+      }
+    }
   }
 }

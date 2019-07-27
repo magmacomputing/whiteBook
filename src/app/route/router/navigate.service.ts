@@ -7,7 +7,7 @@ import { dbg } from '@lib/logger.library';
 export class NavigateService {
   private dbg = dbg(this);
 
-  constructor(private router: Router, private zone: NgZone) { this.dbg('new') }
+  constructor(private router: Router, private zone: NgZone) { this.dbg('new'); }
 
   route(url: string | UrlTree) {
     this.dbg('route: /%s', url);

@@ -1,4 +1,4 @@
-import { TString } from "@lib/type.library";
+import { BONUS } from '@dbase/data/data.define';
 
 export interface MRegister {
 	id: string;
@@ -24,5 +24,10 @@ export interface MHistory {
 	hold?: number;
 	funds?: number;
 	approved?: number;
-	elect?: string;
+	elect?: BONUS;
+}
+
+export interface ILocalStore {
+	hidden: false;
+	idx: number;
 }

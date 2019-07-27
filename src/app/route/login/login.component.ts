@@ -9,16 +9,17 @@ import { DataService } from '@dbase/data/data.service';
 
 import { drag } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';
+import { MemberService } from '@service/member/member.service';
 
 @Component({
 	selector: 'wb-login',
 	templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
-	public provider$= this.state.getCurrent<IProvider>(STORE.provider);
+	public provider$ = this.state.getCurrent<IProvider>(STORE.provider);
 	private dbg = dbg(this);
 
-	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService) {}
+	constructor(private readonly state: StateService, private readonly auth: AuthService, private readonly data: DataService, private readonly member: MemberService) { }
 
 	ngOnInit() { }
 
@@ -30,7 +31,8 @@ export class LoginComponent implements OnInit {
 			opts.password = prompt('Enter your password...') || undefined;
 		}
 
-		this.auth.signIn(provider, opts);
+		this.auth.signIn(provider, opts)
+			.then(_ => this.member.listenInfo());
 	}
 
 	drop(event: CdkDragDrop<any[]>) {

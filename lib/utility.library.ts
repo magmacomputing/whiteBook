@@ -12,8 +12,8 @@ export const createPromise = <T>() => {
 	const obj: Partial<IPromise<T>> = {};						// create the placeholder for the Promise object
 
 	obj.promise = new Promise<T>((resolve, reject) => {
-		obj.resolve = resolve;
-		obj.reject = reject;
+		obj.resolve = resolve;												// stash resolve()
+		obj.reject = reject;													// stash reject()
 	});
 
 	return obj as IPromise<T>;

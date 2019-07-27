@@ -1,27 +1,24 @@
 {
-  "angularCompilerOptions": {
-    "enableIvy": true,
-  },
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "outDir": "./public/out-tsc",
-    "inlineSourceMap": true,
-    "inlineSources": true,
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
     "declaration": false,
+    "module": "esnext",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "importHelpers": true,
     "target": "esnext",
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
       "esnext",
-      "dom",
+      "dom"
     ],
     "strict": true,
-    "noImplicitThis": false,
     "paths": {
       "@env/*": [
         "src/environments/*"
@@ -31,17 +28,17 @@
       ],
       "@dbase/*": [
         "src/app/dbase/*",
-			],
-			"@library/*": [
-				"src/app/library/*",
-			],
+      ],
+      "@library/*": [
+        "src/app/library/*",
+      ],
       "@service/*": [
         "src/app/service/*",
       ],
       "@route/*": [
         "src/app/route/*",
         "src/app/route/router/*",
-      ],
-    },
+      ]
+    }
   }
 }

@@ -6,6 +6,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
 import { asArray } from '@lib/array.library';
+import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
@@ -26,7 +27,7 @@ export class AdminState implements NgxsOnInit {
 
 	@Action(SetAdmin)
 	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.type] || doc[FIELD.store];
@@ -43,7 +44,7 @@ export class AdminState implements NgxsOnInit {
 
 	@Action(DelAdmin)
 	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAdmin) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.type] || doc[FIELD.store];

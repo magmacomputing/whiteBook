@@ -13,10 +13,9 @@ import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
-import { IObject } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
 import { getConfig } from '@library/config.library';
+import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
@@ -46,11 +45,10 @@ export class AuthService {
 	}
 
 	public signOut() {
-		// this.fire.setState(CONNECT.connect);
 		this.store.dispatch(new Logout());
 	}
 
-	public async signIn(provider: IProvider, opts: IObject<any> = {}) {
+	public async signIn(provider: IProvider, opts: Record<string, any> = {}) {
 		this.dbg('signIn: %j', provider);
 
 		switch (provider[FIELD.type]) {
@@ -101,8 +99,6 @@ export class AuthService {
 			(authProvider as TParams).setCustomParameters(provider.params);
 
 		return this.store.dispatch(new LoginIdentity(authProvider))
-			// .toPromise()
-			// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	/** This runs in the main thread */
@@ -112,9 +108,9 @@ export class AuthService {
 			.then(config => getConfig(config, 'oauth'))
 			.then(oauth => oauth.value)
 
-		const parent = this.openChannel('token');
-		parent.onmessage = (msg) => {
-			parent.close();												// close BroadcastChannel
+		const child = this.openChannel('token');// the child popup
+		child.onmessage = (msg) => {						// when child sends a message...
+			child.close();												// 	close BroadcastChannel
 			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
 		}
 
@@ -128,14 +124,13 @@ export class AuthService {
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
 		this.dbg('signInToken: %j', response);
-		const child = this.openChannel('token');
+		const parent = this.openChannel('token');// the parent of this popup
 
 		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
-				if (state.auth.info) 								// tell the main thread to update State
-					child
-						.postMessage(JSON.stringify(state.auth.info));
+				if (state.auth.info) 								// tell the parent to update State
+					parent.postMessage(JSON.stringify(state.auth.info));
 
 				if (state.auth.user) //&& open) {
 					window.close();										// only close on valid user
@@ -144,14 +139,10 @@ export class AuthService {
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
 		return this.store.dispatch(new LoginEmail(email, password))
-			// .toPromise()
-			// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon())
-			// .toPromise()
-			// .then(_ => this.fire.setState(CONNECT.active))
 	}
 
 	private signInOIDC(provider: IProvider) { }

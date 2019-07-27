@@ -73,7 +73,7 @@ export class AuthToken {
 }
 export class AuthOther {												// Event to request impersonate another Member
 	static type = '[Auth] AuthOther';
-	constructor(public member: string) { }				// 'member' can be a <uid> or a <memberName>
+	constructor(public member: string) { }				// 'member' can be a <uid> or an alias
 }
 export class LoginFailed {
 	static type = '[Auth] LoginFailed';

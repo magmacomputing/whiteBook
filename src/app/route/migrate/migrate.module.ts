@@ -7,7 +7,7 @@ import { MaterialModule } from '@route/material.module';
 import { MigrateComponent } from '@route/migrate/migrate.component';
 
 const routes: Routes = [
-  { path: 'attend', component: MigrateComponent },
+  { path: '**', component: MigrateComponent },
 ];
 
 @NgModule({
@@ -15,7 +15,7 @@ const routes: Routes = [
     MigrateComponent,
   ],
   imports: [
-    CommonModule, MaterialModule, RouterModule.forChild(routes), HttpClientModule,
+    CommonModule, MaterialModule, HttpClientModule, RouterModule.forChild(routes),
   ]
 })
 export class MigrateModule { }

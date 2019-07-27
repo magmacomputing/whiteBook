@@ -33,7 +33,7 @@ export class DeviceState implements NgxsOnInit {
 
 	@Action(SetDevice)
 	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetDevice) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
 			if (doc[FIELD.store] === STORE.config) {		// Config change detected
@@ -51,7 +51,7 @@ export class DeviceState implements NgxsOnInit {
 
 	@Action(DelDevice)
 	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelDevice) {
-		const state = getState() || {};
+		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
 		asArray(payload).forEach(doc => {
@@ -97,7 +97,7 @@ export class DeviceState implements NgxsOnInit {
 			.filter(row => row[FIELD.type] !== 'default')		// skip Config 'defaults'
 			.map(row => {
 				const subst: { [key: string]: string; } = {}
-				Object.entries(row.value).forEach(item => {		// for each item in the 'value' field
+				Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
 					const tpl = makeTemplate(item[1]);					// turn it into a template literal
 					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
 				})

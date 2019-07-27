@@ -1,47 +1,61 @@
-import { isArray } from '@lib/type.library';
+import { cloneObj } from '@lib/object.library';
 
-export const asArray = <T>(arr: T | T[] = []) => isArray(arr) ? [...arr] : [arr];
-
-// useful for cartesian product of arrays
-const cartFn = (a: any, b: any) => [].concat(...a.map((d: any) => b.map((e: any) => [].concat(d, e))));
-export const cartesian: any = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
-
+export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
 
 declare global {
-	interface Array<T> {												// change the global interface for Array
-		/** reduce an Array to remove duplicate values */
-		distinct<U>(callbackfn?: (value: T) => U): T extends U ? Array<T> : Array<U>;
+	interface Array<T> {
+		/** return new Array with no repeated elements */
+		distinct(): T[];
+		/** return mapped Array with no repeated elements */
+		distinct<S>(mapfn: (value: T, index: number, array: T[]) => S, thisArg?: any): S[];
 
-		cartesian: () => T[][];										// TODO
-	}
+		/** Clear down an Array (default to 'empty') */
+		truncate(base?: number): T[];
 
-	interface ArrayExt<T> {
-		/** reduce an Array to remove duplicate values */
-		distinct<U>(callbackfn?: (value: T) => U): T extends U ? ArrayExt<T> : ArrayExt<U>;
-
-		// cartesian<T>(a: T, b?: T, ...c: ArrayExt<T>) => ArrayExt<ArrayExt<T>>;		// TODO
+		/** return cartesian-product of Array of Arrays */
+		cartesian(): T;
+		cartesian(...args: T[][]): T[];
 	}
 }
 
-if (!Array.prototype.hasOwnProperty('distinct'))
-	Array.prototype.distinct = function <U>(selector?: <T>(value: T) => U) {
+if (!Array.prototype.hasOwnProperty('truncate')) {
+	Array.prototype.truncate = function (base = 0) {
+		this.length === base;
+		return this;
+	}
+}
+
+if (!Array.prototype.hasOwnProperty('distinct')) {
+	Array.prototype.distinct = function (selector?: (value: any, index: number, array: any[]) => {}) {
 		return selector
 			? this.map(selector).distinct()
-			: [...new Set(this)]
+			: Array.from(new Set(this))
+	}
+}
+
+const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
+if (!Array.prototype.hasOwnProperty('cartesian')) {
+	Array.prototype.cartesian = function (...args: any[]) {
+		const [a, b = [], ...c] = args.length === 0 ? this : args;
+
+		return b.length
+			? this.cartesian(cartFn(a, b), ...c)
+			: [...a || []]
+	}
+}
+
+// insert a value into an array by its sorted position
+export const sortInsert = <T>(arr: T[], val: T) => {
+	let low = 0, high = arr.length;
+	let clone = cloneObj(arr);
+
+	while (low < high) {
+		const mid = (low + high) >>> 1;				// divide by 2
+		if (clone[mid] < val)
+			low = mid + 1
+		else high = mid
 	}
 
-// if (!Array.prototype.hasOwnProperty('cartesian'))
-// 	Array.prototype.cartesian = (a: any[], b?: any[], ...c: any[]) => (b ? cartesian(cartFn(a, b), ...c) : a);
-
-export class ArrayExt<T> extends Array {
-	constructor(...args: any[]) { super(...args) }
-
-	distinct = function <U>(selector?: <T>(value: T) => U) {
-		return selector
-			? this.map(selector).distinct()
-			: new ArrayExt(...new Set(this))
-	}
-
-	// cartesian = <T>(a: ArrayExt<T>, b?: ArrayExt<T>, ...c: ArrayExt<T>) =>
-	// 	(b ? this.cartesian(cartFn(a, b), ...c) : a);
+	clone.splice(low, 0, val);
+	return clone;
 }
