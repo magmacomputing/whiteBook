@@ -380,10 +380,13 @@ export class Instant {
 		return this.composeDate(date);
 	}
 
-	/** calculate the difference between dates */
+	/** calculate the difference between dates (past is positive, future is negative) */
 	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => {
 		const offset = this.parseDate(dt2, args);
-		return Math.floor(Math.abs((offset.ts * 1000 + offset.ms) - (this.date.ts * 1000 + this.date.ms)) / Instant.divideBy[unit]);
+		const diff = (this.date.ts * 1000 + this.date.ms) - (offset.ts * 1000 + offset.ms);
+		return diff < 0
+			? Math.ceil(diff / Instant.divideBy[unit])
+			: Math.floor(diff / Instant.divideBy[unit])
 	}
 }
 
