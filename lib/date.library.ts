@@ -145,9 +145,9 @@ export class Instant {
 
 			case 'String':
 				const fmt = dt as string;
-				date = new Date(args.length
+				date = args.length
 					? this.formatString(fmt, ...args)										// free-format string
-					: fmt)																							// let Javascript interpret string
+					: new Date(fmt)																			// let browser interpret string
 
 				if (date.getFullYear() === 2001) {										// Javascript default year, if none in parse-string
 					if (!fmt.includes('2001'))													// did not specifically request default year
