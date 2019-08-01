@@ -33,7 +33,6 @@ if (!Array.prototype.hasOwnProperty('distinct')) {
 	}
 }
 
-const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
 if (!Array.prototype.hasOwnProperty('cartesian')) {
 	Array.prototype.cartesian = function (...args: any[]) {
 		const [a, b = [], ...c] = args.length === 0 ? this : args;
@@ -43,6 +42,8 @@ if (!Array.prototype.hasOwnProperty('cartesian')) {
 			: [...a || []]
 	}
 }
+
+const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
 
 // insert a value into an array by its sorted position
 export const sortInsert = <T>(arr: T[], val: T) => {
