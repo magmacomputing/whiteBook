@@ -383,7 +383,7 @@ export class Instant {
 	/** calculate the difference between dates */
 	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => {
 		const offset = this.parseDate(dt2, args);
-		return Math.floor(((offset.ts * 1000 + offset.ms) - (this.date.ts * 1000 + this.date.ms)) / Instant.divideBy[unit]);
+		return Math.floor(Math.abs((offset.ts * 1000 + offset.ms) - (this.date.ts * 1000 + this.date.ms)) / Instant.divideBy[unit]);
 	}
 }
 
