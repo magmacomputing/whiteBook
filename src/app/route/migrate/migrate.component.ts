@@ -13,7 +13,7 @@ import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, IClass, TPrice } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, TPrice } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -52,7 +52,6 @@ export class MigrateComponent implements OnInit {
 	private current: IRegister | null = null;
 	private user!: firebase.UserInfo | null;
 	private dflt!: string;
-	private ready!: Promise<boolean[]>;
 	private check!: IPromise<boolean>;
 	public hide = 'Un';
 
@@ -82,9 +81,7 @@ export class MigrateComponent implements OnInit {
 	private pack = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService,
-		private admin: AdminService) {
-
+		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
 		this.history = createPromise<MHistory[]>();
 
 		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
