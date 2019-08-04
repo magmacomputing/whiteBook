@@ -5,7 +5,6 @@ import { take, map, retry } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
-import { AdminService } from '@service/admin/admin.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { getProviderId } from '@service/auth/auth.library';
@@ -109,6 +108,9 @@ export class MigrateComponent implements OnInit {
 
 	ngOnInit() { }
 
+	/**
+	 * Very drastic:  remove all references to a Member
+	 */
 	async delUser() {
 		const where: TWhere = [addWhere(FIELD.uid, this.current!.uid)];
 		const deletes = await Promise.all([
@@ -123,7 +125,13 @@ export class MigrateComponent implements OnInit {
 		return this.data.batch(undefined, undefined, deletes.flat());
 	}
 
-	public filter(key?: string) {
+	/**
+	 * Filter the Members to show on Admin panel
+	 * @param key <string>
+	 * 	'hide'		toggle showing 'hidden' Members
+	 *  'credit'	toggle showing Members with $0 credit
+	 */
+	public filter(key?: 'hide' | 'credit') {
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row.register.migrate)
@@ -146,10 +154,11 @@ export class MigrateComponent implements OnInit {
 				break;
 			case 'credit':
 				this.creditIdx += 1;
-				if (!this.credit[this.creditIdx])
+				if (!this.credit.hasOwnProperty(this.creditIdx))
 					this.creditIdx = 0;
 				break;
 		}
+
 		setLocalStore('admin.migrate.filter', { hidden: this.hidden, idx: this.creditIdx });
 	}
 
@@ -203,6 +212,9 @@ export class MigrateComponent implements OnInit {
 			})
 	}
 
+	/**
+	 * toggle the '_hidden' boolean on /admin/register
+	 */
 	async hideUser() {
 		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
 		reg[FIELD.hidden] = reg[FIELD.hidden]
@@ -214,29 +226,15 @@ export class MigrateComponent implements OnInit {
 		this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
 	}
 
+	/**
+	 * calculate new summary, and batch into /admin/account
+	 */
 	async setAccount() {
 		const creates: IStoreMeta[] = [],
 			updates: IStoreMeta[] = [];
 		await this.member.setAccount(creates, updates);
 
 		this.data.batch(creates, updates);
-	}
-
-	async setProfile() {
-		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
-		const providers = reg.migrate!.providers || [];
-
-		Promise.all(providers
-			.filter(provider => !isNull(provider))
-			.map(provider => {
-				const profile: firebase.auth.AdditionalUserInfo = {
-					isNewUser: false,
-					providerId: getProviderId(provider!.provider),
-					profile: provider,
-				}
-				return this.member.getAuthProfile(profile, this.current!.uid);
-			})
-		)
 	}
 
 	/** get the data needed to migrate a Member */

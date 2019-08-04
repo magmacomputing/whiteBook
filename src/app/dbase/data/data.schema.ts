@@ -386,7 +386,7 @@ export interface IAttend extends IUserBase {
 	}
 }
 
-//	/member/feedback
+//	/feedback
 export interface IFeedBack extends IUserBase {
 	[FIELD.store]: STORE.feedback;
 	[FIELD.type]: STORE.attend;				// currently only 'Attend' feedback

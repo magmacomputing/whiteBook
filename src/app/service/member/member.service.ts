@@ -92,6 +92,7 @@ export class MemberService {
 		return data.account.summary;
 	}
 
+	// create / update accountDoc and stash into creates[]/updates[]
 	setAccount = async (creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], data?: IAccountState) => {
 		data = data || await this.getAccount();
 		const uid = await this.data.getUID();
@@ -112,6 +113,7 @@ export class MemberService {
 		if (!accountDoc[FIELD.id])
 			creates.push(accountDoc as IStoreMeta)
 		else updates.push(accountDoc as IStoreMeta)
+
 		return accountDoc;
 	}
 
