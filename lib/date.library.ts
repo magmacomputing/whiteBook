@@ -121,7 +121,7 @@ export class Instant {
 	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
 
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
-	/** get raw object */	asObject = () => ({ ...this.date });
+	/** get raw object */	toJSON = () => ({ ...this.date });
 	/** as Date object */	asDate = () => new Date(this.date.ts * 1000 + this.date.ms);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -329,7 +329,7 @@ export class Instant {
 	 * e.g. ('%dd-%mmm', 20, 'May') will return new Date() for 20-May in current year.
 	 */
 	private formatString = (fmt: string, ...args: TArgs) => {
-		const date = new Instant().startOf('day').asObject()					// date components
+		const date = new Instant().startOf('day').toJSON()					// date components
 		let cnt = 0;
 
 		fmt.split('%')
