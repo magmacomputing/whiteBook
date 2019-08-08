@@ -21,7 +21,7 @@ interface IInstant {											// Date components
 interface ITimestamp {
 	seconds: number;
 	nanoseconds: number;
-};
+}
 
 interface IDateFmt {											// pre-configured format strings
 	[str: string]: string | number;					// allow for dynamic format-codes
@@ -56,6 +56,7 @@ export type TDate = string | number | Date | Instant | IInstant | Timestamp | IT
 class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
+	private readonly now: number;
 
 	constructor(seconds?: number, nanoseconds?: number) {
 		const now = new Date();
@@ -65,9 +66,10 @@ class Timestamp {
 		this.nanoseconds = isUndefined(nanoseconds)
 			? now.getMilliseconds() * 1000000
 			: nanoseconds
+		this.now = now.setHours(0, 0, this.seconds, this.nanoseconds / 1000);
 	}
 
-	public toDate = () => new Date((this.seconds * 1000) + Math.floor(this.nanoseconds / 1000000));
+	public toDate = () => new Date(this.now);
 	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1000000);
 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
 	static now = new Timestamp();
