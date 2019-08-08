@@ -124,7 +124,7 @@ export class Instant {
 
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 	/** get raw object */	toJSON = () => ({ ...this.date });
-	/** as Date object */	asDate = () => new Date(this.date.ts * 1000 + this.date.ms);
+	/** as Date object */	toDate = () => new Date(this.date.ts * 1000 + this.date.ms);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
@@ -142,7 +142,7 @@ export class Instant {
 				break;
 
 			case 'Date':																						// already is a valid Date	
-				date = dt as Date;
+				date = new Date(dt as Date);													// clone a new Date
 				break;
 
 			case 'String':
@@ -166,7 +166,7 @@ export class Instant {
 				break;
 
 			case 'Instant':																					// already have a valid Instant
-				date = (dt as Instant).asDate();
+				date = (dt as Instant).toDate();
 				break;
 
 			case 'Timestamp':																				// instance of Timestamp
