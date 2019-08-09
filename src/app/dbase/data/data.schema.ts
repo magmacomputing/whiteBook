@@ -303,6 +303,7 @@ export interface IProfile extends IUserBase {
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: TYPE.plan;
 	plan: TPlan;
+	bump?: TPlan;
 }
 export interface IProfileClaim extends IProfile {
 	[FIELD.type]: TYPE.claim;

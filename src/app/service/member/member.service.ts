@@ -52,12 +52,15 @@ export class MemberService {
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
-	/** Create a new TopUp payment */
+	/**
+	 * Create a new TopUp payment  
+	 * If Plan has a 'bump' field, then auto-bump to new Plan
+	 */
 	async setPayment(amount?: number, stamp?: TDate) {
 		const data = await this.getAccount();
 		const plan = data.member.plan[0];								// only initial topUp on 'intro' allowed
-		const topUp = (plan.plan === 'intro' && data.account.payment.length !== 0)
-			? await this.upgradePlan(stamp)
+		const topUp = ('bump' in plan && data.account.payment.length !== 0)
+			? await this.upgradePlan(plan, stamp)
 			: await this.getPayPrice(data)
 
 		return {
@@ -69,14 +72,14 @@ export class MemberService {
 		} as IPayment
 	}
 
-	private async upgradePlan(stamp?: TDate) {				// auto-bump 'intro' to 'member'
+	private async upgradePlan(plan: IProfilePlan, stamp?: TDate) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<IPrice>(STORE.price, [
 			addWhere(FIELD.type, TYPE.topUp),
-			addWhere(FIELD.key, 'member'),
+			addWhere(FIELD.key, plan.bump),
 		], getStamp(stamp))
 		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
 
-		this.setPlan('member', stamp);									// expire 'intro', effect 'member'
+		this.setPlan(plan.bump!, stamp);								// expire 'intro', effect 'member'
 		return topUp.amount;
 	}
 
