@@ -12,7 +12,7 @@ import { IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined } from '@lib/type.library';
-import { Instant } from '@lib/date.library';
+import { Instant, DATE_FMT } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';
@@ -20,10 +20,13 @@ import { dbg } from '@lib/logger.library';
 @Component({
 	selector: 'wb-attend',
 	templateUrl: './attend.component.html',
+	styleUrls: ['./attend.component.scss'],
 })
 export class AttendComponent implements OnInit {
 	private dbg = dbg(this);
-	private date!: number;
+	public date = new Instant().format(DATE_FMT.display);
+	public offset = 0;
+	public note!: string;
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
@@ -82,5 +85,22 @@ export class AttendComponent implements OnInit {
 
 	suffix(idx: number) {
 		return suffix(idx);
+	}
+
+	/**
+	 * I expect this will be called very infrequently.  
+	 * It will allow a Member to check-in to a Class up-to 6 days in the past,  
+	 * useful if the forgot to scan at the time.
+	 */
+	setDate(dir: number) {
+		const today = new Instant();
+		const offset = new Instant(this.date).add(dir, 'days');
+		this.offset = today.diff('days', offset);
+
+		this.date = this.offset > 6
+			? today.format(DATE_FMT.display)
+			: offset.format(DATE_FMT.display)
+
+		this.ngOnInit();
 	}
 }
