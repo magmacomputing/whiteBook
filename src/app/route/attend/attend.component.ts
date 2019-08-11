@@ -90,7 +90,7 @@ export class AttendComponent implements OnInit {
 	/**
 	 * I expect this will be called very infrequently.  
 	 * It will allow a Member to check-in to a Class up-to 6 days in the past,  
-	 * useful if the forgot to scan at the time.
+	 * useful if they forgot to scan at the time.
 	 */
 	setDate(dir: number) {
 		const today = new Instant();
