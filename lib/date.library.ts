@@ -199,13 +199,13 @@ export class Instant {
 		];
 
 		mm += 1;																									// ISO month
-		if (!dow && !isNaN(dow)) dow = Instant.DAY.Sun;						// ISO weekday
+		if (!dow && !isNaN(dow)) dow = Instant.WEEKDAY.Sun;						// ISO weekday
 
-		const thu = date.setDate(dd - dow + Instant.DAY.Thu);			// set to nearest Thursday
+		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);			// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.DAY[dow], mmm: Instant.MONTH[mm], value: dt } as IInstant;
+		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt } as IInstant;
 	}
 
 	/** mutate an Instant */
@@ -224,11 +224,11 @@ export class Instant {
 			case 'start.hour':
 				[date.MI, date.SS, date.ms] = [0, 0, 0];
 				break;
-			case 'start.day':
+			case 'start.WEEKDAY':
 				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
 				break;
 			case 'start.week':
-				date.dd -= date.dow + Instant.DAY.Mon;
+				date.dd -= date.dow + Instant.WEEKDAY.Mon;
 				break;
 			case 'start.month':
 				date.dd = 1;
@@ -239,11 +239,11 @@ export class Instant {
 			case 'mid.minute':
 				[date.MI, date.SS, date.ms] = [30, 0, 0];
 				break;
-			case 'mid.day':
+			case 'mid.WEEKDAY':
 				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
 				break;
 			case 'mid.week':
-				date.dd -= date.dow + Instant.DAY.Thu;
+				date.dd -= date.dow + Instant.WEEKDAY.Thu;
 				break;
 			case 'mid.month':
 				date.dd = 15;
@@ -254,11 +254,11 @@ export class Instant {
 			case 'end.minute':
 				[date.MI, date.SS, date.ms] = [59, 59, 999];
 				break;
-			case 'end.day':
+			case 'end.WEEKDAY':
 				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.week':
-				date.dd -= date.dow + Instant.DAY.Sun;
+				date.dd -= date.dow + Instant.WEEKDAY.Sun;
 				break;
 			case 'end.month':
 				date.mm += 1;
@@ -270,7 +270,7 @@ export class Instant {
 			case 'add.month':
 				date.mm += offset;
 				break;
-			case 'add.day':
+			case 'add.WEEKDAY':
 				date.dd += offset;
 				break;
 			case 'add.hour':
@@ -332,14 +332,14 @@ export class Instant {
 	 */
 	private formatString = (fmt: string, ...args: TArgs) => {
 		const date = new Instant().startOf('day').toJSON()					// date components
-		let cnt = 0;
+		let argCnt = 0;
 
 		fmt.split('%')
 			.forEach(word => {
 				const word4 = word.substring(0, 4),
 					word3 = word.substring(0, 3),
 					word2 = word.substring(0, 2);
-				let param = args[cnt];
+				let param = args[argCnt];
 
 				switch (true) {
 					case word2 === 'yy' && word4 !== 'yyyy':
@@ -357,7 +357,7 @@ export class Instant {
 						break;
 
 					case word3 === 'ddd':						// set the day to the last occurrence of %ddd
-						let weekDay = Instant.DAY[param as keyof typeof Instant.DAY];
+						let weekDay = Instant.WEEKDAY[param as keyof typeof Instant.WEEKDAY];
 						param = (date.dd - date.dow + weekDay).toString();
 					case word2 === 'dd':
 						date.dd = asNumber(param);
@@ -373,10 +373,11 @@ export class Instant {
 					case word2 === 'SS':
 						date.SS = asNumber(param)
 						break;
+
 					default:
-						cnt -= 1;
+						argCnt -= 1;
 				}
-				cnt += 1;
+				argCnt += 1;
 			})
 
 		return this.composeDate(date);
@@ -393,8 +394,8 @@ export class Instant {
 }
 
 export namespace Instant {
-	export enum DAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
-	export enum WEEKDAY { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
+	export enum WEEKDAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
+	export enum WEEKDAYS { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
 	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
 

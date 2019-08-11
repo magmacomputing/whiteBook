@@ -97,7 +97,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.sunday.level										// required number of Attends this week
-			&& now.dow === Instant.DAY.Sun											// today is 'Sunday'
+			&& now.dow === Instant.WEEKDAY.Sun									// today is 'Sunday'
 			&& elect == BONUS.sunday														// Member elected to take Bonus
 			&& (asArray(scheme.sunday.free as TString)).includes(event):
 
