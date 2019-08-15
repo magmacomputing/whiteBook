@@ -62,7 +62,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				break;																						// exit switch-case
 
 		case !plans[0].bonus:																	// Member's Plan does not allow Bonus
-			break;																							//	so no further checking
+			break;																							//	so no further checking needed
 
 		/**
 		 * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.week.level).  

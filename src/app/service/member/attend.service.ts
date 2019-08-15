@@ -237,7 +237,8 @@ export class AttendService {
 	/**
 	 * Removing Attends is a tricky business...  
 	 * it may need to walk back a couple of related Documents.  
-	 * Take great care when deleting a non-latest Attend, as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
+	 * Take great care when deleting a non-latest Attend,
+	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
 	 */
 	public delAttend = async (where: TWhere) => {
 		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
@@ -262,7 +263,7 @@ export class AttendService {
 			.distinct()
 
 		/**
-		 * attends:		all the Attends that relate to the payIds (even those about to be deleted)
+		 * attends:		all the Attends that relate to the payIDs (even those about to be deleted)
 		 * payments:	all the Payments related to this Member
 		 * gifts:			all the Gifts related to this reversal
 		 */
