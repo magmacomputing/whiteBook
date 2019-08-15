@@ -254,7 +254,7 @@ export class Instant {
 			case 'end.minute':
 				[date.MI, date.SS, date.ms] = [59, 59, 999];
 				break;
-			case 'end.WEEKDAY':
+			case 'end.day':
 				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.week':
@@ -270,7 +270,7 @@ export class Instant {
 			case 'add.month':
 				date.mm += offset;
 				break;
-			case 'add.WEEKDAY':
+			case 'add.day':
 				date.dd += offset;
 				break;
 			case 'add.hour':

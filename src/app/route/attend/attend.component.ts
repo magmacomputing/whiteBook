@@ -98,8 +98,8 @@ export class AttendComponent implements OnInit {
 		this.offset = today.diff('days', offset);
 
 		this.date = this.offset > 6
-			? today.format(DATE_FMT.display)
-			: offset.format(DATE_FMT.display)
+		? today.format(DATE_FMT.display)
+		: offset.format(DATE_FMT.display)
 
 		this.ngOnInit();
 	}
