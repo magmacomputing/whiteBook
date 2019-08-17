@@ -19,19 +19,19 @@ interface IInstant {											// Date components
 }
 
 interface ITimestamp {
-	seconds: number;
-	nanoseconds: number;
+	readonly seconds: number;
+	readonly nanoseconds: number;
 }
 
 interface IDateFmt {											// pre-configured format strings
 	[str: string]: string | number;					// allow for dynamic format-codes
-	"ddd, dd mmm yyyy": string;
-	"yyyy-mm-dd HH:MI": string;
-	"dd-mmm": string;
-	"HH:MI": string;
-	"yyyyww": number;
-	"yyyymm": number;
-	"yyyymmdd": number;
+	readonly "ddd, dd mmm yyyy": string;
+	readonly "yyyy-mm-dd HH:MI": string;
+	readonly "dd-mmm": string;
+	readonly "HH:MI": string;
+	readonly "yyyyww": number;
+	readonly "yyyymm": number;
+	readonly "yyyymmdd": number;
 }
 
 export enum DATE_FMT {										// pre-configured format names
@@ -79,7 +79,7 @@ class Timestamp {
 
 // shortcut functions to common Instant class properties / methods.
 /** get new Instant */export const getDate = (dt?: TDate, ...args: TArgs) => new Instant(dt, ...args);
-/** get Timestamp */	export const getStamp = (dt?: TDate, ...args: TArgs) => getDate(dt, ...args).ts;
+/** get timestamp */	export const getStamp = (dt?: TDate, ...args: TArgs) => getDate(dt, ...args).ts;
 /** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate, ...args: TArgs) => getDate(dt, ...args).format(fmt);
 
 /**
@@ -254,7 +254,7 @@ export class Instant {
 			case 'end.minute':
 				[date.MI, date.SS, date.ms] = [59, 59, 999];
 				break;
-			case 'end.WEEKDAY':
+			case 'end.day':
 				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.week':
@@ -270,7 +270,7 @@ export class Instant {
 			case 'add.month':
 				date.mm += offset;
 				break;
-			case 'add.WEEKDAY':
+			case 'add.day':
 				date.dd += offset;
 				break;
 			case 'add.hour':
