@@ -90,11 +90,16 @@ export class AttendComponent implements OnInit {
 	/**
 	 * I expect this will be called very infrequently.  
 	 * It will allow a Member to check-in to a Class up-to 6 days in the past,  
-	 * useful if they forgot to scan at the time.
+	 * useful if they forgot to scan at the time.  
+	 * dir:	if -1,	show previous day
+	 * 			if 1,		show next day
+	 * 			if 0,		show today
 	 */
 	setDate(dir: number) {
 		const today = new Instant();
-		const offset = new Instant(this.date).add(dir, 'days');
+		const offset = dir === 0
+			? today
+			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
 		this.date = this.offset > 6

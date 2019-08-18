@@ -5,7 +5,7 @@
 			<button mat-icon-button [disabled]="offset==6" (click)="setDate(-1)">
 				<mat-icon>arrow_left</mat-icon>
 			</button>
-			{{ date }}
+			<button [disabled]="offset==0" (click)="setDate(0)"> {{ date }} </button>
 			<button mat-icon-button [disabled]="offset==0" (click)="setDate(1)">
 				<mat-icon>arrow_right</mat-icon>
 			</button>

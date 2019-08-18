@@ -3,15 +3,19 @@ import { FIELD, BONUS } from '@dbase/data/data.define';
 import { IGift, TBonus, IBonus } from '@dbase/data/data.schema';
 
 import { TDate, getDate, Instant } from '@lib/date.library';
-import { asArray } from '@lib/array.library';
 import { TString, isUndefined } from '@lib/type.library';
+import { asArray } from '@lib/array.library';
 
 /**
- * Determine if provided event is entitled to a Gift or a Bonus Scheme
+ * Determine if provided event is entitled to a Gift or a Bonus  
+ * source:	info about the current Member, Plans, Bonus, etc.
+ * event:	  a Class name
+ * date:		effective date, else today
+ * elect:		Bonus override (e.g. Member may elect to *not* use one of his Gifts)
  */
 export const calcBonus = (source: ITimetableState, event: string, date?: TDate, elect?: BONUS) => {
 	const now = getDate(date);
-	const upd: IGift[] = [];																// an array of updates to Gifts
+	const upd: IGift[] = [];																// an array of updates for caller to apply on Gifts
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
 	const gifts = source.member.gift;												// the active Gifts for this Member
