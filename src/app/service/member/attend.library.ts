@@ -8,7 +8,7 @@ import { asArray } from '@lib/array.library';
 
 /**
  * Determine if provided event is entitled to a Gift or a Bonus  
- * source:	info about the current Member, Plans, Bonus, etc.
+ * source:	info about the effective Plans, Bonus, etc. and current Member
  * event:	  a Class name
  * date:		effective date, else today
  * elect:		Bonus override (e.g. Member may elect to *not* use one of his Gifts)
@@ -19,7 +19,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
 	const gifts = source.member.gift;												// the active Gifts for this Member
-	const plans = source.client.plan || [];
+	const plan = (source.client.plan || [])[0];							// Member's current plan
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
 	const scheme = (source.client.bonus || [])
 		.reduce((acc, row) => {
@@ -32,6 +32,11 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		 * Admin adds 'Gift' records to a Member's account which will detail
 		 * the start-date and limit of free classes (and an optional expiry-date for the Gift).  
 		 * These gifts will be used in preference to any other Bonus scheme.
+		 * 
+		 * Even though the Member may have a active Gifts, we check if any of them are useable.  
+		 * If not, we pass back an array of auto-expire updates for the caller to apply.
+		 * 
+		 * If ok to use, we pass back an array of count-tracking updates for the caller to apply.
 		 */
 		case gifts.length > 0																	// if Member has some open Gifts
 			&& (isUndefined(elect) || elect === BONUS.gift):		//   and has not elected to *skip* this Bonus
@@ -65,7 +70,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			if (curr > -1)																			// processed a Gift
 				break;																						// exit switch-case
 
-		case !plans[0].bonus:																	// Member's Plan does not allow Bonus
+		case !plan.bonus:																			// Member's Plan does not allow Bonus
 			break;																							//	so no further checking needed
 
 		/**
@@ -92,8 +97,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			break;
 
 		/**
-		 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.sunday.level),
-		 * and did not qualify for the Week scheme previously (e.g. already claimed yesterday?).    
+		 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.sunday.level).  
+		 * Note: the Week scheme takes precendence (if qualifies on Sunday, and not claimed on Saturday)
 		 * The class must be in the free list (scheme.week.free) to qualify for this bonus
 		 */
 		case scheme.sunday
