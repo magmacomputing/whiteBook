@@ -36,7 +36,7 @@
     "@angular/language-service": "^9.0.0-next.2",
     "@types/node": "^12.7.2",
     "codelyzer": "^5.1.0",
-    "tslint": "^5.18.0",
+    "tslint": "^5.19.0",
     "typescript": "^3.5.3"
   }
 }
