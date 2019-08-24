@@ -1,5 +1,5 @@
 import { Injectable, Component, Inject, NgZone } from '@angular/core';
-import { MatSnackBar, MatSnackBarRef, MatSnackBarConfig, MAT_SNACK_BAR_DATA, SimpleSnackBar } from '@angular/material';
+import { MAT_SNACK_BAR_DATA, MatSnackBar, MatSnackBarConfig, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
 
 import { MaterialModule } from '@route/material.module';
 

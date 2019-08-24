@@ -1,5 +1,5 @@
 import { Component, Injectable, Inject } from '@angular/core';
-import { MatDialog, MatDialogRef, MatDialogConfig, MAT_DIALOG_DATA } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogConfig } from '@angular/material';
 
 import { dbg } from '@lib/logger.library';
 import { TString } from '@lib/type.library';
