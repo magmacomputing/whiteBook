@@ -83,9 +83,11 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	return slices[0] as COLLECTION;
 }
 
+/** find the default value for the requested type */
 export const getDefault = (state: IApplicationState, type: string) => {
-	const table = (state['application'][STORE.default])
-		.filter(row => row[FIELD.type] === type);		// find the default value for the requested type
+	const table = (state.application[STORE.default])
+		.filter(row => row[FIELD.type] === type);
+
 	return table.length && table[0][FIELD.key] || undefined;
 }
 

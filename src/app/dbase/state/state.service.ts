@@ -68,6 +68,7 @@ export class StateService {
 			.then(table => table[0]);				// only the first document
 	}
 
+	/** lookup the Default store for a given 'type' */
 	getDefault(state: IApplicationState, type: string) {
 		return getDefault(state, type);
 	}
