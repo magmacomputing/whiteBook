@@ -52,14 +52,17 @@ export class MemberService {
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
-	/**
-	 * Create a new TopUp payment  
-	 * If Plan has a 'bump' field, then auto-bump to new Plan
-	 */
+	/** Create a new TopUp payment  */
 	async setPayment(amount?: number, stamp?: TDate) {
 		const data = await this.getAccount();
-		const plan = data.member.plan[0];								// only initial topUp on 'intro' allowed
-		const topUp = ('bump' in plan && data.account.payment.length !== 0)
+		const plan = data.member.plan[0];
+
+		/**
+		 * If Plan has a 'bump' field, then auto-bump to new Plan  
+		 * 	(e.g. a Member signs-up to an 'intro' Plan and uses-up its alloted value  
+		 * 	then auto-bump them to a new Plan on next check-in)
+		 */
+		const topUp = ('bump' in plan && data.account.payment.length !== 0 && plan.bump !== plan.plan)
 			? await this.upgradePlan(plan, stamp)
 			: await this.getPayPrice(data)
 
