@@ -59,7 +59,6 @@ export class AttendService {
 
 	/** Insert an Attend document, aligned to an active Payment  */
 	public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
-		debugger;
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
