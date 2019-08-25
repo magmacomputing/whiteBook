@@ -36,7 +36,7 @@ export class ReactionService {
 		// return _.mapValues(_.groupBy(reactions), 'length')
 	}
 
-	userReaction(reactions: Array<REACT>) {
+	userReaction(reactions: REACT[]) {
 		return REACT.like;
 		// return _.get(reactions, this.userId)
 	}

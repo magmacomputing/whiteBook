@@ -199,13 +199,19 @@ export class Instant {
 		];
 
 		mm += 1;																									// ISO month
-		if (!dow && !isNaN(dow)) dow = Instant.WEEKDAY.Sun;						// ISO weekday
+		if (!dow && !isNaN(dow)) dow = Instant.WEEKDAY.Sun;				// ISO weekday
 
-		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);			// set to nearest Thursday
+		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
 		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt } as IInstant;
+	}
+
+	private prepDate(dt: string | number) {
+		Instant.hhmi.test(dt.toString())								// if only HH:MI supplied...
+		dt = `${new Date().toDateString()} ${dt}`;
+		return dt;
 	}
 
 	/** mutate an Instant */
