@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { FIELD, STORE, TYPE, CONNECT, BONUS, REACT, COLLECTION } from '@dbase/data/data.define';
+import { STORE, TYPE, FIELD, CONNECT, BONUS, REACT, COLLECTION } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -8,7 +8,8 @@ import { TString } from '@lib/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.react;
-type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status | STORE.feedback;
+type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
+type TStoreForum = STORE.comment | STORE.react;
 type TTypeDefault = TStoreClient | 'icon';
 
 type TSpan = 'full' | 'half';
@@ -59,6 +60,16 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 	[FIELD.store]: TStoreUser;
 	[FIELD.uid]: string;
 	[FIELD.stamp]: number;
+}
+interface IForumBase extends IMeta {
+	[FIELD.store]: STORE.comment | STORE.react;
+	[FIELD.type]: STORE.attend | STORE.class | STORE.event;						// TODO: currently only Attendance feedback
+	[FIELD.key]: string;										// key to the store-type the Member is referencing
+	[FIELD.uid]: string;										// the Member making the feedback
+	track: {																// to use in feedback-analysis
+		date: number;													// yearMonthDay
+		day: number;													// weekDay (1-7, 1=Mon)
+	}
 }
 export interface IMigrateBase extends IMeta {
 	[FIELD.store]: STORE.migrate;
@@ -239,7 +250,7 @@ export interface IAlert extends IClientBase {
 }
 
 //	/client/react									// Member reaction icons
-export interface IReact extends IClientBase {
+export interface IReacts extends IClientBase {
 	[FIELD.store]: STORE.react;
 	[FIELD.key]: REACT;
 	sort: number;
@@ -387,14 +398,14 @@ export interface IAttend extends IUserBase {
 	}
 }
 
-//	/feedback
-export interface IFeedBack extends IUserBase {
-	[FIELD.store]: STORE.feedback;
-	[FIELD.type]: STORE.attend;				// currently only 'Attend' feedback
-	[FIELD.key]: string;							// key to document the Member is referencing
-	date: number;											// yyyymmdd of Feedback
-	react?: REACT;
-	comment?: TString;
+//	/forum/comment
+export interface IComment extends IForumBase {
+	[FIELD.store]: STORE.comment;
+	comment: TString;
+}
+export interface IReact extends IForumBase {
+	[FIELD.store]: STORE.react;
+	react: REACT;
 }
 
 //	/admin/register

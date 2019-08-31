@@ -1,11 +1,11 @@
 export enum COLLECTION {
-	log = 'log',
-	member = 'member',
-	attend = 'attend',
-	client = 'client',
-	admin = 'admin',
-	device = 'device',
-	feedback = 'feedback',
+	log = 'log',						// App actions
+	member = 'member',			// Member-related details
+	attend = 'attend',			// Attendance records (per Member, per Event)
+	client = 'client',			// App details
+	admin = 'admin',				// Administrator records
+	device = 'device',			// Connected Devices (per Member)
+	forum = 'forum',				// Comments / Reactions / Feedback
 }
 
 export enum STORE {
@@ -31,10 +31,10 @@ export enum STORE {
 	schema = '_schema_',
 	register = 'register',
 	migrate = 'migrate',
-	feedback = 'feedback',
 	status = 'status',
 	local = '@config@',
 	setting = 'setting',
+	comment = 'comment',
 	react = 'react',
 	log = 'log',
 }

@@ -30,6 +30,7 @@ export class StateService {
 	@Select() private client$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private member$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private comment$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
 
@@ -41,6 +42,7 @@ export class StateService {
 			'client': this.client$,
 			'member': this.member$,
 			'attend': this.attend$,
+			'comment': this.comment$,
 			'admin': this.admin$,
 			'local': this.local$,
 		}
