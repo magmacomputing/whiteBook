@@ -29,6 +29,7 @@ interface IDateFmt {											// pre-configured format strings
 	readonly "yyyy-mm-dd HH:MI": string;
 	readonly "dd-mmm": string;
 	readonly "HH:MI": string;
+	readonly "hh:mi": string;
 	readonly "yyyyww": number;
 	readonly "yyyymm": number;
 	readonly "yyyymmdd": number;
@@ -38,7 +39,8 @@ export enum DATE_FMT {										// pre-configured format names
 	display = 'ddd, dd mmm yyyy',
 	dateTime = 'yyyy-mm-dd HH:MI',
 	dayMonth = 'dd-mmm',
-	HHMI = 'HH:MI',
+	HHMI = 'HH:MI',													// 24-hour format
+	hhmi = 'hh:mi',													// 12-hour format, am/pm
 	yearWeek = 'yyyyww',
 	yearMonth = 'yyyymm',
 	yearMonthDay = 'yyyymmdd',
@@ -322,6 +324,9 @@ export class Instant {
 					.replace(/H{2}/g, fix(date.HH))
 					.replace(/M{2}/g, fix(date.MI))
 					.replace(/MI/g, fix(date.MI))
+					.replace(/h{2}/g, fix(date.HH > 12 ? date.HH - 12 : date.HH))
+					.replace(/m{2}/g, fix(date.MI) + (date.HH > 12 ? 'pm' : 'am'))
+					.replace(/mi/g, fix(date.MI) + (date.HH > 12 ? 'pm' : 'am'))
 					.replace(/S{2}/g, fix(date.SS))
 					.replace(/ts/g, asString(date.ts))
 					.replace(/ms/g, asString(date.ms))

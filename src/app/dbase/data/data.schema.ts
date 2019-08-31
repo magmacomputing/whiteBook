@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { STORE, TYPE, FIELD, CONNECT, BONUS, REACT, COLLECTION } from '@dbase/data/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, CONNECT, BONUS, REACT } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -48,7 +48,7 @@ export interface IMeta {
 /**
  * We have two main types of 'store' documents.  
  * One for 'client' & 'local', keyed by 'store/type?/key',  
- * the other for 'admin', 'member' & 'attend', keyed by 'store/type?/uid'
+ * the other for 'admin', 'member', 'forum' & 'attend', keyed by 'store/type?/uid'
  */
 export type TStoreBase = IClientBase | IUserBase | IMigrateBase;
 interface IClientBase extends IMeta {
@@ -62,7 +62,7 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 	[FIELD.stamp]: number;
 }
 interface IForumBase extends IMeta {
-	[FIELD.store]: STORE.comment | STORE.react;
+	[FIELD.store]: TStoreForum;
 	[FIELD.type]: STORE.attend | STORE.class | STORE.event;						// TODO: currently only Attendance feedback
 	[FIELD.key]: string;										// key to the store-type the Member is referencing
 	[FIELD.uid]: string;										// the Member making the feedback
@@ -81,7 +81,7 @@ export interface IMigrateBase extends IMeta {
 	}
 }
 export interface IStoreMeta extends IMeta {
-	store: STORE;
+	[FIELD.store]: STORE;
 	[key: string]: any;											// add in index-signature
 }
 export type TStoreMeta = IStoreMeta | IStoreMeta[];

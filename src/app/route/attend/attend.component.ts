@@ -65,7 +65,7 @@ export class AttendComponent implements OnInit {
 		if (!isUndefined(item.amount))
 			content.push(`Cost: $${item.amount.toFixed(2)}`);
 		if (item.start)
-			content.push(`Start: ${dow} @ ${item.start}`)
+			content.push(`Start: ${dow} @ ${new Instant(item.start).format(DATE_FMT.hhmi)}`)
 		if (span)
 			content.push(`Duration: ${span.duration} minutes`);
 		if (item.count)
