@@ -9,33 +9,40 @@ export enum COLLECTION {
 }
 
 export enum STORE {
-	profile = 'profile',
-	payment = 'payment',
-	attend = 'attend',
+	// Client
 	provider = 'provider',
 	alert = 'alert',
 	class = 'class',
 	event = 'event',
 	price = 'price',
 	plan = 'plan',
+	icon = 'icon',
 	schedule = 'schedule',
 	calendar = 'calendar',
 	location = 'location',
 	instructor = 'instructor',
-	message = 'message',
 	bonus = 'bonus',
-	gift = 'gift',
 	span = 'span',
+	// Member
+	profile = 'profile',
+	payment = 'payment',
+	setting = 'setting',
+	gift = 'gift',
+	migrate = 'migrate',
+	message = 'message',
+	status = 'status',
+	local = '@config@',
+	// Admin
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
 	register = 'register',
-	migrate = 'migrate',
-	status = 'status',
-	local = '@config@',
-	setting = 'setting',
+	// Forum
 	comment = 'comment',
 	react = 'react',
+	// Attend
+	attend = 'attend',
+	// Log
 	log = 'log',
 }
 

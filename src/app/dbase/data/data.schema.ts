@@ -7,7 +7,7 @@ import { getSlice } from '@dbase/state/state.library';
 import { TString } from '@lib/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
-type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.react;
+type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
 type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
 type TStoreForum = STORE.comment | STORE.react;
 type TTypeDefault = TStoreClient | 'icon';
@@ -250,9 +250,9 @@ export interface IAlert extends IClientBase {
 }
 
 //	/client/react									// Member reaction icons
-export interface IReacts extends IClientBase {
-	[FIELD.store]: STORE.react;
-	[FIELD.key]: REACT;
+export interface IIcon extends IClientBase {
+	[FIELD.store]: STORE.icon;
+	[FIELD.key]: REACT;							// TODO: currently only Reaction icons
 	sort: number;
 }
 
