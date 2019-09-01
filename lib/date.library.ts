@@ -314,6 +314,8 @@ export class Instant {
 				return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 			default:
+				const am = date.HH >= 12 && date.MI > 1 ? 'pm' : 'am';
+
 				return asString(fmt)
 					.replace(/y{4}/g, fix(date.yy))
 					.replace(/y{2}/g, fix(date.yy).substring(2, 4))
@@ -325,8 +327,8 @@ export class Instant {
 					.replace(/M{2}/g, fix(date.MI))
 					.replace(/MI/g, fix(date.MI))
 					.replace(/h{2}/g, fix(date.HH > 12 ? date.HH - 12 : date.HH))
-					.replace(/m{2}/g, fix(date.MI) + (date.HH > 12 ? 'pm' : 'am'))
-					.replace(/mi/g, fix(date.MI) + (date.HH > 12 ? 'pm' : 'am'))
+					.replace(/m{2}/g, fix(date.MI) + am)
+					.replace(/mi/g, fix(date.MI) + am)
 					.replace(/S{2}/g, fix(date.SS))
 					.replace(/ts/g, asString(date.ts))
 					.replace(/ms/g, asString(date.ms))

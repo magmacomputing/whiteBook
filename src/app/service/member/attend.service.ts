@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, CLASS } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -15,7 +15,7 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
@@ -208,7 +208,7 @@ export class AttendService {
 			[FIELD.note]: note,															// optional 'note'
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
-				[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
+				[FIELD.key]: schedule[FIELD.key] as CLASS,		// the Attend's class
 				[FIELD.store]: schedule[FIELD.type] === 'class' ? STORE.schedule : STORE.calendar,
 				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},

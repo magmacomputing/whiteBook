@@ -4,9 +4,9 @@ import { map, take, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
@@ -186,10 +186,29 @@ export class StateService {
 	 * client.price -> has an array of asAt Price documents
 	 */
 	getPlanData(date?: TDate): Observable<IPlanState> {
+		const filterIcon = addWhere(FIELD.type, [STORE.plan, STORE.default]);
+
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
 			joinDoc(this.states, 'client', STORE.price, undefined, date),
+			joinDoc(this.states, 'client', STORE.icon, filterIcon, date),
 			map(table => buildPlan(table)),
+		)
+	}
+
+	/**
+	 * A list of Sign-in Providers
+	 * client.provider	-> has an array of Provider documents
+	 * client.icon			-> has an array of Provider icons
+	 */
+	getProviderData(date?: TDate): Observable<IProviderState> {
+		const filterProvider = addWhere(FIELD.expire, 0);
+		const filterIcon = addWhere(FIELD.type, [STORE.provider, STORE.default]);
+
+		return this.getMemberData(date).pipe(
+			joinDoc(this.states, 'client', STORE.provider, filterProvider, date),
+			joinDoc(this.states, 'client', STORE.icon, filterIcon, date),
+			map(table => buildProvider(table)),
 		)
 	}
 
@@ -225,7 +244,7 @@ export class StateService {
 	 * location   -> has the Locations that are indicated on that schedule or calendar
 	 * instructor -> has the Instructors that are indicated on that schedule or calendar
 	 * span				-> has the Class Duration definitions ('full' or 'half')
-	 * feedback		-> has an array of Member Feedback about the Classes available on that schedule or event
+	 * forum			-> has an array of Member comments about the Classes available on that schedule or event
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 * bonus			-> has an array of active Bonus schemes
 	 * gift				-> has an array of active Gifts available to a Member on the date
@@ -243,7 +262,8 @@ export class StateService {
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
-		const filterFeedback = [
+		const filterIcon = addWhere(FIELD.type, [STORE.class, STORE.default]);
+		const filterForum = [
 			addWhere(FIELD.type, STORE.attend),
 			addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`),
 		]
@@ -261,12 +281,14 @@ export class StateService {
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
 
 		return this.getMemberData(date).pipe(
+			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
 			joinDoc(this.states, 'client', STORE.calendar, filterRange, date),									// get any blocked calendar-range
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date
 			joinDoc(this.states, 'client', STORE.class, filterTypeClass, date),									// get classes for this weekday
 			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get classes for this calendar-date
+			joinDoc(this.states, 'client', STORE.icon, filterIcon, date),												// get the Class icons
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable
 			joinDoc(this.states, 'client', STORE.span, filterSpan, date),												// get class durations

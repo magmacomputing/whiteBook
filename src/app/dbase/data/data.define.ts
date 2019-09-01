@@ -76,6 +76,32 @@ export enum FIELD {								// common Field names
 	key = 'key',
 };
 
+export enum CLASS {
+	AeroStep = 'AeroStep',
+	HiLo = 'HiLo',
+	MultiStep = 'MultiStep',
+	SingleStep = 'SingleStep',
+	SmartStep = 'SmartStep',
+	StepBasic = 'StepBasic',
+	StepDown = 'StepDown',
+	StepIn = 'StepIn',
+	Zumba = 'Zumba',
+	ZumbaStep = 'ZumbaStep'
+}
+
+export enum EVENT {
+
+}
+
+export enum PROVIDER {
+	fb = 'fb',
+	go = 'go',
+	gh = 'gh',
+	li = 'li',
+	tw = 'tw',
+	as = 'gapps',										// Google Apps Script
+}
+
 export enum CONNECT {
 	connect = 'connect',						// connected, but not logged-in
 	active = 'active',							// logged-in, browser has focus

@@ -7,7 +7,7 @@ import { AttendService } from '@service/member/attend.service';
 
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
@@ -56,7 +56,7 @@ export class AttendComponent implements OnInit {
 		const dow = Instant.WEEKDAY[item.day];
 		// const bonus = client.bonus!.find(row => row[FIELD.key] === item.bonus);
 
-		const title = item.key;
+		const title = item[FIELD.key];
 		const subtitle = event && event.desc || '';
 		const icon = item.icon;
 		const actions = ['Close'];
@@ -69,7 +69,7 @@ export class AttendComponent implements OnInit {
 		if (span)
 			content.push(`Duration: ${span.duration} minutes`);
 		if (item.count)
-			content.push(`Attended: ${item.count} times today`);
+			content.push(`Attended: ${item.count} time${item.count > 1 ? 's' : ''}`);
 		if (locn)
 			content.push(`Location: ${locn.name}`);
 		if (instr)

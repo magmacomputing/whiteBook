@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { COLLECTION, STORE, TYPE, FIELD, CONNECT, BONUS, REACT } from '@dbase/data/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, CLASS, CONNECT, BONUS, REACT, PROVIDER } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -20,7 +20,6 @@ type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special';
 
 export type TPrice = TSpan | TYPE.topUp | 'hold' | 'expiry';
-export type TClass = 'AeroStep' | 'HiLo' | 'MultiStep' | 'SingleStep' | 'SmartStep' | 'StepBasic' | 'StepDown' | 'StepIn' | 'Zumba' | 'ZumbaStep';
 export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
 export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
 
@@ -77,7 +76,7 @@ export interface IMigrateBase extends IMeta {
 	[FIELD.uid]: string;
 	[FIELD.key]: string;
 	attend: {
-		[order: string]: string;
+		[order: string]: CLASS;
 	}
 }
 export interface IStoreMeta extends IMeta {
@@ -146,7 +145,7 @@ export interface IPlan extends IClientBase {
 export interface IClass extends IClientBase {
 	[FIELD.store]: STORE.class;
 	[FIELD.type]: TSpan;
-	[FIELD.key]: TClass;
+	[FIELD.key]: CLASS;
 	color: string;
 	desc?: string;
 }
@@ -157,7 +156,7 @@ export interface IEvent extends IClientBase {
 	[FIELD.key]: string;
 	name: string;
 	desc?: string;
-	classes: TClass[];
+	classes: CLASS[];
 }
 
 //	/client/calendar
@@ -185,7 +184,7 @@ export interface TBonus {							// a sub-type of IBonus
 export interface ISchedule extends IClientBase {
 	[FIELD.store]: STORE.schedule | STORE.calendar;
 	[FIELD.type]: TSchedule;
-	[FIELD.key]: TClass | string;
+	[FIELD.key]: CLASS | string;
 	day: number;
 	location?: string;
 	instructor?: string;
@@ -252,7 +251,8 @@ export interface IAlert extends IClientBase {
 //	/client/react									// Member reaction icons
 export interface IIcon extends IClientBase {
 	[FIELD.store]: STORE.icon;
-	[FIELD.key]: REACT;							// TODO: currently only Reaction icons
+	[FIELD.key]: REACT | CLASS;							// TODO: currently only Reaction icons
+	image: string;
 	sort: number;
 }
 
@@ -383,7 +383,7 @@ export interface IAttend extends IUserBase {
 		[FIELD.id]: string;							// the /client/schedule or /client/event _id
 		[FIELD.store]: string;					// 'schedule' or 'calendar'
 		[FIELD.type]: TSchedule;
-		[FIELD.key]: TClass;
+		[FIELD.key]: CLASS;
 	}
 	bonus?: {
 		[FIELD.id]: string;
@@ -422,7 +422,7 @@ export type TUser = UserInfo & {
 }
 type TProviderInfo = {
 	id: string;
-	provider: 'fb' | 'g+' | 'gh' | 'tw' | 'li';
+	provider: PROVIDER;
 	firstName: string;
 	lastName: string;
 	userName: string;

@@ -9,8 +9,8 @@ import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@library/config.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
@@ -250,6 +250,23 @@ export const calendarDay = (source: ITimetableState) => {
 	return { ...source }
 }
 
+const lookupIcon = (source: any, key: string) => {
+	const dflt = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'))[FIELD.key];
+	return firstRow<IIcon>(source.client.icon, addWhere(FIELD.key, [key, dflt])).image
+};
+
+/** Assemble a Provider-view */
+export const buildProvider = (source: IProviderState) => {
+	source.client.provider = source.client.provider.map(provider => {
+		if (!provider.icon)
+			provider.icon = lookupIcon(source, provider[FIELD.key]);
+
+		return provider;
+	})
+
+	return { ...source }
+}
+
 /** Assemble a Plan-view */
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
@@ -276,6 +293,9 @@ export const buildPlan = (source: IPlanState) => {
 			plan[FIELD.disable] = notAllow;
 		}
 
+		if (!plan[FIELD.icon])
+			plan[FIELD.icon] = lookupIcon(source, plan[FIELD.key]);
+
 		if (myPlan && myPlan.plan === plan[FIELD.key])	 			// disable their current Plan, so cannot re-select
 			plan[FIELD.disable] = true;
 
@@ -298,6 +318,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		span: spans = [],														// the duration of classes / events
 		alert: alerts = [],													// any alert notes for this date
 		price: prices = [],													// the prices as per member's plan
+		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
 	const attendToday = source.attend.attendToday;
 
@@ -338,7 +359,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
-				icon: classDoc.icon,
+				icon: firstRow<IIcon>(icons, addWhere(FIELD.key, className)).image || icon[FIELD.key],
 			}
 
 			offset += duration;												// update offset to next class start-time
@@ -364,8 +385,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			// }
 			// else time[FIELD.disable] = true;						// cannot determine the event
 
-			if (!time[FIELD.icon])											// if no schedule-specific icon...
-				time[FIELD.icon] = classDoc.icon || icon[FIELD.key];				//	use class icon, else default icon
+			if (!time[FIELD.icon])											// if no schedule-specific icon, use class icon, else default icon
+				time[FIELD.icon] = firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image || icon[FIELD.key];
 
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists

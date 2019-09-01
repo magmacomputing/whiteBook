@@ -7,12 +7,11 @@ import { Store } from '@ngxs/store';
 
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { getProviderId } from '@service/auth/auth.library';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
-import { COLLECTION, FIELD, STORE, BONUS } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, TClass, IGift, IPlan, IPrice, IProfilePlan, IBonus, TPrice } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD, STORE, BONUS, CLASS } from '@dbase/data/data.define';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, TPrice } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -50,7 +49,7 @@ export class MigrateComponent implements OnInit {
 	private migrate!: IMigrateBase[];
 	private current: IRegister | null = null;
 	private user!: firebase.UserInfo | null;
-	private dflt!: string;
+	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
 	public hide = 'Un';
 
@@ -58,23 +57,23 @@ export class MigrateComponent implements OnInit {
 	private calendar!: ICalendar[];
 	private events!: Record<string, IEvent>;
 
-	private lookup: Record<string, string> = {
-		oldStep: 'MultiStep',
-		Step: 'MultiStep',
-		oldStepDown: 'StepDown',
-		oldAeroStep: 'AeroStep',
-		oldHiLo: 'HiLo',
-		oldZumba: 'Zumba',
-		oldZumbaStep: 'ZumbaStep',
-		oldSmartStep: 'SmartStep',
-		prevStep: 'MultiStep',
-		prevSmartStep: 'SmartStep',
-		prevStepDown: 'StepDown',
-		prevAeroStep: 'AeroStep',
-		prevHiLo: 'HiLo',
-		prevZumba: 'Zumba',
-		prevZumbaStep: 'ZumbaStep',
-		prevStepIn: 'StepIn',
+	private lookup: Record<string, CLASS> = {
+		oldStep: CLASS.MultiStep,
+		Step: CLASS.MultiStep,
+		oldStepDown: CLASS.StepDown,
+		oldAeroStep: CLASS.AeroStep,
+		oldHiLo: CLASS.HiLo,
+		oldZumba: CLASS.Zumba,
+		oldZumbaStep: CLASS.ZumbaStep,
+		oldSmartStep: CLASS.SmartStep,
+		prevStep: CLASS.MultiStep,
+		prevSmartStep: CLASS.SmartStep,
+		prevStepDown: CLASS.StepDown,
+		prevAeroStep: CLASS.AeroStep,
+		prevHiLo: CLASS.HiLo,
+		prevZumba: CLASS.Zumba,
+		prevZumbaStep: CLASS.ZumbaStep,
+		prevStepIn: CLASS.StepIn,
 	}
 	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 	private pack = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
@@ -189,7 +188,7 @@ export class MigrateComponent implements OnInit {
 					.catch(err => this.dbg('err: %j', err.message))
 
 				this.account$ = this.state.getAccountData();
-				this.dflt = 'Zumba';
+				this.dflt = CLASS.Zumba;
 				this.hide = register[FIELD.hidden]
 					? 'Un'
 					: ''
@@ -395,7 +394,7 @@ export class MigrateComponent implements OnInit {
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
 			this.dbg('startFrom: %s, %j', startFrom, startAttend);
-			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((this.lookup[row.type] || row.type) as TClass))).length;
+			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((this.lookup[row.type] || row.type)))).length;
 			table.splice(0, offset);
 		}
 		if (table.length) {
@@ -415,7 +414,7 @@ export class MigrateComponent implements OnInit {
 		}
 		if (flag) this.dbg('hist: %j', row);
 
-		let what = this.lookup[row.type] || row.type;
+		let what: CLASS = this.lookup[row.type] || row.type;
 		const now = getDate(row.date);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
@@ -469,7 +468,7 @@ export class MigrateComponent implements OnInit {
 			}
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : Math.abs(price)).toString() });
-			what = 'MultiStep';
+			what = CLASS.MultiStep;
 			price = obj.full.amount;											// set this row's price to MultiStep
 		}
 
@@ -492,7 +491,7 @@ export class MigrateComponent implements OnInit {
 					migrate.attend[sfx] = event.classes[idx];
 					await this.writeMigrate(migrate);
 				}
-				what = migrate.attend[sfx];
+				what = migrate.attend[sfx] as CLASS;
 
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
@@ -503,9 +502,9 @@ export class MigrateComponent implements OnInit {
 			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
 				event = this.events[caldr[FIELD.type]];
 
-				if (what === 'MultiStep' && !event.classes.includes(what))
-					what = 'SingleStep';
-				if (!event.classes.includes(what as TClass)) {
+				if (what === CLASS.MultiStep && !event.classes.includes(what))
+					what = CLASS.SingleStep;
+				if (!event.classes.includes(what as CLASS)) {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.classes.length; idx++) {
@@ -533,7 +532,7 @@ export class MigrateComponent implements OnInit {
 				let klass = migrate.attend.class || null;
 
 				if (isNull(klass)) {
-					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt);
+					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt) as CLASS;
 					if (isNull(klass))
 						throw new Error('Cannot determine class');
 					this.dflt = klass;

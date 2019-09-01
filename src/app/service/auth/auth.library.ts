@@ -4,6 +4,7 @@ import { IUserState } from '@dbase/state/state.define';
 import { TProvider } from '@dbase/data/data.schema';
 
 import { isNull } from '@lib/type.library';
+import { PROVIDER } from '@dbase/data/data.define';
 
 interface IEmailToken {
 	email: string;
@@ -66,24 +67,24 @@ export const getAuthProvider = (providerId: string,
 	return [type, authProvider, authCredential];
 }
 
-export const getProviderId = (prefix: string) => {
+export const getProviderId = (prefix: PROVIDER) => {
 	switch (prefix) {
-		case 'fb':
+		case PROVIDER.fb:
 			return 'facebook.com';
 		
-		case 'g+':
+		case PROVIDER.go:
 			return 'google.com';
 		
-		case 'tw':
+		case PROVIDER.tw:
 			return 'twitter.com';
 		
-		case 'gh':
+		case PROVIDER.gh:
 			return 'github.com';
 		
-		case 'li':
+		case PROVIDER.li:
 			return 'linkedin.com';
 
-		case 'gapps':														// Google Apps Sheet
+		case PROVIDER.as:														// Google Apps Sheet
 			return 'docs.google.com';
 
 		default:
