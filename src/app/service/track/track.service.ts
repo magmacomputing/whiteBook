@@ -29,7 +29,7 @@ export class TrackService {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
 			[FIELD.uid]: uid || 'anonymous',
-			stamp: now.ts,
+			[FIELD.stamp]: now.ts,
 			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
 		} as ITrack

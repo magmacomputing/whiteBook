@@ -428,7 +428,7 @@ export class MigrateComponent implements OnInit {
 		let migrate: IMigrateBase | undefined;
 
 		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
-			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} classes`);
+			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;
 				rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + nbr - 1 });
@@ -461,7 +461,7 @@ export class MigrateComponent implements OnInit {
 			} else if (row.note && row.note.includes('Gift #')) {
 				obj.full.amount = 0;
 				price = 0;
-				row.elect = BONUS.gift;											// special: accidental one-gift claimed against three classes
+				row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
 			} else {
 				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
 				row.elect = BONUS.sunday;										// dont elect to skip Bonus on a Pack
@@ -481,40 +481,40 @@ export class MigrateComponent implements OnInit {
 				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
 				if (!migrate.attend[sfx]) {
-					for (idx = 0; idx < event.classes.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+					for (idx = 0; idx < event.class.length; idx++) {
+						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.class[idx]) === event.class[idx])
 							break;
 					}
-					if (idx === event.classes.length)
+					if (idx === event.class.length)
 						throw new Error('Cannot determine event');
 
-					migrate.attend[sfx] = event.classes[idx];
+					migrate.attend[sfx] = event.class[idx];
 					await this.writeMigrate(migrate);
 				}
 				what = migrate.attend[sfx] as CLASS;
 
 				sched = {
-					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					[FIELD.store]: STORE.calendar, [FIELD.type]: STORE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
 
-			case (!isUndefined(caldr) && !row.elect):										// special event match by <date>, so we already know the 'class'
+			case (!isUndefined(caldr) && !row.elect):			// special event match by <date>, so we already know the 'class'
 				event = this.events[caldr[FIELD.type]];
 
-				if (what === CLASS.MultiStep && !event.classes.includes(what))
+				if (what === CLASS.MultiStep && !event.class.includes(what))
 					what = CLASS.SingleStep;
-				if (!event.classes.includes(what as CLASS)) {
+				if (!event.class.includes(what as CLASS)) {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
-						for (idx = 0; idx < event.classes.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.classes[idx]) === event.classes[idx])
+						for (idx = 0; idx < event.class.length; idx++) {
+							if (window.prompt(`This ${what} event on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.class[idx]) === event.class[idx])
 								break;
 						}
-						if (idx === event.classes.length)
+						if (idx === event.class.length)
 							throw new Error('Cannot determine event');
 
-						migrate.attend[what] = event.classes[idx];
+						migrate.attend[what] = event.class[idx];
 						await this.writeMigrate(migrate);
 					}
 					what = migrate.attend[what];
@@ -578,7 +578,7 @@ export class MigrateComponent implements OnInit {
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
 	}
 
-	private lookupMigrate(key: string | number, type: string = 'event') {
+	private lookupMigrate(key: string | number, type: string = STORE.event) {
 		return this.migrate
 			.find(row => row[FIELD.key] === asString(key)) || {
 				[FIELD.id]: this.data.newId,

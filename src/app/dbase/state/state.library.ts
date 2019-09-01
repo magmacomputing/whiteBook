@@ -3,7 +3,7 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
-import { IFireClaims } from '@service/auth/auth.interface';
+import { IFireClaims, ROLE } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@library/config.define';
@@ -11,7 +11,7 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
-import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, BONUS } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
@@ -110,10 +110,8 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
-				// const segment = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
-
 				parent = data;                                        // stash the original parent data state
-				// return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, segment));
+
 				return combineLatest(store === STORE.attend
 					? getStore<TStoreBase>(states, store, filters, date)
 					: getCurrent<TStoreBase>(states, store, filters, date)
@@ -127,7 +125,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
-							const type = (getSlice(store) === 'client')
+							const type = (getSlice(store) === COLLECTION.client)
 								? row[FIELD.store]
 								: (nodes[1] || row[FIELD.type] || row[FIELD.store])
 
@@ -270,7 +268,7 @@ export const buildProvider = (source: IProviderState) => {
 /** Assemble a Plan-view */
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
-	const isAdmin = roles && roles.includes('admin');
+	const isAdmin = roles && roles.includes(ROLE.admin);
 	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, 'plan'));
 	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, 'topUp'));
 	const myAge = getMemberAge(source.member.info);	// use birthDay from provider, if available
@@ -339,7 +337,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		if (!eventLocations.includes(calendarDoc.location))
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
-		asArray(eventList.classes).forEach(className => {
+		asArray(eventList.class).forEach(className => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, className));
 			const spanClass = firstRow<ISpan>(spans, [
 				addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
@@ -398,7 +396,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
-		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
+		.filter(row => row[FIELD.type] === STORE.event || !eventLocations.includes(row.location!))
 
 	return { ...source }
 }

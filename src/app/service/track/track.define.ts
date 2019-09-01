@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/data/data.define';
+import { STORE, FIELD } from '@dbase/data/data.define';
 
 interface ITrackData {
 	msg: string;
@@ -6,7 +6,7 @@ interface ITrackData {
 }
 
 export interface ITrack {
-	[FIELD.store]: 'log';
+	[FIELD.store]: STORE.log;
 	[FIELD.type]: ETrack;
 	[FIELD.uid]?: string;
 	msg: string;

@@ -10,6 +10,7 @@ import {
 } from '@dbase/state/auth.action';
 import { SLICE, TStateSlice } from '@dbase/state/state.define';
 
+import { ROLE } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
 
@@ -276,7 +277,7 @@ export class AuthState {
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
 				.then(_ => {
 					const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
-					if (roles.includes('admin'))
+					if (roles.includes(ROLE.admin))
 						this.sync.on(COLLECTION.admin, undefined,
 							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
 					else {
