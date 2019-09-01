@@ -47,7 +47,8 @@ export class AttendComponent implements OnInit, OnDestroy {
 			})
 		)
 
-		const defer = new Instant().add(1, 'days').startOf('day');
+		/** If the Member is still sitting on this page at midnight, show timetable$ for next day */
+		const defer = new Instant().add(1, 'day').startOf('day');
 		this.dbg('timeout: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
 		this.timerSubscription = of(0)
 			.pipe(delay(defer.toDate()))
