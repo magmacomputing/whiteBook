@@ -249,7 +249,7 @@ export class StateService {
 	 * bonus			-> has an array of active Bonus schemes
 	 * gift				-> has an array of active Gifts available to a Member on the date
 	 */
-	getScheduleData(date?: TDate, elect?: BONUS) {
+	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
 		const noToday = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '!=');

@@ -15,6 +15,7 @@ interface IInstant {											// Date components
 	readonly mmm: string;										// short month-name
 	readonly ddd: string;										// short day-name
 	readonly dow: number;										// weekday; Mon=1, Sun=7
+	readonly tz: number;										// timezone offset in hours
 	readonly value?: TDate;									// original value passed to constructor
 }
 
@@ -104,6 +105,7 @@ export class Instant {
 	/** seconds */				get SS() { return this.date.SS }
 	/** timestamp */			get ts() { return this.date.ts }
 	/** milliseconds */		get ms() { return this.date.ms }
+	/** timezone offset */get tz() { return this.date.tz }
 	/** number of weeks*/	get ww() { return this.date.ww }
 	/** weekday number */	get dow() { return this.date.dow }
 	/** short day name */	get ddd() { return this.date.ddd }
@@ -126,7 +128,7 @@ export class Instant {
 
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 	/** get raw object */	toJSON = () => ({ ...this.date });
-	/** as Date object */	toDate = () => new Date(this.date.ts * 1000 + this.date.ms);
+	/** as Date object */	toDate = () => this.composeDate(this.date);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
@@ -194,10 +196,11 @@ export class Instant {
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.error('Invalid Date: ', dt, date);							// TODO: log the Invalid Date
 
-		let [yy, mm, dd, HH, MI, SS, ts, ms, dow] = [
+		let [yy, mm, dd, HH, MI, SS, ts, ms, tz, dow] = [
 			date.getFullYear(), date.getMonth(), date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
-			Math.floor(date.getTime() / 1000), date.getMilliseconds(), date.getDay(),
+			Math.floor(date.getTime() / 1000), date.getMilliseconds(),
+			date.getTimezoneOffset(), date.getDay(),
 		];
 
 		mm += 1;																									// ISO month
@@ -207,7 +210,10 @@ export class Instant {
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, HH, MI, SS, ts, ms, ww, dow, ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt } as IInstant;
+		return {
+			yy, mm, dd, HH, MI, SS, ts, ms, tz, ww, dow,
+			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
+		} as IInstant;
 	}
 
 	private prepDate(dt: string | number) {
@@ -232,7 +238,7 @@ export class Instant {
 			case 'start.hour':
 				[date.MI, date.SS, date.ms] = [0, 0, 0];
 				break;
-			case 'start.WEEKDAY':
+			case 'start.day':
 				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
 				break;
 			case 'start.week':
@@ -247,7 +253,7 @@ export class Instant {
 			case 'mid.minute':
 				[date.MI, date.SS, date.ms] = [30, 0, 0];
 				break;
-			case 'mid.WEEKDAY':
+			case 'mid.day':
 				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
 				break;
 			case 'mid.week':

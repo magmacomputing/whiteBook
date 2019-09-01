@@ -20,10 +20,10 @@ export const fprintf = (fmt?: any, ...msg: any[]) => {
 	let type = 'log';
 
 	if (isString(fmt)) {
-		const match = fmt.match(/(\w*)/i) || [];
+		const match = fmt.match(/(\w*;)/i) || [];
 		const part = match[1];
-		if (['log', 'info', 'debug', 'warn', 'error'].includes(part)) {
-			type = part;
+		if (['log;', 'info;', 'debug;', 'warn;', 'error;'].includes(part)) {
+			type = part.slice(0, -1);
 			fmt = fmt.substring(type.length + 1).trim();
 		}
 	}

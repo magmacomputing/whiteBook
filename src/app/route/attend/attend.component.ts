@@ -1,13 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Observable, Subscription, of } from 'rxjs';
+import { map, delay } from 'rxjs/operators';
 
 import { DialogService } from '@service/material/dialog.service';
 import { AttendService } from '@service/member/attend.service';
 
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data/data.define';
 import { IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
@@ -22,9 +22,9 @@ import { dbg } from '@lib/logger.library';
 	templateUrl: './attend.component.html',
 	styleUrls: ['./attend.component.scss'],
 })
-export class AttendComponent implements OnInit {
+export class AttendComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
-	public date = new Instant().format(DATE_FMT.display);
+	public date = new Instant();
 	public offset = 0;
 	public note!: string;
 
@@ -32,6 +32,8 @@ export class AttendComponent implements OnInit {
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;
 	public firstPaint = true;                           // indicate first-paint
+
+	private timerSubscription!: Subscription;
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService) { }
@@ -44,6 +46,16 @@ export class AttendComponent implements OnInit {
 				return data;
 			})
 		)
+
+		const defer = new Instant().add(1, 'days').startOf('day');
+		this.dbg('timeout: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
+		this.timerSubscription = of(0)
+			.pipe(delay(defer.toDate()))
+			.subscribe(_ => this.setDate(0))
+	}
+
+	ngOnDestroy() {
+		this.timerSubscription && this.timerSubscription.unsubscribe();
 	}
 
 	// Build info to show in a Dialog
@@ -103,9 +115,10 @@ export class AttendComponent implements OnInit {
 		this.offset = today.diff('days', offset);
 
 		this.date = this.offset > 6
-			? today.format(DATE_FMT.display)
-			: offset.format(DATE_FMT.display)
+			? today
+			: offset
 
-		this.ngOnInit();
+		this.ngOnDestroy();							// remove the timer
+		this.ngOnInit();								// get new Schedule, reset timer
 	}
 }

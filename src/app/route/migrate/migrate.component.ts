@@ -255,7 +255,7 @@ export class MigrateComponent implements OnInit {
 			.filter(row => isUndefined(payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
 			.filter(row => {
 				if (isUndefined(row.approved))
-					this.dbg('warn: unapproved: %j', row);
+					this.dbg('warn; unapproved: %j', row);
 				return !isUndefined(row.approved);
 			})
 			.map(row => {
