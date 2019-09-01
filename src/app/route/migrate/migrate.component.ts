@@ -529,21 +529,21 @@ export class MigrateComponent implements OnInit {
 
 			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
 				migrate = this.lookupMigrate(now.format(DATE_FMT.yearMonthDay));
-				let klass = migrate.attend.class || null;
+				let className = migrate.attend.class || null;
 
-				if (isNull(klass)) {
-					klass = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt) as CLASS;
-					if (isNull(klass))
+				if (isNull(className)) {
+					className = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt) as CLASS;
+					if (isNull(className))
 						throw new Error('Cannot determine class');
-					this.dflt = klass;
+					this.dflt = className;
 
-					migrate.attend = { class: klass };
+					migrate.attend = { class: className };
 					await this.writeMigrate(migrate);
 				}
 
-				sched = asAt(this.schedule, addWhere(FIELD.key, klass), row.date)[0];
+				sched = asAt(this.schedule, addWhere(FIELD.key, className), row.date)[0];
 				if (!sched)
-					throw new Error(`Cannot determine schedule: ${klass}`);
+					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;											// to allow AttendService to check what was charged
 				break;
 
