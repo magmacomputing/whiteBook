@@ -47,17 +47,27 @@ export class AttendComponent implements OnInit, OnDestroy {
 			})
 		)
 
-		/** If the Member is still sitting on this page at midnight, show timetable$ for next day */
-		const defer = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeout: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
-		this.timerSubscription = of(0)
-			.pipe(delay(defer.toDate()))
-			.subscribe(_ => this.setDate(0))
+		if (!this.timerSubscription)
+			this.setTimer();
 	}
 
 	ngOnDestroy() {
 		this.timerSubscription && this.timerSubscription.unsubscribe();
 	}
+
+	/** If the Member is still sitting on this page at midnight, show timetable$ for next day */
+	setTimer() {
+		const defer = new Instant().add(1, 'day').startOf('day');
+		this.dbg('timeOut: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
+		this.timerSubscription = of(0)							// a single-emit Observable
+			.pipe(delay(defer.toDate()))
+			.subscribe(
+				_ => this.setDate(0),										// onNext, show new day's timetable
+				undefined,															// onError
+				() => this.setTimer()										// onComplete, start a new Delay timer
+			)
+	}
+
 
 	// Build info to show in a Dialog
 	showEvent(client: ITimetableState["client"], idx: number) {
@@ -119,7 +129,6 @@ export class AttendComponent implements OnInit, OnDestroy {
 			? today
 			: offset
 
-		this.ngOnDestroy();							// remove the timer
-		this.ngOnInit();								// get new Schedule, reset timer
+		this.ngOnInit();								// get new Schedule
 	}
 }
