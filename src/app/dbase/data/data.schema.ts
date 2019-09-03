@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { COLLECTION, STORE, TYPE, FIELD, CLASS, CONNECT, BONUS, REACT, PROVIDER } from '@dbase/data/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, SPAN } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -11,18 +11,14 @@ type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
 type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
 type TStoreForum = STORE.comment | STORE.react;
-type TTypeDefault = TStoreClient | 'icon';
 
-type TSpan = 'full' | 'half';
 type TPayment = TYPE.topUp | 'hold' | 'credit' | 'debit';
 type TProfile = TYPE.plan | TYPE.claim | TYPE.info | TYPE.pref;
 type TStatus = 'account' | 'connect';
 type TSchedule = 'event' | 'class' | 'special';
 type TCalendar = 'event' | 'special';
 
-export type TPrice = TSpan | TYPE.topUp | 'hold' | 'expiry';
-export type TPlan = 'member' | 'casual' | 'gratis' | 'student' | 'core' | 'intro';
-export type TProvider = 'identity' | 'oauth' | 'oidc' | 'email' | 'play' | 'phone' | 'anonymous';
+export type TPrice = SPAN | TYPE.topUp | 'hold' | 'expiry';
 
 export type FBoolean = boolean | undefined | firestore.FieldValue;
 export type FNumber = number | undefined | firestore.FieldValue;
@@ -54,7 +50,7 @@ export type TStoreBase = IClientBase | IUserBase | IMigrateBase;
 interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
-	[FIELD.icon]?: string;									// an optional icon for the UI
+	[FIELD.image]?: string;									// an optional icon for the UI
 }
 interface IUserBase extends IMeta {				// this is the base for Member-related documents
 	[FIELD.store]: TStoreUser;
@@ -92,7 +88,7 @@ export const isClientDocument = (document: TStoreBase): document is IClientBase 
 //	/client/_default_
 export interface IDefault extends IClientBase {
 	[FIELD.store]: STORE.default;
-	[FIELD.type]: TTypeDefault;
+	[FIELD.type]: TStoreClient;						// Client store to default
 	[FIELD.key]: string;
 }
 //	/client/_config_
@@ -115,7 +111,7 @@ export interface ISchema extends IClientBase {
 export interface IPrice extends IClientBase {
 	[FIELD.store]: STORE.price;
 	[FIELD.type]: TPrice;
-	[FIELD.key]: TPlan;
+	[FIELD.key]: PLAN;
 	amount: number;
 }
 
@@ -145,7 +141,7 @@ export interface IPlan extends IClientBase {
 //	/client/class
 export interface IClass extends IClientBase {
 	[FIELD.store]: STORE.class;
-	[FIELD.type]: TSpan;
+	[FIELD.type]: SPAN;
 	[FIELD.key]: CLASS;
 	color: string;
 	desc?: string;
@@ -155,7 +151,7 @@ export interface IClass extends IClientBase {
 export interface IEvent extends IClientBase {
 	[FIELD.store]: STORE.event;
 	[FIELD.key]: string;
-	[STORE.class]: CLASS[];
+	agenda: CLASS[];									// the Classes on offer for this Event
 	name: string;
 	desc?: string;
 }
@@ -237,7 +233,7 @@ export interface IInstructor extends IClientBase {
 //	/client/span
 export interface ISpan extends IClientBase {
 	[FIELD.store]: STORE.span;
-	[FIELD.key]: TSpan;
+	[FIELD.key]: SPAN;
 	duration: number;
 }
 
@@ -252,7 +248,7 @@ export interface IAlert extends IClientBase {
 //	/client/react									// Member reaction icons
 export interface IIcon extends IClientBase {
 	[FIELD.store]: STORE.icon;
-	[FIELD.key]: REACT | CLASS;							// TODO: currently only Reaction icons
+	[FIELD.key]: REACT | CLASS | EVENT | Auth.PROVIDER | BONUS;
 	image: string;
 	sort: number;
 }
@@ -260,7 +256,7 @@ export interface IIcon extends IClientBase {
 //	/client/schedule
 export interface IProvider extends IClientBase {
 	[FIELD.store]: STORE.provider;
-	[FIELD.type]: TProvider;
+	[FIELD.type]: Auth.METHOD;
 	[FIELD.key]: string;
 	sort: number;										// list-order to display to User
 	prefix?: string;
@@ -314,8 +310,8 @@ export interface IProfile extends IUserBase {
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: TYPE.plan;
-	plan: TPlan;
-	bump?: TPlan;												// auto-upgrade Plan on next topUp Payment
+	plan: PLAN;
+	bump?: PLAN;												// auto-upgrade Plan on next topUp Payment
 }
 export interface IProfileClaim extends IProfile {
 	[FIELD.type]: TYPE.claim;
@@ -422,7 +418,7 @@ export type TUser = UserInfo & {
 }
 type TProviderInfo = {
 	id: string;
-	provider: PROVIDER;
+	provider: Auth.PROVIDER;
 	firstName: string;
 	lastName: string;
 	userName: string;

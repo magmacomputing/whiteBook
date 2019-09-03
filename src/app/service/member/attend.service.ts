@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD, BONUS, CLASS } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, CLASS, PLAN } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -197,8 +197,8 @@ export class AttendService {
 		if (Object.keys(upd).length)											// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
-		if (data.member.plan[0].plan === 'intro' && (data.account.summary.funds - schedule.amount) <= 0)
-			this.member.setPlan('member', stamp + 1);				// auto-bump 'intro' to 'member' Plan
+		if (data.member.plan[0].plan === PLAN.intro && (data.account.summary.funds - schedule.amount) <= 0)
+			this.member.setPlan(PLAN.member, stamp + 1);				// auto-bump 'intro' to 'member' Plan
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document
 
@@ -209,7 +209,7 @@ export class AttendService {
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
 				[FIELD.key]: schedule[FIELD.key] as CLASS,		// the Attend's class
-				[FIELD.store]: schedule[FIELD.type] === 'class' ? STORE.schedule : STORE.calendar,
+				[FIELD.store]: schedule[FIELD.type] === STORE.class ? STORE.schedule : STORE.calendar,
 				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},
 			payment: {

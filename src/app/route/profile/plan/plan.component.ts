@@ -34,7 +34,7 @@ export class PlanComponent implements OnInit {
 
 	/** Describe the clicked Plan */
 	showPlan(plan: IPlan, prices: IPrice[]) {
-		const icon = plan.icon;
+		const image = plan.image;
 		const title = plan[FIELD.key];
 		const subtitle = `${plan.desc}${isUndefined(plan.rule) ? '' : ', ' + plan.rule}`;
 		const actions = ['Close'];
@@ -65,7 +65,7 @@ export class PlanComponent implements OnInit {
 					content.push(`$${this.fixString(price.amount)} for a half-hour Class`)
 			})
 
-		this.dialog.open({ icon, title, subtitle, actions, content });
+		this.dialog.open({ image, title, subtitle, actions, content });
 	}
 
 	private fixString(nbr: number) {

@@ -1,8 +1,8 @@
-import { BONUS, PROVIDER } from '@dbase/data/data.define';
+import { BONUS, Auth } from '@dbase/data/data.define';
 
 export interface MRegister {
 	id: string;
-	provider: PROVIDER;
+	provider: Auth.PROVIDER;
 	sheetName: string;
 	email: string;
 	firstName?: string;

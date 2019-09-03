@@ -36,7 +36,7 @@ export class InfoDialogComponent {
 
 interface openDialog {
   content: TString;
-  icon?: string;
+  image?: string;
   title?: string;
   subtitle?: string;
   actions?: string[];

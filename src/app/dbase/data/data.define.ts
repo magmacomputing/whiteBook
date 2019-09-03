@@ -72,7 +72,7 @@ export enum FIELD {								// common Field names
 	uid = 'uid',
 	store = 'store',
 	type = 'type',
-	icon = 'icon',
+	image = 'image',
 	key = 'key',
 };
 
@@ -93,13 +93,42 @@ export enum EVENT {
 
 }
 
-export enum PROVIDER {
-	fb = 'fb',
-	go = 'go',
-	gh = 'gh',
-	li = 'li',
-	tw = 'tw',
-	as = 'gapps',										// Google Apps Script
+export enum PLAN {
+	member = 'member',
+	casual = 'casual',
+	gratis = 'gratis',
+	student = 'student',
+	core = 'core',
+	intro = 'intro',
+}
+
+export enum PRICE {
+
+}
+
+export enum SPAN {
+	full='full',
+	half='half',
+}
+
+export namespace Auth {
+	export enum PROVIDER {
+		fb = 'fb',
+		go = 'go',
+		gh = 'gh',
+		li = 'li',
+		tw = 'tw',
+		as = 'gapps',										// Google Apps Script
+	}
+	export enum METHOD {
+		identity = 'identity',
+		oauth = 'oauth',
+		oidc = 'oidc',
+		email = 'email',
+		phone = 'phone',
+		play = 'play',
+		anonymous = 'anonymous',
+	}
 }
 
 export enum CONNECT {

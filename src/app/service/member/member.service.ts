@@ -10,8 +10,8 @@ import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, TYPE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
+import { FIELD, STORE, TYPE, PLAN } from '@dbase/data/data.define';
+import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
 import { isUndefined, isNull } from '@lib/type.library';
@@ -39,7 +39,7 @@ export class MemberService {
 			.subscribe(info => this.getAuthProfile(info))
 	}
 
-	async setPlan(plan: TPlan, dt?: TDate) {
+	async setPlan(plan: PLAN, dt?: TDate) {
 		const doc = {
 			[FIELD.effect]: getStamp(dt),
 			[FIELD.store]: STORE.profile,

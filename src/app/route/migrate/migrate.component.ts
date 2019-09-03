@@ -466,8 +466,8 @@ export class MigrateComponent implements OnInit {
 				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
 				row.elect = BONUS.sunday;										// dont elect to skip Bonus on a Pack
 			}
-			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: 'Zumba', debit: '-' + (free.includes('Zumba') ? 0 : Math.abs(price)).toString() });
-			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: 'ZumbaStep', debit: '-' + (free.includes('ZumbaStep') ? 0 : Math.abs(price)).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
 			price = obj.full.amount;											// set this row's price to MultiStep
 		}
@@ -481,17 +481,17 @@ export class MigrateComponent implements OnInit {
 				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
 				if (!migrate.attend[sfx]) {
-					for (idx = 0; idx < event.class.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.class[idx]) === event.class[idx])
+					for (idx = 0; idx < event.agenda.length; idx++) {
+						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 							break;
 					}
-					if (idx === event.class.length)
+					if (idx === event.agenda.length)
 						throw new Error('Cannot determine event');
 
-					migrate.attend[sfx] = event.class[idx];
+					migrate.attend[sfx] = event.agenda[idx];
 					await this.writeMigrate(migrate);
 				}
-				what = migrate.attend[sfx] as CLASS;
+				what = migrate.attend[sfx];
 
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: STORE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
@@ -502,19 +502,19 @@ export class MigrateComponent implements OnInit {
 			case (!isUndefined(caldr) && !row.elect):			// special event match by <date>, so we already know the 'class'
 				event = this.events[caldr[FIELD.type]];
 
-				if (what === CLASS.MultiStep && !event.class.includes(what))
+				if (what === CLASS.MultiStep && !event.agenda.includes(what))
 					what = CLASS.SingleStep;
-				if (!event.class.includes(what as CLASS)) {
+				if (!event.agenda.includes(what)) {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
-						for (idx = 0; idx < event.class.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.class[idx]) === event.class[idx])
+						for (idx = 0; idx < event.agenda.length; idx++) {
+							if (window.prompt(`This ${what} event on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 								break;
 						}
-						if (idx === event.class.length)
+						if (idx === event.agenda.length)
 							throw new Error('Cannot determine event');
 
-						migrate.attend[what] = event.class[idx];
+						migrate.attend[what] = event.agenda[idx];
 						await this.writeMigrate(migrate);
 					}
 					what = migrate.attend[what];

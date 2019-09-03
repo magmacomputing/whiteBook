@@ -256,8 +256,8 @@ const lookupIcon = (source: any, key: string) => {
 /** Assemble a Provider-view */
 export const buildProvider = (source: IProviderState) => {
 	source.client.provider = source.client.provider.map(provider => {
-		if (!provider.icon)
-			provider.icon = lookupIcon(source, provider[FIELD.key]);
+		if (!provider.image)
+			provider.image = lookupIcon(source, provider[FIELD.key]);
 
 		return provider;
 	})
@@ -291,8 +291,8 @@ export const buildPlan = (source: IPlanState) => {
 			plan[FIELD.disable] = notAllow;
 		}
 
-		if (!plan[FIELD.icon])
-			plan[FIELD.icon] = lookupIcon(source, plan[FIELD.key]);
+		if (!plan[FIELD.image])
+			plan[FIELD.image] = lookupIcon(source, plan[FIELD.key]);
 
 		if (myPlan && myPlan.plan === plan[FIELD.key])	 			// disable their current Plan, so cannot re-select
 			plan[FIELD.disable] = true;
@@ -337,7 +337,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		if (!eventLocations.includes(calendarDoc.location))
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
-		asArray(eventList.class).forEach(className => {
+		asArray(eventList.agenda).forEach(className => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, className));
 			const spanClass = firstRow<ISpan>(spans, [
 				addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
@@ -357,7 +357,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
-				icon: firstRow<IIcon>(icons, addWhere(FIELD.key, className)).image || icon[FIELD.key],
+				image: firstRow<IIcon>(icons, addWhere(FIELD.key, className)).image || icon[FIELD.key],
 			}
 
 			offset += duration;												// update offset to next class start-time
@@ -383,8 +383,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			// }
 			// else time[FIELD.disable] = true;						// cannot determine the event
 
-			if (!time[FIELD.icon])											// if no schedule-specific icon, use class icon, else default icon
-				time[FIELD.icon] = firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image || icon[FIELD.key];
+			if (!time[FIELD.image])												// if no schedule-specific icon, use class icon, else default icon
+				time[FIELD.image] = firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image || icon[FIELD.key];
 
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists

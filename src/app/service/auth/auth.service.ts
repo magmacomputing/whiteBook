@@ -10,7 +10,7 @@ import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
 import { asArray } from '@lib/array.library';
@@ -53,31 +53,31 @@ export class AuthService {
 
 		switch (provider[FIELD.type]) {
 			case undefined:
-			case 'identity':
+			case Auth.METHOD.identity:
 				this.signInIdentity(provider);
 				break;
 
-			case 'oauth':
+			case Auth.METHOD.oauth:
 				this.signInOAuth(provider);
 				break;
 
-			case 'oidc':
+			case Auth.METHOD.oidc:
 				this.signInOIDC(provider);
 				break;
 
-			case 'email':
+			case Auth.METHOD.email:
 				this.signInEmail(provider, opts.email, opts.password);
 				break;
 
-			case 'play':
+			case Auth.METHOD.play:
 				this.signInPlay(provider);
 				break;
 
-			case 'phone':
+			case Auth.METHOD.phone:
 				this.signInPhone(provider);
 				break;
 
-			case 'anonymous':
+			case Auth.METHOD.anonymous:
 				this.signInAnon(provider);
 				break;
 

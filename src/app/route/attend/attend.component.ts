@@ -81,7 +81,7 @@ export class AttendComponent implements OnInit, OnDestroy {
 
 		const title = item[FIELD.key];
 		const subtitle = event && event.desc || '';
-		const icon = item.icon;
+		const image = item.image;
 		const actions = ['Close'];
 
 		let content: string[] = [];
@@ -98,7 +98,7 @@ export class AttendComponent implements OnInit, OnDestroy {
 		if (instr)
 			content.push(`Instructor: ${instr.name}`);
 
-		this.dialog.open({ content, title, subtitle, icon, actions });
+		this.dialog.open({ content, title, subtitle, image, actions });
 	}
 
 	swipe(idx: number, event: any) {

@@ -18,7 +18,7 @@ import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { SyncService } from '@dbase/sync/sync.service';
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -113,10 +113,10 @@ export class AuthState {
 				break;
 
 			default:
-				const [type, authProvider] = getAuthProvider(methods[0]);
-				switch (type) {
-					case 'identity':
-					case 'oauth':
+				const [method, authProvider] = getAuthProvider(methods[0]);
+				switch (method) {
+					case Auth.METHOD.identity:
+					case Auth.METHOD.oauth:
 						ctx.dispatch(new LoginIdentity(authProvider as firebase.auth.AuthProvider, link.credential));
 						break;
 				}
@@ -270,7 +270,7 @@ export class AuthState {
 	private setToken(ctx: StateContext<IAuthState>) {
 		if (this.afAuth.auth.currentUser) {
 			let token: firebase.auth.IdTokenResult;
-			
+
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
 				.then(result => token = result)
 				.then(_ => ctx.patchState({ token }))
