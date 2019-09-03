@@ -5,7 +5,7 @@
 
 	<mat-card cdkDropList [cdkDropListData]="providers" (cdkDropListDropped)="drop($event)">
 		<mat-card-content cdkDrag *ngFor="let provider of providers ; let last = last">
-			<img mat-card-avatar [src]="provider.icon || 'https://source.unsplash.com/random/200x200'">
+			<img mat-card-avatar [src]="provider.image || 'https://source.unsplash.com/random/200x200'">
 			&nbsp;
 			<button mat-raised-button [disabled]="provider._disable" (click)="signIn(provider)">
 				Login with {{ provider.key }}

@@ -8,7 +8,7 @@ import { TString } from '@lib/type.library';
   selector: 'info-dialog',
   template: `
     <div mat-dialog-title>
-      <img [src]="data.icon || 'https://source.unsplash.com/random/200x200'">
+      <img [src]="data.image || 'https://source.unsplash.com/random/200x200'">
       <h2> {{ data.title }} </h2>
     </div>
 

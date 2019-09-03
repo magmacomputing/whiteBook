@@ -36,7 +36,7 @@
 					<mat-card *ngIf="item.location === loc.key">
 
 						<mat-card-header>
-							<img mat-card-avatar [src]="item.icon || 'https://source.unsplash.com/random/200x200'"
+							<img mat-card-avatar [src]="item.image || 'https://source.unsplash.com/random/200x200'"
 								(click)="showEvent(timetable.client, idx)">
 
 							<mat-card-title>
