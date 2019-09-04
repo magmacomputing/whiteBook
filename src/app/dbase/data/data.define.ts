@@ -1,3 +1,8 @@
+/** The global whiteBook namespace */
+export declare namespace whiteBook {
+
+}
+
 export enum COLLECTION {
 	log = 'log',						// App actions
 	member = 'member',			// Member-related details
@@ -90,11 +95,6 @@ export enum CLASS {
 	ZumbaStep = 'ZumbaStep'
 }
 
-export enum CALENDAR {
-	once = 'once',
-	special = 'special',
-}
-
 export enum MESSAGE {
 	diary = 'diary',
 	alert = 'alert',
@@ -140,16 +140,21 @@ export enum PRICE {
 	hold = 'hold',
 }
 
-export enum SPAN {
-	full = 'full',
-	half = 'half',
-}
-
 export enum PAYMENT {
 	credit = 'credit',
 	debit = 'debit',
 	topUp = 'topUp',
 	hold = 'hold',
+}
+
+export enum CALENDAR {
+	once = 'once',
+	special = 'special',
+}
+
+export enum SPAN {
+	full = 'full',
+	half = 'half',
 }
 
 export namespace Auth {
