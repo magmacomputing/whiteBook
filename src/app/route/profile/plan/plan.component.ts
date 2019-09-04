@@ -7,7 +7,7 @@ import { DialogService } from '@service/material/dialog.service';
 
 import { IPlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, TYPE } from '@dbase/data/data.define';
+import { FIELD, PRICE } from '@dbase/data/data.define';
 import { IPrice, IPlan } from '@dbase/data/data.schema';
 
 import { isUndefined } from '@lib/type.library';
@@ -55,13 +55,13 @@ export class PlanComponent implements OnInit {
 		prices
 			.filter(row => row[FIELD.key] === plan[FIELD.key])
 			.forEach(price => {
-				if (price[FIELD.type] === TYPE.topUp && price.amount)
+				if (price[FIELD.type] === PRICE.topUp && price.amount)
 					content.push(`$${this.fixString(price.amount)} to topUp your account`);
-				if (price[FIELD.type] === 'hold')
-					content.push(`$${this.fixString(price.amount)} funds on-hold for 90-days`)
-				if (price[FIELD.type] === 'full')
+				if (price[FIELD.type] === PRICE.hold)
+					content.push(`$${this.fixString(price.amount)} to put funds on-hold for 90-days`)
+				if (price[FIELD.type] === PRICE.full)
 					content.push(`$${this.fixString(price.amount)} for a one-hour Class`);
-				if (price[FIELD.type] === 'half')
+				if (price[FIELD.type] === PRICE.half)
 					content.push(`$${this.fixString(price.amount)} for a half-hour Class`)
 			})
 

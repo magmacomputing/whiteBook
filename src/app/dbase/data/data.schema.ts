@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { COLLECTION, STORE, TYPE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, SPAN } from '@dbase/data/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, SPAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -11,14 +11,6 @@ type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
 type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
 type TStoreForum = STORE.comment | STORE.react;
-
-type TPayment = TYPE.topUp | 'hold' | 'credit' | 'debit';
-type TProfile = TYPE.plan | TYPE.claim | TYPE.info | TYPE.pref;
-type TStatus = 'account' | 'connect';
-type TSchedule = 'event' | 'class' | 'special';
-type TCalendar = 'event' | 'special';
-
-export type TPrice = SPAN | TYPE.topUp | 'hold' | 'expiry';
 
 export type FBoolean = boolean | undefined | firestore.FieldValue;
 export type FNumber = number | undefined | firestore.FieldValue;
@@ -110,7 +102,7 @@ export interface ISchema extends IClientBase {
 //	/client/price
 export interface IPrice extends IClientBase {
 	[FIELD.store]: STORE.price;
-	[FIELD.type]: TPrice;
+	[FIELD.type]: PRICE;
 	[FIELD.key]: PLAN;
 	amount: number;
 }
@@ -131,7 +123,7 @@ export interface IBonus extends IClientBase {
 //	/client/plan
 export interface IPlan extends IClientBase {
 	[FIELD.store]: STORE.price;
-	[FIELD.key]: string;
+	[FIELD.key]: PLAN;
 	bonus?: boolean;										// allowed to apply Bonus
 	desc: string;
 	sort: number;
@@ -159,7 +151,7 @@ export interface IEvent extends IClientBase {
 //	/client/calendar
 export interface ICalendar extends IClientBase {
 	[FIELD.store]: STORE.calendar;
-	[FIELD.type]: TCalendar;
+	[FIELD.type]: EVENT;
 	[FIELD.key]: number;
 	name: string;
 	desc?: string;
@@ -180,7 +172,7 @@ export interface TBonus {							// a sub-type of IBonus
 }
 export interface ISchedule extends IClientBase {
 	[FIELD.store]: STORE.schedule | STORE.calendar;
-	[FIELD.type]: TSchedule;
+	[FIELD.type]: SCHEDULE;
 	[FIELD.key]: CLASS | string;
 	day: number;
 	location?: string;
@@ -234,6 +226,7 @@ export interface IInstructor extends IClientBase {
 export interface ISpan extends IClientBase {
 	[FIELD.store]: STORE.span;
 	[FIELD.key]: SPAN;
+	[FIELD.type]: SCHEDULE;
 	duration: number;
 }
 
@@ -248,6 +241,7 @@ export interface IAlert extends IClientBase {
 //	/client/react									// Member reaction icons
 export interface IIcon extends IClientBase {
 	[FIELD.store]: STORE.icon;
+	[FIELD.type]: STORE.react | STORE.class | STORE.event | STORE.provider | STORE.bonus;
 	[FIELD.key]: REACT | CLASS | EVENT | Auth.PROVIDER | BONUS;
 	image: string;
 	sort: number;
@@ -299,30 +293,30 @@ export interface IProvider extends IClientBase {
 //	/member/message
 export interface IMessage extends IUserBase {
 	[FIELD.store]: STORE.message;
-	[FIELD.type]: 'diary' | 'alert';
+	[FIELD.type]: MESSAGE;
 	[FIELD.note]: TString;
 }
 
 //	/member/profile
 export interface IProfile extends IUserBase {
 	[FIELD.store]: STORE.profile;
-	[FIELD.type]: TProfile;
+	[FIELD.type]: PROFILE;
 }
 export interface IProfilePlan extends IProfile {
-	[FIELD.type]: TYPE.plan;
+	[FIELD.type]: PROFILE.plan;
 	plan: PLAN;
 	bump?: PLAN;												// auto-upgrade Plan on next topUp Payment
 }
 export interface IProfileClaim extends IProfile {
-	[FIELD.type]: TYPE.claim;
+	[FIELD.type]: PROFILE.claim;
 	claims: ICustomClaims;
 }
 export interface IProfileInfo extends IProfile {
-	[FIELD.type]: TYPE.info;
+	[FIELD.type]: PROFILE.info;
 	[TYPE.info]: IMemberInfo;
 }
 export interface IProfilePref extends IProfile {
-	[FIELD.type]: TYPE.pref;
+	[FIELD.type]: PROFILE.pref;
 }
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
 
@@ -341,7 +335,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 //	/member/payment
 export interface IPayment extends IUserBase {
 	[FIELD.store]: STORE.payment;
-	[FIELD.type]: TPayment;
+	[FIELD.type]: PAYMENT;
 	link?: {
 		child?: string;									// the child Payment
 		parent?: string;								// the parent Payment
@@ -379,7 +373,7 @@ export interface IAttend extends IUserBase {
 	timetable: {
 		[FIELD.id]: string;							// the /client/schedule or /client/event _id
 		[FIELD.store]: string;					// 'schedule' or 'calendar'
-		[FIELD.type]: TSchedule;
+		[FIELD.type]: SCHEDULE;
 		[FIELD.key]: CLASS;
 	}
 	bonus?: {
@@ -446,14 +440,14 @@ export interface IRegister extends IUserBase {
 //	/member/status
 export interface IStatus extends IUserBase {
 	[FIELD.store]: STORE.status;
-	[FIELD.type]: TStatus;
+	[FIELD.type]: STATUS;
 }
 export interface IStatusAccount extends IStatus {
-	[FIELD.type]: 'account';
+	[FIELD.type]: STATUS.account;
 	summary: ISummary;
 }
 export interface IStatusConnect extends IStatus {
-	[FIELD.type]: 'connect';
+	[FIELD.type]: STATUS.connect;
 	state: CONNECT;
 	device?: string | null;
 }

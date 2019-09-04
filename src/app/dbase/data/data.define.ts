@@ -54,7 +54,7 @@ export enum TYPE {
 	profile = 'profile',
 	message = 'message',
 	account = 'account',
-	topUp = 'topUp',
+	unknown = 'unknown',
 }
 
 export enum FIELD {								// common Field names
@@ -71,6 +71,7 @@ export enum FIELD {								// common Field names
 	id = '_id',
 	uid = 'uid',
 	store = 'store',
+	sort = 'sort',
 	type = 'type',
 	image = 'image',
 	key = 'key',
@@ -89,8 +90,37 @@ export enum CLASS {
 	ZumbaStep = 'ZumbaStep'
 }
 
-export enum EVENT {
+export enum CALENDAR {
+	once = 'once',
+	special = 'special',
+}
 
+export enum MESSAGE {
+	diary = 'diary',
+	alert = 'alert',
+}
+
+export enum EVENT {
+	closed = 'closed',
+	event2 = 'Event*2',
+	event3 = 'Event*3',
+	evetn4 = 'Event*4',
+	holiday3 = 'Holiday*3',
+	stepIn2 = 'StepIn*2',
+	zumba1 = 'Zumba*1',
+}
+
+export enum SCHEDULE {
+	class = 'class',
+	event = 'event',
+	special = 'special',
+}
+
+export enum PROFILE {
+	plan = 'plan',
+	claim = 'claim',
+	info = 'info',
+	pref = 'pref',
 }
 
 export enum PLAN {
@@ -98,17 +128,28 @@ export enum PLAN {
 	casual = 'casual',
 	gratis = 'gratis',
 	student = 'student',
+	pension = 'pension',
 	core = 'core',
 	intro = 'intro',
 }
 
 export enum PRICE {
-
+	full = 'full',
+	half = 'half',
+	topUp = 'topUp',
+	hold = 'hold',
 }
 
 export enum SPAN {
-	full='full',
-	half='half',
+	full = 'full',
+	half = 'half',
+}
+
+export enum PAYMENT {
+	credit = 'credit',
+	debit = 'debit',
+	topUp = 'topUp',
+	hold = 'hold',
 }
 
 export namespace Auth {
@@ -129,6 +170,11 @@ export namespace Auth {
 		play = 'play',
 		anonymous = 'anonymous',
 	}
+}
+
+export enum STATUS {
+	connect = 'connect',
+	account = 'account',
 }
 
 export enum CONNECT {

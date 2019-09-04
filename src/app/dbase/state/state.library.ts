@@ -11,7 +11,7 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
-import { COLLECTION, STORE, FIELD, BONUS } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
@@ -75,7 +75,7 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	if (isEmpty<object>(SLICES))									// nothing in State yet, on first-time connect
 		slices.push(SLICE.client);									// special: assume 'client' slice.
 	if (!SORTBY[store])
-		SORTBY[store] = ['sort', 'key'];						// special: assume sort order
+		SORTBY[store] = [FIELD.sort, FIELD.key];		// special: assume sort order
 
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
@@ -249,7 +249,7 @@ export const calendarDay = (source: ITimetableState) => {
 }
 
 const lookupIcon = (source: any, key: string) => {
-	const dflt = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'))[FIELD.key];
+	const dflt = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon))[FIELD.key];
 	return firstRow<IIcon>(source.client.icon, addWhere(FIELD.key, [key, dflt])).image
 };
 
@@ -269,23 +269,23 @@ export const buildProvider = (source: IProviderState) => {
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
 	const isAdmin = roles && roles.includes(ROLE.admin);
-	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, 'plan'));
-	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, 'topUp'));
+	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, STORE.plan));
+	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, PRICE.topUp));
 	const myAge = getMemberAge(source.member.info);	// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<IPrice>(source.client.price, [
 			addWhere(FIELD.key, plan[FIELD.key]),
-			addWhere(FIELD.type, 'topUp'),
+			addWhere(FIELD.type, PRICE.topUp),
 		])
 
 		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
 			plan[FIELD.disable] = true;
 
-		if (plan[FIELD.key] === 'intro')											// Special: Intro is only available to new Members
+		if (plan[FIELD.key] === PLAN.intro)										// Special: Intro is only available to new Members
 			plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
 
-		if (plan[FIELD.key] === 'pension') {									// Special: Pension is only available to senior Member
+		if (plan[FIELD.key] === PLAN.pension) {								// Special: Pension is only available to senior Member
 			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
 			plan[FIELD.hidden] = notAllow;
 			plan[FIELD.disable] = notAllow;
@@ -320,8 +320,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	} = source.client;
 	const attendToday = source.attend.attendToday;
 
-	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
-	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));
+	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon));
+	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
 	/**
@@ -350,7 +350,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			const duration = spanClass.duration || span.duration;
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
-				[FIELD.type]: eventList[FIELD.store],
+				[FIELD.type]: SCHEDULE.event,
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
@@ -384,7 +384,9 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			// else time[FIELD.disable] = true;						// cannot determine the event
 
 			if (!time[FIELD.image])												// if no schedule-specific icon, use class icon, else default icon
-				time[FIELD.image] = firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image || icon[FIELD.key];
+				time[FIELD.image] =
+					firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image ||
+					firstRow<IIcon>(icons, addWhere(FIELD.key, icon[FIELD.key])).image
 
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists
@@ -396,7 +398,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
-		.filter(row => row[FIELD.type] === STORE.event || !eventLocations.includes(row.location!))
+		.filter(row => row[FIELD.type] === SCHEDULE.event || !eventLocations.includes(row.location!))
 
 	return { ...source }
 }

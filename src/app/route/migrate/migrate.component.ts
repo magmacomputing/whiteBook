@@ -10,8 +10,8 @@ import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
-import { COLLECTION, FIELD, STORE, BONUS, CLASS } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, TPrice } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, TYPE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -267,7 +267,7 @@ export class MigrateComponent implements OnInit {
 					approve.uid = 'JorgeEC';
 				}
 
-				if (payType === 'topUp') {
+				if (payType === PRICE.topUp) {
 					row.debit = undefined;
 				} else {
 					row.debit = row.credit;
@@ -288,7 +288,7 @@ export class MigrateComponent implements OnInit {
 					[FIELD.type]: payType,
 					stamp: row.stamp,
 					hold: row.hold,
-					amount: payType === 'topUp' ? parseFloat(row.credit!) : undefined,
+					amount: payType === PRICE.topUp ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
 					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
@@ -336,10 +336,10 @@ export class MigrateComponent implements OnInit {
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
 	private getExpiry(row: MHistory, profile: IProfilePlan[], plans: IPlan[], prices: IPrice[]) {
 		let expiry: number | undefined = undefined;
-		const plan = asAt(profile, addWhere(FIELD.type, 'plan'), row.stamp)[0];
+		const plan = asAt(profile, addWhere(FIELD.type, STORE.plan), row.stamp)[0];
 		const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
 		const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
-		const topUp = curr.find(row => row[FIELD.type] === 'topUp' && row[FIELD.key] === plan.plan);
+		const topUp = curr.find(row => row[FIELD.type] === PRICE.topUp && row[FIELD.key] === plan.plan);
 		const paid = parseFloat(row.credit || '0') + parseFloat(row.debit || '0');
 
 		if (topUp && !isUndefined(desc.expiry)) {
@@ -418,7 +418,7 @@ export class MigrateComponent implements OnInit {
 		const now = getDate(row.date);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
-		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere('location', 'norths', '!=')], row.date)[0];
+		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
@@ -439,7 +439,7 @@ export class MigrateComponent implements OnInit {
 
 		if (this.pack.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
-				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, 'plan'), addWhere(FIELD.uid, this.current!.user.uid)], now),
+				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, STORE.plan), addWhere(FIELD.uid, this.current!.user.uid)], now),
 				this.data.getStore<IPrice>(STORE.price, undefined, now),
 				this.data.getStore<IBonus>(STORE.bonus, undefined, now),
 			])
@@ -448,8 +448,8 @@ export class MigrateComponent implements OnInit {
 				.reduce((accum, row) => {
 					accum[row[FIELD.type]] = row;
 					return accum;
-				}, {} as Record<TPrice, IPrice>)
-			const sunday = bonus.find(row => row[FIELD.key] === 'sunday');
+				}, {} as Record<PRICE, IPrice>)
+			const sunday = bonus.find(row => row[FIELD.key] === BONUS.sunday);
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
@@ -494,7 +494,7 @@ export class MigrateComponent implements OnInit {
 				what = migrate.attend[sfx];
 
 				sched = {
-					[FIELD.store]: STORE.calendar, [FIELD.type]: STORE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
 				}
 				break;
@@ -521,13 +521,13 @@ export class MigrateComponent implements OnInit {
 				}
 
 				sched = {
-					[FIELD.store]: STORE.calendar, [FIELD.type]: 'event', [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
+					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
 					note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 				}
 				break;
 
-			case prefix === 'unknown':										// no color on the cell, so guess the 'class'
+			case prefix === TYPE.unknown:									// no color on the cell, so guess the 'class'
 				migrate = this.lookupMigrate(now.format(DATE_FMT.yearMonthDay));
 				let className = migrate.attend.class || null;
 
@@ -619,7 +619,7 @@ export class MigrateComponent implements OnInit {
 
 		this.dbg('account: %j', summary);					// the current account summary
 		active.sort(sortKeys('-' + FIELD.stamp));
-		if (active[0][FIELD.type] === 'debit' && active[0].approve && !active[0][FIELD.expire]) {
+		if (active[0][FIELD.type] === PAYMENT.debit && active[0].approve && !active[0][FIELD.expire]) {
 			const test1 = active[0].expiry && active[0].expiry < getStamp();
 			const test2 = summary.pend < 0;			// closed account
 			const test3 = summary.funds < 0;
@@ -631,7 +631,7 @@ export class MigrateComponent implements OnInit {
 			}
 		}
 
-		if (active[0][FIELD.type] === 'topUp' && profile.plan === 'gratis' && active[0].expiry) {
+		if (active[0][FIELD.type] === PAYMENT.topUp && profile.plan === PLAN.gratis && active[0].expiry) {
 			if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
 				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
 				updates.push({ ...active[0], [FIELD.expire]: closed });
