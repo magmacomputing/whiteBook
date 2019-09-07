@@ -10,7 +10,7 @@ import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * AdminState is for items only Users with roles['admin'] in their customClaims can see
+ * AdminState is for items that only Users (with roles['admin'] in their customClaims) can see
  */
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.admin,
