@@ -62,7 +62,7 @@ export class AttendComponent implements OnInit, OnDestroy {
 		this.timerSubscription = of(0)							// a single-emit Observable
 			.pipe(delay(defer.toDate()))
 			.subscribe(
-				_ => this.setDate(0),										// onNext, show new day's timetable
+				() => this.setDate(0),									// onNext, show new day's timetable
 				undefined,															// onError
 				() => this.setTimer()										// onComplete, start a new Delay timer
 			)

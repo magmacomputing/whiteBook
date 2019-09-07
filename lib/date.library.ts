@@ -217,7 +217,7 @@ export class Instant {
 	}
 
 	private prepDate(dt: string | number) {
-		Instant.hhmi.test(dt.toString())								// if only HH:MI supplied...
+		Instant.hhmi.test(dt.toString())													// if only HH:MI supplied...
 		dt = `${new Date().toDateString()} ${dt}`;
 		return dt;
 	}
@@ -320,7 +320,9 @@ export class Instant {
 				return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 			default:
-				const am = date.HH >= 12 && date.MI > 1 ? 'pm' : 'am';
+				const am = date.HH >= 12 || (date.HH === 12 && date.MI > 1)
+					? 'pm'
+					: 'am'
 
 				return asString(fmt)
 					.replace(/y{4}/g, fix(date.yy))
