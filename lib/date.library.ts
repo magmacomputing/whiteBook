@@ -370,13 +370,13 @@ export class Instant {
 						break;
 
 					case word3 === 'mmm':						// change the month-name into a month-number
-						param = Instant.MONTH[param as keyof typeof Instant.MONTH];
+						param = Instant.MONTH[param as Instant.MONTH];
 					case word2 === 'mm':
 						date.mm = asNumber(param);
 						break;
 
 					case word3 === 'ddd':						// set the day to the last occurrence of %ddd
-						let weekDay = Instant.WEEKDAY[param as keyof typeof Instant.WEEKDAY];
+						let weekDay = Instant.WEEKDAY[param as Instant.WEEKDAY];
 						param = (date.dd - date.dow + weekDay).toString();
 					case word2 === 'dd':
 						date.dd = asNumber(param);
