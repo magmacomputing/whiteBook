@@ -332,7 +332,7 @@ export class Instant {
 					.replace(/H{2}/g, fix(date.HH))
 					.replace(/M{2}/g, fix(date.MI))
 					.replace(/MI/g, fix(date.MI))
-					.replace(/h{2}/g, fix(date.HH > 12 ? date.HH - 12 : date.HH))
+					.replace(/h{2}/g, fix(date.HH >= 13 ? date.HH % 12 : date.HH))
 					.replace(/m{2}/g, fix(date.MI) + am)
 					.replace(/mi/g, fix(date.MI) + am)
 					.replace(/S{2}/g, fix(date.SS))
