@@ -108,7 +108,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				.length >= scheme.sunday.level										// required number of Attends this week
 			&& now.dow === Instant.WEEKDAY.Sun									// today is 'Sunday'
 			&& elect == BONUS.sunday														// Member elected to take Bonus
-			&& (asArray(scheme.sunday.free as TString)).includes(event):
+			&& asArray(scheme.sunday.free).includes(event):
 
 			bonus = {
 				[FIELD.id]: scheme.sunday[FIELD.id],

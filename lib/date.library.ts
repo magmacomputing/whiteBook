@@ -320,9 +320,7 @@ export class Instant {
 				return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 			default:
-				const am = date.HH >= 12 || (date.HH === 12 && date.MI > 1)
-					? 'pm'
-					: 'am'
+				const am = date.HH >= 12 ? 'pm' : 'am';							// noon is considered 'pm'
 
 				return asString(fmt)
 					.replace(/y{4}/g, fix(date.yy))
