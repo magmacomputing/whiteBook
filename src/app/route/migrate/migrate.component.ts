@@ -335,12 +335,12 @@ export class MigrateComponent implements OnInit {
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
 	private getExpiry(row: MHistory, profile: IProfilePlan[], plans: IPlan[], prices: IPrice[]) {
-		let expiry: number | undefined = undefined;
 		const plan = asAt(profile, addWhere(FIELD.type, STORE.plan), row.stamp)[0];
 		const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
 		const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
 		const topUp = curr.find(row => row[FIELD.type] === PRICE.topUp && row[FIELD.key] === plan.plan);
 		const paid = parseFloat(row.credit || '0') + parseFloat(row.debit || '0');
+		let expiry: number | undefined = undefined;
 
 		if (topUp && !isUndefined(desc.expiry)) {
 			const offset = topUp.amount
