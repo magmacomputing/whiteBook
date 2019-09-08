@@ -1,4 +1,4 @@
-import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
+import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SetAdmin, DelAdmin, TruncAdmin, filterState } from '@dbase/state/state.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
@@ -10,7 +10,7 @@ import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 /**
- * AdminState is for items that only Users (with roles['admin'] in their customClaims) can see
+ * AdminState is for items that only Admin Users (with roles['admin'] in their customClaims) can see
  */
 @State<TStateSlice<IStoreMeta>>({
 	name: SLICE.admin,
