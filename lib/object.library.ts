@@ -1,4 +1,4 @@
-import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero } from '@lib/type.library';
+import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero, isDate } from '@lib/type.library';
 
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 
@@ -78,14 +78,22 @@ const parseObj = <T>(str?: string | null) => {
 }
 
 export const deepClone = (obj: any): any => {
+	if (isNull(obj))
+		return obj;
+
 	if (isArray(obj))
 		return obj.map(deepClone);
+
+	if (isDate(obj))
+		return new Date(obj);
 
 	if (!isObject(obj))
 		return obj;
 
-	return Object.keys(obj)
-		.map(itm => deepClone(obj[itm]));						// recurse into Object
+	const res: { [key: string]: any } = {};
+	Object.entries<any>(obj)
+		.forEach(([key, val]) => res[key] = deepClone(val));						// recurse into Object
+	return res;
 }
 
 /** deep-compare Objects for equality */
