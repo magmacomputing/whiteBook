@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, MEMBER } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -51,7 +51,7 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 }
 interface IForumBase extends IMeta {
 	[FIELD.store]: TStoreForum;
-	[FIELD.type]: STORE.attend | STORE.class | STORE.event;	// TODO: currently only Attendance feedback
+	[FIELD.type]: STORE.attend | STORE.class | STORE.event;// TODO: currently only Attendance feedback
 	[FIELD.key]: string;										// key to the store-type the Member is referencing
 	[FIELD.uid]: string;										// the Member making the feedback
 	track: {																// to use in feedback-analysis
@@ -304,19 +304,20 @@ export interface IProfile extends IUserBase {
 }
 export interface IProfilePlan extends IProfile {
 	[FIELD.type]: PROFILE.plan;
-	plan: PLAN;
+	[PROFILE.plan]: PLAN;
 	bump?: PLAN;												// auto-upgrade Plan on next topUp Payment
 }
 export interface IProfileClaim extends IProfile {
 	[FIELD.type]: PROFILE.claim;
-	claims: ICustomClaims;
+	[PROFILE.claim]: ICustomClaims;
 }
 export interface IProfileInfo extends IProfile {
 	[FIELD.type]: PROFILE.info;
-	[MEMBER.info]: IMemberInfo;
+	[PROFILE.info]: IMemberInfo;
 }
 export interface IProfilePref extends IProfile {
 	[FIELD.type]: PROFILE.pref;
+	[PROFILE.pref]: TString;
 }
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
 
@@ -372,7 +373,7 @@ export interface IAttend extends IUserBase {
 	},
 	timetable: {
 		[FIELD.id]: string;							// the /client/schedule or /client/event _id
-		[FIELD.store]: string;					// 'schedule' or 'calendar'
+		[FIELD.store]: STORE.schedule | STORE.calendar;
 		[FIELD.type]: SCHEDULE;
 		[FIELD.key]: CLASS;
 	}
@@ -394,6 +395,7 @@ export interface IComment extends IForumBase {
 	[FIELD.store]: STORE.comment;
 	comment: TString;
 }
+//	/forum/react
 export interface IReact extends IForumBase {
 	[FIELD.store]: STORE.react;
 	react: REACT;

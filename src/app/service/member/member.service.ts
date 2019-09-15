@@ -10,7 +10,7 @@ import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT, MEMBER } from '@dbase/data/data.define';
+import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@lib/date.library';
@@ -165,10 +165,10 @@ export class MemberService {
 			[FIELD.type]: PROFILE.info,
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.uid]: uid || (await this.data.getUID()),
-			[MEMBER.info]: { ...memberInfo },								// spread the conformed member info
+			[PROFILE.info]: { ...memberInfo },								// spread the conformed member info
 		}
 
-		this.data.insDoc(profileInfo as IProfileInfo, addWhere(`${PROFILE.info}.providerId`, info.providerId), MEMBER.info);
+		this.data.insDoc(profileInfo as IProfileInfo, addWhere(`${PROFILE.info}.providerId`, info.providerId), PROFILE.info);
 	}
 
 }

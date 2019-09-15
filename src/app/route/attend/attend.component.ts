@@ -8,7 +8,7 @@ import { AttendService } from '@service/member/attend.service';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD } from '@dbase/data/data.define';
-import { IReact } from '@dbase/data/data.schema';
+import { IComment, IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined } from '@lib/type.library';

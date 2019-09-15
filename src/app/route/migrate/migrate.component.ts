@@ -10,7 +10,7 @@ import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
-import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, TYPE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
@@ -527,7 +527,7 @@ export class MigrateComponent implements OnInit {
 				}
 				break;
 
-			case prefix === TYPE.unknown:									// no color on the cell, so guess the 'class'
+			case prefix === FIELD.unknown:									// no color on the cell, so guess the 'class'
 				migrate = this.lookupMigrate(now.format(DATE_FMT.yearMonthDay));
 				let className = migrate.attend.class || null;
 

@@ -51,17 +51,6 @@ export enum STORE {
 	log = 'log',
 }
 
-export enum MEMBER {
-	info = 'info',
-	plan = 'plan',
-	pref = 'pref',
-	claim = 'claim',
-	profile = 'profile',
-	message = 'message',
-	account = 'account',
-	unknown = 'unknown',
-}
-
 export enum FIELD {								// common Field names
 	effect = '_effect',							// valid when greater-than-or-equal-to
 	expire = '_expire',							// valid when less-than
@@ -70,6 +59,7 @@ export enum FIELD {								// common Field names
 	access = '_access',							// date-time accessed
 	hidden = '_hidden',							// valid, but not displayed to User
 	disable = '_disable',						// displayed, but greyed to User
+	unknown = 'unknown',
 	stamp = 'stamp',
 	note = 'note',
 	date = 'date',
