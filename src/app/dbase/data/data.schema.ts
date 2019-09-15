@@ -1,6 +1,6 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { COLLECTION, STORE, TYPE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, MEMBER } from '@dbase/data/data.define';
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -313,7 +313,7 @@ export interface IProfileClaim extends IProfile {
 }
 export interface IProfileInfo extends IProfile {
 	[FIELD.type]: PROFILE.info;
-	[TYPE.info]: IMemberInfo;
+	[MEMBER.info]: IMemberInfo;
 }
 export interface IProfilePref extends IProfile {
 	[FIELD.type]: PROFILE.pref;

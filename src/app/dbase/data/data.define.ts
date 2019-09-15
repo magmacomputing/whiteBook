@@ -51,7 +51,7 @@ export enum STORE {
 	log = 'log',
 }
 
-export enum TYPE {
+export enum MEMBER {
 	info = 'info',
 	plan = 'plan',
 	pref = 'pref',
