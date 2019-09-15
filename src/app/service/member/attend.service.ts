@@ -44,7 +44,7 @@ export class AttendService {
 				.filter(row => row.day === now.dow)									// finding a match in 'day'
 				.filter(row => row[FIELD.key] === className)				// and match in 'class'
 				.filter(row => row.location === location)						// and match in 'location'
-				// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
+			// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
 
 			if (classes.length)																		// is this class offered on this 'day'   
 				break;
@@ -79,7 +79,7 @@ export class AttendService {
 			.pipe(take(1))																	// unsubscribe on first-emit
 			.toPromise()																		// emit observables as Promise
 
-																											// <schedule> might be from Schedule or Calender store
+		// <schedule> might be from Schedule or Calender store
 		const field = schedule[FIELD.store] === STORE.schedule
 			? FIELD.id																			// compare requested schedule to timetable's ID
 			: FIELD.key																			// compare requested event to class's Key
@@ -208,7 +208,7 @@ export class AttendService {
 			[FIELD.note]: note,															// optional 'note'
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
-				[FIELD.key]: schedule[FIELD.key] as CLASS,		// the Attend's class
+				[FIELD.key]: schedule[FIELD.key],							// the Attend's class
 				[FIELD.store]: schedule[FIELD.type] === SCHEDULE.class ? STORE.schedule : STORE.calendar,
 				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},

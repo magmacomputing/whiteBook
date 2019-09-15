@@ -1,4 +1,4 @@
-import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
+import { COLLECTION, STORE } from '@dbase/data/data.define';
 import { TString } from '@lib/type.library';
 
 /** These variables are built in ClientState initial snapshot */
