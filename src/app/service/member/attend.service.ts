@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD, BONUS, CLASS, PLAN, SCHEDULE } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -15,7 +15,7 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IComment } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
@@ -30,35 +30,8 @@ export class AttendService {
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
-	/** look back up-to seven days to find when className was last scheduled */
-	private lkpDate = async (className: string, location?: string, date?: TDate) => {
-		const timetable = await this.state.getTimetableData(date).toPromise();
-		let now = getDate(date);																// start with date-argument
-		let ctr = 0;
-
-		if (!location)
-			location = this.state.getDefault(timetable, STORE.location);
-
-		for (ctr; ctr < 7; ctr++) {
-			const classes = timetable.client.schedule!						// loop through schedule
-				.filter(row => row.day === now.dow)									// finding a match in 'day'
-				.filter(row => row[FIELD.key] === className)				// and match in 'class'
-				.filter(row => row.location === location)						// and match in 'location'
-			// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
-
-			if (classes.length)																		// is this class offered on this 'day'   
-				break;
-			now = now.add(-1, 'day');															// else move pointer to previous day
-		}
-
-		if (ctr >= 7)																						// cannot find className on timetable
-			now = getDate(date);																	// so default back to today's date	
-
-		return now.ts;																					// timestamp
-	}
-
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, comment?: TString, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
@@ -97,13 +70,27 @@ export class AttendService {
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
 			addWhere(FIELD.uid, data.auth.current!.uid),
-			addWhere(FIELD.note, note),
 		]
-		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
-		if (booked.length) {
-			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			return false;																		// discard Attend
+		const commentFilter = [
+			addWhere(FIELD.type, STORE.attend),
+			addWhere(FIELD.uid, data.auth.current!.uid),
+			addWhere(`track.${FIELD.date}`, when),
+			addWhere('comment', comment),
+		]
+		const [bookAttend, bookComment] = await Promise.all([
+			this.data.getStore<IAttend>(STORE.attend, attendFilter),
+			this.data.getStore<IComment>(STORE.comment, commentFilter),
+		])
+
+		if (bookAttend.length) {
+			const booked = bookAttend.map(row => bookComment.some(val => val.comment === comment && val[FIELD.key] === row[FIELD.id]));
+
+
+			if (booked) {
+				this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+				this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+				return false;																			// discard Attend
+			}
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -205,7 +192,7 @@ export class AttendService {
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
-			[FIELD.note]: note,															// optional 'note'
+			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
 				[FIELD.key]: schedule[FIELD.key],							// the Attend's class
@@ -228,6 +215,33 @@ export class AttendService {
 
 		return this.data.batch(creates, updates, undefined, SyncAttend)
 			.then(_ => this.member.setAccount(creates, updates, data))
+	}
+
+	/** look back up-to seven days to find when className was last scheduled */
+	private lkpDate = async (className: string, location?: string, date?: TDate) => {
+		const timetable = await this.state.getTimetableData(date).toPromise();
+		let now = getDate(date);																// start with date-argument
+		let ctr = 0;
+
+		if (!location)
+			location = this.state.getDefault(timetable, STORE.location);
+
+		for (ctr; ctr < 7; ctr++) {
+			const classes = timetable.client.schedule!						// loop through schedule
+				.filter(row => row.day === now.dow)									// finding a match in 'day'
+				.filter(row => row[FIELD.key] === className)				// and match in 'class'
+				.filter(row => row.location === location)						// and match in 'location'
+			// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
+
+			if (classes.length)																		// is this class offered on this 'day'   
+				break;
+			now = now.add(-1, 'day');															// else move pointer to previous day
+		}
+
+		if (ctr >= 7)																						// cannot find className on timetable
+			now = getDate(date);																	// so default back to today's date	
+
+		return now.ts;																					// timestamp
 	}
 
 	/**

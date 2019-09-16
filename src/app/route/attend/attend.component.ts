@@ -11,7 +11,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { IComment, IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
-import { isUndefined } from '@lib/type.library';
+import { isUndefined, TString } from '@lib/type.library';
 import { Instant, DATE_FMT } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
@@ -26,7 +26,7 @@ export class AttendComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
 	public date = new Instant();
 	public offset = 0;
-	public note!: string;
+	public comment!: TString;
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
