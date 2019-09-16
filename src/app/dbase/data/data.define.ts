@@ -32,11 +32,10 @@ export enum STORE {
 	profile = 'profile',
 	payment = 'payment',
 	setting = 'setting',
-	gift = 'gift',
 	migrate = 'migrate',
 	message = 'message',
 	status = 'status',
-	local = '@config@',
+	gift = 'gift',
 	// Admin
 	default = '_default_',
 	config = '_config_',
@@ -47,8 +46,9 @@ export enum STORE {
 	react = 'react',
 	// Attend
 	attend = 'attend',
-	// Log
+	// misc
 	log = 'log',
+	local = '@config@',
 }
 
 export enum FIELD {								// common Field names
@@ -149,12 +149,12 @@ export enum SPAN {
 
 export namespace Auth {
 	export enum PROVIDER {
-		fb = 'fb',
-		go = 'go',
-		gh = 'gh',
-		li = 'li',
-		tw = 'tw',
-		as = 'gapps',										// Google Apps Script
+		fb = 'fb',										// Facebook
+		go = 'go',										// Google
+		gh = 'gh',										// GitHub
+		li = 'li',										// LinkedIn
+		tw = 'tw',										// Twitter
+		as = 'gapps',									// Google Apps Script
 	}
 	export enum METHOD {
 		identity = 'identity',

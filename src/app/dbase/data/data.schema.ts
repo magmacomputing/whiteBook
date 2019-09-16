@@ -131,6 +131,7 @@ export interface IPlan extends IClientBase {
 	rule?: TString;
 	expiry?: number;										// number of months a Payment is active (before it is auto-expired)
 }
+
 //	/client/class
 export interface IClass extends IClientBase {
 	[FIELD.store]: STORE.class;
@@ -226,7 +227,7 @@ export interface IInstructor extends IClientBase {
 //	/client/span
 export interface ISpan extends IClientBase {
 	[FIELD.store]: STORE.span;
-	[FIELD.key]: SPAN;
+	[FIELD.key]: SPAN | CLASS;
 	[FIELD.type]: SCHEDULE;
 	duration: number;
 }
