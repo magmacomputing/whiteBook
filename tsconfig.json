@@ -24,20 +24,20 @@
         "src/environments/*"
       ],
       "@lib/*": [
-        "lib/*",
+        "lib/*"
       ],
       "@dbase/*": [
-        "src/app/dbase/*",
+        "src/app/dbase/*"
       ],
       "@library/*": [
-        "src/app/library/*",
+        "src/app/library/*"
       ],
       "@service/*": [
-        "src/app/service/*",
+        "src/app/service/*"
       ],
       "@route/*": [
         "src/app/route/*",
-        "src/app/route/router/*",
+        "src/app/route/router/*"
       ]
     }
   }
