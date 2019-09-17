@@ -421,6 +421,7 @@ export class MigrateComponent implements OnInit {
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
+		let comment;
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
@@ -545,6 +546,7 @@ export class MigrateComponent implements OnInit {
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;											// to allow AttendService to check what was charged
+				sched.note = row.note;
 				break;
 
 			default:
@@ -555,6 +557,7 @@ export class MigrateComponent implements OnInit {
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
 					row.elect = BONUS.week;
 				sched.amount = price;											// to allow AttendService to check what was charged
+				sched.note = row.note;
 				sched.elect = row.elect;
 		}
 
@@ -562,7 +565,7 @@ export class MigrateComponent implements OnInit {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;										// Member elected to not receive a Bonus
-			this.attend.setAttend(sched, row.note, row.stamp)
+			this.attend.setAttend(sched, comment, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
 						throw new Error('stopping');
