@@ -5,9 +5,11 @@ import { map, delay } from 'rxjs/operators';
 import { DialogService } from '@service/material/dialog.service';
 import { AttendService } from '@service/member/attend.service';
 
+import { IQuery } from '@dbase/fire/fire.interface';
+import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IComment, IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
@@ -31,9 +33,12 @@ export class AttendComponent implements OnInit, OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;
+	public forum$!: Observable<(IComment | IReact)[]>
+
 	public firstPaint = true;                           // indicate first-paint
 
 	private timerSubscription!: Subscription;
+	private forumSubscription!: Subscription;						// watch Comments / Reacts
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService) { }
@@ -47,24 +52,38 @@ export class AttendComponent implements OnInit, OnDestroy {
 			})
 		)
 
+		this.getForum();
 		if (!this.timerSubscription)
 			this.setTimer();
 	}
 
 	ngOnDestroy() {
 		this.timerSubscription && this.timerSubscription.unsubscribe();
+		this.forumSubscription && this.forumSubscription.unsubscribe()
+	}
+
+	// Subscribe to this.date's Comments / Reacts
+	private getForum() {
+		const query: IQuery = {
+			where: addWhere('track.date', this.date.format(DATE_FMT.yearMonthDay)),
+			orderBy: addOrder(FIELD.stamp),
+		}
+
+		this.forum$ = this.data.getFire<IComment | IReact>(COLLECTION.forum, query);
+		this.forumSubscription && this.forumSubscription.unsubscribe()
+		this.forumSubscription = this.forum$.subscribe()
 	}
 
 	/** If the Member is still sitting on this page at midnight, show timetable$ for next day */
 	setTimer() {
 		const defer = new Instant().add(1, 'day').startOf('day');
 		this.dbg('timeOut: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
-		this.timerSubscription = of(0)							// a single-emit Observable
+		this.timerSubscription = of(0)										// a single-emit Observable
 			.pipe(delay(defer.toDate()))
 			.subscribe(
-				() => this.setDate(0),									// onNext, show new day's timetable
-				undefined,															// onError
-				() => this.setTimer()										// onComplete, start a new Delay timer
+				() => this.setDate(0),												// onNext, show new day's timetable
+				undefined,																		// onError
+				() => this.setTimer()													// onComplete, start a new Delay timer
 			)
 	}
 
@@ -130,5 +149,6 @@ export class AttendComponent implements OnInit, OnDestroy {
 			: offset
 
 		this.ngOnInit();								// get new Schedule
+		this.getForum();								// get new Comments / Reacts
 	}
 }

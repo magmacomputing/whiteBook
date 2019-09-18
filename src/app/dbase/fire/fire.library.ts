@@ -1,6 +1,6 @@
 import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
-import { IQuery, IWhere } from '@dbase/fire/fire.interface';
+import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { isNumeric } from '@lib/string.library';
@@ -78,3 +78,7 @@ const splitQuery = (query: IQuery = {}) => {
 /** Make a 'where' clause */
 export const addWhere = (fieldPath: string | FieldPath, value: any, opStr: IWhere["opStr"] = '==') =>
 	({ fieldPath, opStr, value } as IWhere);
+
+/** Make an 'orderBy' clause */
+export const addOrder = (fieldPath: string | FieldPath, order: IOrderBy["directionStr"] = 'asc') =>
+	({ fieldPath, order } as IOrderBy);

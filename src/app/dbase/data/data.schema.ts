@@ -4,7 +4,6 @@ import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PL
 import { ISummary } from '@dbase/state/state.define';
 import { getSlice } from '@dbase/state/state.library';
 
-import { ROLE } from '@service/auth/auth.interface';
 import { TString } from '@lib/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
@@ -51,7 +50,7 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 }
 interface IForumBase extends IMeta {
 	[FIELD.store]: TStoreForum;
-	[FIELD.type]: STORE.attend | STORE.class | STORE.event;// TODO: currently only Attendance feedback
+	[FIELD.type]: STORE.attend | STORE.class | STORE.event;
 	[FIELD.key]: string;										// key to the store-type the Member is referencing
 	[FIELD.uid]: string;										// the Member making the feedback
 	[FIELD.stamp]: number;
@@ -404,7 +403,7 @@ export interface IReact extends IForumBase {
 //	/admin/register
 export interface ICustomClaims {		// a special sub-set of fields from the User Token
 	alias?: string;
-	roles?: ROLE[];
+	roles?: Auth.ROLE[];
 	allow?: string[];
 	deny?: string[];
 }

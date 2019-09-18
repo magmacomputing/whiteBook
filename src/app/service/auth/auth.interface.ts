@@ -55,10 +55,3 @@ export enum JWT {
 	audience = 'aud',
 	subject = 'sub',
 }
-
-export enum ROLE {
-	member = 'member',
-	instructor = 'instructor',
-	admin = 'admin',
-	guest = 'guest',
-}

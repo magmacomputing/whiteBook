@@ -15,13 +15,13 @@ import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
 import { EMailComponent } from '@route/login/email.component';
 
-import { ROLE } from '@service/auth/auth.interface';
+import { Auth } from '@dbase/data/data.define';
 import { getPath } from '@lib/object.library';
 
 const toLogin = redirectUnauthorizedTo([ROUTE.login]);
 const toAttend = redirectLoggedInTo([ROUTE.attend]);
 const isAdmin = pipe(customClaims,
-	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(ROLE.admin)),
+	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)),
 );
 
 const routes: Routes = [

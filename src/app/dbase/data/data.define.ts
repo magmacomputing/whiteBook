@@ -165,6 +165,13 @@ export namespace Auth {
 		play = 'play',
 		anonymous = 'anonymous',
 	}
+
+	export enum ROLE {
+		member = 'member',
+		instructor = 'instructor',
+		admin = 'admin',
+		guest = 'guest',
+	}
 }
 
 export enum STATUS {

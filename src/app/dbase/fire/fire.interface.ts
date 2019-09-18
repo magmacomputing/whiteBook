@@ -12,7 +12,7 @@ export interface IWhere {
 export type TWhere = IWhere | IWhere[];
 
 /** Query.orderBy */
-interface IOrderBy {
+export interface IOrderBy {
 	fieldPath: string | FieldPath;
 	directionStr?: 'desc' | 'asc';
 }
