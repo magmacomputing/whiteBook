@@ -37,7 +37,7 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
-		// This presumes that the <key> is from schedule store, and not calendar
+		// This presumes that the <key> is from Schedule store, and not Calendar
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
 		const now = getDate(date);
@@ -84,9 +84,12 @@ export class AttendService {
 
 		if (bookAttend.length) {
 			const booked = bookAttend.map(row => bookComment.some(val => val.comment === comment && val[FIELD.key] === row[FIELD.id]));
+			const comments = bookComment.reduce((acc, cmt) => {
+				acc[cmt[FIELD.key]] = cmt.comment;
+				return acc;
+			}, {} as { [key: string]: TString });
 
-
-			if (booked) {
+			if (comments[schedule[FIELD.key]] === comment) {		// This comment has already been made on a previous Attend
 				this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 				this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
 				return false;																			// discard Attend
