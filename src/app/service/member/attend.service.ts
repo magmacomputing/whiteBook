@@ -213,8 +213,26 @@ export class AttendService {
 			},
 			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
-		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 
+		if (!isUndefined(comment)) {											// TODO: check whether this is a React or a Comment
+			const key = this.data.newId;										// assign an ID for the Attend, also the KEY for the Comment
+			const commentDoc: Partial<IComment> = {
+				[FIELD.store]: STORE.comment,
+				[FIELD.type]: STORE.attend,
+				[FIELD.key]: key,
+				[FIELD.stamp]: stamp,
+				comment: comment,
+				track: {
+					[FIELD.date]: when,
+					day: now.dow,
+				},
+			}
+
+			attendDoc[FIELD.id] = this.data.newId;					// update the Attend with an assigned ID
+			creates.push(commentDoc as TStoreBase);					// batch the new Comment
+		}
+
+		creates.push(attendDoc as TStoreBase);						// batch the new Attend
 		return this.data.batch(creates, updates, undefined, SyncAttend)
 			.then(_ => this.member.setAccount(creates, updates, data))
 	}

@@ -104,7 +104,7 @@ export class FireService {
 
 	/**
 	 * Wrap database-writes within a set of Batches (limited to 300 documents per).  
-	 * These documents are assumed to have a <store> field and (except for 'creates') an <id> field  
+	 * These documents are assumed to have a <store> field and (except for 'creates') an <_id> field  
 	 * If they are Member documents and missing a <uid> field, the current User is inserted
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
@@ -145,7 +145,7 @@ export class FireService {
 
 				this.afs.firestore.runTransaction(txn => {
 					asArray(selects).forEach(ref => txn.get(ref));
-					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
+					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
 					u.forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 					d.forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
