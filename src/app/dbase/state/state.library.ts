@@ -3,7 +3,7 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
-import { IFireClaims, ROLE } from '@service/auth/auth.interface';
+import { IFireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@library/config.define';
@@ -11,7 +11,7 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
-import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
 import { getDate, TDate, DATE_FMT } from '@lib/date.library';
@@ -268,7 +268,7 @@ export const buildProvider = (source: IProviderState) => {
 /** Assemble a Plan-view */
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
-	const isAdmin = roles && roles.includes(ROLE.admin);
+	const isAdmin = roles && roles.includes(Auth.ROLE.admin);
 	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, STORE.plan));
 	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, PRICE.topUp));
 	const myAge = getMemberAge(source.member.info);	// use birthDay from provider, if available

@@ -11,7 +11,7 @@ import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, TStoreBase } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';

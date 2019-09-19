@@ -37,7 +37,7 @@ export interface IMeta {
  * One for 'client' & 'local', keyed by 'store/type?/key',  
  * the other for 'admin', 'member', 'forum' & 'attend', keyed by 'store/type?/uid'
  */
-export type TStoreBase = IClientBase | IUserBase | IMigrateBase;
+export type TStoreBase = IClientBase | IUserBase | IForumBase | IMigrateBase;
 interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;

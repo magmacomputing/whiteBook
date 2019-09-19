@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { Observable, Subscription, of } from 'rxjs';
 import { map, delay } from 'rxjs/operators';
 
@@ -9,7 +9,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, REACT } from '@dbase/data/data.define';
 import { IComment, IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
@@ -24,69 +24,30 @@ import { dbg } from '@lib/logger.library';
 	templateUrl: './attend.component.html',
 	styleUrls: ['./attend.component.scss'],
 })
-export class AttendComponent implements OnInit, OnDestroy {
+export class AttendComponent implements OnDestroy {
 	private dbg = dbg(this);
-	public date = new Instant();
-	public offset = 0;
-	public comment!: TString;
+	public date!: Instant;															// the date for the Schedule to display
+	public offset!: number;															// the number of days before today 
+	public comment!: TString;														// the Member's comment on the Attend
+	public react!: REACT;																// the Member's react on the Attend
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
-	public timetable$!: Observable<ITimetableState>;
-	public forum$!: Observable<(IComment | IReact)[]>
+	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
+	public forum$!: Observable<(IComment | IReact)[]>;	// the date's Comments / Reacts
 
 	public firstPaint = true;                           // indicate first-paint
 
-	private timerSubscription!: Subscription;
+	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
 	private forumSubscription!: Subscription;						// watch Comments / Reacts
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService,
-		public readonly data: DataService, private dialog: DialogService) { }
-
-	ngOnInit() {                                        // wire-up the timetable Observable
-		this.timetable$ = this.state.getScheduleData(this.date).pipe(
-			map(data => {
-				this.locations = (data.client.location || []).length;
-				this.selectedIndex = 0;                       // start on the first-page
-				return data;
-			})
-		)
-
-		this.getForum();
-		if (!this.timerSubscription)
-			this.setTimer();
-	}
+		public readonly data: DataService, private dialog: DialogService) { this.setDate(0); }
 
 	ngOnDestroy() {
 		this.timerSubscription && this.timerSubscription.unsubscribe();
 		this.forumSubscription && this.forumSubscription.unsubscribe()
 	}
-
-	// Subscribe to this.date's Comments / Reacts
-	private getForum() {
-		const query: IQuery = {
-			where: addWhere('track.date', this.date.format(DATE_FMT.yearMonthDay)),
-			orderBy: addOrder(FIELD.stamp),
-		}
-
-		this.forum$ = this.data.getFire<IComment | IReact>(COLLECTION.forum, query);
-		this.forumSubscription && this.forumSubscription.unsubscribe()
-		this.forumSubscription = this.forum$.subscribe()
-	}
-
-	/** If the Member is still sitting on this page at midnight, show timetable$ for next day */
-	setTimer() {
-		const defer = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeOut: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
-		this.timerSubscription = of(0)										// a single-emit Observable
-			.pipe(delay(defer.toDate()))
-			.subscribe(
-				() => this.setDate(0),												// onNext, show new day's timetable
-				undefined,																		// onError
-				() => this.setTimer()													// onComplete, start a new Delay timer
-			)
-	}
-
 
 	// Build info to show in a Dialog
 	showEvent(client: ITimetableState["client"], idx: number) {
@@ -130,25 +91,68 @@ export class AttendComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * I expect this will be called very infrequently.  
+	 * Call this onInit, and whenever the Member changes the date, and at midnight.   
 	 * It will allow a Member to check-in to a Class up-to 6 days in the past,  
 	 * useful if they forgot to scan at the time.  
-	 * dir:	if -1,	show previous day
-	 * 			if 1,		show next day
+	 * dir:	if -1,	show previous day  
+	 * 			if 1,		show next day  
 	 * 			if 0,		show today
 	 */
-	setDate(dir: number) {
+	setDate(dir: -1 | 0 | 1) {
 		const today = new Instant();
 		const offset = dir === 0
 			? today
 			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
-		this.date = this.offset > 6
-			? today
+		this.date = this.offset > 6			// only allow up-to 6 days in the past
+			? today												// else reset to today
 			: offset
 
-		this.ngOnInit();								// get new Schedule
-		this.getForum();								// get new Comments / Reacts
+		this.getSchedule();							// get day's Schedule
+
+		this.getForum();								// get day's Comments / Reacts
+
+		if (!this.timerSubscription)
+			this.setTimer();							// set a Schedule-view timeout
+	}
+
+	private getSchedule() {
+		this.timetable$ = this.state.getScheduleData(this.date).pipe(
+			map(data => {
+				this.locations = (data.client.location || []).length;
+				this.selectedIndex = 0;                       // start on the first-page
+				return data;
+			})
+		)
+	}
+
+	// Subscribe to this.date's Comments / Reacts
+	private getForum() {
+		const query: IQuery = {
+			where: addWhere('track.date', this.date.format(DATE_FMT.yearMonthDay)),
+			orderBy: addOrder(FIELD.stamp),
+		}
+
+		this.dbg('getForum: %j', query);
+		this.forum$ = this.data.getFire<IComment | IReact>(COLLECTION.forum, query);
+		this.forumSubscription && this.forumSubscription.unsubscribe()
+		this.forumSubscription = this.forum$.subscribe(
+			data => this.dbg('forum: %j', data),
+		)
+	}
+
+	/** If the Member is still sitting on this page at midnight, move this.date to next day */
+	private setTimer() {
+		const defer = new Instant().add(1, 'day').startOf('day');
+		this.dbg('timeOut: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
+
+		this.timerSubscription && this.timerSubscription.unsubscribe();
+		this.timerSubscription = of(0)										// a single-emit Observable
+			.pipe(delay(defer.toDate()))
+			.subscribe(() => {
+				this.timerSubscription.unsubscribe();					// stop watching for midnight
+				this.setDate(0);															// onNext, show new day's timetable
+			})
 	}
 }
