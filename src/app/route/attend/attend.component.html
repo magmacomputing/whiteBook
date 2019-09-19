@@ -49,7 +49,7 @@
 							</mat-card-subtitle>
 
 							<mat-card-content>
-								<button mat-raised-button [disabled]="item._disable" (click)="attend.setAttend(item, comment, date)"
+								<button mat-raised-button [disabled]="item._disable" (click)="attend.setAttend(item, forum, date)"
 									matBadge="{{ item.count }}" matBadgeHidden="{{ item.count == 0 }}">
 									Check-in: {{ item.amount | currency }}
 								</button>

@@ -48,7 +48,7 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 	[FIELD.uid]: string;
 	[FIELD.stamp]: number;
 }
-interface IForumBase extends IMeta {
+export interface IForumBase extends IMeta {
 	[FIELD.store]: TStoreForum;
 	[FIELD.type]: STORE.attend | STORE.class | STORE.event;
 	[FIELD.key]: string;										// key to the store-type the Member is referencing

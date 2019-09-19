@@ -8,14 +8,14 @@ import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE } from '@dbase/data/data.define';
 
-import { PAY, ATTEND } from '@service/member/attend.define';
+import { PAY, ATTEND, PForum } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IComment } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IComment, IReact, IForumBase } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
@@ -31,7 +31,7 @@ export class AttendService {
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, comment?: TString, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, { comment, react }: PForum = {}, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
@@ -66,33 +66,34 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same Time
 		const attendFilter = [
+			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			addWhere(FIELD.uid, data.auth.current!.uid),
+			addWhere('note', schedule[FIELD.note]),
 		]
-		const commentFilter = [
-			addWhere(FIELD.type, STORE.attend),
+		const reactFilter = [
+			addWhere(FIELD.store, STORE.attend),
+			addWhere(FIELD.type, STORE.react),
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(`track.${FIELD.date}`, when),
-			addWhere('comment', comment),
 		]
-		const [bookAttend, bookComment] = await Promise.all([
+		const [bookAttend, bookReact] = await Promise.all([		// also get past React
 			this.data.getStore<IAttend>(STORE.attend, attendFilter),
-			this.data.getStore<IComment>(STORE.comment, commentFilter),
+			this.data.getStore<IReact>(STORE.comment, reactFilter),
 		])
 
-		if (bookAttend.length) {
-			const comments = bookComment.reduce((acc, cmt) => {
-				acc[cmt[FIELD.key]] = cmt.comment;
-				return acc;
-			}, {} as { [key: string]: TString });								// build an map of comments / attends
+		if (bookAttend.length) {															// disallow same Class, same Note
+			// const comments = bookComment.reduce((acc, cmt) => {
+			// 	acc[cmt[FIELD.key]] = cmt.comment;
+			// 	return acc;
+			// }, {} as { [key: string]: TString });								// build an map of comments / attends
 
-			if (comments[schedule[FIELD.key]] === comment) {		// This comment has already been made on a today's Attend
-				this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-				this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-				return false;																			// discard Attend
-			}
+			// if (comments[schedule[FIELD.key]] === comment) {		// This comment has already been made on a today's Attend
+			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+			return false;																			// discard Attend
+			// }
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -191,7 +192,9 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document
 
+		const attendId = this.data.newId;									// assign an ID for the Attend, also the KEY for the Comment
 		const attendDoc: Partial<IAttend> = {
+			[FIELD.id]: attendId,														// assign an ID to the Attend
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
 			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
@@ -214,22 +217,24 @@ export class AttendService {
 			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
 
-		if (!isUndefined(comment)) {											// TODO: check whether this is a React or a Comment
-			const key = this.data.newId;										// assign an ID for the Attend, also the KEY for the Comment
-			const commentDoc: Partial<IComment> = {
-				[FIELD.store]: STORE.comment,
-				[FIELD.type]: STORE.attend,
-				[FIELD.key]: key,
-				[FIELD.stamp]: stamp,
-				comment: comment,
-				track: {
-					[FIELD.date]: when,
-					day: now.dow,
-				},
+		const forumDoc: Partial<IForumBase> = {
+			[FIELD.type]: STORE.attend,
+			[FIELD.key]: attendId,
+			[FIELD.stamp]: stamp,
+			track: {
+				[FIELD.date]: when,
+				day: now.dow,
 			}
+		}
+		if (!isUndefined(comment))
+			creates.push({ ...forumDoc, comment } as IStoreMeta);	// batch the new Comment
 
-			attendDoc[FIELD.id] = this.data.newId;					// update the Attend with an assigned ID
-			creates.push(commentDoc as TStoreBase);					// batch the new Comment
+		if (!isUndefined(react)) {
+			if (!bookReact.length) {
+				creates.push({ ...forumDoc, react } as IStoreMeta);	// batch the new React
+			} else {
+				updates.push({ ...bookReact[0], react });			// change the React
+			}
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend

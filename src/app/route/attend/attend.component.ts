@@ -2,18 +2,19 @@ import { Component, OnDestroy } from '@angular/core';
 import { Observable, Subscription, of } from 'rxjs';
 import { map, delay } from 'rxjs/operators';
 
-import { DialogService } from '@service/material/dialog.service';
+import { PForum } from '@service/member/attend.define';
 import { AttendService } from '@service/member/attend.service';
+import { DialogService } from '@service/material/dialog.service';
 
 import { IQuery } from '@dbase/fire/fire.interface';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, COLLECTION, REACT } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IComment, IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
-import { isUndefined, TString } from '@lib/type.library';
+import { isUndefined } from '@lib/type.library';
 import { Instant, DATE_FMT } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
@@ -28,8 +29,7 @@ export class AttendComponent implements OnDestroy {
 	private dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
 	public offset!: number;															// the number of days before today 
-	public comment!: TString;														// the Member's comment on the Attend
-	public react!: REACT;																// the Member's react on the Attend
+	public forum!: PForum;
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
