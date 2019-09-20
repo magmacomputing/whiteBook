@@ -6,10 +6,12 @@ import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
 import { SLICE, LState } from '@dbase/state/state.define';
-import { SetDevice, DelDevice, TruncDevice, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
+import { SetForum, DelForum, TruncForum } from '@dbase/state/state.action';
+import { SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys } from '@lib/object.library';
@@ -70,7 +72,7 @@ export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
 	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreMeta)
 
 /** Determine the ActionHandler based on the Slice listener */
-export const getMethod = (slice: string) => {
+export const getMethod = (slice: SLICE) => {
 	switch (slice) {                           				// TODO: can we merge these?
 		case SLICE.client:
 			return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
@@ -86,6 +88,9 @@ export const getMethod = (slice: string) => {
 
 		case SLICE.admin:
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
+
+		case SLICE.forum:
+			return { setStore: SetForum, delStore: DelForum, truncStore: TruncForum }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

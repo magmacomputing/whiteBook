@@ -5,7 +5,7 @@ import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
 	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
-	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider,
+	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -16,6 +16,7 @@ export enum SLICE {
 	attend = 'attend',
 	admin = 'admin',
 	device = 'device',
+	forum = 'forum',
 }
 
 /**
@@ -149,4 +150,9 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		attendToday: IAttend[];
 	},
 	bonus?: TBonus,
+}
+
+export interface IForumState {
+	comment: IComment[];
+	react: IReact[];
 }

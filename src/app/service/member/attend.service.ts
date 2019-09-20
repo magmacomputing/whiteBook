@@ -29,7 +29,6 @@ export class AttendService {
 	private dbg = dbg(this);
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
-
 	/** Insert an Attend document, aligned to an active Payment  */
 	public setAttend = async (schedule: ISchedule, { comment, react }: PForum = {}, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
@@ -190,7 +189,7 @@ export class AttendService {
 		if (data.member.plan[0].plan === PLAN.intro && (data.account.summary.funds - schedule.amount) <= 0)
 			this.member.setPlan(PLAN.member, stamp + 1);				// auto-bump 'intro' to 'member' Plan
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// got everything we need; write an Attend document
+		// got everything we need; write an Attend document and any Forum documents
 
 		const attendId = this.data.newId;									// assign an ID for the Attend, also the KEY for the Comment
 		const attendDoc: Partial<IAttend> = {

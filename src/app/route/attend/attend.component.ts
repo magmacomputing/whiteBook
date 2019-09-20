@@ -91,7 +91,7 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	/**
-	 * Call this onInit, and whenever the Member changes the date, and at midnight.   
+	 * Call this onInit, whenever the Member changes the UI-date, and at midnight.   
 	 * It will allow a Member to check-in to a Class up-to 6 days in the past,  
 	 * useful if they forgot to scan at the time.  
 	 * dir:	if -1,	show previous day  

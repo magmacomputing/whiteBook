@@ -30,7 +30,7 @@ export class StateService {
 	@Select() private client$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private member$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private comment$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() private forum$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
 
@@ -42,7 +42,7 @@ export class StateService {
 			'client': this.client$,
 			'member': this.member$,
 			'attend': this.attend$,
-			'comment': this.comment$,
+			'forum': this.forum$,
 			'admin': this.admin$,
 			'local': this.local$,
 		}
@@ -264,6 +264,7 @@ export class StateService {
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
 		const filterIcon = addWhere(FIELD.type, [STORE.class, STORE.default]);
 		const filterForum = [
+			addWhere(FIELD.store, [STORE.comment, STORE.react]),
 			addWhere(FIELD.type, STORE.attend),
 			addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`),
 		]
@@ -299,6 +300,8 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends against this week
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
 			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends against this day
+			joinDoc(this.states, 'forum.comment', STORE.comment, filterForum),
+			joinDoc(this.states, 'forum.react', STORE.react, filterForum),
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
