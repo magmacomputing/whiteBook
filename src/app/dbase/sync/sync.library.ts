@@ -1,16 +1,15 @@
 import * as firebase from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
-import { SLICE, LState } from '@dbase/state/state.define';
+import { LState } from '@dbase/state/state.define';
 import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
-import { SetForum, DelForum, TruncForum } from '@dbase/state/state.action';
 import { SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
@@ -72,25 +71,22 @@ export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
 	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreMeta)
 
 /** Determine the ActionHandler based on the Slice listener */
-export const getMethod = (slice: SLICE) => {
+export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
-		case SLICE.client:
+		case COLLECTION.client:
 			return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
 
-		case SLICE.member:
+		case COLLECTION.member:
 			return { setStore: SetMember, delStore: DelMember, truncStore: TruncMember }
 
-		case SLICE.attend:
+		case COLLECTION.attend:
 			return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
 
-		case SLICE.device:
+		case COLLECTION.device:
 			return { setStore: SetDevice, delStore: DelDevice, truncStore: TruncDevice }
 
-		case SLICE.admin:
+		case COLLECTION.admin:
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
-
-		case SLICE.forum:
-			return { setStore: SetForum, delStore: DelForum, truncStore: TruncForum }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

@@ -8,7 +8,7 @@ import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
 	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, LoginAnon, AuthOther
 } from '@dbase/state/auth.action';
-import { SLICE, TStateSlice } from '@dbase/state/state.define';
+import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/material/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';

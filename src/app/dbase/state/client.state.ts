@@ -1,6 +1,6 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetClient, DelClient, TruncClient, filterState } from '@dbase/state/state.action';
-import { TStateSlice, SLICE } from '@dbase/state/state.define';
+import { TStateSlice } from '@dbase/state/state.define';
 
 import { SLICES } from '@library/config.define';
 import { setSchema } from '@library/config.library';
@@ -12,7 +12,7 @@ import { isEmpty, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
-	name: SLICE.client,
+	name: COLLECTION.client,
 	defaults: {}
 })
 export class ClientState implements NgxsOnInit {

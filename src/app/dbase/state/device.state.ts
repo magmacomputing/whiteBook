@@ -1,8 +1,8 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
-import { TStateSlice, SLICE } from '@dbase/state/state.define';
+import { TStateSlice } from '@dbase/state/state.define';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
 import { makeTemplate } from '@lib/string.library';
@@ -17,7 +17,7 @@ import { dbg } from '@lib/logger.library';
  * UI preferences for _login_ (which are needed prior to authentication)
  */
 @State<TStateSlice<IStoreMeta>>({
-	name: SLICE.device,
+	name: COLLECTION.device,
 	defaults: {}
 })
 export class DeviceState implements NgxsOnInit {

@@ -72,18 +72,18 @@ export class TruncAdmin {									// Truncate Admin object from the Store
 	constructor(public debug: boolean = true) { }
 }
 
-export class SetForum {
-	static type = '[Sync Service] Set Forum';
-	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
-}
-export class DelForum {
-	static type = '[Sync Service] Delete Forum';
-	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
-}
-export class TruncForum {
-	static type = '[Sync Service] Truncate Forum';
-	constructor(public debug: boolean = true) { }
-}
+// export class SetForum {
+// 	static type = '[Sync Service] Set Forum';
+// 	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+// }
+// export class DelForum {
+// 	static type = '[Sync Service] Delete Forum';
+// 	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+// }
+// export class TruncForum {
+// 	static type = '[Sync Service] Truncate Forum';
+// 	constructor(public debug: boolean = true) { }
+// }
 
 /** helper function to return all except nominated document */
 export const filterState = (state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) => {

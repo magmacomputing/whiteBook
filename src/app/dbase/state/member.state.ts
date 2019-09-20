@@ -1,15 +1,15 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
-import { TStateSlice, SLICE } from '@dbase/state/state.define';
+import { TStateSlice } from '@dbase/state/state.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { SetMember, DelMember, TruncMember, filterState } from '@dbase/state/state.action';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
-	name: SLICE.member,
+	name: COLLECTION.member,
 	defaults: {}
 })
 export class MemberState implements NgxsOnInit {
