@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators';
 
 import { ROUTE } from '@route/route.define';
 import { ProfileGuard, DeactivateGuard, OAuthGuard } from '@route/route.guard';
-import { MaterialModule } from '@route/material.module';
+import { MaterialModule } from '@service/material/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';

@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule} from '@angular/common/http';
 import { Routes, RouterModule } from '@angular/router';
 
-import { MaterialModule } from '@route/material.module';
+import { CdkModule } from '@service/material/cdk.module.module';
+import { MaterialModule } from '@service/material/material.module';
 import { MigrateComponent } from '@route/migrate/migrate.component';
 
 const routes: Routes = [
@@ -15,7 +16,7 @@ const routes: Routes = [
     MigrateComponent,
   ],
   imports: [
-    CommonModule, MaterialModule, HttpClientModule, RouterModule.forChild(routes),
+    CommonModule, MaterialModule, CdkModule, HttpClientModule, RouterModule.forChild(routes),
   ]
 })
 export class MigrateModule { }

@@ -4,9 +4,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { RoutingModule } from '@route/route.module';
-import { MaterialModule } from '@route/material.module';
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthModule } from '@service/auth/auth.module';
+import { MaterialModule } from '@service/material/material.module';
 import { AppComponent } from './app.component';
 
 import { NgxsModule } from '@ngxs/store';

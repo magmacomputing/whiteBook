@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, combineLatest, concat } from 'rxjs';
-import { map, take, switchMap, tap, mergeMap, concatMap } from 'rxjs/operators';
+import { Observable, of, combineLatest } from 'rxjs';
+import { map, take, switchMap, startWith } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState, IForumState, SLICE } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider, buildForum } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
-import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase, IReact, IComment } from '@dbase/data/data.schema';
+import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
@@ -81,12 +81,6 @@ export class StateService {
 		return obs
 			.pipe(take(1))									// only the first snapshot
 			.toPromise();
-	}
-
-	getLatest<T>(...obs: Observable<T>[]) {
-		return combineLatest(...obs)
-			.pipe(take(1))
-			.toPromise()
 	}
 
 	/**
@@ -249,6 +243,7 @@ export class StateService {
 		}
 
 		return this.fire.listen<IForumBase>(COLLECTION.forum, query).pipe(
+			startWith([]),																					// dont make subcriber wait for 1st emit
 			map(source => ({
 				[STORE.react]: source.filter(row => row[FIELD.store] === STORE.react),
 				[STORE.comment]: source.filter(row => row[FIELD.store] === STORE.comment),
@@ -298,9 +293,8 @@ export class StateService {
 		const attendMonth = [isMine, noToday, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
 
-		this.states[SLICE.forum] = this.getForumData(now);																		// wire Observable direct onto Forum
-
-		return this.getMemberData(date).pipe(
+		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
+			map(([forum, member]) => ({ forum: { ...forum }, ...member })),
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
@@ -319,10 +313,6 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends for this week
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends for this month
 			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends for this day)
-			// tap(_ => this.states[SLICE.forum] = this.getForumData(now)),
-			// joinDoc(this.states, 'forum.comment', STORE.comment),
-			// tap(_ => this.states[SLICE.forum] = this.getForumData(now)),
-			// joinDoc(this.states, 'forum.react', STORE.react),
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}

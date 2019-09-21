@@ -305,11 +305,6 @@ export const buildPlan = (source: IPlanState) => {
 	return { ...source }
 }
 
-export const buildForum = (source: ITimetableState) => {
-
-	return {...source}
-}
-
 /**
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  

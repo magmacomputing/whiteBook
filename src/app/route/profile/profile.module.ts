@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Routes, RouterModule } from '@angular/router';
 
-import { MaterialModule } from '@route/material.module';
+import { MaterialModule } from '@service/material/material.module';
 import { PlanComponent } from '@route/profile/plan/plan.component';
 import { AccountComponent } from '@route/profile/account/account.component';
 import { HistoryComponent } from '@route/profile/history/history.component';
