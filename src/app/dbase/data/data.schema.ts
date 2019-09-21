@@ -185,7 +185,10 @@ export interface ISchedule extends IClientBase {
 	bonus?: TBonus;											// the Bonus tracking which can be applied to this Schedule
 	elect?: BONUS;											// name the Bonus the Member chooses (override calc)
 	count?: number;											// number of Attends
-	react?: REACT;											// Member reaction
+	forum?: {
+		comment: TString;
+		react: REACT;
+	}
 }
 
 //	/client/location
@@ -242,7 +245,7 @@ export interface IAlert extends IClientBase {
 export interface IIcon extends IClientBase {
 	[FIELD.store]: STORE.icon;
 	[FIELD.type]: STORE.react | STORE.class | STORE.event | STORE.provider | STORE.bonus;
-	[FIELD.key]: REACT | CLASS | EVENT | Auth.PROVIDER | BONUS;
+	[FIELD.key]: keyof typeof REACT | CLASS | EVENT | Auth.PROVIDER | BONUS;
 	image: string;
 	sort: number;
 }

@@ -1,19 +1,21 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, switchMap } from 'rxjs/operators';
+import { Observable, of, combineLatest, concat } from 'rxjs';
+import { map, take, switchMap, tap, mergeMap, concatMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState, IForumState, SLICE } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
-import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
+import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider, buildForum } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
-import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount } from '@dbase/data/data.schema';
-import { addWhere } from '@dbase/fire/fire.library';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase, IReact, IComment } from '@dbase/data/data.schema';
+
+import { FireService } from '@dbase/fire/fire.service';
+import { addWhere, addOrder } from '@dbase/fire/fire.library';
+import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
@@ -30,21 +32,21 @@ export class StateService {
 	@Select() private client$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private member$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private forum$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
+	private forum$!: Observable<TStateSlice<IStoreMeta>>;
 
 	private dbg = dbg(this);
 	public states: IState;
 
-	constructor() {
+	constructor(private fire: FireService) {
 		this.states = {                   // a Lookup map for Slice-to-State
 			'client': this.client$,
 			'member': this.member$,
 			'attend': this.attend$,
-			'forum': this.forum$,
 			'admin': this.admin$,
 			'local': this.local$,
+			'forum': this.forum$,
 		}
 	}
 
@@ -236,6 +238,25 @@ export class StateService {
 	}
 
 	/**
+	 * Arrange Forum data direct from FireStore (because this is not sync'd to State)
+	 * forum.comment	-> has an array of Comments about this date's schedule
+	 * forum.react		-> has an array of Reacts about this date's schedule
+	 */
+	getForumData(date?: TDate): Observable<TStateSlice<IStoreMeta>> {
+		const query: IQuery = {
+			where: addWhere('track.date', getDate(date).format(DATE_FMT.yearMonthDay)),
+			orderBy: addOrder(FIELD.stamp),
+		}
+
+		return this.fire.listen<IForumBase>(COLLECTION.forum, query).pipe(
+			map(source => ({
+				[STORE.react]: source.filter(row => row[FIELD.store] === STORE.react),
+				[STORE.comment]: source.filter(row => row[FIELD.store] === STORE.comment),
+			})),
+		)
+	}
+
+	/**
 	 * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
 	 * schedule   -> has an array of Schedule info for the weekday of the date  
 	 * calendar		-> has the Calendar event for that date (to override regular class)  
@@ -248,6 +269,7 @@ export class StateService {
 	 * alert			-> has an array of Alert notes to display on the Attend component
 	 * bonus			-> has an array of active Bonus schemes
 	 * gift				-> has an array of active Gifts available to a Member on the date
+	 * forum			-> has an array of Forum data for the date
 	 */
 	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
@@ -263,11 +285,6 @@ export class StateService {
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
 		const filterIcon = addWhere(FIELD.type, [STORE.class, STORE.default]);
-		const filterForum = [
-			addWhere(FIELD.store, [STORE.comment, STORE.react]),
-			addWhere(FIELD.type, STORE.attend),
-			addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`),
-		]
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
@@ -280,6 +297,8 @@ export class StateService {
 		const attendWeek = [isMine, noToday, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
 		const attendMonth = [isMine, noToday, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
+
+		this.states[SLICE.forum] = this.getForumData(now);																		// wire Observable direct onto Forum
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
@@ -297,11 +316,13 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.bonus, undefined, date),												// get any active Bonus
 			joinDoc(this.states, 'member', STORE.gift, isMine, date),														// get any active Gifts
 			joinDoc(this.states, 'attend.attendGift', STORE.attend, attendGift),								// get any Attends against active Gifts
-			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends against this week
-			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends against this month
-			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends against this day
-			joinDoc(this.states, 'forum.comment', STORE.comment, filterForum),
-			joinDoc(this.states, 'forum.react', STORE.react, filterForum),
+			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends for this week
+			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends for this month
+			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends for this day)
+			// tap(_ => this.states[SLICE.forum] = this.getForumData(now)),
+			// joinDoc(this.states, 'forum.comment', STORE.comment),
+			// tap(_ => this.states[SLICE.forum] = this.getForumData(now)),
+			// joinDoc(this.states, 'forum.react', STORE.react),
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}

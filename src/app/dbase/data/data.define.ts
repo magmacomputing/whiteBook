@@ -197,10 +197,10 @@ export enum BONUS {
 }
 
 export enum REACT {
-	like = 'like',
-	love = 'love',
-	wow = 'wow',
-	laugh = 'laugh',
-	sad = 'sad',
-	angry = 'angry',
+	like,
+	love,
+	wow,
+	laugh,
+	sad,
+	angry,
 }

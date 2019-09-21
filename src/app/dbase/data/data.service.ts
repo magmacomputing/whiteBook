@@ -78,11 +78,7 @@ export class DataService {
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
-		return this.fire.combine('stateChanges', this.fire.colRef<T>(collection, query))
-			.pipe(
-				map(obs => obs.flat()),															// flatten the array-of-values results
-				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
-			)
+		return this.fire.listen<T>(collection, query);
 	}
 
 	asPromise<T>(obs: Observable<T[]>) {

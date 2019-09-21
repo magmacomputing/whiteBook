@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
-import { tap, take } from 'rxjs/operators';
+import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
@@ -59,6 +59,14 @@ export class FireService {
 
 	concat<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
 		return concat(...this.subRef(colRefs, type));
+	}
+
+	listen<T>(collection: COLLECTION, query?: IQuery) {
+		return this.combine('stateChanges', this.colRef<T>(collection, query))
+			.pipe(
+				map(obs => obs.flat()),															// flatten the array-of-values results
+				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
+			)
 	}
 
 	/** Document Reference, for existing or new */

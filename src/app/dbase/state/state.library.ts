@@ -23,6 +23,8 @@ import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
 export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
+	if (store === STORE.comment)
+	debugger;
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -301,6 +303,11 @@ export const buildPlan = (source: IPlanState) => {
 	});
 
 	return { ...source }
+}
+
+export const buildForum = (source: ITimetableState) => {
+
+	return {...source}
 }
 
 /**

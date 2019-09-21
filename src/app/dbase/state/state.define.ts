@@ -150,9 +150,10 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		attendToday: IAttend[];
 	},
 	bonus?: TBonus,
+	forum?: IForumState;
 }
 
 export interface IForumState {
-	comment: IComment[];
-	react: IReact[];
+	comment?: IComment[];
+	react?: IReact[];
 }
