@@ -34,7 +34,7 @@ export class StateService {
 	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
 	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
-	private forum$!: Observable<TStateSlice<IStoreMeta>>;
+	private forum$: Observable<TStateSlice<IStoreMeta>> = of({ forum: [] });
 
 	private dbg = dbg(this);
 	public states: IState;
@@ -272,7 +272,7 @@ export class StateService {
 	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
-		const noToday = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '!=');
+		const notToday = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '!=');
 
 		const filterSchedule = addWhere('day', now.dow);
 		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
@@ -292,8 +292,8 @@ export class StateService {
 			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
 		]
 		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
-		const attendWeek = [isMine, noToday, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
-		const attendMonth = [isMine, noToday, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
+		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
+		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
 
 		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
