@@ -7,7 +7,7 @@ import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
 import { IForumState } from '@dbase/state/state.define';
-import { STORE, FIELD, BONUS, PLAN, SCHEDULE } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, REACT } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -19,7 +19,7 @@ import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IComment, IReact, IForumBase } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
-import { isUndefined, isNumber } from '@lib/type.library';
+import { isUndefined, isNumber, TString } from '@lib/type.library';
 import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -31,7 +31,7 @@ export class AttendService {
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, { comment, react }: IForumState = {}, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, { comment, react }: { comment?: TString, react?: REACT } = {}, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
