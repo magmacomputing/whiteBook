@@ -316,6 +316,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		calendar = [],															// the calendar of special events on the date
 		event: events = [],													// the event-description for the calendar type
 		span: spans = [],														// the duration of classes / events
+		location: locations = [],										// the locations of the classes / events
 		alert: alerts = [],													// any alert notes for this date
 		price: prices = [],													// the prices as per member's plan
 		icon: icons = [],														// the icons for classes offered on that date
@@ -379,11 +380,6 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				: (time.bonus.amount || 0)							// a specific-amount, else $0
 
 			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
-
-			// if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
-			// 	time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
-			// }
-			// else time[FIELD.disable] = true;						// cannot determine the event
 
 			if (!time[FIELD.image])												// if no schedule-specific icon, use class icon, else default icon
 				time[FIELD.image] =

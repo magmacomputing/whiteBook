@@ -61,11 +61,11 @@ export class FireService {
 		return concat(...this.subRef(colRefs, type));
 	}
 
-	listen<T>(collection: COLLECTION, query?: IQuery) {
-		return this.combine('stateChanges', this.colRef<T>(collection, query))
+	listen<T>(collection: COLLECTION, query?: IQuery, changes: TChanges = 'stateChanges') {
+		return this.combine(changes, this.colRef<T>(collection, query))
 			.pipe(
 				map(obs => obs.flat()),															// flatten the array-of-values results
-				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
+				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() } as T)))
 			)
 	}
 

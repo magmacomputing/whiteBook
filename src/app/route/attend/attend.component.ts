@@ -5,10 +5,9 @@ import { map, delay } from 'rxjs/operators';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
 
-import { ITimetableState } from '@dbase/state/state.define';
+import { ITimetableState, SLICE } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD } from '@dbase/data/data.define';
-import { IComment, IReact } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined } from '@lib/type.library';
@@ -26,24 +25,18 @@ export class AttendComponent implements OnDestroy {
 	private dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
 	public offset!: number;															// the number of days before today 
-	// public forum!: PForum;
+	public firstPaint = true;                           // indicate first-paint
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
-	// public forum$!: Observable<IForumState>;						// the date's Comments / Reacts
-
-	public firstPaint = true;                           // indicate first-paint
-
 	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
-	private forumSubscription!: Subscription;						// watch Comments / Reacts
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService) { this.setDate(0); }
 
 	ngOnDestroy() {
 		this.timerSubscription && this.timerSubscription.unsubscribe();
-		// this.forumSubscription && this.forumSubscription.unsubscribe()
 	}
 
 	// Build info to show in a Dialog
@@ -108,8 +101,6 @@ export class AttendComponent implements OnDestroy {
 
 		this.getSchedule();							// get day's Schedule
 
-		// this.getForum();								// get day's Comments / Reacts
-
 		if (!this.timerSubscription)
 			this.setTimer();							// set a Schedule-view timeout
 	}
@@ -117,28 +108,13 @@ export class AttendComponent implements OnDestroy {
 	private getSchedule() {
 		this.timetable$ = this.state.getScheduleData(this.date).pipe(
 			map(data => {
-				this.locations = (data.client.location || []).length;
+				// this.locations = (data.client.location || []).length;
 				this.selectedIndex = 0;                       // start on the first-page
-				this.dbg('forum: %j', data["forum"]);
+				this.dbg('forum: %j', data[SLICE.forum]);
 				return data;
 			})
 		)
 	}
-
-	// Subscribe to this.date's Comments / Reacts
-	// private getForum() {
-	// 	const query: IQuery = {
-	// 		where: addWhere('track.date', this.date.format(DATE_FMT.yearMonthDay)),
-	// 		orderBy: addOrder(FIELD.stamp),
-	// 	}
-
-	// 	this.dbg('getForum: %j', query);
-	// 	this.forum$ = this.data.getFire<IComment | IReact>(COLLECTION.forum, query);
-	// 	this.forumSubscription && this.forumSubscription.unsubscribe()
-	// 	this.forumSubscription = this.forum$.subscribe(
-	// 		data => this.dbg('forum: %j', data),
-	// 	)
-	// }
 
 	/** If the Member is still sitting on this page at midnight, move this.date to next day */
 	private setTimer() {

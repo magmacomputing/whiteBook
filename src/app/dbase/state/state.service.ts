@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, switchMap, startWith } from 'rxjs/operators';
+import { map, take, switchMap, startWith, distinctUntilChanged } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState } from '@dbase/state/state.define';
+import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState, IForumState } from '@dbase/state/state.define';
 import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
-import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase } from '@dbase/data/data.schema';
+import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase, IComment, IReact } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
@@ -236,17 +236,20 @@ export class StateService {
 	 * forum.comment	-> has an array of Comments about this date's schedule
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
-	getForumData(date?: TDate): Observable<TStateSlice<IStoreMeta>> {
+	getForumData(date?: TDate): Observable<IForumState> {
 		const query: IQuery = {
 			where: addWhere('track.date', getDate(date).format(DATE_FMT.yearMonthDay)),
 			orderBy: addOrder(FIELD.stamp),
 		}
 
-		return this.fire.listen<IForumBase>(COLLECTION.forum, query).pipe(
-			startWith([]),																					// dont make subcriber wait for 1st emit
+		return this.fire.listen<IForumBase>(COLLECTION.forum, query, 'snapshotChanges').pipe(
+			startWith([] as IForumBase[]),													// dont make subcriber wait for 1st emit
+			distinctUntilChanged((curr, prev) => JSON.stringify(curr) === JSON.stringify(prev)),
 			map(source => ({
-				[STORE.react]: source.filter(row => row[FIELD.store] === STORE.react),
-				[STORE.comment]: source.filter(row => row[FIELD.store] === STORE.comment),
+				forum: {
+					[STORE.react]: source.filter(row => row[FIELD.store] === STORE.react) as IReact[],
+					[STORE.comment]: source.filter(row => row[FIELD.store] === STORE.comment) as IComment[],
+				}
 			})),
 		)
 	}
@@ -294,7 +297,7 @@ export class StateService {
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
 
 		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
-			map(([forum, member]) => ({ forum: { ...forum }, ...member })),
+			map(([forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
 			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
