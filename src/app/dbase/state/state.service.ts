@@ -232,7 +232,7 @@ export class StateService {
 	}
 
 	/**
-	 * Arrange Forum data direct from FireStore (because this is not sync'd to State)
+	 * Observe Forum data direct from FireStore (because it is not persisted to local Store)
 	 * forum.comment	-> has an array of Comments about this date's schedule
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
