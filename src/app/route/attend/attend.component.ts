@@ -8,6 +8,7 @@ import { DialogService } from '@service/material/dialog.service';
 import { ITimetableState, SLICE } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD } from '@dbase/data/data.define';
+import { TForum } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined } from '@lib/type.library';
@@ -24,6 +25,7 @@ import { dbg } from '@lib/logger.library';
 export class AttendComponent implements OnDestroy {
 	private dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
+	public forum: TForum = {};													// Comments / Reacts to pass to the AttendService
 	public offset!: number;															// the number of days before today 
 	public firstPaint = true;                           // indicate first-paint
 

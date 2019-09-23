@@ -219,6 +219,7 @@ export class AttendService {
 				day: now.dow,
 			}
 		}
+		
 		if (!isUndefined(comment))
 			creates.push({ ...forumDoc, comment } as IStoreMeta);	// batch the new Comment
 

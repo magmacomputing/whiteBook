@@ -171,6 +171,10 @@ export interface TBonus {							// a sub-type of IBonus
 	gift?: IGift[];											// the /member/gift updates for this payment
 	amount?: number;										// an optional amount (if other than $0)
 }
+export type TForum = {
+	comment?: TString;
+	react?: REACT;
+}
 export interface ISchedule extends IClientBase {
 	[FIELD.store]: STORE.schedule | STORE.calendar;
 	[FIELD.type]: SCHEDULE;
@@ -185,10 +189,7 @@ export interface ISchedule extends IClientBase {
 	bonus?: TBonus;											// the Bonus tracking which can be applied to this Schedule
 	elect?: BONUS;											// name the Bonus the Member chooses (override calc)
 	count?: number;											// number of Attends
-	forum?: {
-		comment: TString;
-		react: REACT;
-	}
+	forum?: TForum;
 }
 
 //	/client/location
