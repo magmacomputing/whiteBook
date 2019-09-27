@@ -11,7 +11,7 @@ import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrateBase, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, TStoreBase } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, TStoreBase } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -46,7 +46,7 @@ export class MigrateComponent implements OnInit {
 	private account$!: Observable<IAccountState>;
 	private history: IPromise<MHistory[]>;
 	private status!: { [key: string]: any };
-	private migrate!: IMigrateBase[];
+	private migrate!: IMigrate[];
 	private current: IRegister | null = null;
 	private user!: firebase.UserInfo | null;
 	private dflt!: CLASS;
@@ -111,14 +111,12 @@ export class MigrateComponent implements OnInit {
 	 * Very drastic:  remove all references to a Member
 	 */
 	async delUser() {
-		const where: TWhere = [addWhere(FIELD.uid, this.current!.uid)];
+		const where: TWhere = addWhere(FIELD.uid, this.current!.uid);
 		const deletes = await Promise.all([
-			this.data.getFire<IStoreMeta>(COLLECTION.member, { where })
-				.pipe(take(1)).toPromise(),
-			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where })
-				.pipe(take(1)).toPromise(),
-			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where })
-				.pipe(take(1)).toPromise(),
+			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
+			this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
 		return this.data.batch(undefined, undefined, deletes.flat());
@@ -379,7 +377,7 @@ export class MigrateComponent implements OnInit {
 	public async addAttend() {
 		const history = await this.history.promise;
 		const [migrate, attend] = await Promise.all([
-			this.data.getStore<IMigrateBase>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<IMigrate>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
 		])
 		this.migrate = migrate;
@@ -426,7 +424,7 @@ export class MigrateComponent implements OnInit {
 		let sched: ISchedule;
 		let event: IEvent;
 		let idx: number = 0;
-		let migrate: IMigrateBase | undefined;
+		let migrate: IMigrate | undefined;
 
 		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
@@ -590,14 +588,14 @@ export class MigrateComponent implements OnInit {
 				[FIELD.key]: asString(key),
 				[FIELD.uid]: this.current!.uid,
 				attend: {}
-			} as IMigrateBase
+			} as IMigrate
 	}
 
-	private writeMigrate(migrate: IMigrateBase) {
+	private writeMigrate(migrate: IMigrate) {
 		const where = addWhere(FIELD.uid, this.current!.uid);
 
 		return this.data.setDoc(STORE.migrate, migrate)
-			.then(_ => this.data.getStore<IMigrateBase>(STORE.migrate, where))
+			.then(_ => this.data.getStore<IMigrate>(STORE.migrate, where))
 			.then(res => this.migrate = res);
 	}
 
@@ -658,7 +656,7 @@ export class MigrateComponent implements OnInit {
 		const deletes: IStoreMeta[] = [...attends, ...payments, ...gifts];
 
 		if (full)
-			deletes.push(...await this.data.getStore<IMigrateBase>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
+			deletes.push(...await this.data.getStore<IMigrate>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
 		return this.data.batch(creates, updates, deletes, SetMember)
 			.then(_ => this.member.updAccount())

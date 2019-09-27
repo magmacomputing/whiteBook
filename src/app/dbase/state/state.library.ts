@@ -41,7 +41,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
 /** Get all documents by filter, do not exclude _expire unless <date> specified */
 export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
-	if (store === slice.toString())													// top-level slice
+	if (store === slice.toString())													// top-level slice (eg. Attend)
 		return getState<T>(states, store, filter, date);
 
 	const state: Observable<TStateSlice<T>> = states[slice] as any;

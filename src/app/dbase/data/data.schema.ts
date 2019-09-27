@@ -37,7 +37,7 @@ export interface IMeta {
  * One for 'client' & 'local', keyed by 'store/type?/key',  
  * the other for 'admin', 'member', 'forum' & 'attend', keyed by 'store/type?/uid'
  */
-export type TStoreBase = IClientBase | IUserBase | IForumBase | IMigrateBase;
+export type TStoreBase = IClientBase | IUserBase | IForumBase | IMigrate;
 interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
@@ -50,16 +50,19 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 }
 export interface IForumBase extends IMeta {
 	[FIELD.store]: TStoreForum;
-	[FIELD.type]: STORE.attend | STORE.class | STORE.event;
-	[FIELD.key]: string;										// key to the store-type the Member is referencing
+	[FIELD.type]: STORE;										// allow for Forum on any Store type
+	[FIELD.key]: string;										// key to the Store the Member is referencing
 	[FIELD.uid]: string;										// the Member making the feedback
 	[FIELD.stamp]: number;
 	track: {																// to use in feedback-analysis
 		date: number;													// yearMonthDay
-		day: number;													// weekDay (1-7, 1=Mon)
-	}
+		day?: number;													// weekDay (1-7, 1=Mon)
+		info?: {
+			[key: string]: string;							// additional info to assist tracking
+		},
+	},
 }
-export interface IMigrateBase extends IMeta {
+export interface IMigrate extends IMeta {
 	[FIELD.store]: STORE.migrate;
 	[FIELD.type]: STORE.event | STORE.class;
 	[FIELD.uid]: string;

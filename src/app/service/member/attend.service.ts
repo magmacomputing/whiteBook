@@ -6,8 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { IForumState } from '@dbase/state/state.define';
-import { STORE, FIELD, BONUS, PLAN, SCHEDULE, REACT } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, REACT, COLLECTION } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -16,7 +15,7 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IComment, IReact, IForumBase } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IReact, IForumBase } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
 import { isUndefined, isNumber, TString } from '@lib/type.library';
@@ -80,7 +79,7 @@ export class AttendService {
 		]
 		const [bookAttend, bookReact] = await Promise.all([		// also get past React
 			this.data.getStore<IAttend>(STORE.attend, attendFilter),
-			this.data.getStore<IReact>(STORE.comment, reactFilter),
+			this.data.getStore<IReact>(STORE.react, reactFilter),
 		])
 
 		if (bookAttend.length) {															// disallow same Class, same Note
@@ -219,7 +218,7 @@ export class AttendService {
 				day: now.dow,
 			}
 		}
-		
+
 		if (!isUndefined(comment))
 			creates.push({ ...forumDoc, comment } as IStoreMeta);	// batch the new Comment
 
@@ -285,21 +284,26 @@ export class AttendService {
 
 		const payIds = deletes												// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.id])
-			.distinct()
+			.distinct();
 		const giftIds = deletes												// the Gift IDs related to this reversal
 			.filter(attend => attend.bonus && attend.bonus[FIELD.type] === BONUS.gift)
 			.map(row => row.bonus[FIELD.id])
-			.distinct()
+			.distinct();
+		const attendIds = deletes											// the Attend IDs that may have Forum content
+			.map(attend => attend[FIELD.id])
+			.distinct();
 
 		/**
 		 * attends:		all the Attends that relate to the payIDs (even those about to be deleted)
 		 * payments:	all the Payments related to this Member
 		 * gifts:			all the Gifts related to this reversal
+		 * forum:			all the Forum content related to this reversal
 		 */
-		const [attends, payments, gifts] = await Promise.all([
+		const [attends, payments, gifts, forum] = await Promise.all([
 			this.data.getStore<IAttend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
 			this.data.getStore<IPayment>(STORE.payment, memberUid),
 			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
+			this.data.getFire<IForumBase>(COLLECTION.forum, { where: [memberUid, addWhere(FIELD.type, STORE.attend), addWhere(FIELD.key, attendIds)] }),
 		])
 
 		// build a link-link of Payments, assume pre-sorted by stamp [desc]
@@ -358,6 +362,8 @@ export class AttendService {
 				}
 			}
 		})
+
+		deletes.push(...forum);												// delete Forum content as well
 		updates.push(...gifts);												// batch the updates to Gifts
 		updates.push(...payments
 			.filter(row => chg.has(row[FIELD.id]))			// only those that have changed

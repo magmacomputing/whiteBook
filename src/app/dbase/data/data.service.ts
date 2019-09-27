@@ -78,7 +78,9 @@ export class DataService {
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
-		return this.fire.listen<T>(collection, query);
+		return this.fire.listen<T>(collection, query)
+			.pipe(take(1))
+			.toPromise()
 	}
 
 	asPromise<T>(obs: Observable<T[]>) {
