@@ -24,6 +24,9 @@ export class ForumService {
 				deletes.push({ ...reactDoc[0] });
 				break;
 
+			case reactDoc.length && react === reactDoc[0].react:
+				break;																							// nothing to change
+
 			case reactDoc.length > 0:															// update the React
 				updates.push({ ...reactDoc[0], stamp: now.ts, react });
 				break;
