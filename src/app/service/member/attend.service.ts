@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD, BONUS, PLAN, SCHEDULE, REACT, COLLECTION } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -15,10 +15,10 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IReact, IForumBase } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
 
 import { getDate, DATE_FMT, TDate } from '@lib/date.library';
-import { isUndefined, isNumber, TString } from '@lib/type.library';
+import { isUndefined, isNumber } from '@lib/type.library';
 import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -29,8 +29,9 @@ export class AttendService {
 	private dbg = dbg(this);
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
+
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, { comment, react }: { comment?: TString, react?: REACT } = {}, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
@@ -64,23 +65,13 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same Time
-		const attendFilter = [
+		const bookAttend = await this.data.getStore<IAttend>(STORE.attend, [
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
 			addWhere('note', schedule[FIELD.note]),
-		]
-		const reactFilter = [
-			addWhere(FIELD.store, STORE.attend),
-			addWhere(FIELD.type, STORE.react),
-			addWhere(FIELD.uid, data.auth.current!.uid),
-			addWhere(`track.${FIELD.date}`, when),
-		]
-		const [bookAttend, bookReact] = await Promise.all([		// also get past React
-			this.data.getStore<IAttend>(STORE.attend, attendFilter),
-			this.data.getStore<IReact>(STORE.react, reactFilter),
-		])
+		]);
 
 		if (bookAttend.length) {															// disallow same Class, same Note
 			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
@@ -181,12 +172,11 @@ export class AttendService {
 
 		if (data.member.plan[0].plan === PLAN.intro && (data.account.summary.funds - schedule.amount) <= 0)
 			this.member.setPlan(PLAN.member, stamp + 1);				// auto-bump 'intro' to 'member' Plan
+
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; write an Attend document and any Forum documents
 
-		const attendId = this.data.newId;									// assign an ID for the Attend, also the KEY for the Comment
 		const attendDoc: Partial<IAttend> = {
-			[FIELD.id]: attendId,														// assign an ID to the Attend
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
 			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
@@ -207,27 +197,6 @@ export class AttendService {
 				month: now.format(DATE_FMT.yearMonth),				// month-number of year
 			},
 			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
-		}
-
-		const forumDoc: Partial<IForumBase> = {
-			[FIELD.type]: STORE.attend,
-			[FIELD.key]: attendId,
-			[FIELD.stamp]: stamp,
-			track: {
-				[FIELD.date]: when,
-				day: now.dow,
-			}
-		}
-
-		if (!isUndefined(comment))
-			creates.push({ ...forumDoc, comment } as IStoreMeta);	// batch the new Comment
-
-		if (!isUndefined(react)) {
-			if (!bookReact.length) {
-				creates.push({ ...forumDoc, react } as IStoreMeta);	// batch the new React
-			} else {
-				updates.push({ ...bookReact[0], react });			// change the React
-			}
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
@@ -289,8 +258,11 @@ export class AttendService {
 			.filter(attend => attend.bonus && attend.bonus[FIELD.type] === BONUS.gift)
 			.map(row => row.bonus[FIELD.id])
 			.distinct();
-		const attendIds = deletes											// the Attend IDs that may have Forum content
-			.map(attend => attend[FIELD.id])
+		const scheduleIds = deletes										// the Schedule IDs that may have Forum content
+			.map(attend => attend.timetable[FIELD.id])
+			.distinct();
+		const dates = deletes													// the Dates these Attends have Forum content
+			.map(attend => attend.track.date)
 			.distinct();
 
 		/**
@@ -303,7 +275,14 @@ export class AttendService {
 			this.data.getStore<IAttend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
 			this.data.getStore<IPayment>(STORE.payment, memberUid),
 			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
-			this.data.getFire<IForumBase>(COLLECTION.forum, { where: [memberUid, addWhere(FIELD.type, STORE.attend), addWhere(FIELD.key, attendIds)] }),
+			this.data.getFire<IForumBase>(COLLECTION.forum, {
+				where: [
+					memberUid,
+					addWhere(FIELD.type, STORE.schedule),
+					addWhere(FIELD.key, scheduleIds),
+					addWhere('track.date', dates),
+				]
+			}),
 		])
 
 		// build a link-link of Payments, assume pre-sorted by stamp [desc]

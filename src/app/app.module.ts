@@ -17,13 +17,13 @@ import { environment } from '../environments/environment';
 
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
 import { InfoDialogComponent } from '@service/material/dialog.service';
-import { ReactionComponent } from '@service/reaction/reaction.component';
+import { ForumComponent } from './route/forum/forum.component';
 import { SafePipe } from '@service/material/safe.pipe';
 
 @NgModule({
 	declarations: [
 		AppComponent,
-		ReactionComponent,
+		ForumComponent,
 		SafePipe,
 	],
 	imports: [

@@ -563,7 +563,7 @@ export class MigrateComponent implements OnInit {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;										// Member elected to not receive a Bonus
-			this.attend.setAttend(sched, { comment }, row.stamp)
+			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
 						throw new Error('stopping');

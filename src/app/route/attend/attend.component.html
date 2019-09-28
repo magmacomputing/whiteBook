@@ -49,11 +49,12 @@
 							</mat-card-subtitle>
 
 							<mat-card-content>
-								<button mat-raised-button [disabled]="item._disable" (click)="attend.setAttend(item, forum, date)"
+								<button mat-raised-button [disabled]="item._disable" (click)="attend.setAttend(item, date)"
 									matBadge="{{ item.count }}" matBadgeHidden="{{ item.count == 0 }}">
 									Check-in: {{ item.amount | currency }}
 								</button>
 							</mat-card-content>
+							<button (click)="setReact(item)">Like</button>
 
 						</mat-card-header>
 
@@ -61,6 +62,7 @@
 				</div>
 			</mat-tab>
 		</mat-tab-group>
+		<button (click)="getReact()">React</button>
 	</div>
 </div>
 

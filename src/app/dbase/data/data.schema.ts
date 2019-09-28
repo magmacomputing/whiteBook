@@ -51,15 +51,12 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 export interface IForumBase extends IMeta {
 	[FIELD.store]: TStoreForum;
 	[FIELD.type]: STORE;										// allow for Forum on any Store type
-	[FIELD.key]: string;										// key to the Store the Member is referencing
 	[FIELD.uid]: string;										// the Member making the feedback
+	[FIELD.key]: string;										// key to the Store the Member is referencing
 	[FIELD.stamp]: number;
 	track: {																// to use in feedback-analysis
 		date: number;													// yearMonthDay
-		day?: number;													// weekDay (1-7, 1=Mon)
-		info?: {
-			[key: string]: string;							// additional info to assist tracking
-		},
+		[key: string]: string | number;				// additional info to assist tracking
 	},
 }
 export interface IMigrate extends IMeta {

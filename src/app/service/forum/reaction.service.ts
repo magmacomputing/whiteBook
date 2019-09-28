@@ -11,7 +11,7 @@ export class ReactionService {
 	private dbg = dbg(this);
 
 	userId!: string;
-	emojiList = ['like', 'love', 'wow', 'haha', 'sad', 'angry']
+	emojiList = ['none', 'like', 'love', 'wow', 'haha', 'sad', 'angry']
 
 	constructor(private data: DataService) {
 		this.data.getUID()

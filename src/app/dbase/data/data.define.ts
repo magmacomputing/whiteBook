@@ -197,6 +197,7 @@ export enum BONUS {
 }
 
 export enum REACT {
+	none,
 	like,
 	love,
 	wow,

@@ -2,13 +2,13 @@ import { Component, OnDestroy } from '@angular/core';
 import { Observable, Subscription, of } from 'rxjs';
 import { map, delay } from 'rxjs/operators';
 
+import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
 
 import { ITimetableState, SLICE } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD } from '@dbase/data/data.define';
-import { TForum } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined } from '@lib/type.library';
@@ -16,6 +16,7 @@ import { Instant, DATE_FMT } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';
+import { ISchedule } from '@dbase/data/data.schema';
 
 @Component({
 	selector: 'wb-attend',
@@ -25,7 +26,6 @@ import { dbg } from '@lib/logger.library';
 export class AttendComponent implements OnDestroy {
 	private dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
-	public forum: TForum = {};													// Comments / Reacts to pass to the AttendService
 	public offset!: number;															// the number of days before today 
 	public firstPaint = true;                           // indicate first-paint
 
@@ -35,7 +35,7 @@ export class AttendComponent implements OnDestroy {
 	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService,
-		public readonly data: DataService, private dialog: DialogService) { this.setDate(0); }
+		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnDestroy() {
 		this.timerSubscription && this.timerSubscription.unsubscribe();
@@ -110,9 +110,7 @@ export class AttendComponent implements OnDestroy {
 	private getSchedule() {
 		this.timetable$ = this.state.getScheduleData(this.date).pipe(
 			map(data => {
-				// this.locations = (data.client.location || []).length;
 				this.selectedIndex = 0;                       // start on the first-page
-				this.dbg('forum: %j', data[SLICE.forum]);
 				return data;
 			})
 		)
@@ -130,5 +128,14 @@ export class AttendComponent implements OnDestroy {
 				this.timerSubscription.unsubscribe();					// stop watching for midnight
 				this.setDate(0);															// onNext, show new day's timetable
 			})
+	}
+
+	public getReact() {
+		this.forum.getForum()
+			.then(forum => this.dbg('forum: %j', forum))
+	}
+	public setReact(item: ISchedule) {
+		this.forum.setReact({ key: item._id, info: { class: item.key } })
+			.then(res => this.getReact())
 	}
 }
