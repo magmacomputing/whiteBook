@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { take, map, retry } from 'rxjs/operators';
@@ -35,7 +35,7 @@ import { dbg } from '@lib/logger.library';
 	selector: 'wb-migrate',
 	templateUrl: './migrate.component.html',
 })
-export class MigrateComponent implements OnInit {
+export class MigrateComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
@@ -86,6 +86,11 @@ export class MigrateComponent implements OnInit {
 	}
 
 	ngOnInit() { }
+
+	ngOnDestroy() {
+		if (this.current)
+			this.signOut();
+	}
 
 	/**
 	 * Very drastic:  remove all references to a Member
