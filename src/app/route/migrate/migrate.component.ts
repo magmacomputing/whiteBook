@@ -8,10 +8,11 @@ import { Store } from '@ngxs/store';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
+import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, TStoreBase } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -56,27 +57,6 @@ export class MigrateComponent implements OnInit {
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: Record<string, IEvent>;
-
-	private lookup: Record<string, CLASS> = {
-		oldStep: CLASS.MultiStep,
-		Step: CLASS.MultiStep,
-		oldStepDown: CLASS.StepDown,
-		oldAeroStep: CLASS.AeroStep,
-		oldHiLo: CLASS.HiLo,
-		oldZumba: CLASS.Zumba,
-		oldZumbaStep: CLASS.ZumbaStep,
-		oldSmartStep: CLASS.SmartStep,
-		prevStep: CLASS.MultiStep,
-		prevSmartStep: CLASS.SmartStep,
-		prevStepDown: CLASS.StepDown,
-		prevAeroStep: CLASS.AeroStep,
-		prevHiLo: CLASS.HiLo,
-		prevZumba: CLASS.Zumba,
-		prevZumbaStep: CLASS.ZumbaStep,
-		prevStepIn: CLASS.StepIn,
-	}
-	private special = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
-	private pack = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
@@ -392,7 +372,7 @@ export class MigrateComponent implements OnInit {
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
 			this.dbg('startFrom: %s, %j', startFrom, startAttend);
-			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((this.lookup[row.type] || row.type)))).length;
+			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((LOOKUP[row.type] || row.type)))).length;
 			table.splice(0, offset);
 		}
 		if (table.length) {
@@ -412,7 +392,7 @@ export class MigrateComponent implements OnInit {
 		}
 		if (flag) this.dbg('hist: %j', row);
 
-		let what: CLASS = this.lookup[row.type] || row.type;
+		let what: CLASS = LOOKUP[row.type] || row.type;
 		const now = getDate(row.date);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
@@ -426,7 +406,7 @@ export class MigrateComponent implements OnInit {
 		let idx: number = 0;
 		let migrate: IMigrate | undefined;
 
-		if (this.special.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
+		if (SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;
@@ -436,7 +416,7 @@ export class MigrateComponent implements OnInit {
 			sfx = `-1.${sfx}`;
 		}
 
-		if (this.pack.includes(prefix)) {
+		if (PACK.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
 				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, STORE.plan), addWhere(FIELD.uid, this.current!.user.uid)], now),
 				this.data.getStore<IPrice>(STORE.price, undefined, now),
@@ -472,7 +452,7 @@ export class MigrateComponent implements OnInit {
 		}
 
 		switch (true) {
-			case this.special.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
+			case SPECIAL.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
