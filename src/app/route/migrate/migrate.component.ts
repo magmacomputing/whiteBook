@@ -67,22 +67,17 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.hidden = local.hidden;
 		this.filter();
 
-		Promise																										// get some static data
-			.all([
-				this.data.getStore<ISchedule>(STORE.schedule),
-				this.data.getStore<ICalendar>(STORE.calendar),
-				this.data.getStore<IEvent>(STORE.event),
-			])
-			.then(([schedule, calendar, events]) => {
-				this.schedule = schedule;
-				this.calendar = calendar;
-				this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
-			})
-
-		this.state.getAuthData()																	// stash the Auth'd user
-			.pipe(take(1))
-			.toPromise()
-			.then(auth => this.user = auth.auth.user)
+		Promise.all([
+			this.state.getAuthData().pipe(take(1)).toPromise(),
+			this.data.getStore<ISchedule>(STORE.schedule),
+			this.data.getStore<ICalendar>(STORE.calendar),
+			this.data.getStore<IEvent>(STORE.event),
+		]).then(([auth, schedule, calendar, events]) => {
+			this.user = auth.auth.user;														// stash the Auth'd user
+			this.schedule = schedule;
+			this.calendar = calendar;
+			this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
+		})
 	}
 
 	ngOnInit() { }
