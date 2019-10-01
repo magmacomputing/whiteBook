@@ -85,6 +85,8 @@ class Timestamp {
 /** get timestamp */	export const getStamp = (dt?: TDate, ...args: TArgs) => getDate(dt, ...args).ts;
 /** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate, ...args: TArgs) => getDate(dt, ...args).format(fmt);
 
+// NOTE: Instant does not currently handle leap-seconds
+
 /**
  * An Instant is a object that is used to manage Javascript Dates.  
  * It has properties that break a Date into components ('yy', 'dd', etc.)  
