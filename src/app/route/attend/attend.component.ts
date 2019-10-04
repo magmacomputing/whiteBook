@@ -8,10 +8,10 @@ import { DialogService } from '@service/material/dialog.service';
 
 import { ITimetableState, SLICE } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, REACT } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 
-import { isUndefined } from '@lib/type.library';
+import { isUndefined, TString } from '@lib/type.library';
 import { Instant, DATE_FMT } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
@@ -130,12 +130,16 @@ export class AttendComponent implements OnDestroy {
 			})
 	}
 
-	public getReact() {
+	public getForum() {
 		this.forum.getForum<IForumBase>()
 			.then(forum => this.dbg('forum: %j', forum))
 	}
-	public setReact(item: ISchedule) {
-		this.forum.setReact({ key: item._id, info: { class: item.key } })
-			.then(res => this.getReact())
+	public setReact(item: ISchedule, react: REACT) {
+		this.forum.setReact({ key: item[FIELD.id], info: { class: item[FIELD.key] }, react })
+			.then(_ => this.getForum())
+	}
+	public setComment(item: ISchedule, comment: TString) {
+		this.forum.setComment({ key: item[FIELD.id], info: { class: item[FIELD.key] }, comment })
+			.then(_ => this.getForum())
 	}
 }

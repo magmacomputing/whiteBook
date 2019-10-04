@@ -551,7 +551,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						throw new Error('stopping');
 					return res;
 				})
-				.then(_ => this.forum.setComment({ key: sched[FIELD.key], store: STORE.schedule, date: now, comment }))
+				.then(_ => this.forum.setComment({ key: sched[FIELD.key], type: STORE.schedule, date: now, comment }))
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
