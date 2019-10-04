@@ -16,7 +16,7 @@ import { Instant, DATE_FMT } from '@lib/date.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';
-import { ISchedule } from '@dbase/data/data.schema';
+import { ISchedule, IForumBase } from '@dbase/data/data.schema';
 
 @Component({
 	selector: 'wb-attend',
@@ -131,7 +131,7 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	public getReact() {
-		this.forum.getForum()
+		this.forum.getForum<IForumBase>()
 			.then(forum => this.dbg('forum: %j', forum))
 	}
 	public setReact(item: ISchedule) {

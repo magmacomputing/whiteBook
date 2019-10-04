@@ -5,6 +5,7 @@ import { take, map, retry } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
+import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
@@ -59,7 +60,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private events!: Record<string, IEvent>;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService) {
+		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
 		this.history = createPromise<MHistory[]>();
 
 		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
@@ -88,7 +89,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * Very drastic:  remove all references to a Member
+	 * Very drastic:  remove all references to a Member  
+	 * use getFire() to delete direct from Firestore (and not from NGXS)
 	 */
 	async delUser() {
 		const where: TWhere = addWhere(FIELD.uid, this.current!.uid);
@@ -399,7 +401,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
-		let comment;
+		let comment: TString;
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
@@ -542,13 +544,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const p = createPromise<boolean>();
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
-				sched.elect = BONUS.none;										// Member elected to not receive a Bonus
+				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (getType(res) === 'Boolean' && res === false)
 						throw new Error('stopping');
-					p.resolve(flag);
+					return res;
 				})
+				.then(_ => this.forum.setComment({ key: sched[FIELD.key], store: STORE.schedule, date: now, comment }))
+				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
 			if (!rest.length)

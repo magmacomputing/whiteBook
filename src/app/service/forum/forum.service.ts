@@ -1,19 +1,23 @@
 import { Injectable } from '@angular/core';
+
 import { DataService } from '@dbase/data/data.service';
-import { IForumBase, IReact, IStoreMeta } from '@dbase/data/data.schema';
+import { IReact, IStoreMeta, IComment } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
+
 import { addWhere } from '@dbase/fire/fire.library';
+
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
+import { TString, isUndefined } from '@lib/type.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
 
 	constructor(private data: DataService) { }
 
-	async setReact({ key, react = REACT.like, type = STORE.schedule, info, dt }: { key: string; react?: REACT; type?: STORE; info?: { [key: string]: string | number }; dt?: TDate; }) {
-		const now = getDate(dt);
+	async setReact({ key, react = REACT.like, store = STORE.schedule, info, date }: { key: string; react?: REACT; store?: STORE; info?: { [key: string]: string | number }; date?: TDate; }) {
+		const now = getDate(date);
 		const when = now.format(DATE_FMT.yearMonthDay);
-		const reactDoc = await this.getReact({ key, type, when });
+		const reactDoc = await this.getForum<IReact>({ key, store, date });
 
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
@@ -34,9 +38,9 @@ export class ForumService {
 			default:																							// create the React
 				const forum = {
 					[FIELD.store]: STORE.react,
-					[FIELD.type]: type,
+					[FIELD.type]: store,															// the Store type related to this comment
+					[FIELD.key]: key,																	// the Store key related to this comment					
 					[FIELD.uid]: await this.getUid(),
-					[FIELD.key]: key,
 					[FIELD.stamp]: now.ts,
 					track: {
 						[FIELD.date]: when,
@@ -55,25 +59,48 @@ export class ForumService {
 		return this.data.batch(creates, updates, deletes);
 	}
 
-	setComment() {
+	// TODO: clean-up any comments (by cloud-function)?
+	async setComment({ key, store, info, date, comment }: { key: string, store: STORE, info?: { [key: string]: string | number }; comment: TString; date?: TDate; }) {
+		if (isUndefined(comment))
+			return undefined;
 
+		const now = getDate(date);
+		const creates: IStoreMeta[] = [];												// only creates[] is currently used
+		const updates: IStoreMeta[] = [];												// we dont allow comment updates
+		const deletes: IStoreMeta[] = [];												// we dont allow comment deletes
+
+		const forum = {
+			[FIELD.store]: STORE.comment,
+			[FIELD.type]: store,																	// the Store type related to this comment
+			[FIELD.key]: key,																			// the Store key related to this comment
+			[FIELD.uid]: await this.getUid(),
+			[FIELD.stamp]: now.ts,
+			track: {
+				[FIELD.date]: now.format(DATE_FMT.yearMonthDay),
+			},
+			comment,
+		} as unknown as IComment
+
+		if (info)
+			Object.entries(info)																	// additional info to track
+				.forEach(([key, value]) => forum.track[key] = value)
+		creates.push(forum);
+
+		return this.data.batch(creates, updates, deletes);
 	}
 
-	public async getReact({ key, type, when }: { key?: string; type?: STORE; when: number; }) {
-		return this.getForum<IReact>(when)
-			.then(forum => forum.filter(react => react[FIELD.store] === STORE.react))
-			.then(forum => forum.filter(react => react[FIELD.type] === type))
-			.then(forum => forum.filter(react => react[FIELD.key] === key))
-	}
-
-	// get all Forum content for a date
-	public async getForum<T>(dt?: TDate) {
-		const now = getDate(dt);
+	// get all Forum content for a date, optionally for a named Store-type and named Store-key
+	public async getForum<T>({ key, store, date }: { key?: string; store?: STORE; date?: TDate; } = {}) {
+		const now = getDate(date);
 
 		const forumFilter = [
 			addWhere(FIELD.uid, await this.getUid()),
 			addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay)),
 		]
+		if (key)
+			forumFilter.push(addWhere(FIELD.key, key))
+		if (store)
+			forumFilter.push(addWhere(FIELD.type, store))
 
 		return this.data.getFire<T>(COLLECTION.forum, { where: forumFilter });
 	}

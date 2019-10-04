@@ -59,7 +59,7 @@ export interface IForumBase extends IMeta {
 		[key: string]: string | number;				// additional info to assist tracking
 	},
 }
-export interface IMigrate extends IMeta {
+export interface IMigrate extends IMeta {	// these allow for reconciliation of migrated event
 	[FIELD.store]: STORE.migrate;
 	[FIELD.type]: STORE.event | STORE.class;
 	[FIELD.uid]: string;
