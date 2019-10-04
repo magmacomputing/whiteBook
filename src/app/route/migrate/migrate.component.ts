@@ -542,6 +542,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 
 		const p = createPromise<boolean>();
+
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
@@ -555,8 +556,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
-			if (!rest.length)
-				this.check.resolve(true);
+			if (!rest.length)														// queue is empty
+				this.check.resolve(true);									// mark 'check phase' complete
 		}
 
 		p.promise
