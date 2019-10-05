@@ -29,7 +29,7 @@ export class ForumService {
 				break;
 
 			case reactDoc.length && react === reactDoc[0].react:	// React has not changed
-			case react === REACT.none:														// no React
+			case react === REACT.none:														// or no React
 				break;																							// nothing to change
 
 			case reactDoc.length > 0:															// update the React

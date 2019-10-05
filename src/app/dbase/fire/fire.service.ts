@@ -112,8 +112,9 @@ export class FireService {
 
 	/**
 	 * Wrap database-writes within a set of Batches (limited to 300 documents per).  
-	 * These documents are assumed to have a <store> field and (except for 'creates') an <_id> field  
-	 * If they are Member documents and missing a <uid> field, the current User is inserted
+	 * These documents are assumed to have a FIELD.store and (except for 'creates') a FIELD.id  
+	 * If they are Member documents and missing a <uid> field, the current User is inserted  
+	 * Perform all creates first, then all updates, finally all deletes
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const cloneCreate = [...asArray(creates)];
