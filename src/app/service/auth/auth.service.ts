@@ -95,6 +95,9 @@ export class AuthService {
 		asArray(provider.scope)
 			.forEach(scope => (authProvider as TScopes).addScope(scope));
 
+		asArray(provider.custom)
+			.forEach(custom => (authProvider as TScopes).setCustomParameters(custom));
+
 		if (provider.params)
 			(authProvider as TParams).setCustomParameters(provider.params);
 
