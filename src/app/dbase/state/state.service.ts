@@ -278,7 +278,7 @@ export class StateService {
 		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
-		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.classes}}`);
+		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.agenda}}`);
 		const filterLocation = addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
@@ -304,7 +304,7 @@ export class StateService {
 			joinDoc(this.states, 'client', STORE.calendar, filterRange, date),									// get any blocked calendar-range
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date
 			joinDoc(this.states, 'client', STORE.class, filterTypeClass, date),									// get classes for this weekday
-			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get classes for this calendar-date
+			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get agenda for this calendar-date
 			joinDoc(this.states, 'client', STORE.icon, filterIcon, date),												// get the Class icons
 			joinDoc(this.states, 'client', STORE.location, filterLocation, date),								// get location for this timetable
 			joinDoc(this.states, 'client', STORE.instructor, filterInstructor, date),						// get instructor for this timetable

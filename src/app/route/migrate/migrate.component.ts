@@ -450,7 +450,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
-			price = obj.full.amount;											// set this row's price to MultiStep
+			price = obj.full.amount;									// set this row's price to MultiStep
 		}
 
 		switch (true) {
@@ -476,7 +476,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
-					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: caldr.name,
+					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,// note: caldr.name,
 				}
 				break;
 
