@@ -25,7 +25,7 @@ import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
 import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/date.library';
 import { sortKeys, cloneObj, getPath } from '@lib/object.library';
-import { isUndefined, isNull, getType, TString } from '@lib/type.library';
+import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
 import { IPromise, createPromise } from '@lib/utility.library';
 import { setLocalStore, getLocalStore } from '@lib/browser.library';
@@ -548,7 +548,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
-					if (getType(res) === 'Boolean' && res === false)
+					if (isBoolean(res) && res === false)
 						throw new Error('stopping');
 					return res;
 				})
@@ -719,6 +719,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async migrateComment() {
-		
+
 	}
 }

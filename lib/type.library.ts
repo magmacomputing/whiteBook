@@ -22,6 +22,7 @@ export const isType = (obj: any, type: string = 'Object'): boolean => getType(ob
 export const isString = (obj?: any): obj is string => isType(obj, 'String');
 export const isNumber = (obj?: any): obj is number => isType(obj, 'Number');
 export const isInteger = (obj?: any): obj is bigint => isType(obj, 'BigInt');
+export const isBoolean = (obj?: any): obj is boolean => isType(obj, 'Boolean');
 export const isObject = <T>(obj?: T): obj is T => isType(obj, 'Object');
 export const isArray = (obj?: any): obj is any[] => isType(obj, 'Array');
 export const isNull = (obj?: any): obj is null => isType(obj, 'Null');
