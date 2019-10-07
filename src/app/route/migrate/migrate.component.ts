@@ -717,4 +717,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			return this.dbg('cannot fetch: %s', err_1.message);
 		}
 	}
+
+	async migrateComment() {
+		
+	}
 }

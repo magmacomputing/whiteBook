@@ -1,5 +1,6 @@
 <button color="accent" (click)="filter('hide')">Hidden</button> {{ hidden }}
 <button color="accent" (click)="filter('credit')">Credit </button> {{ credit[creditIdx] }}
+<button color="accent" (click)="migrateComment()">Forum</button>
 <div *ngIf="(dash$ | async); let dash$">
 	<div *ngIf="dash$.length; else noDash"></div>
 	<hr>

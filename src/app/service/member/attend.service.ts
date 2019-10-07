@@ -101,9 +101,11 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which should be <active>
-		let active: IPayment;															// Payment[0] is assumed active, by default
+		let active: IPayment | undefined;									// Payment[0] is assumed active, by default
+		let ctr = 0;																			// prevent endless loop
 
-		while (true) {
+		while (ctr <= ATTEND.maxPayment) {								// only attempt to match limited number of Payments
+			ctr++;																					// increment
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
@@ -158,6 +160,10 @@ export class AttendService {
 				throw new Error('Could not allocate a new Payment');
 			}
 		}																									// repeat the loop to test if this now-Active Payment is useable
+		if (isUndefined(active)) {
+			this.snack.error('Could not allocate an active Payment');
+			throw new Error('Could not allocate an active Payment');
+		}
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
