@@ -154,8 +154,9 @@ export namespace Auth {
 		gh = 'gh',										// GitHub
 		li = 'li',										// LinkedIn
 		tw = 'tw',										// Twitter
-		as = 'gapps',									// Google Apps Script
+		as = 'as',										// Google Apps Script
 	}
+	
 	export enum METHOD {
 		identity = 'identity',
 		oauth = 'oauth',
@@ -204,4 +205,5 @@ export enum REACT {
 	laugh,
 	sad,
 	angry,
+	poop,
 }
