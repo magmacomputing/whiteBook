@@ -111,7 +111,7 @@ export class AuthService {
 			.then(config => getConfig(config, 'oauth'))
 			.then(oauth => oauth.value)
 
-		const child = this.openChannel('token');// the child popup
+		const child = this.openChannel('token');// link to the child popup
 		child.onmessage = (msg) => {						// when child sends a message...
 			child.close();												// 	close BroadcastChannel
 			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
@@ -126,8 +126,8 @@ export class AuthService {
 
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
+		const parent = this.openChannel('token');// link to the parent of this popup
 		this.dbg('signInToken: %j', response);
-		const parent = this.openChannel('token');// the parent of this popup
 
 		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
@@ -135,7 +135,7 @@ export class AuthService {
 				if (state.auth.info) 								// tell the parent to update State
 					parent.postMessage(JSON.stringify(state.auth.info));
 
-				if (state.auth.user) //&& open) {
+				if (state.auth.user /** && open */)
 					window.close();										// only close on valid user
 			})
 	}
