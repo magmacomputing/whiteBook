@@ -46,4 +46,9 @@ export class LoginComponent implements OnInit {
 	drop(event: CdkDragDrop<any[]>) {
 		drag(event);
 	}
+
+	getToken() {
+		this.data.createToken('MichaelM')
+			.then(token => this.dbg('token: %j', token);
+	}
 }
