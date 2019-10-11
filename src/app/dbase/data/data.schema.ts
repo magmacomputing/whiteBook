@@ -262,7 +262,6 @@ export interface IProvider extends IClientBase {
 	custom?: TString;								// custom OAuth parameters
 	joinScope?: string;							// what character separates the scope parameters, default ','
 	params?: object;								// custom parameters
-	jwt?: string;										// optional JWT
 
 	oauth?: {
 		profile: {

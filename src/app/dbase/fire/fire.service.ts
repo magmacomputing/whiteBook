@@ -194,10 +194,12 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
+	/** This helps an Admin impersonate another Member */
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
 	}
 
+	/** Useful when Member is already authenticated elsewhere (eg. helloJS) */
 	authToken(access_token: string, user: IUserInfo) {
 		return this.callHttps<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
 	}

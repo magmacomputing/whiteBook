@@ -155,7 +155,7 @@ export namespace Auth {
 		li = 'li',										// LinkedIn
 		tw = 'tw',										// Twitter
 		as = 'as',										// Google Apps Script
-		jwt = 'jwt',
+		jwt = 'jwt',									// JSON Web Token 
 	}
 	
 	export enum METHOD {
