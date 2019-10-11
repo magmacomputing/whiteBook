@@ -81,6 +81,10 @@ export class AuthService {
 				this.signInAnon(provider);
 				break;
 
+			case Auth.METHOD.custom:
+				this.signInCustom(opts.jwt as string);
+				break;
+
 			default:
 				this.dbg('signIn: %s', provider);
 				break;
@@ -146,6 +150,10 @@ export class AuthService {
 
 	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon())
+	}
+
+	private signInCustom(token: string) {
+		return this.store.dispatch(new LoginToken(token, Auth.PROVIDER.jwt, {}));
 	}
 
 	private signInOIDC(provider: IProvider) { }

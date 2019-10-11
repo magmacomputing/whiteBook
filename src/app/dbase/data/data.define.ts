@@ -155,6 +155,7 @@ export namespace Auth {
 		li = 'li',										// LinkedIn
 		tw = 'tw',										// Twitter
 		as = 'as',										// Google Apps Script
+		jwt = 'jwt',
 	}
 	
 	export enum METHOD {
@@ -165,6 +166,7 @@ export namespace Auth {
 		phone = 'phone',
 		play = 'play',
 		anonymous = 'anonymous',
+		custom = 'custom',
 	}
 
 	export enum ROLE {

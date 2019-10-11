@@ -17,7 +17,7 @@ export const environment = {
 
     config: {
       name: 'whiteFire',
-      region: 'us-central',
+      region: 'us-central1',
       automaticDataCollectionEnabled: true,
     }
   }

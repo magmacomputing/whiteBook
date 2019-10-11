@@ -256,12 +256,13 @@ export interface IProvider extends IClientBase {
 	[FIELD.store]: STORE.provider;
 	[FIELD.type]: Auth.METHOD;
 	[FIELD.key]: string;
-	sort: number;										// list-order to display to User
+	sort?: number;									// list-order to display to User
 	prefix?: string;
 	scope?: TString;								// if array, joinScope determines how to encode as a string
 	custom?: TString;								// custom OAuth parameters
 	joinScope?: string;							// what character separates the scope parameters, default ','
 	params?: object;								// custom parameters
+	jwt?: string;										// optional JWT
 
 	oauth?: {
 		profile: {

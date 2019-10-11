@@ -3,7 +3,7 @@ import { firestore } from 'firebase/app';
 import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
@@ -13,6 +13,7 @@ import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.libra
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthService } from '@service/auth/auth.service';
+import { IUserInfo } from '@service/auth/auth.interface';
 import { StateService } from '@dbase/state/state.service';
 import { getSlice } from '@dbase/state/state.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
@@ -70,6 +71,10 @@ export class DataService {
 
 	createToken(uid: string) {
 		return this.fire.createToken(uid);
+	}
+
+	authToken(token: string, user: IUserInfo) {
+		return this.fire.authToken(token, user);
 	}
 
 	getUID() {

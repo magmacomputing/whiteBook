@@ -5,6 +5,7 @@ import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
+import { IUserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
@@ -195,6 +196,10 @@ export class FireService {
 
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
+	}
+
+	authToken(access_token: string, user: IUserInfo) {
+		return this.callHttps<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
 	}
 
 	/** Call a server Cloud Function */
