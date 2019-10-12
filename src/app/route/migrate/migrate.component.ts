@@ -401,7 +401,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
-		let comment: TString;
+		let comment: TString | undefined;
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
@@ -546,13 +546,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
+			comment = this.cleanNote(sched);
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
 						throw new Error('stopping');
 					return res;
 				})
-				.then(_ => this.forum.setComment({ key: sched[FIELD.key], type: STORE.schedule, date: now, comment }))
+				.then(_ => this.forum.setComment({ key: sched[FIELD.key], type: STORE.schedule, date: now, comment: comment || '' }))
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
@@ -562,6 +563,25 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		p.promise
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
+	}
+
+	private cleanNote(sched: ISchedule) {
+		let comment: TString | undefined;
+		const pat1 = /Gift #\d+,/,
+			pat2 = /,Gift #\d/,
+			pat3 = /Gift #\d+/,
+			spaces = /  +/g;
+
+		if (sched.note) {
+			sched.note = asArray(sched.note)
+				.map(note => note.replace(pat1, '').replace(pat2, '').replace(pat3, ''))
+				.map(note => note.replace(spaces, ' '))
+
+			if (sched.note.length === 1)
+				sched.note = sched.note[0];
+		}
+
+		return comment;
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {

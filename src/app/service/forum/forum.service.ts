@@ -46,7 +46,7 @@ export class ForumService {
 
 	// TODO: clean-up any comments (by cloud-function)?
 	async setComment({ key, type, info, date, comment }: ICommentArgs) {
-		if (isUndefined(comment))
+		if (isUndefined(comment) || comment === '')
 			return undefined;
 
 		const creates: IStoreMeta[] = [];												// only creates[] is currently used
