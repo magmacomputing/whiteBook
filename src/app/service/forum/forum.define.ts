@@ -4,6 +4,7 @@ import { TDate } from '@lib/date.library';
 
 export interface IForumArgs {
 	key: string,
+	store?: STORE;
 	type?: STORE,
 	info?: { [key: string]: string | number };
 	date?: TDate;

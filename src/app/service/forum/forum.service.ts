@@ -7,7 +7,7 @@ import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
 import { addWhere } from '@dbase/fire/fire.library';
 
-import { DATE_FMT, TDate, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate } from '@lib/date.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
@@ -16,7 +16,7 @@ export class ForumService {
 
 	async setReact({ key, type = STORE.schedule, info, date, uid, react = REACT.like, }: IReactArgs) {
 		const now = getDate(date);
-		const reactDoc = await this.getForum<IReact>({ key, type, date });
+		const reactDoc = await this.getForum<IReact>({ store: STORE.react, key, type, date });
 
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
@@ -36,7 +36,7 @@ export class ForumService {
 				break;
 
 			default:																							// create the React
-				const forum = await this.newForum(STORE.react, { key, type, info, date, uid });
+				const forum = await this.newForum<IReact>({ store: STORE.react, key, type, info, date, uid });
 				creates.push({ ...forum, react });
 		}
 
@@ -48,12 +48,12 @@ export class ForumService {
 		if (comment === '')
 			return undefined;
 
-		return this.newForum<IComment>(STORE.comment, { key, type, info, date, uid })
+		return this.newForum<IComment>({ store: STORE.comment, key, type, info, date, uid })
 			.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
 	}
 
 	/** create a Forum base */
-	private async newForum<T extends IComment | IReact>(store: string, { key, type, info, date, uid }: IForumArgs) {
+	private async newForum<T extends IComment | IReact>({ store, key, type, info, date, uid }: IForumArgs) {
 		const now = getDate(date);
 
 		const forum = {
@@ -75,17 +75,19 @@ export class ForumService {
 	}
 
 	// get all Forum content for a date, optionally for a named Store-type and named Store-key
-	public async getForum<T>({ key, type, date, uid }: Partial<IForumArgs> = {}) {
+	public async getForum<T>({ store, key, type, date, uid }: Partial<IForumArgs> = {}) {
 		const now = getDate(date);
 
 		const forumFilter = [
 			addWhere(FIELD.uid, uid || await this.getUid()),
 			addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay)),
 		]
+		if (store)
+			forumFilter.push(addWhere(FIELD.store, store));
 		if (key)
-			forumFilter.push(addWhere(FIELD.key, key))
+			forumFilter.push(addWhere(FIELD.key, key));
 		if (type)
-			forumFilter.push(addWhere(FIELD.type, type))
+			forumFilter.push(addWhere(FIELD.type, type));
 
 		return this.data.getFire<T>(COLLECTION.forum, { where: forumFilter });
 	}
