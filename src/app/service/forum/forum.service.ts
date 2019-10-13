@@ -45,11 +45,10 @@ export class ForumService {
 
 	// TODO: clean-up any comments (by cloud-function)?
 	async setComment({ key, type = STORE.schedule, info, date, uid, comment = '', }: ICommentArgs) {
-		if (comment === '')
-			return undefined;
-
-		return this.newForum<IComment>({ store: STORE.comment, key, type, info, date, uid })
-			.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
+		return comment === ''
+			? undefined
+			: this.newForum<IComment>({ store: STORE.comment, key, type, info, date, uid })
+				.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
 	}
 
 	/** create a Forum base */

@@ -103,8 +103,8 @@ export class FireService {
 					delete rest[key]										// remove the field if 'set'
 				else rest[key] = firestore.FieldValue.delete(); // delete the target field if 'update'
 
-				if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
-					rest[key] = firestore.FieldValue.delete();	// TODO: workaround
+				// if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
+				// 	rest[key] = firestore.FieldValue.delete();	// TODO: workaround
 			}
 		})
 
@@ -169,7 +169,7 @@ export class FireService {
 	async setDoc(store: STORE, doc: firestore.DocumentData) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
-		doc = this.removeMeta(doc);								// remove the meta-fields from the document
+		doc = this.removeMeta(doc);									// remove the meta-fields from the document
 		await this.docRef(store, docId).set(doc);
 		return docId;
 	}
