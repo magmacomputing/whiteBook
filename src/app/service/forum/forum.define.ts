@@ -7,12 +7,13 @@ export interface IForumArgs {
 	type?: STORE,
 	info?: { [key: string]: string | number };
 	date?: TDate;
+	uid?: string;
 }
 
 export interface ICommentArgs extends IForumArgs {
-	comment: TString;
+	comment?: TString;
 }
 
 export interface IReactArgs extends IForumArgs {
-	react: REACT;
+	react?: REACT;
 }

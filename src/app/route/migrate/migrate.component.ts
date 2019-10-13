@@ -9,7 +9,7 @@ import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL, COMMENTS } from '@route/migrate/migrate.define';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
@@ -401,7 +401,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getDate(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
-		let comment: TString | undefined;
+
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
 		let sched: ISchedule;
 		let event: IEvent;
@@ -546,14 +546,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-			comment = this.cleanNote(sched);
+			const comment = this.cleanNote(sched);			// split the row.note into sched.note and forum.comment
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
 						throw new Error('stopping');
 					return res;
 				})
-				.then(_ => this.forum.setComment({ key: sched[FIELD.key], type: STORE.schedule, date: now, comment: comment || '' }))
+				.then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, info: { class: sched[FIELD.key] }, comment }) })
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
@@ -565,23 +565,59 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
 	}
 
+	/**
+	 * Remove unnecessary text-strings from Note field.  
+	 * Attempt to extract Comment field from Note.
+	 */
 	private cleanNote(sched: ISchedule) {
-		let comment: TString | undefined;
-		const pat1 = /Gift #\d+,/,
-			pat2 = /,Gift #\d/,
-			pat3 = /Gift #\d+/,
-			spaces = /  +/g;
+		let comment: string[] = [];
+		let result: TString | undefined = undefined;
+
+		const gift1 = /Gift #\d+,/,
+			gift2 = /, Gift #\d+/,
+			gift3 = /Gift #\d+/,
+			and = /and #\d+/,
+			week = /Bonus: Week Level reached/,
+			week2 = /Bonus: week level reached/,
+			spaces = /  +/g,
+			newline = /\n/g,
+			newlines = /\n\s*\n/g,
+			comma1 = /^,/,
+			comma2 = /,$/,
+			colon1 = /^:/,
+			colon2 = /:$/
 
 		if (sched.note) {
 			sched.note = asArray(sched.note)
-				.map(note => note.replace(pat1, '').replace(pat2, '').replace(pat3, ''))
-				.map(note => note.replace(spaces, ' '))
+				.map(note => note.replace(gift1, '').replace(gift2, '').replace(gift3, '').replace(and, ''))
+				.map(note => note.replace(week, '').replace(week2, ''))
+				.map(note => {																// check Note for Comment-like words
+					COMMENTS.forEach(word => {
+						if (note.includes(word) || /[^\u0000-\u00ff]/.test(note)) {
+							comment.push(note);											// push Note into Comment
+							note = `
+						`;																				// override Note with <newline>
+						}
+					})
+					return note;
+				})
+				.map(note => note.replace(newlines, '\n').replace(newline, ',').replace(spaces, ' ').trim())
+				.map(note => note.replace(comma1, '').replace(comma2, '').replace(colon1, '').replace(colon2, '').trim())
 
 			if (sched.note.length === 1)
 				sched.note = sched.note[0];
+			if (sched.note.length === 0)
+				sched.note = undefined;												// unused note
 		}
 
-		return comment;
+		if (comment.length > 1)
+			result = comment;
+		if (comment.length === 1)
+			result = comment[0];
+		if (comment.length < 1)
+			result = undefined;
+
+		return result;
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {
@@ -738,7 +774,36 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	async migrateComment() {
+	private async migrateComment() {
+		const uid = 'BronwynH';
+		const filter = [
+			addWhere(FIELD.uid, uid),
+			addWhere(FIELD.note, '', '>'),
+		]
+		const list = await this.data.getFire<IAttend>(COLLECTION.attend, { where: filter });
 
+		// const deletes = await this.data.getFire<IComment>(COLLECTION.forum, { where: addWhere(FIELD.uid, uid) });
+		// await this.data.batch(undefined, undefined, deletes);
+
+		this.dbg('list: %j', list.length);
+		list.forEach(async doc => {
+			const orig = doc[FIELD.note];
+			const comment = this.cleanNote(doc as unknown as ISchedule);
+			this.dbg('note: <%s> => clean: <%s>', orig, doc[FIELD.note]);
+			if (orig !== doc[FIELD.note]) {
+				this.dbg('comment: %j', comment);
+				await Promise.all([
+					this.data.updDoc(STORE.attend, doc[FIELD.id], doc),
+					this.forum.setComment({
+						type: STORE.schedule,
+						key: doc.timetable[FIELD.id],
+						date: doc.stamp,
+						info: { class: doc.timetable[FIELD.key] },
+						uid,
+						comment,
+					})
+				])
+			}
+		})
 	}
 }

@@ -1,21 +1,20 @@
 import { Injectable } from '@angular/core';
 
 import { DataService } from '@dbase/data/data.service';
-import { IReact, IStoreMeta, IComment } from '@dbase/data/data.schema';
+import { IReact, IStoreMeta, IComment, TStoreBase } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 
 import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
 import { addWhere } from '@dbase/fire/fire.library';
 
 import { DATE_FMT, TDate, getDate } from '@lib/date.library';
-import { isUndefined } from '@lib/type.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
 
 	constructor(private data: DataService) { }
 
-	async setReact({ key, react = REACT.like, type = STORE.schedule, info, date }: IReactArgs) {
+	async setReact({ key, type = STORE.schedule, info, date, uid, react = REACT.like, }: IReactArgs) {
 		const now = getDate(date);
 		const reactDoc = await this.getForum<IReact>({ key, type, date });
 
@@ -37,7 +36,7 @@ export class ForumService {
 				break;
 
 			default:																							// create the React
-				const forum = await this.newForum(STORE.react, { key, type, info, date });
+				const forum = await this.newForum(STORE.react, { key, type, info, date, uid });
 				creates.push({ ...forum, react });
 		}
 
@@ -45,34 +44,28 @@ export class ForumService {
 	}
 
 	// TODO: clean-up any comments (by cloud-function)?
-	async setComment({ key, type, info, date, comment }: ICommentArgs) {
-		if (isUndefined(comment) || comment === '')
+	async setComment({ key, type = STORE.schedule, info, date, uid, comment = '', }: ICommentArgs) {
+		if (comment === '')
 			return undefined;
 
-		const creates: IStoreMeta[] = [];												// only creates[] is currently used
-		const updates: IStoreMeta[] = [];												// we dont allow comment updates
-		const deletes: IStoreMeta[] = [];												// we dont allow comment deletes
-
-		const forum = await this.newForum<IComment>(STORE.comment, { key, type, info, date });
-		creates.push({ ...forum, comment });
-
-		return this.data.batch(creates, updates, deletes);
+		return this.newForum<IComment>(STORE.comment, { key, type, info, date, uid })
+			.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
 	}
 
 	/** create a Forum base */
-	private async newForum<T extends IComment | IReact>(store: string, { key, type, info, date }: IForumArgs) {
+	private async newForum<T extends IComment | IReact>(store: string, { key, type, info, date, uid }: IForumArgs) {
 		const now = getDate(date);
 
 		const forum = {
 			[FIELD.store]: store,
-			[FIELD.type]: type,																	// the Store type related to this comment
+			[FIELD.type]: type,																		// the Store type related to this comment
 			[FIELD.key]: key,																			// the Store key related to this comment
-			[FIELD.uid]: await this.getUid(),
 			[FIELD.stamp]: now.ts,
+			[FIELD.uid]: uid || await this.getUid(),
 			track: {
 				[FIELD.date]: now.format(DATE_FMT.yearMonthDay),
 			},
-		} as unknown as T
+		} as T
 
 		if (info)
 			Object.entries(info)																	// additional info to track
@@ -82,11 +75,11 @@ export class ForumService {
 	}
 
 	// get all Forum content for a date, optionally for a named Store-type and named Store-key
-	public async getForum<T>({ key, type, date }: { key?: string; type?: STORE; date?: TDate; } = {}) {
+	public async getForum<T>({ key, type, date, uid }: Partial<IForumArgs> = {}) {
 		const now = getDate(date);
 
 		const forumFilter = [
-			addWhere(FIELD.uid, await this.getUid()),
+			addWhere(FIELD.uid, uid || await this.getUid()),
 			addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay)),
 		]
 		if (key)
