@@ -14,7 +14,7 @@ export class ForumService {
 
 	constructor(private data: DataService) { }
 
-	async setReact({ key, type = STORE.schedule, info, date, uid, react = REACT.like, }: IReactArgs) {
+	async setReact({ key, type = STORE.schedule, track, date, uid, react = REACT.like, }: IReactArgs) {
 		const now = getDate(date);
 		const reactDoc = await this.getForum<IReact>({ store: STORE.react, key, type, date });
 
@@ -36,7 +36,7 @@ export class ForumService {
 				break;
 
 			default:																							// create the React
-				const forum = await this.newForum<IReact>({ store: STORE.react, key, type, info, date, uid });
+				const forum = await this.newForum<IReact>({ store: STORE.react, key, type, track, date, uid });
 				creates.push({ ...forum, react });
 		}
 
@@ -44,15 +44,15 @@ export class ForumService {
 	}
 
 	// TODO: clean-up any comments (by cloud-function)?
-	async setComment({ key, type = STORE.schedule, info, date, uid, comment = '', }: ICommentArgs) {
+	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: ICommentArgs) {
 		return comment === ''
 			? undefined
-			: this.newForum<IComment>({ store: STORE.comment, key, type, info, date, uid })
+			: this.newForum<IComment>({ store: STORE.comment, key, type, track, date, uid })
 				.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
 	}
 
 	/** create a Forum base */
-	private async newForum<T extends IComment | IReact>({ store, key, type, info, date, uid }: IForumArgs) {
+	private async newForum<T extends IComment | IReact>({ store, key, type, track, date, uid }: IForumArgs) {
 		const now = getDate(date);
 
 		const forum = {
@@ -66,8 +66,8 @@ export class ForumService {
 			},
 		} as T
 
-		if (info)
-			Object.entries(info)																	// additional info to track
+		if (track)
+			Object.entries(track)																	// additional info to track
 				.forEach(([key, value]) => forum.track[key] = value)
 
 		return forum;

@@ -553,7 +553,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						throw new Error('stopping');
 					return res;
 				})
-				.then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, info: { class: sched[FIELD.key] }, comment }) })
+				.then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment }) })
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
@@ -784,7 +784,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						type: STORE.schedule,
 						key: doc.timetable[FIELD.id],
 						date: doc.stamp,
-						info: { class: doc.timetable[FIELD.key] },
+						track: { class: doc.timetable[FIELD.key] },
 						uid,
 						comment,
 					})
