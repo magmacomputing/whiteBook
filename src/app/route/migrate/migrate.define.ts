@@ -22,6 +22,21 @@ export const LOOKUP: Record<string, CLASS> = {
 export const SPECIAL = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 export const PACK = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
+export const CLEAN = {
+	gift1: /Gift #\d+,/,
+	gift2: /, Gift #\d+/,
+	gift3: /Gift #\d+/,
+	and: /and #\d+/,
+	week: /Bonus: Week Level reached/,
+	week2: /Bonus: week level reached/,
+	spaces: /  +/g,
+	newline: /\n/g,
+	newlines: /\n\s*\n/g,
+	comma1: /^,/,
+	comma2: /,$/,
+	colon1: /^:/,
+	colon2: /:$/,
+}
 export const COMMENTS = [
 	'Great',
 	'Hello',
@@ -31,8 +46,8 @@ export const COMMENTS = [
 	'good',
 	'relax',
 	"I'm",
+	'I am',
 	'Something',
-	'instructor',
 	'Instructor',
 	'routine',
 	'Whateva',

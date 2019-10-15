@@ -9,7 +9,7 @@ import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, COMMENTS } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL, COMMENTS, CLEAN } from '@route/migrate/migrate.define';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
@@ -573,27 +573,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let comment: string[] = [];
 		let result: TString | undefined = undefined;
 
-		const gift1 = /Gift #\d+,/,
-			gift2 = /, Gift #\d+/,
-			gift3 = /Gift #\d+/,
-			and = /and #\d+/,
-			week = /Bonus: Week Level reached/,
-			week2 = /Bonus: week level reached/,
-			spaces = /  +/g,
-			newline = /\n/g,
-			newlines = /\n\s*\n/g,
-			comma1 = /^,/,
-			comma2 = /,$/,
-			colon1 = /^:/,
-			colon2 = /:$/
-
 		if (sched.note) {
 			sched.note = asArray(sched.note)
-				.map(note => note.replace(gift1, '').replace(gift2, '').replace(gift3, '').replace(and, ''))
-				.map(note => note.replace(week, '').replace(week2, ''))
+				.map(note => note.replace(CLEAN.gift1, '').replace(CLEAN.gift2, '').replace(CLEAN.gift3, '').replace(CLEAN.and, ''))
+				.map(note => note.replace(CLEAN.week, '').replace(CLEAN.week2, ''))
 				.map(note => {																// check Note for Comment-like words
 					COMMENTS.forEach(word => {
-						if (note.includes(word) || /[^\u0000-\u00ff]/.test(note)) {
+						if (note.toUpperCase().includes(word.toUpperCase()) || /[^\u0000-\u00ff]/.test(note)) {
 							comment.push(note);											// push Note into Comment
 							note = `
 						`;																				// override Note with <newline>
@@ -601,8 +587,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					})
 					return note;
 				})
-				.map(note => note.replace(newlines, '\n').replace(newline, ',').replace(spaces, ' ').trim())
-				.map(note => note.replace(comma1, '').replace(comma2, '').replace(colon1, '').replace(colon2, '').trim())
+				.map(note => note.replace(CLEAN.newlines, '\n').replace(CLEAN.newline, ',').replace(CLEAN.spaces, ' ').trim())
+				.map(note => note.replace(CLEAN.comma1, '').replace(CLEAN.comma2, '').replace(CLEAN.colon1, '').replace(CLEAN.colon2, '').trim())
 
 			if (sched.note.length === 1)
 				sched.note = sched.note[0];
