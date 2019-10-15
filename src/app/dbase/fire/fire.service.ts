@@ -15,7 +15,7 @@ import { IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined, isObject } from '@lib/type.library';
+import { isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
