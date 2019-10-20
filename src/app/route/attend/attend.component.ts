@@ -135,11 +135,11 @@ export class AttendComponent implements OnDestroy {
 			.then(forum => this.dbg('forum: %j', forum))
 	}
 	public setReact(item: ISchedule, react: REACT) {
-		this.forum.setReact({ key: item[FIELD.id], info: { class: item[FIELD.key] }, react })
+		this.forum.setReact({ key: item[FIELD.id], track: { class: item[FIELD.key] }, react })
 			.then(_ => this.getForum())
 	}
 	public setComment(item: ISchedule, comment: TString) {
-		this.forum.setComment({ key: item[FIELD.id], info: { class: item[FIELD.key] }, comment })
+		this.forum.setComment({ key: item[FIELD.id], track: { class: item[FIELD.key] }, comment })
 			.then(_ => this.getForum())
 	}
 }
