@@ -237,6 +237,21 @@ export class AttendService {
 		return now.ts;																					// timestamp
 	}
 
+	public delPayment = async (where: TWhere) => {
+		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
+		const filter = asArray(where);
+		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
+			filter.push(memberUid);
+
+		const updates: IStoreMeta[] = [];
+		const deletes: IStoreMeta[] = await this.data.getStore<IPayment>(STORE.payment, filter);
+
+		if (deletes.length === 0) {
+			this.dbg('No items to delete');
+			return;
+		}
+	}
+
 	/**
 	 * Removing Attends is a tricky business...  
 	 * it may need to walk back a couple of related Documents.  

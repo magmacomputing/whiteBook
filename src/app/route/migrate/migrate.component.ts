@@ -13,7 +13,7 @@ import { LOOKUP, PACK, SPECIAL, COMMENTS, CLEAN } from '@route/migrate/migrate.d
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -224,12 +224,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IPlan>(STORE.plan),
 			this.data.getStore<IPrice>(STORE.price),
+			this.data.getStore<IComment>(STORE.comment, addWhere(FIELD.uid, this.current!.uid)),
 			this.history.promise,
 		])
 	}
 
 	async addPayment() {
-		const [payments, gifts, profile, plans, prices, hist = []] = await this.getMember();
+		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
 		const creates: IStoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note && row.note.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => isUndefined(payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
@@ -567,7 +568,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	/**
 	 * Remove unnecessary text-strings from Note field.  
-	 * Attempt to extract Comment field from Note.
+	 * Attempt to extract Comments from Note field.
 	 */
 	private cleanNote(sched: ISchedule) {
 		let comment: string[] = [];
@@ -690,12 +691,25 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.finally(() => this.dbg('done'))
 	}
 
+	async revPayment(full: boolean) {
+		const dt = window.prompt('From which date');
+		if (dt) {
+			const now = getDate(dt);
+			if (!now.isValid()) {
+				window.alert(`'${dt}': Not a valid date`);
+				return;
+			}
+			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
+				this.attend.delPayment(addWhere(FIELD.stamp, now.ts, '>='));
+		}
+	}
+
 	async revAttend() {
 		const dt = window.prompt('From which date');
 		if (dt) {
 			const now = getDate(dt);
 			if (!now.isValid()) {
-				window.alert(`'${dt}': Not a valid date`)
+				window.alert(`'${dt}': Not a valid date`);
 				return;
 			}
 			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
@@ -703,9 +717,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	async delAttend() {
+	async delAttend() {											// no longer used... see AttendService.delAttend()
 		const where = addWhere(FIELD.uid, this.current!.uid);
-		const [attends, [payments, gifts, profile, plans, prices, hist = []]] = await Promise.all([
+		const [deletes, [payments, gifts, profile, plans, prices, comments, hist = []]] = await Promise.all([
 			this.data.getStore<IAttend>(STORE.attend, where),
 			this.getMember(),
 		])
@@ -728,11 +742,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				[FIELD.expire]: firestore.FieldValue.delete(),
 			}))
 		);
-		if (!attends.length && !updates.length)
+		if (!deletes.length && !updates.length)
 			this.dbg('attends: Nothing to do');
 
 		await this.member.setAccount(creates, updates);
-		return this.data.batch(creates, updates, attends, SetMember)
+		return this.data.batch(creates, updates, deletes, SetMember)
 	}
 
 	private async fetch(action: string, query: string) {
@@ -764,7 +778,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const uid = 'BronwynH';
 		const filter = [
 			addWhere(FIELD.uid, uid),
-			addWhere(FIELD.note, '', '>'),
+			// addWhere(FIELD.note, '', '>'),
+			addWhere('track.date', 20191007),
 		]
 		const list = await this.data.getFire<IAttend>(COLLECTION.attend, { where: filter });
 
@@ -772,6 +787,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		// await this.data.batch(undefined, undefined, deletes);
 
 		this.dbg('list: %j', list.length);
+		this.dbg('list: %j', list);
 		list.forEach(async doc => {
 			const orig = doc[FIELD.note];
 			const comment = this.cleanNote(doc as unknown as ISchedule);
