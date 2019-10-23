@@ -136,7 +136,8 @@ export class FireService {
 			commits.push(bat.commit());
 		}
 
-		return Promise.all(commits);
+		return Promise.all(commits)
+			.then(_ => true);
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
