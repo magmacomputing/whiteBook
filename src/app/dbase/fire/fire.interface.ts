@@ -14,7 +14,7 @@ export type TWhere = IWhere | IWhere[];
 /** Query.orderBy */
 export interface IOrderBy {
 	fieldPath: string | FieldPath;
-	directionStr?: 'desc' | 'asc';
+	directionStr?: firebase.firestore.OrderByDirection;
 }
 /** Collection.Query */
 export interface IQuery {
