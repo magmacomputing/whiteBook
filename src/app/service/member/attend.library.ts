@@ -11,7 +11,7 @@ import { asArray } from '@lib/array.library';
  * source:	info about the effective Plans, Bonus, etc. and current Member
  * event:	  a Class name
  * date:		effective date, else today
- * elect:		Bonus override (e.g. Member may elect to *not* use one of his Gifts)
+ * elect:		Bonus override (e.g. Member may elect to *not* use one of their Gifts)
  */
 export const calcBonus = (source: ITimetableState, event: string, date?: TDate, elect?: BONUS) => {
 	const now = getDate(date);
@@ -29,11 +29,11 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 
 	switch (true) {
 		/**
-		 * Admin adds 'Gift' records to a Member's account which will detail
-		 * the start-date and limit of free classes (and an optional expiry-date for the Gift).  
+		 * Admin adds 'Gift' records to a Member's account which will detail the start-date
+		 * and limit of free classes (and an optional expiry-date for the Gift).  
 		 * These gifts will be used in preference to any other Bonus scheme.
 		 * 
-		 * Even though the Member may have a active Gifts, we check if any of them are useable.  
+		 * Even though the Member may have an active Gift, we check if any of them are useable.  
 		 * If not, we pass back an array of auto-expire updates for the caller to apply.
 		 * 
 		 * If ok to use, we pass back an array of count-tracking updates for the caller to apply.
