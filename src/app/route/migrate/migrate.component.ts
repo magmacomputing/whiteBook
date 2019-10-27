@@ -9,7 +9,8 @@ import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, COMMENTS, CLEAN } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
+import { CLEAN, COMMENTS } from '@route/forum/forum.define';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
@@ -31,6 +32,7 @@ import { IPromise, createPromise } from '@lib/utility.library';
 import { setLocalStore, getLocalStore } from '@lib/browser.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
+import { cleanNote } from '@route/forum/forum.library';
 
 @Component({
 	selector: 'wb-migrate',
@@ -547,7 +549,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-			const comment = this.cleanNote(sched);			// split the row.note into sched.note and forum.comment
+			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
+			sched.note = note;													// replace note with cleaned note
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
@@ -564,47 +567,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		p.promise
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
-	}
-
-	/**
-	 * Remove unnecessary text-strings from Note field.  
-	 * Attempt to extract Comments from Note field.
-	 */
-	private cleanNote(sched: ISchedule) {
-		let comment: string[] = [];
-		let result: TString | undefined = undefined;
-
-		if (sched.note) {
-			sched.note = asArray(sched.note)
-				.map(note => note.replace(CLEAN.gift1, '').replace(CLEAN.gift2, '').replace(CLEAN.gift3, '').replace(CLEAN.and, ''))
-				.map(note => note.replace(CLEAN.week, '').replace(CLEAN.week2, ''))
-				.map(note => {																// check Note for Comment-like words
-					COMMENTS.forEach(word => {
-						if (note.toUpperCase().includes(word.toUpperCase()) || /[^\u0000-\u00ff]/.test(note)) {
-							comment.push(note);											// push Note into Comment
-							note = `
-						`;																				// override Note with <newline>
-						}
-					})
-					return note;
-				})
-				.map(note => note.replace(CLEAN.newlines, '\n').replace(CLEAN.newline, ',').replace(CLEAN.spaces, ' ').trim())
-				.map(note => note.replace(CLEAN.comma1, '').replace(CLEAN.comma2, '').replace(CLEAN.colon1, '').replace(CLEAN.colon2, '').trim())
-
-			if (sched.note.length === 1)
-				sched.note = sched.note[0];
-			if (sched.note.length === 0)
-				sched.note = undefined;												// unused note
-		}
-
-		if (comment.length > 1)
-			result = comment;
-		if (comment.length === 1)
-			result = comment[0];
-		if (comment.length < 1)
-			result = undefined;
-
-		return result;
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {
@@ -789,14 +751,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.dbg('list: %j', list.length);
 		this.dbg('list: %j', list);
 		list.forEach(async doc => {
-			const orig = doc[FIELD.note];
-			const comment = this.cleanNote(doc as unknown as ISchedule);
-			this.dbg('note: <%s> => clean: <%s>', orig, doc[FIELD.note]);
-			if (orig !== doc[FIELD.note]) {
+			const { comment, note } = cleanNote(doc[FIELD.note]);
+			this.dbg('note: <%s> => clean: <%s>', doc[FIELD.note], note);
+			if (doc[FIELD.note] !== note) {
 				this.dbg('comment: %j', comment);
+				doc[FIELD.note] = note;																// replace with cleaned Note
 				await Promise.all([
-					this.data.updDoc(STORE.attend, doc[FIELD.id], doc),
-					this.forum.setComment({
+					this.data.updDoc(STORE.attend, doc[FIELD.id], doc),	// update Attend with cleaned Note
+					this.forum.setComment({															// add Comment to /forum
 						type: STORE.schedule,
 						key: doc.timetable[FIELD.id],
 						date: doc.stamp,
