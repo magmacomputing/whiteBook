@@ -117,7 +117,7 @@ export class Instant {
 	/** apply formatting*/
 	format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 	/** calc diff Dates, default as <years> */
-	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
+	diff = (unit?: TUnitDiff, dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
 	/** add date offset, default as <minutes> */
 	add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
 

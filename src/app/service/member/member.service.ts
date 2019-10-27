@@ -13,7 +13,7 @@ import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/instant.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@lib/logger.library';

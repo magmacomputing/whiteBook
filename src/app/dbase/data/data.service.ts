@@ -22,7 +22,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { asAt } from '@library/app.library';
 
 import { TString } from '@lib/type.library';
-import { getStamp, TDate } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/instant.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 

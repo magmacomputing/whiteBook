@@ -7,7 +7,7 @@ import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
 import { addWhere } from '@dbase/fire/fire.library';
 
-import { DATE_FMT, getDate } from '@lib/date.library';
+import { DATE_FMT, getDate } from '@lib/instant.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {

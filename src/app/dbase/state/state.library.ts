@@ -14,7 +14,7 @@ import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfil
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
-import { getDate, TDate, DATE_FMT } from '@lib/date.library';
+import { getDate, TDate, DATE_FMT } from '@lib/instant.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
 

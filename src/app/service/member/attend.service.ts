@@ -17,7 +17,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT, TDate } from '@lib/date.library';
+import { getDate, DATE_FMT, TDate } from '@lib/instant.library';
 import { isUndefined, isNumber } from '@lib/type.library';
 import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';

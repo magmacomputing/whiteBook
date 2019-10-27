@@ -1,4 +1,4 @@
-import { CLEAN, COMMENTS } from '@route/forum/forum.define';
+import { CLEAN, COMMENTS } from '@service/forum/forum.define';
 
 import { TString } from '@lib/type.library';
 import { asArray } from '@lib/array.library';

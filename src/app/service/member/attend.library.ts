@@ -2,7 +2,7 @@ import { ITimetableState } from '@dbase/state/state.define';
 import { FIELD, BONUS } from '@dbase/data/data.define';
 import { IGift, TBonus, IBonus } from '@dbase/data/data.schema';
 
-import { TDate, getDate, Instant } from '@lib/date.library';
+import { TDate, getDate, Instant } from '@lib/instant.library';
 import { TString, isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 

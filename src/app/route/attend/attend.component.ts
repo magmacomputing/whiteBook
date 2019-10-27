@@ -12,7 +12,7 @@ import { FIELD, REACT } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined, TString } from '@lib/type.library';
-import { Instant, DATE_FMT } from '@lib/date.library';
+import { Instant, DATE_FMT } from '@lib/instant.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';

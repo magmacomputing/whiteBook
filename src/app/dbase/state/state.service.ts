@@ -18,7 +18,7 @@ import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { DATE_FMT, TDate, getDate } from '@lib/date.library';
+import { DATE_FMT, TDate, getDate } from '@lib/instant.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
