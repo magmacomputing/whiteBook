@@ -17,7 +17,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
 import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT, TDate } from '@lib/instant.library';
+import { getDate, Instant, TDate } from '@lib/instant.library';
 import { isUndefined, isNumber } from '@lib/type.library';
 import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
@@ -42,7 +42,7 @@ export class AttendService {
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
 		const now = getDate(date);
 		const stamp = now.ts;
-		const when = now.format(DATE_FMT.yearMonthDay);
+		const when = now.format(Instant.FORMAT.yearMonthDay);
 
 		// There is a bit of overlap in these Observables, but they serve different purposes
 		let [data, source] = await combineLatest(
@@ -74,8 +74,8 @@ export class AttendService {
 		]);
 
 		if (bookAttend.length) {															// disallow same Class, same Note
-			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
+			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
+			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 			return false;																				// discard Attend
 		}
 
@@ -199,8 +199,8 @@ export class AttendService {
 			track: {
 				[FIELD.date]: when,														// yyyymmdd of the Attend
 				day: now.dow,																	// day of week
-				week: now.format(DATE_FMT.yearWeek),					// week-number of year
-				month: now.format(DATE_FMT.yearMonth),				// month-number of year
+				week: now.format(Instant.FORMAT.yearWeek),		// week-number of year
+				month: now.format(Instant.FORMAT.yearMonth),	// month-number of year
 			},
 			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
@@ -224,7 +224,7 @@ export class AttendService {
 				.filter(row => row.day === now.dow)									// finding a match in 'day'
 				.filter(row => row[FIELD.key] === className)				// and match in 'class'
 				.filter(row => row.location === location)						// and match in 'location'
-			// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
+			// .filter(row => row.start === now.format(Instant.FORMAT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
 
 			if (classes.length)																		// is this class offered on this 'day'   
 				break;

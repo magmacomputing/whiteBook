@@ -6,13 +6,13 @@ import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
 
-import { ITimetableState, SLICE } from '@dbase/state/state.define';
+import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, REACT } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined, TString } from '@lib/type.library';
-import { Instant, DATE_FMT } from '@lib/instant.library';
+import { Instant } from '@lib/instant.library';
 import { suffix } from '@lib/number.library';
 import { swipe } from '@lib/html.library';
 import { dbg } from '@lib/logger.library';
@@ -60,7 +60,7 @@ export class AttendComponent implements OnDestroy {
 		if (!isUndefined(item.amount))
 			content.push(`Cost: $${item.amount.toFixed(2)}`);
 		if (item.start)
-			content.push(`Start: ${dow} @ ${new Instant(item.start).format(DATE_FMT.hhmi)}`)
+			content.push(`Start: ${dow} @ ${new Instant(item.start).format(Instant.FORMAT.hhmi)}`)
 		if (span)
 			content.push(`Duration: ${span.duration} minutes`);
 		if (item.count)

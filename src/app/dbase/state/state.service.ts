@@ -18,7 +18,7 @@ import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@lib/array.library';
-import { DATE_FMT, TDate, getDate } from '@lib/instant.library';
+import { Instant, TDate, getDate } from '@lib/instant.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
@@ -238,7 +238,7 @@ export class StateService {
 	 */
 	getForumData(date?: TDate): Observable<IForumState> {
 		const query: IQuery = {
-			where: addWhere('track.date', getDate(date).format(DATE_FMT.yearMonthDay)),
+			where: addWhere('track.date', getDate(date).format(Instant.FORMAT.yearMonthDay)),
 			orderBy: addOrder(FIELD.stamp),
 		}
 
@@ -272,10 +272,10 @@ export class StateService {
 	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
-		const notToday = addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay), '!=');
+		const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
 
 		const filterSchedule = addWhere('day', now.dow);
-		const filterCalendar = addWhere(FIELD.key, now.format(DATE_FMT.yearMonthDay));
+		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay));
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.agenda}}`);
@@ -292,9 +292,9 @@ export class StateService {
 			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
 		]
 		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
-		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(DATE_FMT.yearWeek))];
-		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(DATE_FMT.yearMonth))];
-		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay))];
+		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
+		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
+		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay))];
 
 		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
 			map(([forum, member]) => ({ ...forum, ...member })),
@@ -329,8 +329,8 @@ export class StateService {
 		const filterClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterLocation = addWhere(FIELD.key, '{{client.schedule.location}}');
 		const filterCalendar = [
-			addWhere(FIELD.key, now.startOf('week').format(DATE_FMT.yearMonthDay), '>='),
-			addWhere(FIELD.key, now.endOf('week').format(DATE_FMT.yearMonthDay), '<='),
+			addWhere(FIELD.key, now.startOf('week').format(Instant.FORMAT.yearMonthDay), '>='),
+			addWhere(FIELD.key, now.endOf('week').format(Instant.FORMAT.yearMonthDay), '<='),
 		]
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 

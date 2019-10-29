@@ -7,7 +7,7 @@ import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
 import { addWhere } from '@dbase/fire/fire.library';
 
-import { DATE_FMT, getDate } from '@lib/instant.library';
+import { Instant, getDate } from '@lib/instant.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
@@ -62,7 +62,7 @@ export class ForumService {
 			[FIELD.stamp]: now.ts,
 			[FIELD.uid]: uid || await this.getUid(),
 			track: {
-				[FIELD.date]: now.format(DATE_FMT.yearMonthDay),
+				[FIELD.date]: now.format(Instant.FORMAT.yearMonthDay),
 			},
 		} as T
 
@@ -79,7 +79,7 @@ export class ForumService {
 
 		const forumFilter = [
 			addWhere(FIELD.uid, uid || await this.getUid()),
-			addWhere(`track.${FIELD.date}`, now.format(DATE_FMT.yearMonthDay)),
+			addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay)),
 		]
 		if (store)
 			forumFilter.push(addWhere(FIELD.store, store));

@@ -23,7 +23,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery, TWhere } from '@dbase/fire/fire.interface';
 
-import { DATE_FMT, getDate, getStamp, fmtDate } from '@lib/instant.library';
+import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
 import { sortKeys, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
@@ -369,7 +369,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2019-Apr-23').format(DATE_FMT.yearMonthDay)).length;
+		// const endAt = table.filter(row => row.date >= getDate('2019-Apr-23').format(Instant.FORMAT.yearMonthDay)).length;
 		// table.splice(table.length - endAt);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
@@ -465,7 +465,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				if (!migrate.attend[sfx]) {
 					for (idx = 0; idx < event.agenda.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 							break;
 					}
 					if (idx === event.agenda.length)
@@ -491,7 +491,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.agenda.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(DATE_FMT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 								break;
 						}
 						if (idx === event.agenda.length)
@@ -511,11 +511,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 
 			case prefix === FIELD.unknown:									// no color on the cell, so guess the 'class'
-				migrate = this.lookupMigrate(now.format(DATE_FMT.yearMonthDay));
+				migrate = this.lookupMigrate(now.format(Instant.FORMAT.yearMonthDay));
 				let className = migrate.attend.class || null;
 
 				if (isNull(className)) {
-					className = window.prompt(`This ${prefix} class on ${now.format(DATE_FMT.display)}?`, this.dflt) as CLASS;
+					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)}?`, this.dflt) as CLASS;
 					if (isNull(className))
 						throw new Error('Cannot determine class');
 					this.dflt = className;
@@ -615,7 +615,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const test3 = summary.funds < 0;
 			if (test1 || test2 || test3) {
 				const when = active[0].approve[FIELD.stamp];
-				this.dbg('closed: %j, %s', when, fmtDate(DATE_FMT.display, when));
+				this.dbg('closed: %j, %s', when, fmtDate(Instant.FORMAT.display, when));
 				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: when, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
 				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp });
 			}
@@ -623,7 +623,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		if (active[0][FIELD.type] === PAYMENT.topUp && profile.plan === PLAN.gratis && active[0].expiry) {
 			if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
-				this.dbg('closed: %j, %s', closed, fmtDate(DATE_FMT.display, closed));
+				this.dbg('closed: %j, %s', closed, fmtDate(Instant.FORMAT.display, closed));
 				updates.push({ ...active[0], [FIELD.expire]: closed });
 			}
 		}
@@ -660,7 +660,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				window.alert(`'${dt}': Not a valid date`);
 				return;
 			}
-			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
+			if (window.confirm(`${now.format(Instant.FORMAT.display)}: are you sure you want to delete from this date?`))
 				this.attend.delPayment(addWhere(FIELD.stamp, now.ts, '>='));
 		}
 	}
@@ -673,8 +673,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				window.alert(`'${dt}': Not a valid date`);
 				return;
 			}
-			if (window.confirm(`${now.format(DATE_FMT.display)}: are you sure you want to delete from this date?`))
-				this.attend.delAttend(addWhere('track.date', now.format(DATE_FMT.yearMonthDay), '>='));
+			if (window.confirm(`${now.format(Instant.FORMAT.display)}: are you sure you want to delete from this date?`))
+				this.attend.delAttend(addWhere('track.date', now.format(Instant.FORMAT.yearMonthDay), '>='));
 		}
 	}
 

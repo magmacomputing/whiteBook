@@ -36,17 +36,6 @@ interface IDateFmt {											// pre-configured format strings
 	readonly "yyyymmdd": number;
 }
 
-export enum DATE_FMT {										// pre-configured format names
-	display = 'ddd, dd mmm yyyy',
-	dateTime = 'yyyy-mm-dd HH:MI',
-	dayMonth = 'dd-mmm',
-	HHMI = 'HH:MI',													// 24-hour format
-	hhmi = 'hh:mi',													// 12-hour format, am/pm
-	yearWeek = 'yyyyww',
-	yearMonth = 'yyyymm',
-	yearMonthDay = 'yyyymmdd',
-}
-
 type TArgs = string[] | number[];
 type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'year' | 'years' | 'month' | 'months' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes' | 'week' | 'weeks';
@@ -311,14 +300,14 @@ export class Instant {
 		const date = { ...this.date };													// clone current Instant
 
 		switch (fmt) {
-			case DATE_FMT.yearWeek:
+			case Instant.FORMAT.yearWeek:
 				const offset = date.ww === 1 && date.mm === 12;			// if late-Dec, add 1 to yy
 				return parseInt(`${date.yy + Number(offset)}${fix(date.ww)}`);
 
-			case DATE_FMT.yearMonth:
+			case Instant.FORMAT.yearMonth:
 				return parseInt(`${fix(date.yy)}${fix(date.mm)}`);
 
-			case DATE_FMT.yearMonthDay:
+			case Instant.FORMAT.yearMonthDay:
 				return parseInt(`${date.yy}${fix(date.mm)}${fix(date.dd)}`, 10);
 
 			default:
@@ -419,6 +408,17 @@ export namespace Instant {
 	export enum WEEKDAYS { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
 	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
+
+	export enum FORMAT {										// pre-configured format names
+		display = 'ddd, dd mmm yyyy',
+		dateTime = 'yyyy-mm-dd HH:MI',
+		dayMonth = 'dd-mmm',
+		HHMI = 'HH:MI',													// 24-hour format
+		hhmi = 'hh:mi',													// 12-hour format, am/pm
+		yearWeek = 'yyyyww',
+		yearMonth = 'yyyymm',
+		yearMonthDay = 'yyyymmdd',
+	}	
 
 	export const hhmi = /^\d\d:\d\d$/;								// regex to match HH:MI
 	export const yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD

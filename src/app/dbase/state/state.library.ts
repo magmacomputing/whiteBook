@@ -14,7 +14,7 @@ import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfil
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
-import { getDate, TDate, DATE_FMT } from '@lib/instant.library';
+import { getDate, TDate, Instant } from '@lib/instant.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
 
@@ -357,7 +357,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHMI),
+				start: getDate(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				image: firstRow<IIcon>(icons, addWhere(FIELD.key, className)).image || icon[FIELD.key],
