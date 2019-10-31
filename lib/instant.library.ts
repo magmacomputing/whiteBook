@@ -38,8 +38,7 @@ interface IDateFmt {											// pre-configured format strings
 
 type TArgs = string[] | number[];
 type TMutate = 'add' | 'start' | 'mid' | 'end';
-type TUnitTime = 'year' | 'years' | 'month' | 'months' | 'day' | 'days' | 'hour' | 'hours' | 'minute' | 'minutes' | 'week' | 'weeks';
-type TUnitOffset = 'month' | 'week' | 'day';
+type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
 export type TDate = string | number | Date | Instant | IInstant | Timestamp | ITimestamp;
@@ -85,6 +84,23 @@ class Timestamp {
 export class Instant {
 	private date: IInstant;																				// Date parsed into components
 
+	private static PATTERN = {
+		hhmi: /^\d\d:\d\d$/,																				// regex to match HH:MI
+		yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
+		ddmmyyyy: /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19\d{2}|20\d{2})$/,
+	}
+	private static maxStamp = new Date('9999-12-31').valueOf() / 1000;
+	private static minStamp = new Date('1000-01-01').valueOf() / 1000;
+	private static divideBy = {																		// approx date-offset divisors (unix-timestamp precision)
+		years: 31536000000,
+		months: 2628000000,
+		weeks: 604800000,
+		days: 86400000,
+		hours: 3600000,
+		minutes: 60000,
+		seconds: 1000,
+	}
+
 	constructor(dt?: TDate, ...args: TArgs) { this.date = this.parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -108,14 +124,14 @@ export class Instant {
 	/** calc diff Dates, default as <years> */
 	diff = (unit?: TUnitDiff, dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
 	/** add date offset, default as <minutes> */
-	add = (offset: number, unit: TUnitTime = 'minutes') => this.setDate('add', unit, offset);
+	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minute') => this.setDate('add', unit, offset);
 
 	/** start offset, default as <week> */
-	startOf = (unit: TUnitOffset = 'week') => this.setDate('start', unit);
+	startOf = (unit: TUnitTime = 'week') => this.setDate('start', unit);
 	/** middle offset, default as <week> */
-	midOf = (unit: TUnitOffset = 'week') => this.setDate('mid', unit);
+	midOf = (unit: TUnitTime = 'week') => this.setDate('mid', unit);
 	/** ending offset, default as <week> */
-	endOf = (unit: TUnitOffset = 'week') => this.setDate('end', unit);
+	endOf = (unit: TUnitTime = 'week') => this.setDate('end', unit);
 
 	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
 	/** get raw object */	toJSON = () => ({ ...this.date });
@@ -126,10 +142,10 @@ export class Instant {
 	private parseDate = (dt?: TDate, args: TArgs = []) => {
 		let date: Date;
 
-		if (isString(dt) && Instant.hhmi.test(dt))								// if only HH:MI supplied...
+		if (isString(dt) && Instant.PATTERN.hhmi.test(dt))								// if only HH:MI supplied...
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
-		if ((isString(dt) || isNumber(dt)) && Instant.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
-			dt = asString(dt).replace(Instant.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
+		if ((isString(dt) || isNumber(dt)) && Instant.PATTERN.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
+			dt = asString(dt).replace(Instant.PATTERN.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Undefined':																				// default to 'now'
@@ -207,14 +223,8 @@ export class Instant {
 		} as IInstant;
 	}
 
-	private prepDate(dt: string | number) {
-		Instant.hhmi.test(dt.toString())													// if only HH:MI supplied...
-		dt = `${new Date().toDateString()} ${dt}`;
-		return dt;
-	}
-
-	/** mutate an Instant */
-	private setDate = (mutate: TMutate, unit: TUnitTime, offset: number = 1) => {
+	/** create a new offset Instant */
+	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitDiff, offset: number = 1) => {
 		const date = { ...this.date };														// clone the current Instant
 		const single = unit.endsWith('s')
 			? unit.substring(0, unit.length - 1)										// remove plural units
@@ -223,57 +233,80 @@ export class Instant {
 			[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];		// discard the time-portion of the date
 
 		switch (`${mutate}.${single}`) {
-			case 'start.minute':
-				[date.SS, date.ms] = [0, 0];
-				break;
-			case 'start.hour':
-				[date.MI, date.SS, date.ms] = [0, 0, 0];
-				break;
-			case 'start.day':
-				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
+			case 'start.year':
+				[date.mm, date.dd] = [1, 1];
+			case 'start.month':
+				date.dd = 1;
 				break;
 			case 'start.week':
 				date.dd -= date.dow + Instant.WEEKDAY.Mon;
 				break;
-			case 'start.month':
-				date.dd = 1;
+			case 'start.day':
+				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
 				break;
-			case 'mid.second':
-				[date.SS, date.ms] = [30, 0];
+			case 'start.hour':
+				[date.MI, date.SS, date.ms] = [0, 0, 0];
 				break;
-			case 'mid.minute':
-				[date.MI, date.SS, date.ms] = [30, 0, 0];
+			case 'start.minute':
+				[date.SS, date.ms] = [0, 0];
 				break;
-			case 'mid.day':
-				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
+			case 'start.second':
+				date.ms = 0;
 				break;
-			case 'mid.week':
-				date.dd -= date.dow + Instant.WEEKDAY.Thu;
+
+			case 'mid.year':
+				[date.mm, date.dd] = [7, 1];
 				break;
 			case 'mid.month':
 				date.dd = 15;
 				break;
-			case 'end.second':
-				[date.SS, date.ms] = [59, 999];
+			case 'mid.week':
+				date.dd -= date.dow + Instant.WEEKDAY.Thu;
 				break;
-			case 'end.minute':
-				[date.MI, date.SS, date.ms] = [59, 59, 999];
+			case 'mid.day':
+				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
 				break;
-			case 'end.day':
-				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
+			case 'mid.hour':
+				[date.MI, date.SS, date.ms] = [30, 0, 0];
 				break;
-			case 'end.week':
-				date.dd -= date.dow + Instant.WEEKDAY.Sun;
+			case 'mid.minute':
+				[date.SS, date.ms] = [30, 0];
+				break;
+			case 'mid.second':
+				date.ms = 500;
+				break;
+
+			case 'end.year':
+				[date.mm, date.dd] = [12, 31];
 				break;
 			case 'end.month':
 				date.mm += 1;
 				date.dd = 0;
 				break;
+			case 'end.week':
+				date.dd -= date.dow + Instant.WEEKDAY.Sun;
+				break;
+			case 'end.day':
+				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
+				break;
+			case 'end.hour':
+				[date.MI, date.SS, date.ms] = [59, 59, 999];
+				break;
+			case 'end.minute':
+				[date.MI, date.SS, date.ms] = [59, 59, 999];
+				break;
+			case 'end.second':
+				[date.SS, date.ms] = [59, 999];
+				break;
+
 			case 'add.year':
 				date.yy += offset;
 				break;
 			case 'add.month':
 				date.mm += offset;
+				break;
+			case 'add.week':
+				date.dd += offset * 7;
 				break;
 			case 'add.day':
 				date.dd += offset;
@@ -284,8 +317,8 @@ export class Instant {
 			case 'add.minute':
 				date.MI += offset;
 				break;
-			case 'add.week':
-				date.dd += offset * 7;
+			case 'add.second':
+				date.SS += offset;
 				break;
 		}
 
@@ -409,29 +442,14 @@ export namespace Instant {
 	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
 	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
 
-	export enum FORMAT {										// pre-configured format names
+	export enum FORMAT {											// pre-configured format names
 		display = 'ddd, dd mmm yyyy',
 		dateTime = 'yyyy-mm-dd HH:MI',
 		dayMonth = 'dd-mmm',
 		HHMI = 'HH:MI',													// 24-hour format
-		hhmi = 'hh:mi',													// 12-hour format, am/pm
+		hhmi = 'hh:mi',													// 12-hour format
 		yearWeek = 'yyyyww',
 		yearMonth = 'yyyymm',
 		yearMonthDay = 'yyyymmdd',
-	}	
-
-	export const hhmi = /^\d\d:\d\d$/;								// regex to match HH:MI
-	export const yyyymmdd = /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/;	// regex to match YYYYMMDD
-	export const ddmmyyyy = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19\d{2}|20\d{2})$/;
-	export const maxStamp = new Date('9999-12-31').valueOf() / 1000;
-	export const minStamp = new Date('1000-01-01').valueOf() / 1000;
-	export const divideBy = {													// approx date-offset divisors (unix-timestamp precision)
-		years: 31536000000,
-		months: 2628000000,
-		weeks: 604800000,
-		days: 86400000,
-		hours: 3600000,
-		minutes: 60000,
-		seconds: 1000,
 	}
 }
