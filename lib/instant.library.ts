@@ -122,9 +122,9 @@ export class Instant {
 	/** apply formatting*/
 	format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 	/** calc diff Dates, default as <years> */
-	diff = (unit?: TUnitDiff, dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
+	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
 	/** add date offset, default as <minutes> */
-	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minute') => this.setDate('add', unit, offset);
+	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.setDate('add', unit, offset);
 
 	/** start offset, default as <week> */
 	startOf = (unit: TUnitTime = 'week') => this.setDate('start', unit);
