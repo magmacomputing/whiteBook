@@ -5,7 +5,8 @@ import { asArray } from '@lib/array.library';
 
 /**
  * Remove unnecessary text-strings from Note field.  
- * Attempt to extract Comments from Note field.
+ * Attempt to extract Comments from Note field.  
+ * (this is primarily used when migrating from Google Sheets to Cloud Firestore)
  */
 export const cleanNote = (note?: TString) => {
 	let comment: string[] = [];
