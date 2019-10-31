@@ -1,4 +1,4 @@
-import { CLEAN, COMMENTS } from '@service/forum/forum.define';
+import { COMMENT } from '@library/config.define';
 
 import { TString } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
@@ -7,27 +7,34 @@ import { asArray } from '@lib/array.library';
  * Remove unnecessary text-strings from Note field.  
  * Attempt to extract Comments from Note field.
  */
-export const cleanNote = (note?: TString) => {
+export const cleanNote = async (note?: TString) => {
 	let comment: string[] = [];
 	let result: TString | undefined;
 	let clean: TString | undefined = undefined;
 
 	if (note) {
 		clean = asArray(note)
-			.map(note => note.replace(CLEAN.gift1, '').replace(CLEAN.gift2, '').replace(CLEAN.gift3, '').replace(CLEAN.and, ''))
-			.map(note => note.replace(CLEAN.week, '').replace(CLEAN.week2, ''))
-			.map(note => {														// check Note for Comment-like words
-				COMMENTS.forEach(word => {
-					if (note.toUpperCase().includes(word.toUpperCase()) || /[^\u0000-\u00ff]/.test(note)) {
-						comment.push(note);									// push Note into Comment
-						note = `
-						`;																	// override Note with <newline>
+			.map(note => {														// first, clean the Note of noise-words
+				COMMENT.patterns
+					.filter(row => row.sort === 0)
+					.forEach(obj => note = note.replace(new RegExp(obj.pat, obj.flag), obj.repl))
+				return note;
+			})
+			.map(note => {
+				COMMENT.words.forEach(word => {					// look for trigger-words, or emoji
+					if (note.toLowerCase().includes(word.toLowerCase()) || /[^\u0000-\u00ff]/.test(note)) {
+						comment.push(note);									// move Note text to Comment
+						note = '\n';												// discard Note
 					}
 				})
 				return note;
 			})
-			.map(note => note.replace(CLEAN.newlines, '\n').replace(CLEAN.newline, ',').replace(CLEAN.spaces, ' ').trim())
-			.map(note => note.replace(CLEAN.comma1, '').replace(CLEAN.comma2, '').replace(CLEAN.colon1, '').replace(CLEAN.colon2, '').trim())
+			.map(note => {														// final tidy-up on parsed Note
+				COMMENT.patterns
+					.filter(row => row.sort === 1)
+					.forEach(obj => note = note.replace(new RegExp(obj.pat, obj.flag), obj.repl))
+				return note.trim();
+			})
 
 		if (clean.length === 1)
 			clean = clean[0];

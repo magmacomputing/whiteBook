@@ -548,7 +548,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
+			const { comment, note } = await cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
 			sched.note = note;													// replace note with cleaned note
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
@@ -750,7 +750,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.dbg('list: %j', list.length);
 		this.dbg('list: %j', list);
 		list.forEach(async doc => {
-			const { comment, note } = cleanNote(doc[FIELD.note]);
+			const { comment, note } = await cleanNote(doc[FIELD.note]);
 			this.dbg('note: <%s> => clean: <%s>', doc[FIELD.note], note);
 			if (doc[FIELD.note] !== note) {
 				this.dbg('comment: %j', comment);

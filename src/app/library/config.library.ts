@@ -1,5 +1,5 @@
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { FILTER, SLICES, SORTBY } from '@library/config.define';
+import { FILTER, SLICES, SORTBY, COMMENT } from '@library/config.define';
 import { ISchema, IConfig } from '@dbase/data/data.schema';
 
 import { isString } from '@lib/type.library';
@@ -7,7 +7,7 @@ import { sortInsert } from '@lib/array.library';
 import { makeTemplate } from '@lib/string.library';
 
 /** rebuild values for SLICES, SORTBY, FILTER variables */
-export const setSchema = (schemas: ISchema[]) => {
+export const setSchema = (schemas: ISchema[] = []) => {
 	Object.keys(FILTER)
 		.forEach(key => delete FILTER[key as COLLECTION])
 	Object.keys(SLICES)
@@ -51,4 +51,21 @@ export const getConfig = (config: IConfig[], key: string) => {
 			return { ...row, value: subst }               // override with substitute value
 		})
 		.find(row => row[FIELD.key] === key) || {} as IConfig
+}
+
+/** Rebuild global COMMENT variable */
+export const setConfig = (config: IConfig[] = []) => {
+	Object.keys(COMMENT)
+		.forEach(key => delete COMMENT[key as keyof typeof COMMENT]);
+
+	config.forEach(row => {
+		switch (row[FIELD.key]) {
+			case 'words':
+				COMMENT.words = row.value;
+				break;
+			case 'patterns':
+				COMMENT.patterns = row.value;
+				break;
+		}
+	})
 }
