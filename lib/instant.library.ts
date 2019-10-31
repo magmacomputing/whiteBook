@@ -1,6 +1,6 @@
 import { fix } from '@lib/number.library';
 import { asString, asNumber } from '@lib/string.library';
-import { isString, isNumber, getType, isUndefined } from '@lib/type.library';
+import { getType, isString, isNumber, isUndefined } from '@lib/type.library';
 
 interface IInstant {											// Date components
 	readonly yy: number;										// year[4]
