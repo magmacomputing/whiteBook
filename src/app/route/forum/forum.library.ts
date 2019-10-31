@@ -7,7 +7,7 @@ import { asArray } from '@lib/array.library';
  * Remove unnecessary text-strings from Note field.  
  * Attempt to extract Comments from Note field.
  */
-export const cleanNote = async (note?: TString) => {
+export const cleanNote = (note?: TString) => {
 	let comment: string[] = [];
 	let result: TString | undefined;
 	let clean: TString | undefined = undefined;

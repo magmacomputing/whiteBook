@@ -10,6 +10,7 @@ import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
+import { cleanNote } from '@route/forum/forum.library';
 import { DataService } from '@dbase/data/data.service';
 
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
@@ -31,7 +32,6 @@ import { IPromise, createPromise } from '@lib/utility.library';
 import { setLocalStore, getLocalStore } from '@lib/browser.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
-import { cleanNote } from '@route/forum/forum.library';
 
 @Component({
 	selector: 'wb-migrate',
@@ -548,7 +548,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-			const { comment, note } = await cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
+			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
 			sched.note = note;													// replace note with cleaned note
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
@@ -750,7 +750,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.dbg('list: %j', list.length);
 		this.dbg('list: %j', list);
 		list.forEach(async doc => {
-			const { comment, note } = await cleanNote(doc[FIELD.note]);
+			const { comment, note } = cleanNote(doc[FIELD.note]);
 			this.dbg('note: <%s> => clean: <%s>', doc[FIELD.note], note);
 			if (doc[FIELD.note] !== note) {
 				this.dbg('comment: %j', comment);
