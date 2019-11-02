@@ -233,13 +233,15 @@ export class AuthState {
 		ctx.patchState(info);
 	}
 
-	@Action(AuthOther)															// mimic another User
+	@Action(AuthOther)															// behalf of another User
 	private otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
 		const state = ctx.getState();
 
 		if (state.current && state.current.uid === member)
+		// if (state.current?.uid === member)
 			return;																			// nothing to do
 		if (state.current && getPath(state.current, 'customClaims.alias') === member)
+		// if (state.current?.customClaims?.alias === member)
 			return;																			// nothing to do
 
 		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
