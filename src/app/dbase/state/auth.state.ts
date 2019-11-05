@@ -92,10 +92,9 @@ export class AuthState {
 	}
 
 	/**
-	 * We allow Users to signOn using multiple authentication providers by linking auth provider credentials to an existing user account.  
-	 * Users are identifiable by the same Firebase user ID regardless of the authentication provider they used to signOn.  
-	 * For example, a user who signed-in with a password can link a Google account and signOn with either method in the future.  
-	 * Or, an anonymous user can link a Facebook account and then later, signOn with Facebook to continue using our App.
+	 * We allow Users to signIn using multiple authentication providers by linking auth provider credentials to an existing user account.  
+	 * Users are identifiable by the same Firebase user ID regardless of the authentication provider they used to signIn.  
+	 * For example, a user who signed-in with a password can link a Google account and signIn with either method in the future.  
 	 */
 	@Action(LoginCredential)													// attempt to link multiple providers
 	private async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginCredential) {
@@ -122,7 +121,7 @@ export class AuthState {
 		}
 	}
 
-	/** Attempt to signOn User via authentication by a federated identity provider */
+	/** Attempt to signIn User via authentication by a federated identity provider */
 	@Action(LoginIdentity)														// process signInWithPopup()
 	private async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
 		try {
@@ -137,7 +136,7 @@ export class AuthState {
 		}
 	}
 
-	/** Attempt to signOn User via authentication with a Custom Token */
+	/** Attempt to signIn User via authentication with a Custom Token */
 	@Action(LoginToken)
 	private async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
@@ -152,7 +151,7 @@ export class AuthState {
 			.catch(error => this.dbg('failed: %j', error.toString()));
 	}
 
-	/** Attempt to signOn User via an emailAddress / Password combination. */
+	/** Attempt to signIn User via an emailAddress / Password combination. */
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
 	private loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
@@ -176,14 +175,14 @@ export class AuthState {
 		}
 	}
 
-	/** Attempt to signOn User anonymously */
+	/** Attempt to signIn User anonymously */
 	@Action(LoginAnon)
 	private loginAnon(ctx: StateContext<IAuthState>) {
 		return this.afAuth.auth.signInAnonymously()
 			.catch(error => ctx.dispatch(new LoginFailed(error)));
 	}
 
-	/** Attempt to signOn User via a link sent to their emailAddress */
+	/** Attempt to signIn User via a link sent to their emailAddress */
 	@Action(LoginLink)
 	private async loginLink(ctx: StateContext<IAuthState>, { link, credential }: LoginLink) {
 		const localItem = 'emailForSignIn';
