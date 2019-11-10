@@ -398,6 +398,12 @@ export interface IAttend extends IUserBase {
 export interface IComment extends IForumBase {
 	[FIELD.store]: STORE.comment;
 	comment: TString;
+	response?: {
+		uid: string;
+		stamp: number;
+		comment: TString;
+		seen?: boolean;
+	}[];
 }
 //	/forum/react
 export interface IReact extends IForumBase {
