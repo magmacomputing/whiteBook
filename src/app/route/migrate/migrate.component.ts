@@ -150,7 +150,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
-				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid]) };
+				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid].distinct()) };
 				await Promise.all([																	// initial sync complete
 					this.sync.on(COLLECTION.member, query),
 					this.sync.on(COLLECTION.attend, query),
