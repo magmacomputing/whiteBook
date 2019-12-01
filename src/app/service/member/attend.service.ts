@@ -111,12 +111,13 @@ export class AttendService {
 			active = data.account.payment[0];								// current Payment
 			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
-			const tests: boolean[] = [];										// Set of test results
+			const tests: boolean[] = [];										// array of test results
 			tests[PAY.under_limit] = data.account.attend.length < ATTEND.maxColumn;
 			tests[PAY.enough_funds] = schedule.amount <= data.account.summary.funds;
 			tests[PAY.not_expired] = now.ts <= expiry;
-			if (!tests.includes(false))											// if tests do not include at-least one <false>
-				break;																				// 	all tests passed; we have found a Payment
+
+			if (tests.every(val => val))										// if every test passed ok
+				break;																				// we have found a useable Payment
 
 			this.dbg('limit: %j, %j', tests[PAY.under_limit], data.account.attend.length);
 			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.amount, data.account.summary);
@@ -129,7 +130,7 @@ export class AttendService {
 					const payment = await this.member.setPayment(0, stamp);
 					payment.approve = { uid: ATTEND.autoApprove, stamp };
 
-					creates.push(payment);											// stack the topUpPayment into the batch
+					creates.push(payment);											// stack the topUp Payment into the batch
 					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment
 				}
 			}
@@ -145,30 +146,34 @@ export class AttendService {
 				data.account.payment.push(payment);						// make this the 'next' Payment
 			}
 
-			const next = data.account.payment[1];
+			const queue = active ? 1 : 0;										// next posi on queue
+			const next = data.account.payment[queue];
 			if (next && !next.bank) {												// rollover unused funds into next Payment
-				data.account.payment[1].bank = data.account.summary.funds;
-				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
-				updates.push({ ...data.account.payment[1] });	// update the now-Active payment with <bank>
+				data.account.payment[queue].bank = data.account.summary.funds;
+				if (active)
+					updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
+				if (data.account.summary.funds)
+					updates.push({ ...data.account.payment[queue] });	// update the now-Active payment with <bank>
 
-				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
+				if (active)
+					data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
 
 			if (isUndefined(next)) {
-				this.snack.error('Could not allocate a new Payment');
-				throw new Error('Could not allocate a new Payment');
+				return this.snack.error('Could not allocate a new Payment');
+				// throw new Error('Could not allocate a new Payment');
 			}
 		}																									// repeat the loop to test if this now-Active Payment is useable
 		if (isUndefined(active)) {
-			this.snack.error('Could not allocate an active Payment');
-			throw new Error('Could not allocate an active Payment');
+			return this.snack.error('Could not allocate an active Payment');
+			// throw new Error('Could not allocate an active Payment');
 		}
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
-		if (data.account.summary.funds === schedule.amount && schedule.price)
+		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
 		if (!active.expiry && active.approve && isEmpty(timetable.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
@@ -180,7 +185,7 @@ export class AttendService {
 			this.member.setPlan(PLAN.member, stamp + 1);				// auto-bump 'intro' to 'member' Plan
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// got everything we need; write an Attend document and any Forum documents
+		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
 
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,

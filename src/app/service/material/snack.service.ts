@@ -54,7 +54,8 @@ export class SnackService {
   }
 
   public error(msg: string, action?: string, config: MatSnackBarConfig = {}) {
-    this.fromComponent<ErrorSnackBar>(ErrorSnackBar, config, msg);
+		this.fromComponent<ErrorSnackBar>(ErrorSnackBar, config, msg);
+		throw new Error(msg);
   }
 
   public dismiss() {                    // dismiss any snackbar, if present

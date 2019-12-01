@@ -157,6 +157,16 @@ export class Instant {
 				break;
 
 			case 'String':
+				if (Instant.WEEKDAY[dt as keyof typeof Instant.WEEKDAY]) {
+					const now = new Date();															// 3-character Weekday
+					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAY[dt as keyof typeof Instant.WEEKDAY]);
+					dt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+				}
+				if (Instant.WEEKDAYS[dt as keyof typeof Instant.WEEKDAYS]) {
+					const now = new Date();															// full character Weekday
+					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAYS[dt as keyof typeof Instant.WEEKDAYS]);
+					dt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+				}
 				const fmt = dt as string;
 				date = args.length
 					? this.formatString(fmt, ...args)										// free-format string
