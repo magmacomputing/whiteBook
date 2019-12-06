@@ -1,4 +1,4 @@
-import * as firebase from 'firebase/app';
+import { firestore } from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
@@ -18,7 +18,7 @@ import { getLocalStore } from '@lib/browser.library';
 import { lprintf } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firebase.firestore.SnapshotMetadata;
+	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firestore.SnapshotMetadata;
 	return meta.fromCache
 		? 'cache'
 		: meta.hasPendingWrites
