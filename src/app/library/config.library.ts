@@ -59,7 +59,7 @@ export const setConfig = (config: IConfig[] = []) => {
 		.forEach(key => delete COMMENT[key as keyof typeof COMMENT]);
 
 	config.forEach(row => {
-		switch (row[FIELD.key]) {
+		switch (row[FIELD.type]) {
 			case 'words':
 				COMMENT.words = row.value;
 				break;
