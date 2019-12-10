@@ -3,7 +3,7 @@ import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta, IConfig } from '@dbase/data/data.schema';
 
 import { makeTemplate } from '@lib/string.library';
 import { cloneObj } from '@lib/object.library';
@@ -85,16 +85,16 @@ export class DeviceState implements NgxsOnInit {
 	private fixConfig = () => {
 		const placeholder: { [key: string]: string; } = {};
 		const state = this.store.selectSnapshot(state => state);	// get existing state
-		const config = (state.client[STORE.config] as IStoreMeta[])
+		const config = (state.client[STORE.config] as IConfig[])
 			.filter(row => !row[FIELD.expire]);							// slice it to get Config, skip expired
 
 		config
-			.filter(row => row[FIELD.type] === 'default')		// get the placeholder values on first pass
+			.filter(row => row[FIELD.key] === 'default')		// get the placeholder values on first pass
 			.filter(row => isString(row.value))
-			.forEach(row => placeholder[row[FIELD.key]] = row.value);
+			.forEach(row => placeholder[row[FIELD.type]] = row.value);
 
 		return cloneObj(config)
-			.filter(row => row[FIELD.type] !== 'default')		// skip Config 'defaults'
+			.filter(row => row[FIELD.key] !== 'default')		// skip Config 'defaults'
 			.map(row => {
 				const subst: { [key: string]: string; } = {}
 				Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
