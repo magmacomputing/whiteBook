@@ -192,11 +192,11 @@ export enum CONNECT {
 }
 
 export enum BONUS {
+	none = 'none',
 	gift = 'gift',
 	week = 'week',
 	month = 'month',
 	sunday = 'sunday',
-	none = 'none',
 }
 
 export enum REACT {
