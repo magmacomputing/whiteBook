@@ -1,15 +1,15 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
-import { TStateSlice, SLICE } from '@dbase/state/state.define';
-import { SetAttend, DelAttend, TruncAttend, SyncAttend, filterState } from '@dbase/state/state.action';
+import { TStateSlice } from '@dbase/state/state.define';
+import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/state.action';
 
 import { IStoreMeta } from '@dbase/data/data.schema';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
 @State<TStateSlice<IStoreMeta>>({
-	name: SLICE.attend,
+	name: COLLECTION.attend,
 	defaults: {}
 })
 export class AttendState implements NgxsOnInit {

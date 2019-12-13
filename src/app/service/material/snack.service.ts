@@ -1,7 +1,7 @@
 import { Injectable, Component, Inject, NgZone } from '@angular/core';
-import { MatSnackBar, MatSnackBarRef, MatSnackBarConfig, MAT_SNACK_BAR_DATA, SimpleSnackBar } from '@angular/material';
+import { MAT_SNACK_BAR_DATA, MatSnackBar, MatSnackBarConfig, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
 
-import { MaterialModule } from '@route/material.module';
+import { MaterialModule } from '@service/material/material.module';
 
 // TODO: Display an Info icon
 @Component({
@@ -54,7 +54,8 @@ export class SnackService {
   }
 
   public error(msg: string, action?: string, config: MatSnackBarConfig = {}) {
-    this.fromComponent<ErrorSnackBar>(ErrorSnackBar, config, msg);
+		this.fromComponent<ErrorSnackBar>(ErrorSnackBar, config, msg);
+		throw new Error(msg);
   }
 
   public dismiss() {                    // dismiss any snackbar, if present

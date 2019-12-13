@@ -10,10 +10,10 @@ import { DataService } from '@dbase/data/data.service';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, TYPE } from '@dbase/data/data.define';
-import { IProfilePlan, TPlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
+import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
+import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/instant.library';
 import { isUndefined, isNull } from '@lib/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@lib/logger.library';
@@ -39,11 +39,11 @@ export class MemberService {
 			.subscribe(info => this.getAuthProfile(info))
 	}
 
-	async setPlan(plan: TPlan, dt?: TDate) {
+	async setPlan(plan: PLAN, dt?: TDate) {
 		const doc = {
 			[FIELD.effect]: getStamp(dt),
 			[FIELD.store]: STORE.profile,
-			[FIELD.type]: 'plan',
+			[FIELD.type]: PROFILE.plan,
 			plan
 		} as IProfilePlan;
 		this.dbg('plan: %j', doc);
@@ -52,31 +52,37 @@ export class MemberService {
 			.catch(err => this.dbg('setPlan: %j', err.message))
 	}
 
-	/** Create a new TopUp payment */
+	/** Create a new TopUp payment  */
 	async setPayment(amount?: number, stamp?: TDate) {
 		const data = await this.getAccount();
-		const plan = data.member.plan[0];								// only initial topUp on 'intro' allowed
-		const topUp = (plan.plan === 'intro' && data.account.payment.length !== 0)
-			? await this.upgradePlan(stamp)
+		const plan = data.member.plan[0];
+
+		/**
+		 * If Plan has a 'bump' field, then auto-bump to new Plan  
+		 * 	(e.g. a Member signs-up to an 'intro' Plan and uses-up its alloted value  
+		 * 	then auto-bump them to a new Plan on next check-in)
+		 */
+		const topUp = ('bump' in plan && data.account.payment.length !== 0 && plan.bump !== plan.plan)
+			? await this.upgradePlan(plan, stamp)
 			: await this.getPayPrice(data)
 
 		return {
 			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.store]: STORE.payment,
-			[FIELD.type]: TYPE.topUp,
+			[FIELD.type]: PAYMENT.topUp,
 			amount: isUndefined(amount) ? topUp : amount,
 			stamp: getStamp(stamp),
 		} as IPayment
 	}
 
-	private async upgradePlan(stamp?: TDate) {				// auto-bump 'intro' to 'member'
+	private async upgradePlan(plan: IProfilePlan, stamp?: TDate) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<IPrice>(STORE.price, [
-			addWhere(FIELD.type, TYPE.topUp),
-			addWhere(FIELD.key, 'member'),
+			addWhere(FIELD.type, PRICE.topUp),
+			addWhere(FIELD.key, plan.bump),
 		], getStamp(stamp))
 		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
 
-		this.setPlan('member', stamp);									// expire 'intro', effect 'member'
+		this.setPlan(plan.bump!, stamp);								// expire 'intro', effect 'member'
 		return topUp.amount;
 	}
 
@@ -92,17 +98,18 @@ export class MemberService {
 		return data.account.summary;
 	}
 
+	// create / update accountDoc and stash into creates[]/updates[]
 	setAccount = async (creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], data?: IAccountState) => {
 		data = data || await this.getAccount();
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<IStatusAccount>(STORE.status, [addWhere(FIELD.uid, uid), addWhere(FIELD.type, 'account')]),
+			this.data.getStore<IStatusAccount>(STORE.status, [addWhere(FIELD.uid, uid), addWhere(FIELD.type, STATUS.account)]),
 		]);
 		const accountDoc: Partial<IStatusAccount> = !doc.length
 			? {																// scaffold a new Account doc
 				[FIELD.store]: STORE.status,
-				[FIELD.type]: 'account',
+				[FIELD.type]: STATUS.account,
 				[FIELD.uid]: uid,
 				stamp: getStamp(),
 				summary,
@@ -112,6 +119,7 @@ export class MemberService {
 		if (!accountDoc[FIELD.id])
 			creates.push(accountDoc as IStoreMeta)
 		else updates.push(accountDoc as IStoreMeta)
+
 		return accountDoc;
 	}
 
@@ -130,18 +138,18 @@ export class MemberService {
 	getEventPrice = async (event: string, data?: IAccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
-		const span = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
+		const classDoc = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
 
-		return data.client.price												// look in member's prices as a match in 'span' and 'plan'
-			.filter(row => row[FIELD.type] === span[FIELD.type] && row[FIELD.key] === profile.plan)[0].amount || 0;
+		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
+			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
 
-	/** Determine the member's topUp amount */
+	/** Determine theS member's topUp amount */
 	getPayPrice = async (data?: IAccountState) => {
 		data = data || await this.getAccount();
 
 		return data.client.price
-			.filter(row => row[FIELD.type] === TYPE.topUp)[0].amount || 0;
+			.filter(row => row[FIELD.type] === PRICE.topUp)[0].amount || 0;
 	}
 
 	/** check for change of User.additionalInfo */
@@ -154,14 +162,13 @@ export class MemberService {
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
 			[FIELD.store]: STORE.profile,
-			[FIELD.type]: TYPE.info,
+			[FIELD.type]: PROFILE.info,
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.uid]: uid || (await this.data.getUID()),
-			[TYPE.info]: { ...memberInfo },								// spread the conformed member info
+			[PROFILE.info]: { ...memberInfo },								// spread the conformed member info
 		}
 
-		const where = addWhere(`${TYPE.info}.providerId`, info.providerId);
-		this.data.insDoc(profileInfo as IProfileInfo, where, TYPE.info);
+		this.data.insDoc(profileInfo as IProfileInfo, addWhere(`${PROFILE.info}.providerId`, info.providerId), PROFILE.info);
 	}
 
 }

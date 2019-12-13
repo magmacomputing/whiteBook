@@ -10,7 +10,7 @@ import { AuthModule } from '@service/auth/auth.module';
 import { addWhere } from '@dbase/fire/fire.library';
 import { LState } from '@dbase/state/state.define';
 import { StoreStorage } from '@dbase/sync/sync.define';
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
@@ -45,14 +45,9 @@ export class ProfileGuard implements CanActivate {
 	async canActivate() {
 		const localState = getLocalStore<LState>(StoreStorage) || {};
 		const profile = getPath<IProfilePlan[]>(localState, 'member.profile') || [];
-		const planProfile = asAt(profile, addWhere(FIELD.type, 'plan'))[0];
-		if (getPath<string>(planProfile, 'plan'))
+		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan))[0];
+		if (getPath<string>(planProfile, STORE.plan))
 			return true;															// found a current 'plan' in localStorage
-
-		// const state = await this.auth.user;
-		// const planClaim = getPath<string>(state.auth, 'token.claims.claims.plan');
-		// if (!isUndefined(planClaim))
-		// 	return true;															// found a 'plan' on customClaims token
 
 		this.navigate.route(ROUTE.plan);						// redirect to PlanComponent
 		return false;

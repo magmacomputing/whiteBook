@@ -5,7 +5,7 @@ import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
 	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
-	IStatusConnect, IStatusAccount, TBonus,
+	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -16,6 +16,7 @@ export enum SLICE {
 	attend = 'attend',
 	admin = 'admin',
 	device = 'device',
+	forum = 'forum',
 }
 
 /**
@@ -73,10 +74,17 @@ export interface IMemberState extends IUserState, IApplicationState {
 	}
 }
 
+export interface IProviderState {
+	client: {
+		provider: IProvider[];							// array of effective Provider documents
+		icon: IIcon[];											// array of Provider icons
+	}
+}
 export interface IPlanState extends IMemberState {
 	client: {
 		plan: IPlan[];                     	// array of effective Plan documents
 		price: IPrice[];                   	// array of effective Price documents
+		icon: IIcon[];											// array of Plan icons
 	}
 }
 
@@ -133,6 +141,7 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		span?: ISpan[];
 		alert?: IAlert[];
 		bonus?: IBonus[];
+		icon?: IIcon[];
 	},
 	attend: {
 		attendGift: IAttend[];
@@ -141,4 +150,12 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		attendToday: IAttend[];
 	},
 	bonus?: TBonus,
+	forum?: IForumState["forum"];
+}
+
+export interface IForumState {
+	forum: {
+		comment?: IComment[];
+		react?: IReact[];
+	}
 }

@@ -1,5 +1,5 @@
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { FILTER, SLICES, SORTBY } from '@library/config.define';
+import { FILTER, SLICES, SORTBY, COMMENT } from '@library/config.define';
 import { ISchema, IConfig } from '@dbase/data/data.schema';
 
 import { isString } from '@lib/type.library';
@@ -7,7 +7,7 @@ import { sortInsert } from '@lib/array.library';
 import { makeTemplate } from '@lib/string.library';
 
 /** rebuild values for SLICES, SORTBY, FILTER variables */
-export const setSchema = (schemas: ISchema[]) => {
+export const setSchema = (schemas: ISchema[] = []) => {
 	Object.keys(FILTER)
 		.forEach(key => delete FILTER[key as COLLECTION])
 	Object.keys(SLICES)
@@ -31,17 +31,17 @@ export const setSchema = (schemas: ISchema[]) => {
 
 // This is called so infrequently, its not worth making it reactive
 /** resolve some placeholder variables in IConfig[] */
-export const getConfig = (config: IConfig[], key: string) => {
+export const getConfig = (config: IConfig[], type: string) => {
 	const placeholder: Record<string, string> = {};
 
 	config
 		.filter(row => !row[FIELD.expire])
-		.filter(row => row[FIELD.type] === 'default')		// get the placeholder values on first pass
+		.filter(row => row[FIELD.key] === 'default')		// get the placeholder values on first pass
 		.filter(row => isString(row.value))
-		.forEach(row => placeholder[row[FIELD.key]] = row.value);
+		.forEach(row => placeholder[row[FIELD.type]] = row.value);
 
 	return config
-		.filter(row => row[FIELD.type] !== 'default')		// skip Config 'defaults'
+		.filter(row => row[FIELD.key] !== 'default')		// skip Config 'defaults'
 		.map(row => {
 			const subst: typeof placeholder = {}
 			Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
@@ -50,5 +50,22 @@ export const getConfig = (config: IConfig[], key: string) => {
 			})
 			return { ...row, value: subst }               // override with substitute value
 		})
-		.find(row => row[FIELD.key] === key) || {} as IConfig
+		.find(row => row[FIELD.key] === type) || {} as IConfig
+}
+
+/** Rebuild global COMMENT variable */
+export const setConfig = (config: IConfig[] = []) => {
+	Object.keys(COMMENT)
+		.forEach(key => delete COMMENT[key as keyof typeof COMMENT]);
+
+	config.forEach(row => {
+		switch (row[FIELD.type]) {
+			case 'words':
+				COMMENT.words = row.value;
+				break;
+			case 'patterns':
+				COMMENT.patterns = row.value;
+				break;
+		}
+	})
 }

@@ -1,15 +1,14 @@
 import { Component, Injectable, Inject } from '@angular/core';
-import { MatDialog, MatDialogRef, MatDialogConfig, MAT_DIALOG_DATA } from '@angular/material';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogConfig } from '@angular/material/dialog';
 
 import { dbg } from '@lib/logger.library';
-import { asArray } from '@lib/array.library';
 import { TString } from '@lib/type.library';
 
 @Component({
   selector: 'info-dialog',
   template: `
     <div mat-dialog-title>
-      <img [src]="data.icon || 'https://source.unsplash.com/random/200x200'">
+      <img [src]="data.image || 'https://source.unsplash.com/random/200x200'">
       <h2> {{ data.title }} </h2>
     </div>
 
@@ -37,7 +36,7 @@ export class InfoDialogComponent {
 
 interface openDialog {
   content: TString;
-  icon?: string;
+  image?: string;
   title?: string;
   subtitle?: string;
   actions?: string[];

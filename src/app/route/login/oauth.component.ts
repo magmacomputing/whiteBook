@@ -32,7 +32,7 @@ export class OAuthComponent implements OnInit {
 					this.http.post<any>(url, {})
 						.subscribe(res => this.auth.signInToken(res))
 				})
-				.catch(err => this.dbg('error: %s', err.message))
+				.catch(err => this.dbg('error; %s', err.message))
 		}
 	}
 

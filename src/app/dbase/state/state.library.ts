@@ -9,20 +9,22 @@ import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@library/config.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase } from '@dbase/data/data.schema';
-import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
+import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
+import { getDate, TDate, Instant } from '@lib/instant.library';
 import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
 import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
-import { DATE_FMT, getDate, TDate } from '@lib/date.library';
 
 /**
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
 export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
+	if (store === STORE.comment)
+	debugger;
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -39,7 +41,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
 /** Get all documents by filter, do not exclude _expire unless <date> specified */
 export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
-	if (store === slice.toString())													// top-level slice
+	if (store === slice.toString())													// top-level slice (eg. Attend)
 		return getState<T>(states, store, filter, date);
 
 	const state: Observable<TStateSlice<T>> = states[slice] as any;
@@ -75,7 +77,7 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	if (isEmpty<object>(SLICES))									// nothing in State yet, on first-time connect
 		slices.push(SLICE.client);									// special: assume 'client' slice.
 	if (!SORTBY[store])
-		SORTBY[store] = ['sort', 'key'];						// special: assume sort order
+		SORTBY[store] = [FIELD.sort, FIELD.key];		// special: assume sort order
 
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
@@ -83,9 +85,11 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	return slices[0] as COLLECTION;
 }
 
+/** find the default value for the requested type */
 export const getDefault = (state: IApplicationState, type: string) => {
-	const table = (state['application'][STORE.default])
-		.filter(row => row[FIELD.type] === type);		// find the default value for the requested type
+	const table = (state.application[STORE.default])
+		.filter(row => row[FIELD.type] === type);
+
 	return table.length && table[0][FIELD.key] || undefined;
 }
 
@@ -108,10 +112,8 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
-				// const segment = (store === STORE.attend) ? filters[0].value : store;	// TODO: dont rely on defined filter
-
 				parent = data;                                        // stash the original parent data state
-				// return combineLatest(getCurrent<TStoreBase>(states, store, filters, date, segment));
+
 				return combineLatest(store === STORE.attend
 					? getStore<TStoreBase>(states, store, filters, date)
 					: getCurrent<TStoreBase>(states, store, filters, date)
@@ -125,7 +127,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
-							const type = (getSlice(store) === 'client')
+							const type = (getSlice(store) === COLLECTION.client)
 								? row[FIELD.store]
 								: (nodes[1] || row[FIELD.type] || row[FIELD.store])
 
@@ -248,31 +250,51 @@ export const calendarDay = (source: ITimetableState) => {
 	return { ...source }
 }
 
+const lookupIcon = (source: any, key: string) => {
+	const dflt = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon))[FIELD.key];
+	return firstRow<IIcon>(source.client.icon, addWhere(FIELD.key, [key, dflt])).image
+};
+
+/** Assemble a Provider-view */
+export const buildProvider = (source: IProviderState) => {
+	source.client.provider = source.client.provider.map(provider => {
+		if (!provider.image)
+			provider.image = lookupIcon(source, provider[FIELD.key]);
+
+		return provider;
+	})
+
+	return { ...source }
+}
+
 /** Assemble a Plan-view */
 export const buildPlan = (source: IPlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
-	const isAdmin = roles && roles.includes('admin');
-	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, 'plan'));
-	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, 'topUp'));
+	const isAdmin = roles && roles.includes(Auth.ROLE.admin);
+	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, STORE.plan));
+	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, PRICE.topUp));
 	const myAge = getMemberAge(source.member.info);	// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<IPrice>(source.client.price, [
 			addWhere(FIELD.key, plan[FIELD.key]),
-			addWhere(FIELD.type, 'topUp'),
+			addWhere(FIELD.type, PRICE.topUp),
 		])
 
 		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
 			plan[FIELD.disable] = true;
 
-		if (plan[FIELD.key] === 'intro')											// Special: Intro is only available to new Members
+		if (plan[FIELD.key] === PLAN.intro)										// Special: Intro is only available to new Members
 			plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
 
-		if (plan[FIELD.key] === 'pension') {									// Special: Pension is only available to senior Member
+		if (plan[FIELD.key] === PLAN.pension) {								// Special: Pension is only available to senior Member
 			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
 			plan[FIELD.hidden] = notAllow;
 			plan[FIELD.disable] = notAllow;
 		}
+
+		if (!plan[FIELD.image])
+			plan[FIELD.image] = lookupIcon(source, plan[FIELD.key]);
 
 		if (myPlan && myPlan.plan === plan[FIELD.key])	 			// disable their current Plan, so cannot re-select
 			plan[FIELD.disable] = true;
@@ -294,13 +316,15 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		calendar = [],															// the calendar of special events on the date
 		event: events = [],													// the event-description for the calendar type
 		span: spans = [],														// the duration of classes / events
+		location: locations = [],										// the locations of the classes / events
 		alert: alerts = [],													// any alert notes for this date
 		price: prices = [],													// the prices as per member's plan
+		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
 	const attendToday = source.attend.attendToday;
 
-	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'icon'));
-	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, 'location'));
+	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon));
+	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
 	/**
@@ -316,7 +340,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		if (!eventLocations.includes(calendarDoc.location))
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
-		asArray(eventList.classes).forEach(className => {
+		asArray(eventList.agenda).forEach(className => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, className));
 			const spanClass = firstRow<ISpan>(spans, [
 				addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
@@ -329,14 +353,14 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			const duration = spanClass.duration || span.duration;
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
-				[FIELD.type]: eventList[FIELD.store],
+				[FIELD.type]: SCHEDULE.event,
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: getDate(calendarDoc.start).add(offset, 'minutes').format(DATE_FMT.HHMI),
+				start: getDate(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
-				icon: classDoc.icon,
+				image: firstRow<IIcon>(icons, addWhere(FIELD.key, className)).image || icon[FIELD.key],
 			}
 
 			offset += duration;												// update offset to next class start-time
@@ -357,13 +381,10 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 
 			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
 
-			// if (classDoc[FIELD.type] && !isUndefined(price.amount)) {
-			// 	time.price = time.price || price.amount;	// add-on the member's price for each scheduled event
-			// }
-			// else time[FIELD.disable] = true;						// cannot determine the event
-
-			if (!time[FIELD.icon])											// if no schedule-specific icon...
-				time[FIELD.icon] = classDoc.icon || icon[FIELD.key];				//	use class icon, else default icon
+			if (!time[FIELD.image])												// if no schedule-specific icon, use class icon, else default icon
+				time[FIELD.image] =
+					firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image ||
+					firstRow<IIcon>(icons, addWhere(FIELD.key, icon[FIELD.key])).image
 
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists
@@ -375,7 +396,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
-		.filter(row => row[FIELD.type] === 'event' || !eventLocations.includes(row.location!))
+		.filter(row => row[FIELD.type] === SCHEDULE.event || !eventLocations.includes(row.location!))
 
 	return { ...source }
 }

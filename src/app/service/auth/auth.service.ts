@@ -10,7 +10,7 @@ import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
 import { asArray } from '@lib/array.library';
@@ -53,32 +53,36 @@ export class AuthService {
 
 		switch (provider[FIELD.type]) {
 			case undefined:
-			case 'identity':
+			case Auth.METHOD.identity:
 				this.signInIdentity(provider);
 				break;
 
-			case 'oauth':
+			case Auth.METHOD.oauth:
 				this.signInOAuth(provider);
 				break;
 
-			case 'oidc':
+			case Auth.METHOD.oidc:
 				this.signInOIDC(provider);
 				break;
 
-			case 'email':
+			case Auth.METHOD.email:
 				this.signInEmail(provider, opts.email, opts.password);
 				break;
 
-			case 'play':
+			case Auth.METHOD.play:
 				this.signInPlay(provider);
 				break;
 
-			case 'phone':
+			case Auth.METHOD.phone:
 				this.signInPhone(provider);
 				break;
 
-			case 'anonymous':
+			case Auth.METHOD.anonymous:
 				this.signInAnon(provider);
+				break;
+
+			case Auth.METHOD.custom:
+				this.signInCustom(opts.jwt as string);
 				break;
 
 			default:
@@ -95,6 +99,9 @@ export class AuthService {
 		asArray(provider.scope)
 			.forEach(scope => (authProvider as TScopes).addScope(scope));
 
+		asArray(provider.custom)
+			.forEach(custom => (authProvider as TScopes).setCustomParameters(custom));
+
 		if (provider.params)
 			(authProvider as TParams).setCustomParameters(provider.params);
 
@@ -108,7 +115,7 @@ export class AuthService {
 			.then(config => getConfig(config, 'oauth'))
 			.then(oauth => oauth.value)
 
-		const child = this.openChannel('token');// the child popup
+		const child = this.openChannel('token');// link to the child popup
 		child.onmessage = (msg) => {						// when child sends a message...
 			child.close();												// 	close BroadcastChannel
 			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
@@ -123,8 +130,8 @@ export class AuthService {
 
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
+		const parent = this.openChannel('token');// link to the parent of this popup
 		this.dbg('signInToken: %j', response);
-		const parent = this.openChannel('token');// the parent of this popup
 
 		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
@@ -132,7 +139,7 @@ export class AuthService {
 				if (state.auth.info) 								// tell the parent to update State
 					parent.postMessage(JSON.stringify(state.auth.info));
 
-				if (state.auth.user) //&& open) {
+				if (state.auth.user /** && open */)
 					window.close();										// only close on valid user
 			})
 	}
@@ -143,6 +150,10 @@ export class AuthService {
 
 	private signInAnon(provider: IProvider) {
 		return this.store.dispatch(new LoginAnon())
+	}
+
+	private signInCustom(token: string) {
+		return this.store.dispatch(new LoginToken(token, Auth.PROVIDER.jwt, {}));
 	}
 
 	private signInOIDC(provider: IProvider) { }

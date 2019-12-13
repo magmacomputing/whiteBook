@@ -9,18 +9,19 @@ import { map } from 'rxjs/operators';
 
 import { ROUTE } from '@route/route.define';
 import { ProfileGuard, DeactivateGuard, OAuthGuard } from '@route/route.guard';
-import { MaterialModule } from '@route/material.module';
+import { MaterialModule } from '@service/material/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
 import { EMailComponent } from '@route/login/email.component';
 
+import { Auth } from '@dbase/data/data.define';
 import { getPath } from '@lib/object.library';
 
 const toLogin = redirectUnauthorizedTo([ROUTE.login]);
 const toAttend = redirectLoggedInTo([ROUTE.attend]);
 const isAdmin = pipe(customClaims,
-	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes('admin')),
+	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)),
 );
 
 const routes: Routes = [

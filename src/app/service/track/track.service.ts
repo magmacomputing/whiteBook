@@ -9,7 +9,7 @@ import { ETrack, ITrack } from '@service/track/track.define';
 
 import { sprintf } from '@lib/string.library';
 import { fix } from '@lib/number.library';
-import { getDate } from '@lib/date.library';
+import { getDate } from '@lib/instant.library';
 import { dbg } from '@lib/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -29,7 +29,7 @@ export class TrackService {
 			[FIELD.store]: STORE.log,
 			[FIELD.type]: this.logLevel,
 			[FIELD.uid]: uid || 'anonymous',
-			stamp: now.ts,
+			[FIELD.stamp]: now.ts,
 			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
 		} as ITrack

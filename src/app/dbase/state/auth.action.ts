@@ -1,6 +1,7 @@
 import * as firebase from 'firebase/app';
 
 import { ICredential } from '@service/auth/auth.interface';
+import { Auth } from '@dbase/data/data.define';
 import { TUser } from '@dbase/data/data.schema';
 
 export interface IAuthState {
@@ -26,11 +27,11 @@ export class LoginIdentity {
 }
 export class LoginToken {
 	static type = '[Auth] LoginToken';
-	constructor(public token: string, public prefix: string, public user: any) { }
+	constructor(public token: string, public prefix: Auth.PROVIDER, public user: any) { }
 }
 export class LoginOIDC {
 	static type = '[Auth] LoginOIDC';
-	constructor(public token: string, public prefix: string, public user: any) { }
+	constructor(public token: string, public prefix: Auth.PROVIDER, public user: any) { }
 }
 export class LoginEmail {
 	static type = '[Auth] LoginEmail';

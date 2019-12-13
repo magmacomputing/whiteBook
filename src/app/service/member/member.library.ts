@@ -7,7 +7,7 @@ import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
-import { getStamp, getDate } from '@lib/date.library';
+import { getStamp, getDate } from '@lib/instant.library';
 
 // Library of member-related functions
 

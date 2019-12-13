@@ -1,15 +1,16 @@
-import * as firebase from 'firebase/app';
+import { firestore } from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
-import { SLICE, LState } from '@dbase/state/state.define';
-import { SetDevice, DelDevice, TruncDevice, SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { LState } from '@dbase/state/state.define';
+import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
 import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
 import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
 import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
+import { SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys } from '@lib/object.library';
@@ -17,7 +18,7 @@ import { getLocalStore } from '@lib/browser.library';
 import { lprintf } from '@lib/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firebase.firestore.SnapshotMetadata;
+	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firestore.SnapshotMetadata;
 	return meta.fromCache
 		? 'cache'
 		: meta.hasPendingWrites
@@ -35,7 +36,10 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	Object.keys(localSlice).forEach(key => localList.push(...localSlice[key].map(remMeta)));
 	const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
 	const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
-	const [localHash, storeHash] = await Promise.all([cryptoHash(localSort), cryptoHash(snapSort),]);
+	const [localHash, storeHash] = await Promise.all([
+		cryptoHash(localSort),
+		cryptoHash(snapSort)
+	]);
 
 	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
 		listen.ready.resolve(true);                   // indicate snap0 is ready
@@ -67,21 +71,21 @@ export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
 	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreMeta)
 
 /** Determine the ActionHandler based on the Slice listener */
-export const getMethod = (slice: string) => {
+export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
-		case SLICE.client:
+		case COLLECTION.client:
 			return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
 
-		case SLICE.member:
+		case COLLECTION.member:
 			return { setStore: SetMember, delStore: DelMember, truncStore: TruncMember }
 
-		case SLICE.attend:
+		case COLLECTION.attend:
 			return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
 
-		case SLICE.device:
+		case COLLECTION.device:
 			return { setStore: SetDevice, delStore: DelDevice, truncStore: TruncDevice }
 
-		case SLICE.admin:
+		case COLLECTION.admin:
 			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
 
 		default:

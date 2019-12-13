@@ -11,7 +11,7 @@ export class ReactionService {
 	private dbg = dbg(this);
 
 	userId!: string;
-	emojiList = ['like', 'love', 'wow', 'haha', 'sad', 'angry']
+	emojiList = ['none', 'like', 'love', 'wow', 'haha', 'sad', 'angry']
 
 	constructor(private data: DataService) {
 		this.data.getUID()
@@ -36,7 +36,7 @@ export class ReactionService {
 		// return _.mapValues(_.groupBy(reactions), 'length')
 	}
 
-	userReaction(reactions: Array<REACT>) {
+	userReaction(reactions: REACT[]) {
 		return REACT.like;
 		// return _.get(reactions, this.userId)
 	}

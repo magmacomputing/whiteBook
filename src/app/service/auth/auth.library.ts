@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app';
 
 import { IUserState } from '@dbase/state/state.define';
-import { TProvider } from '@dbase/data/data.schema';
+import { Auth } from '@dbase/data/data.define';
 
 import { isNull } from '@lib/type.library';
 
@@ -10,14 +10,14 @@ interface IEmailToken {
 	password: string;
 }
 export const getAuthProvider = (providerId: string,
-	token?: (firebase.auth.IdTokenResult & IEmailToken) | null): [TProvider | undefined, firebase.auth.AuthProvider | undefined, firebase.auth.AuthCredential | undefined] => {
+	token?: (firebase.auth.IdTokenResult & IEmailToken) | null): [Auth.METHOD | undefined, firebase.auth.AuthProvider | undefined, firebase.auth.AuthCredential | undefined] => {
 	let authProvider: firebase.auth.AuthProvider | undefined;
 	let authCredential: firebase.auth.AuthCredential | undefined;
-	let type: TProvider | undefined = 'identity';												// default to 'identity'
+	let method: Auth.METHOD | undefined = Auth.METHOD.identity;									// default to 'identity' 
 
 	switch (providerId) {
-		case 'email':
-			type = 'email'
+		case Auth.METHOD.email:
+			method = Auth.METHOD.email
 			authProvider = new firebase.auth.EmailAuthProvider();
 			if (token)
 				authCredential = firebase.auth.EmailAuthProvider.credential(token.email, token.password);
@@ -59,31 +59,31 @@ export const getAuthProvider = (providerId: string,
 		// 	break;
 
 		default:
-			type = undefined;
+			method = undefined;
 			break;
 	}
 
-	return [type, authProvider, authCredential];
+	return [method, authProvider, authCredential];
 }
 
-export const getProviderId = (prefix: string) => {
+export const getProviderId = (prefix: Auth.PROVIDER) => {
 	switch (prefix) {
-		case 'fb':
+		case Auth.PROVIDER.fb:
 			return 'facebook.com';
-		
-		case 'g+':
+
+		case Auth.PROVIDER.go:
 			return 'google.com';
-		
-		case 'tw':
+
+		case Auth.PROVIDER.tw:
 			return 'twitter.com';
-		
-		case 'gh':
+
+		case Auth.PROVIDER.gh:
 			return 'github.com';
-		
-		case 'li':
+
+		case Auth.PROVIDER.li:
 			return 'linkedin.com';
 
-		case 'gapps':														// Google Apps Sheet
+		case Auth.PROVIDER.as:											// Google Apps Sheet
 			return 'docs.google.com';
 
 		default:

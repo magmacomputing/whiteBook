@@ -8,7 +8,7 @@ import {
 	IAuthState, CheckSession, LoginSuccess, LoginFailed, LogoutSuccess, LoginIdentity, Logout, AuthToken,
 	LoginEmail, LoginLink, AuthInfo, LoginToken, LoginSetup, LoginCredential, LoginAnon, AuthOther
 } from '@dbase/state/auth.action';
-import { SLICE, TStateSlice } from '@dbase/state/state.define';
+import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/material/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
@@ -17,7 +17,7 @@ import { ROUTE } from '@route/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { SyncService } from '@dbase/sync/sync.service';
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
@@ -92,10 +92,9 @@ export class AuthState {
 	}
 
 	/**
-	 * We allow Users to sign in using multiple authentication providers by linking auth provider credentials to an existing user account.  
-	 * Users are identifiable by the same Firebase user ID regardless of the authentication provider they used to sign in.  
-	 * For example, a user who signed in with a password can link a Google account and sign in with either method in the future.  
-	 * Or, an anonymous user can link a Facebook account and then, later, sign in with Facebook to continue using our App.
+	 * We allow Users to signIn using multiple authentication providers by linking auth provider credentials to an existing user account.  
+	 * Users are identifiable by the same Firebase user ID regardless of the authentication provider they used to signIn.  
+	 * For example, a user who signed-in with a password can link a Google account and signIn with either method in the future.  
 	 */
 	@Action(LoginCredential)													// attempt to link multiple providers
 	private async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginCredential) {
@@ -112,17 +111,17 @@ export class AuthState {
 				break;
 
 			default:
-				const [type, authProvider] = getAuthProvider(methods[0]);
-				switch (type) {
-					case 'identity':
-					case 'oauth':
+				const [method, authProvider] = getAuthProvider(methods[0]);
+				switch (method) {
+					case Auth.METHOD.identity:
+					case Auth.METHOD.oauth:
 						ctx.dispatch(new LoginIdentity(authProvider as firebase.auth.AuthProvider, link.credential));
 						break;
 				}
 		}
 	}
 
-	/** Attempt to sign-in a User via authentication by a federated identity provider */
+	/** Attempt to signIn User via authentication by a federated identity provider */
 	@Action(LoginIdentity)														// process signInWithPopup()
 	private async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginIdentity) {
 		try {
@@ -137,7 +136,7 @@ export class AuthState {
 		}
 	}
 
-	/** Attempt to sign in a User via authentication with a Custom Token */
+	/** Attempt to signIn User via authentication with a Custom Token */
 	@Action(LoginToken)
 	private async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginToken) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
@@ -152,7 +151,7 @@ export class AuthState {
 			.catch(error => this.dbg('failed: %j', error.toString()));
 	}
 
-	/** Attempt to sign in a User via an emailAddress / Password combination. */
+	/** Attempt to signIn User via an emailAddress / Password combination. */
 	@Action(LoginEmail)															// process signInWithEmailAndPassword
 	private loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginEmail) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
@@ -176,14 +175,14 @@ export class AuthState {
 		}
 	}
 
-	/** Attempt to sign in a User anonymously */
+	/** Attempt to signIn User anonymously */
 	@Action(LoginAnon)
 	private loginAnon(ctx: StateContext<IAuthState>) {
 		return this.afAuth.auth.signInAnonymously()
 			.catch(error => ctx.dispatch(new LoginFailed(error)));
 	}
 
-	/** Attempt to sign in a User via a link sent to their emailAddress */
+	/** Attempt to signIn User via a link sent to their emailAddress */
 	@Action(LoginLink)
 	private async loginLink(ctx: StateContext<IAuthState>, { link, credential }: LoginLink) {
 		const localItem = 'emailForSignIn';
@@ -233,13 +232,15 @@ export class AuthState {
 		ctx.patchState(info);
 	}
 
-	@Action(AuthOther)															// mimic another User
+	@Action(AuthOther)															// behalf of another User
 	private otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
 		const state = ctx.getState();
 
 		if (state.current && state.current.uid === member)
+		// if (state.current?.uid === member)
 			return;																			// nothing to do
 		if (state.current && getPath(state.current, 'customClaims.alias') === member)
+		// if (state.current?.customClaims?.alias === member)
 			return;																			// nothing to do
 
 		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
@@ -269,14 +270,14 @@ export class AuthState {
 	private setToken(ctx: StateContext<IAuthState>) {
 		if (this.afAuth.auth.currentUser) {
 			let token: firebase.auth.IdTokenResult;
-			
+
 			this.afAuth.auth.currentUser.getIdTokenResult(true)
 				.then(result => token = result)
 				.then(_ => ctx.patchState({ token }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
 				.then(_ => {
 					const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
-					if (roles.includes('admin'))
+					if (roles.includes(Auth.ROLE.admin))
 						this.sync.on(COLLECTION.admin, undefined,
 							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
 					else {

@@ -1,6 +1,7 @@
 export const ATTEND = {
 	maxColumn: 100,										// maximum Attends per Payment
 	autoApprove: 'whiteBook',
+	maxPayment: 10,										// maximum number of attempts to match an Attend to a Payment
 }
 
 export enum PAY {										// Test if a Payment can accept an Attend

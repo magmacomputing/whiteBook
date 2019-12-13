@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule} from '@angular/common/http';
 import { Routes, RouterModule } from '@angular/router';
 
-import { MaterialModule } from '@route/material.module';
+import { MaterialModule } from '@service/material/material.module';
 import { MigrateComponent } from '@route/migrate/migrate.component';
 
 const routes: Routes = [

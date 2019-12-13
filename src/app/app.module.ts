@@ -4,9 +4,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { RoutingModule } from '@route/route.module';
-import { MaterialModule } from '@route/material.module';
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthModule } from '@service/auth/auth.module';
+import { MaterialModule } from '@service/material/material.module';
 import { AppComponent } from './app.component';
 
 import { NgxsModule } from '@ngxs/store';
@@ -17,13 +17,13 @@ import { environment } from '../environments/environment';
 
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
 import { InfoDialogComponent } from '@service/material/dialog.service';
-import { ReactionComponent } from '@service/reaction/reaction.component';
+import { ForumComponent } from './route/forum/forum.component';
 import { SafePipe } from '@service/material/safe.pipe';
 
 @NgModule({
 	declarations: [
 		AppComponent,
-		ReactionComponent,
+		ForumComponent,
 		SafePipe,
 	],
 	imports: [

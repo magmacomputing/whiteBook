@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { firestore } from 'firebase/app';
-import { DocumentReference, DocumentChangeAction } from '@angular/fire/firestore';
+import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take, map } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
@@ -13,6 +13,7 @@ import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.libra
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthService } from '@service/auth/auth.service';
+import { IUserInfo } from '@service/auth/auth.interface';
 import { StateService } from '@dbase/state/state.service';
 import { getSlice } from '@dbase/state/state.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
@@ -21,7 +22,7 @@ import { SyncService } from '@dbase/sync/sync.service';
 import { asAt } from '@library/app.library';
 
 import { TString } from '@lib/type.library';
-import { getStamp, TDate } from '@lib/date.library';
+import { getStamp, TDate } from '@lib/instant.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
@@ -72,17 +73,19 @@ export class DataService {
 		return this.fire.createToken(uid);
 	}
 
+	authToken(token: string, user: IUserInfo) {
+		return this.fire.authToken(token, user);
+	}
+
 	getUID() {
 		return this.auth.current
 			.then(current => current!.uid);
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
-		return this.fire.combine('stateChanges', this.fire.colRef<T>(collection, query))
-			.pipe(
-				map(obs => obs.flat()),															// flatten the array-of-values results
-				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() })))
-			)
+		return this.fire.listen<T>(collection, query)
+			.pipe(take(1))
+			.toPromise()
 	}
 
 	asPromise<T>(obs: Observable<T[]>) {

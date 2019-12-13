@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { SyncAttend } from '@dbase/state/state.action';
-import { STORE, FIELD, BONUS } from '@dbase/data/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -15,10 +15,10 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TClass, TStoreBase, ISchedule, IPayment, IGift } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
 
-import { getDate, DATE_FMT, TDate } from '@lib/date.library';
-import { isUndefined, isNumber, TString } from '@lib/type.library';
+import { getDate, Instant, TDate } from '@lib/instant.library';
+import { isUndefined, isNumber } from '@lib/type.library';
 import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -30,46 +30,19 @@ export class AttendService {
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
-	/** look back up-to seven days to find when className was last scheduled */
-	private lkpDate = async (className: string, location?: string, date?: TDate) => {
-		const timetable = await this.state.getTimetableData(date).toPromise();
-		let now = getDate(date);																// start with date-argument
-		let ctr = 0;
-
-		if (!location)
-			location = this.state.getDefault(timetable, STORE.location);
-
-		for (ctr; ctr < 7; ctr++) {
-			const classes = timetable.client.schedule!						// loop through schedule
-				.filter(row => row.day === now.dow)									// finding a match in 'day'
-				.filter(row => row[FIELD.key] === className)				// and match in 'class'
-				.filter(row => row.location === location)						// and match in 'location'
-				// .filter(row => row.start === now.format(DATE_FMT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
-
-			if (classes.length)																		// is this class offered on this 'day'   
-				break;
-			now = now.add(-1, 'day');															// else move pointer to previous day
-		}
-
-		if (ctr >= 7)																						// cannot find className on timetable
-			now = getDate(date);																	// so default back to today's date	
-
-		return now.ts;																					// timestamp
-	}
-
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, note?: TString, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, date?: TDate) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
-		// This presumes that the <key> is from schedule store, and not calendar
+		// This presumes that the <key> is from Schedule store, and not Calendar
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
 		const now = getDate(date);
 		const stamp = now.ts;
-		const when = now.format(DATE_FMT.yearMonthDay);
+		const when = now.format(Instant.FORMAT.yearMonthDay);
 
 		// There is a bit of overlap in these Observables, but they serve different purposes
 		let [data, source] = await combineLatest(
@@ -79,7 +52,7 @@ export class AttendService {
 			.pipe(take(1))																	// unsubscribe on first-emit
 			.toPromise()																		// emit observables as Promise
 
-																											// <schedule> might be from Schedule or Calender store
+		// <schedule> might be from Schedule or Calender store
 		const field = schedule[FIELD.store] === STORE.schedule
 			? FIELD.id																			// compare requested schedule to timetable's ID
 			: FIELD.key																			// compare requested event to class's Key
@@ -92,18 +65,18 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same Time
-		const attendFilter = [
+		const bookAttend = await this.data.getStore<IAttend>(STORE.attend, [
+			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			addWhere(FIELD.uid, data.auth.current!.uid),
-			addWhere(FIELD.note, note),
-		]
-		const booked = await this.data.getStore<IAttend>(STORE.attend, attendFilter);
-		if (booked.length) {
-			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(DATE_FMT.display)}`);
-			return false;																		// discard Attend
+			addWhere('note', schedule[FIELD.note]),
+		]);
+
+		if (bookAttend.length) {															// disallow same Class, same Note
+			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
+			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
+			return false;																				// discard Attend
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -128,20 +101,23 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which should be <active>
-		let active: IPayment;															// Payment[0] is assumed active, by default
+		let active: IPayment | undefined;									// Payment[0] is assumed active, by default
+		let ctr = 0;																			// prevent endless loop
 
-		while (true) {
+		while (ctr <= ATTEND.maxPayment) {								// only attempt to match limited number of Payments
+			ctr++;																					// increment
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
 			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
-			const tests: boolean[] = [];										// Set of test results
+			const tests: boolean[] = [];										// array of test results
 			tests[PAY.under_limit] = data.account.attend.length < ATTEND.maxColumn;
 			tests[PAY.enough_funds] = schedule.amount <= data.account.summary.funds;
 			tests[PAY.not_expired] = now.ts <= expiry;
-			if (!tests.includes(false))											// if tests do not include at-least one <false>
-				break;																				// 	all tests passed; we have found a Payment
+
+			if (tests.every(val => val))										// if every test passed ok
+				break;																				// we have found a useable Payment
 
 			this.dbg('limit: %j, %j', tests[PAY.under_limit], data.account.attend.length);
 			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.amount, data.account.summary);
@@ -154,7 +130,7 @@ export class AttendService {
 					const payment = await this.member.setPayment(0, stamp);
 					payment.approve = { uid: ATTEND.autoApprove, stamp };
 
-					creates.push(payment);											// stack the topUpPayment into the batch
+					creates.push(payment);											// stack the topUp Payment into the batch
 					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment
 				}
 			}
@@ -170,26 +146,34 @@ export class AttendService {
 				data.account.payment.push(payment);						// make this the 'next' Payment
 			}
 
-			const next = data.account.payment[1];
+			const queue = active ? 1 : 0;										// next posi on queue
+			const next = data.account.payment[queue];
 			if (next && !next.bank) {												// rollover unused funds into next Payment
-				data.account.payment[1].bank = data.account.summary.funds;
-				updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
-				updates.push({ ...data.account.payment[1] });	// update the now-Active payment with <bank>
+				data.account.payment[queue].bank = data.account.summary.funds;
+				if (active)
+					updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
+				if (data.account.summary.funds)
+					updates.push({ ...data.account.payment[queue] });	// update the now-Active payment with <bank>
 
-				data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
+				if (active)
+					data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
 
 			if (isUndefined(next)) {
-				this.snack.error('Could not allocate a new Payment');
-				throw new Error('Could not allocate a new Payment');
+				return this.snack.error('Could not allocate a new Payment');
+				// throw new Error('Could not allocate a new Payment');
 			}
 		}																									// repeat the loop to test if this now-Active Payment is useable
+		if (isUndefined(active)) {
+			return this.snack.error('Could not allocate an active Payment');
+			// throw new Error('Could not allocate an active Payment');
+		}
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
-		if (data.account.summary.funds === schedule.amount && schedule.price)
+		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
 		if (!active.expiry && active.approve && isEmpty(timetable.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
@@ -197,19 +181,20 @@ export class AttendService {
 		if (Object.keys(upd).length)											// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
-		if (data.member.plan[0].plan === 'intro' && (data.account.summary.funds - schedule.amount) <= 0)
-			this.member.setPlan('member', stamp + 1);				// auto-bump 'intro' to 'member' Plan
+		if (data.member.plan[0].plan === PLAN.intro && (data.account.summary.funds - schedule.amount) <= 0)
+			this.member.setPlan(PLAN.member, stamp + 1);				// auto-bump 'intro' to 'member' Plan
+
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// got everything we need; write an Attend document
+		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
 
 		const attendDoc: Partial<IAttend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
-			[FIELD.note]: note,															// optional 'note'
+			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
 			timetable: {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
-				[FIELD.key]: schedule[FIELD.key] as TClass,		// the Attend's class
-				[FIELD.store]: schedule[FIELD.type] === 'class' ? STORE.schedule : STORE.calendar,
+				[FIELD.key]: schedule[FIELD.key],							// the Attend's class
+				[FIELD.store]: schedule[FIELD.type] === SCHEDULE.class ? STORE.schedule : STORE.calendar,
 				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
 			},
 			payment: {
@@ -219,24 +204,64 @@ export class AttendService {
 			track: {
 				[FIELD.date]: when,														// yyyymmdd of the Attend
 				day: now.dow,																	// day of week
-				week: now.format(DATE_FMT.yearWeek),					// week-number of year
-				month: now.format(DATE_FMT.yearMonth),				// month-number of year
+				week: now.format(Instant.FORMAT.yearWeek),		// week-number of year
+				month: now.format(Instant.FORMAT.yearMonth),	// month-number of year
 			},
 			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
 		}
+
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
-
-		// data.account.attend.push(attendDoc as IAttend);
-		// await this.member.setAccount(creates, updates, data);
-
 		return this.data.batch(creates, updates, undefined, SyncAttend)
 			.then(_ => this.member.setAccount(creates, updates, data))
+	}
+
+	/** look back up-to seven days to find when className was last scheduled */
+	private lkpDate = async (className: string, location?: string, date?: TDate) => {
+		const timetable = await this.state.getTimetableData(date).toPromise();
+		let now = getDate(date);																// start with date-argument
+		let ctr = 0;
+
+		if (!location)
+			location = this.state.getDefault(timetable, STORE.location);
+
+		for (ctr; ctr < 7; ctr++) {
+			const classes = timetable.client.schedule!						// loop through schedule
+				.filter(row => row.day === now.dow)									// finding a match in 'day'
+				.filter(row => row[FIELD.key] === className)				// and match in 'class'
+				.filter(row => row.location === location)						// and match in 'location'
+			// .filter(row => row.start === now.format(Instant.FORMAT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
+
+			if (classes.length)																		// is this class offered on this 'day'   
+				break;
+			now = now.add(-1, 'day');															// else move pointer to previous day
+		}
+
+		if (ctr >= 7)																						// cannot find className on timetable
+			now = getDate(date);																	// so default back to today's date	
+
+		return now.ts;																					// timestamp
+	}
+
+	public delPayment = async (where: TWhere) => {
+		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
+		const filter = asArray(where);
+		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
+			filter.push(memberUid);
+
+		const updates: IStoreMeta[] = [];
+		const deletes: IStoreMeta[] = await this.data.getStore<IPayment>(STORE.payment, filter);
+
+		if (deletes.length === 0) {
+			this.dbg('No items to delete');
+			return;
+		}
 	}
 
 	/**
 	 * Removing Attends is a tricky business...  
 	 * it may need to walk back a couple of related Documents.  
-	 * Take great care when deleting a non-latest Attend, as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
+	 * Take great care when deleting a non-latest Attend,
+	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
 	 */
 	public delAttend = async (where: TWhere) => {
 		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
@@ -254,21 +279,36 @@ export class AttendService {
 
 		const payIds = deletes												// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.id])
-			.distinct()
+			.distinct();
 		const giftIds = deletes												// the Gift IDs related to this reversal
 			.filter(attend => attend.bonus && attend.bonus[FIELD.type] === BONUS.gift)
 			.map(row => row.bonus[FIELD.id])
-			.distinct()
+			.distinct();
+		const scheduleIds = deletes										// the Schedule IDs that may have Forum content
+			.map(attend => attend.timetable[FIELD.id])
+			.distinct();
+		const dates = deletes													// the Dates these Attends have Forum content
+			.map(attend => attend.track.date)
+			.distinct();
 
 		/**
-		 * attends:		all the Attends that relate to the payIds (even those about to be deleted)
+		 * attends:		all the Attends that relate to the payIDs (even those about to be deleted)
 		 * payments:	all the Payments related to this Member
 		 * gifts:			all the Gifts related to this reversal
+		 * forum:			all the Forum content related to this reversal
 		 */
-		const [attends, payments, gifts] = await Promise.all([
+		const [attends, payments, gifts, forum] = await Promise.all([
 			this.data.getStore<IAttend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
 			this.data.getStore<IPayment>(STORE.payment, memberUid),
 			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
+			this.data.getFire<IForumBase>(COLLECTION.forum, {
+				where: [
+					memberUid,
+					addWhere(FIELD.type, STORE.schedule),
+					addWhere(FIELD.key, scheduleIds),
+					addWhere('track.date', dates),
+				]
+			}),
 		])
 
 		// build a link-link of Payments, assume pre-sorted by stamp [desc]
@@ -327,6 +367,8 @@ export class AttendService {
 				}
 			}
 		})
+
+		deletes.push(...forum);												// delete Forum content as well
 		updates.push(...gifts);												// batch the updates to Gifts
 		updates.push(...payments
 			.filter(row => chg.has(row[FIELD.id]))			// only those that have changed

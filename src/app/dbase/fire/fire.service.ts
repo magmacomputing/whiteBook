@@ -1,10 +1,11 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
 import { merge, concat, Observable, combineLatest } from 'rxjs';
-import { tap, take } from 'rxjs/operators';
+import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
+import { IUserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 
@@ -14,7 +15,7 @@ import { IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined, isObject } from '@lib/type.library';
+import { isUndefined } from '@lib/type.library';
 import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
@@ -61,6 +62,14 @@ export class FireService {
 		return concat(...this.subRef(colRefs, type));
 	}
 
+	listen<T>(collection: COLLECTION, query?: IQuery, changes: TChanges = 'stateChanges') {
+		return this.combine(changes, this.colRef<T>(collection, query))
+			.pipe(
+				map(obs => obs.flat()),															// flatten the array-of-values results
+				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() } as T)))
+			)
+	}
+
 	/** Document Reference, for existing or new */
 	docRef(store: STORE, docId?: string) {
 		const col = store.includes('/')
@@ -94,8 +103,8 @@ export class FireService {
 					delete rest[key]										// remove the field if 'set'
 				else rest[key] = firestore.FieldValue.delete(); // delete the target field if 'update'
 
-				if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
-					rest[key] = firestore.FieldValue.delete();	// TODO: workaround
+				// if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
+				// 	rest[key] = firestore.FieldValue.delete();	// TODO: workaround
 			}
 		})
 
@@ -104,8 +113,9 @@ export class FireService {
 
 	/**
 	 * Wrap database-writes within a set of Batches (limited to 300 documents per).  
-	 * These documents are assumed to have a <store> field and (except for 'creates') an <id> field  
-	 * If they are Member documents and missing a <uid> field, the current User is inserted
+	 * These documents are assumed to have a FIELD.store and (except for 'creates') a FIELD.id  
+	 * If they are Member documents and missing a <uid> field, the current User is inserted  
+	 * Perform all creates first, then all updates, finally all deletes
 	 */
 	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
 		const cloneCreate = [...asArray(creates)];
@@ -126,7 +136,8 @@ export class FireService {
 			commits.push(bat.commit());
 		}
 
-		return Promise.all(commits);
+		return Promise.all(commits)
+			.then(_ => true);
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
@@ -145,7 +156,7 @@ export class FireService {
 
 				this.afs.firestore.runTransaction(txn => {
 					asArray(selects).forEach(ref => txn.get(ref));
-					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store]), this.removeMeta(ins)));
+					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
 					u.forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
 					d.forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
 
@@ -159,7 +170,7 @@ export class FireService {
 	async setDoc(store: STORE, doc: firestore.DocumentData) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
-		doc = this.removeMeta(doc);								// remove the meta-fields from the document
+		doc = this.removeMeta(doc);									// remove the meta-fields from the document
 		await this.docRef(store, docId).set(doc);
 		return docId;
 	}
@@ -184,8 +195,14 @@ export class FireService {
 		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
+	/** This helps an Admin impersonate another Member */
 	createToken(uid: string) {
 		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
+	}
+
+	/** Useful when Member is already authenticated elsewhere (eg. helloJS) */
+	authToken(access_token: string, user: IUserInfo) {
+		return this.callHttps<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
 	}
 
 	/** Call a server Cloud Function */
