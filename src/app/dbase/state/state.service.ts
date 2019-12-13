@@ -28,12 +28,12 @@ import { dbg } from '@lib/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
-	@Select() private auth$!: Observable<IAuthState>;
-	@Select() private client$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private member$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private attend$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private admin$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() private local$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() auth$!: Observable<IAuthState>;
+	@Select() client$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() member$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() attend$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() admin$!: Observable<TStateSlice<IStoreMeta>>;
+	@Select() local$!: Observable<TStateSlice<IStoreMeta>>;
 	private forum$: Observable<TStateSlice<IStoreMeta>> = of({ forum: [] });
 
 	private dbg = dbg(this);
