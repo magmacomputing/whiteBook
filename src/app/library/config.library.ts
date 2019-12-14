@@ -31,17 +31,18 @@ export const setSchema = (schemas: ISchema[] = []) => {
 
 // This is called so infrequently, its not worth making it reactive
 /** resolve some placeholder variables in IConfig[] */
-export const getConfig = (config: IConfig[], type: string) => {
+export const getConfig = (config: IConfig[], type: string, key: string) => {
 	const placeholder: Record<string, string> = {};
 
 	config
 		.filter(row => !row[FIELD.expire])
-		.filter(row => row[FIELD.key] === 'default')		// get the placeholder values on first pass
+		.filter(row => row[FIELD.type] === STORE.default)// get the placeholder values on first pass
 		.filter(row => isString(row.value))
-		.forEach(row => placeholder[row[FIELD.type]] = row.value);
+		.forEach(row => placeholder[row[FIELD.key]] = row.value);
 
-	return config
-		.filter(row => row[FIELD.key] !== 'default')		// skip Config 'defaults'
+	const clone = config
+		.filter(row => row[FIELD.key] === key)					// requested Key
+		.filter(row => row[FIELD.type] === type)				// requested Type
 		.map(row => {
 			const subst: typeof placeholder = {}
 			Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
@@ -50,7 +51,8 @@ export const getConfig = (config: IConfig[], type: string) => {
 			})
 			return { ...row, value: subst }               // override with substitute value
 		})
-		.find(row => row[FIELD.key] === type) || {} as IConfig
+
+	return clone[0] || { value: {} } as IConfig;			// first element, else empty value
 }
 
 /** Rebuild global COMMENT variable */
@@ -58,14 +60,16 @@ export const setConfig = (config: IConfig[] = []) => {
 	Object.keys(COMMENT)
 		.forEach(key => delete COMMENT[key as keyof typeof COMMENT]);
 
-	config.forEach(row => {
-		switch (row[FIELD.type]) {
-			case 'words':
-				COMMENT.words = row.value;
-				break;
-			case 'patterns':
-				COMMENT.patterns = row.value;
-				break;
-		}
-	})
+	config
+		.filter(row => row[FIELD.type] === STORE.comment)
+		.forEach(row => {
+			switch (row[FIELD.key]) {
+				case 'words':
+					COMMENT.words = row.value;
+					break;
+				case 'patterns':
+					COMMENT.patterns = row.value;
+					break;
+			}
+		})
 }

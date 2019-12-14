@@ -112,7 +112,7 @@ export class AuthService {
 	private async signInOAuth(provider: IProvider) {
 		const urlQuery = `prefix=${provider.prefix}`;
 		const oauth = await this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
-			.then(config => getConfig(config, 'oauth'))
+			.then(config => getConfig(config, STORE.provider, 'oauth'))
 			.then(oauth => oauth.value)
 
 		const child = this.openChannel('token');// link to the child popup

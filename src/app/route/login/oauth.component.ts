@@ -24,7 +24,7 @@ export class OAuthComponent implements OnInit {
 
 		if (code) {
 			this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
-				.then(config => getConfig(config, 'oauth'))
+				.then(config => getConfig(config, STORE.provider, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);
