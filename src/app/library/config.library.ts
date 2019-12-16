@@ -35,9 +35,9 @@ export const getConfig = (config: IConfig[], type: string, key: string) => {
 	const placeholder: Record<string, string> = {};
 
 	config
+		.filter(row => row[FIELD.type] === 'placeholder')// get the placeholder values on first pass
 		.filter(row => !row[FIELD.expire])
-		.filter(row => row[FIELD.type] === STORE.default)// get the placeholder values on first pass
-		.filter(row => isString(row.value))
+		.filter(row => isString(row.value))							// restrict string-only template placeholders
 		.forEach(row => placeholder[row[FIELD.key]] = row.value);
 
 	const clone = config
