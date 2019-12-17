@@ -43,7 +43,6 @@ export class ForumService {
 		return this.data.batch(creates, updates, deletes);
 	}
 
-	// TODO: clean-up any comments (by cloud-function)?
 	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: ICommentArgs) {
 		return comment === ''
 			? undefined

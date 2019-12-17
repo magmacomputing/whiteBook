@@ -155,6 +155,7 @@ export namespace Auth {
 		li = 'li',										// LinkedIn
 		tw = 'tw',										// Twitter
 		as = 'as',										// Google Apps Script
+		em = '@',											// Email/Password
 		jwt = 'jwt',									// JSON Web Token 
 	}
 	

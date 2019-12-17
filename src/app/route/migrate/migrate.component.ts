@@ -409,7 +409,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let event: IEvent;
 		let idx: number = 0;
 		let migrate: IMigrate | undefined;
-
+debugger;
 		if (SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
@@ -452,11 +452,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
-			price = obj.full.amount;									// set this row's price to MultiStep
+			price = obj.full.amount;											// set this row's price to MultiStep
 		}
 
 		switch (true) {
-			case SPECIAL.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
+			case SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -548,6 +548,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
+
 			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
 			sched.note = note;													// replace note with cleaned note
 			this.attend.setAttend(sched, row.stamp)
