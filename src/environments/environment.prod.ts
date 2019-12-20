@@ -2,7 +2,15 @@ export const environment = {
 	production: true,
 
 	firebase: {
-		app: {
+		dev: {
+			apiKey: "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
+			authDomain: "whitefire-dev.firebaseapp.com",
+			databaseURL: "https://whitefire-dev.firebaseio.com",
+			projectId: "whitefire-dev",
+			storageBucket: "whitefire-dev.appspot.com",
+			messagingSenderId: "919087826501",
+		},
+		prod: {
 			apiKey: "AIzaSyCYo4FvLtznrNtM-I73vzBjTSuyVXebqVI",
 			authDomain: "whitefire-51840.firebaseapp.com",
 			databaseURL: "https://whitefire-51840.firebaseio.com",

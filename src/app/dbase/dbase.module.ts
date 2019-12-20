@@ -20,7 +20,7 @@ const fb = environment.firebase || {};
 	imports: [
 		CommonModule,
 		NgxsModule.forFeature([ClientState, MemberState, AttendState, AdminState]),
-		AngularFireModule.initializeApp(fb.app, fb.config),
+		AngularFireModule.initializeApp(fb.prod, fb.config),
 		AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
 		AngularFireFunctionsModule,
 	],
