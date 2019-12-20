@@ -178,6 +178,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async	signOut() {																					// signOut of 'on-behalf' mode
+		const state = await this.state.getAuthData().pipe(take(1)).toPromise();
+		if (state.auth.user === null)
+			return;																								// logged-out
+
 		this.current = null;
 		this.history = createPromise<MHistory[]>();
 		this.hide = '';
@@ -409,7 +413,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let event: IEvent;
 		let idx: number = 0;
 		let migrate: IMigrate | undefined;
-debugger;
+		debugger;
 		if (SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
