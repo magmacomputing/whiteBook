@@ -9,7 +9,7 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/navigate.service';
 
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { IListen } from '@dbase/sync/sync.define';
+import { IListenKey, IListen } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { AuthToken, IAuthState } from '@dbase/state/auth.action';
 
@@ -19,14 +19,17 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { createPromise } from '@lib/utility.library';
-import { isFunction } from '@lib/type.library';
+import { setPromise } from '@lib/utility.library';
+import { isFunction, isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
+/**
+ * Establish a new SyncService per remote Cloud Firestore instance
+ */
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: Record<string, IListen> = {};
+	private listener: Map<IListenKey, IListen> = new Map();
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
@@ -35,23 +38,24 @@ export class SyncService {
 	 * Additional collections can be defined, and merged into the same slice
 	 */
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
-		const ready = createPromise<boolean>();
+		const ready = setPromise<boolean>();
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
+		const key: IListenKey = { collection, query };
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
 			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
 		const stream = this.fire.merge('stateChanges', refs);
-		const sync = this.sync.bind(this, collection);
+		const sync = this.sync.bind(this, key);
 
-		this.off(collection);                             // detach any prior Subscription
-		this.listener[collection] = {
-			collection,
+		this.off(collection, query);											// detach any prior Subscription
+		this.listener.set(key, {
+			key,																						// save a reference to the key
 			ready,
+			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
 			uid: await this.getAuthUID(),
-			cnt: -1,																				// '-1' is not-yet-snapped, '0' is first snapshot
 			method: getMethod(collection),
 			subscribe: stream.subscribe(sync)
-		}
+		});
 
 		this.dbg('on: %s' + (query ? ', %j' : ''), collection, query || '');
 		return ready.promise;                             // indicate when snap0 is complete
@@ -64,9 +68,14 @@ export class SyncService {
 			.toPromise()
 	}
 
-	public status(collection: COLLECTION) {
-		const { cnt, ready: { promise: ready } } = this.listener[collection];
-		return { collection, cnt, ready };
+	public status(collection?: COLLECTION) {
+		const result: Partial<{ collection: string, query: IQuery, promise: boolean }>[] = [];
+
+		for (const [key, listen] of this.listener.entries())
+			if (isUndefined(collection) || collection === key.collection)
+				result.push({ collection: key.collection, query: key.query, promise: listen.ready.status })
+
+		return result;
 	}
 
 	/**
@@ -98,27 +107,24 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection: COLLECTION, trunc?: boolean) {
-		const listen = this.listener[collection];
+	public off(collection?: COLLECTION, query?: IQuery, trunc?: boolean) {
+		for (const [key, listen] of this.listener.entries()) {
+			if ((collection || key.collection) === key.collection && JSON.stringify((query || key.query)) === JSON.stringify(key.query)) {
+				this.dbg('off: %s %s', collection, query || '');
 
-		if (listen) {																			// are we listening?
-			if (isFunction(listen.subscribe.unsubscribe)) {
 				listen.subscribe.unsubscribe();
-				this.dbg('off: %s', collection);
+				trunc && this.store.dispatch(new listen.method.truncStore());
+
+				this.listener.delete(key);
 			}
-
-			if (trunc && listen.method)
-				this.store.dispatch(new listen.method.truncStore());
 		}
-
-		delete this.listener[collection];
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: COLLECTION, snaps: DocumentChangeAction<IStoreMeta>[]) {
-		const listen = this.listener[collection];
+	private async sync(key: IListenKey, snaps: DocumentChangeAction<IStoreMeta>[]) {
+		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
-		const isAdmin = listen.collection === COLLECTION.admin;
+		const isAdmin = key.collection === COLLECTION.admin;
 
 		const source = getSource(snaps);
 		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
@@ -131,7 +137,7 @@ export class SyncService {
 
 		listen.cnt += 1;
 		this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
-			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
+			key.collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0 && !isAdmin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID

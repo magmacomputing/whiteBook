@@ -18,7 +18,7 @@ export interface IOrderBy {
 }
 /** Collection.Query */
 export interface IQuery {
-	where?: TWhere;
+	where?: IWhere | IWhere[];
 	orderBy?: IOrderBy | IOrderBy[];
 	limit?: number;
 	startAt?: string;

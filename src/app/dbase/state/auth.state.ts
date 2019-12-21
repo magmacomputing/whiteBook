@@ -291,9 +291,10 @@ export class AuthState {
 
 	@Action([LoginFailed, LogoutSuccess])
 	private notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
-		this.sync.off(COLLECTION.member, true);
-		this.sync.off(COLLECTION.attend, true);
-		this.sync.off(COLLECTION.admin, true);
+		this.sync.off(COLLECTION.member);
+		this.sync.off(COLLECTION.attend);
+		this.sync.off(COLLECTION.forum);
+		this.sync.off(COLLECTION.admin, undefined, true);
 
 		if (error) {
 			this.dbg('logout: %j', error);

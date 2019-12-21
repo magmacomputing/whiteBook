@@ -28,7 +28,7 @@ import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
 import { sortKeys, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
-import { IPromise, createPromise } from '@lib/utility.library';
+import { IPromise, setPromise } from '@lib/utility.library';
 import { setLocalStore, getLocalStore } from '@lib/browser.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
@@ -62,7 +62,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
-		this.history = createPromise<MHistory[]>();
+		this.history = setPromise<MHistory[]>();
 
 		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
 		this.creditIdx = local.idx;
@@ -179,11 +179,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	async	signOut() {																					// signOut of 'on-behalf' mode
 		this.current = null;
-		// const state = await this.state.getAuthData().pipe(take(1)).toPromise();
-		// if (state.auth.user === null)
-		// 	return;																								// logged-out
-
-		this.history = createPromise<MHistory[]>();
+		this.history = setPromise<MHistory[]>();
 		this.hide = '';
 
 		this.store.dispatch(new AuthOther(this.user!.uid))
@@ -386,7 +382,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			table.splice(0, offset);
 		}
 		if (table.length) {
-			this.check = createPromise();
+			this.check = setPromise();
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
 			this.check.promise														// wait for pre-process to complete
 				.then(_ready => this.dbg('ready: %j', _ready))
@@ -549,7 +545,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched.elect = row.elect;
 		}
 
-		const p = createPromise<boolean>();
+		const p = setPromise<boolean>();
 
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))

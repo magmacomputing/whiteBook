@@ -29,7 +29,7 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
 export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const localState = getLocalStore<LState>(StoreStorage) || {};
-	const localSlice = localState[listen.collection] || {};
+	const localSlice = localState[listen.key.collection] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);
 
@@ -46,7 +46,7 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 		return true;                                  // ok, already sync'd
 	}
 
-	lprintf('SyncLibrary', '%s: %s / %s', listen.collection, localHash, storeHash);
+	lprintf('SyncLibrary', '%s: %s / %s', listen.key.collection, localHash, storeHash);
 	return false;
 }
 
