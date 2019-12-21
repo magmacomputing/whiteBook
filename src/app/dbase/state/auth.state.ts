@@ -77,13 +77,11 @@ export class AuthState {
 	private checkSession(ctx: StateContext<IAuthState>, { user }: CheckSession) {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
-		if (isNull(user) && isNull(this.user)) {
+		if (isNull(user) && isNull(this.user))
 			this.navigate.route(ROUTE.login);						// redirect to LoginComponent
-		}
 
-		if (isNull(user) && !isNull(this.user)) {			// TODO: does this affect OAuth logins
+		if (isNull(user) && !isNull(this.user))				// TODO: does this affect OAuth logins
 			ctx.dispatch(new Logout());									// User logged-out
-		}
 
 		if (!isNull(user) && isNull(this.user)) {
 			this.user = user;
@@ -233,14 +231,17 @@ export class AuthState {
 	}
 
 	@Action(AuthOther)															// behalf of another User
-	private otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
-		const state = ctx.getState();
+	private async otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
+		const authState = await this.auth;
+		if (!authState)
+			return;																			// no longer signed-In
 
+		const state = ctx.getState();
 		if (state.current && state.current.uid === member)
-		// if (state.current?.uid === member)
+			// if (state.current?.uid === member)
 			return;																			// nothing to do
 		if (state.current && getPath(state.current, 'customClaims.alias') === member)
-		// if (state.current?.customClaims?.alias === member)
+			// if (state.current?.customClaims?.alias === member)
 			return;																			// nothing to do
 
 		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])

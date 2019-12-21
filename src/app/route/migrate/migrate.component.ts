@@ -179,20 +179,22 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	async	signOut() {																					// signOut of 'on-behalf' mode
 		this.current = null;
-		const state = await this.state.getAuthData().pipe(take(1)).toPromise();
-		if (state.auth.user === null)
-			return;																								// logged-out
+		// const state = await this.state.getAuthData().pipe(take(1)).toPromise();
+		// if (state.auth.user === null)
+		// 	return;																								// logged-out
 
 		this.history = createPromise<MHistory[]>();
 		this.hide = '';
 
 		this.store.dispatch(new AuthOther(this.user!.uid))
 			.pipe(take(1))
-			.subscribe(_other => {
-				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
+			.subscribe(state => {
+				if (state.auth.user) {
+					const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
 
-				this.sync.on(COLLECTION.member, query);
-				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
+					this.sync.on(COLLECTION.member, query);
+					this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
+				}
 			})
 	}
 
