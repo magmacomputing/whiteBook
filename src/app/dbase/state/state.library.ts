@@ -125,6 +125,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 						.filter(row => now < (row[FIELD.expire] || getDate(row[FIELD.key]).endOf('day').ts))
 						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).ts))
 				}
+
 				const nodes = node && node.split('.') || [];
 				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
 
