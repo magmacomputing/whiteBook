@@ -10,7 +10,7 @@ import { SLICES, SORTBY } from '@library/config.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon, ICalendar } from '@dbase/data/data.schema';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@lib/array.library';
@@ -23,8 +23,6 @@ import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
 export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
-	if (store === STORE.comment)
-	debugger;
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -121,6 +119,12 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 			}),
 
 			map(res => {
+				if (store === STORE.calendar) {											// special logic to filter Calendar
+					const now = getDate(date).ts;
+					res[0] = (res[0] as ICalendar[])
+						.filter(row => now < (row[FIELD.expire] || getDate(row[FIELD.key]).endOf('day').ts))
+						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).ts))
+				}
 				const nodes = node && node.split('.') || [];
 				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
 

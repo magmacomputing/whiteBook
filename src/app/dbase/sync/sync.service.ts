@@ -155,7 +155,7 @@ export class SyncService {
 		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'deletes'
 
 		if (listen.cnt !== 0) {
-			snaps.forEach(async snap => {										// look for special actions to fire
+			snaps.forEach(async snap => {										// look for special actions to emit
 				const data = addMeta(snap);
 				if (data[FIELD.uid] === listen.uid) {					// but only for authenticated User
 					switch (snap.type) {

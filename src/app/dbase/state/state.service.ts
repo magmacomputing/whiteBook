@@ -275,8 +275,6 @@ export class StateService {
 		const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
 
 		const filterSchedule = addWhere('day', now.dow);
-		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay));
-		// const filterExtended = addWhere(FIELD.expire)
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.agenda}}`);
@@ -288,10 +286,6 @@ export class StateService {
 			addWhere(FIELD.type, STORE.schedule),
 			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
 		]
-		const filterRange = [
-			addWhere(FIELD.effect, Number.MIN_SAFE_INTEGER, '>'),
-			addWhere(FIELD.expire, Number.MAX_SAFE_INTEGER, '<'),
-		]
 		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
 		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
 		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
@@ -301,8 +295,7 @@ export class StateService {
 			map(([forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
-			joinDoc(this.states, 'client', STORE.calendar, filterCalendar, date, calendarDay),	// get calendar for this date
-			joinDoc(this.states, 'client', STORE.calendar, filterRange, date),									// get any blocked calendar-range
+			joinDoc(this.states, 'client', STORE.calendar, undefined, date, calendarDay),				// get calendar for this date
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date
 			joinDoc(this.states, 'client', STORE.class, filterTypeClass, date),									// get classes for this weekday
 			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get agenda for this calendar-date
