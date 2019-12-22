@@ -231,26 +231,33 @@ export class AuthState {
 	}
 
 	@Action(AuthOther)															// behalf of another User
-	private async otherMember(ctx: StateContext<IAuthState>, { member }: AuthOther) {
-		const authState = await this.auth;
-		if (!authState)
-			return;																			// no longer signed-In
+	private otherMember(ctx: StateContext<IAuthState>, { alias }: AuthOther) {
+		const currUser = ctx.getState().current;
+		const currAlias = getPath(currUser, 'customClaims.alias') as string | undefined;
+		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
 
-		const state = ctx.getState();
-		if (state.current && state.current.uid === member)
-			// if (state.current?.uid === member)
+		if (!currUser && !alias)
 			return;																			// nothing to do
-		if (state.current && getPath(state.current, 'customClaims.alias') === member)
-			// if (state.current?.customClaims?.alias === member)
-			return;																			// nothing to do
+
+		if (currAlias && alias !== currAlias && loginAlias !== currAlias) {				// signOut of previous AuthOther
+			const where = addWhere(FIELD.uid, currUser.uid);
+			this.sync.off(COLLECTION.member, { where });
+			this.sync.off(COLLECTION.attend, { where });
+		}
 
 		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
 			.pipe(
 				map(admin => admin[STORE.register]),			// get the Register segment
-				map(table => table.find(row => row[FIELD.uid] === member || getPath(row, 'user.customClaims.alias') === member)),
+				map(table => table.find(row => getPath(row, 'user.customClaims.alias') === alias)),
 			)
-			.subscribe(reg => ctx.patchState({ current: reg && reg.user }))
-			.unsubscribe()
+			.subscribe(reg => {
+				if (reg && reg.user) {
+					const where = addWhere(FIELD.uid, reg.user.uid);
+					this.sync.on(COLLECTION.member, { where });
+					this.sync.on(COLLECTION.attend, { where });
+				}
+				return ctx.patchState({ current: reg && reg.user || null });
+			})
 	}
 
 	@Action([LoginSetup, LoginSuccess])
@@ -291,10 +298,7 @@ export class AuthState {
 
 	@Action([LoginFailed, LogoutSuccess])
 	private notLogin(ctx: StateContext<IAuthState>, { error }: LoginFailed) {
-		this.sync.off(COLLECTION.member);
-		this.sync.off(COLLECTION.attend);
-		this.sync.off(COLLECTION.forum);
-		this.sync.off(COLLECTION.admin, undefined, true);
+		this.sync.off();												// disconnect all Listeners
 
 		if (error) {
 			this.dbg('logout: %j', error);

@@ -276,6 +276,7 @@ export class StateService {
 
 		const filterSchedule = addWhere('day', now.dow);
 		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay));
+		// const filterExtended = addWhere(FIELD.expire)
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.agenda}}`);

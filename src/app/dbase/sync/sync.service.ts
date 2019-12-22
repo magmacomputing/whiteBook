@@ -57,7 +57,7 @@ export class SyncService {
 			subscribe: stream.subscribe(sync)
 		});
 
-		this.dbg('on: %s' + (query ? ', %j' : ''), collection, query || '');
+		this.dbg('on: %s %j', collection, query || {});
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 
@@ -109,8 +109,9 @@ export class SyncService {
 	/** detach an existing snapshot listener */
 	public off(collection?: COLLECTION, query?: IQuery, trunc?: boolean) {
 		for (const [key, listen] of this.listener.entries()) {
-			if ((collection || key.collection) === key.collection && JSON.stringify((query || key.query)) === JSON.stringify(key.query)) {
-				this.dbg('off: %s %s', collection, query || '');
+			if ((collection || key.collection) === key.collection
+				&& JSON.stringify((query || key.query)) === JSON.stringify(key.query)) {
+				this.dbg('off: %s %j', key.collection, key.query || {});
 
 				listen.subscribe.unsubscribe();
 				trunc && this.store.dispatch(new listen.method.truncStore());
@@ -136,8 +137,8 @@ export class SyncService {
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
-			key.collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
+		this.dbg('sync: %s %j #%s detected from %s (add:%s, upd:%s, del:%s)',
+			key.collection, key.query || {}, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0 && !isAdmin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID

@@ -22,7 +22,7 @@ import { SetMember } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
-import { IQuery, TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
 import { sortKeys, cloneObj, getPath } from '@lib/object.library';
@@ -61,7 +61,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private events!: Record<string, IEvent>;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
+		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
 		this.history = setPromise<MHistory[]>();
 
 		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
@@ -85,8 +85,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	ngOnInit() { }
 
 	ngOnDestroy() {
-		if (this.current)
-			this.signOut();
+		// if (this.current)
+		// 	this.signOut();
 	}
 
 	/**
@@ -150,12 +150,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
-				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid].distinct()) };
-				await Promise.all([																	// initial sync complete
-					this.sync.on(COLLECTION.member, query),
-					this.sync.on(COLLECTION.attend, query),
-				]);
-
 				const action = 'history,status';
 				const { id, provider } = register.migrate!.providers[0];
 				this.fetch(action, `provider=${provider}&id=${id}`)
@@ -182,16 +176,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.history = setPromise<MHistory[]>();
 		this.hide = '';
 
-		this.store.dispatch(new AuthOther(this.user!.uid))
-			.pipe(take(1))
-			.subscribe(state => {
-				if (state.auth.user) {
-					const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
-
-					this.sync.on(COLLECTION.member, query);
-					this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
-				}
-			})
+		this.store.dispatch(new AuthOther());
 	}
 
 	/**
