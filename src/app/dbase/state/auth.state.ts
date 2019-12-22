@@ -239,7 +239,7 @@ export class AuthState {
 		if (!currUser && !alias)
 			return;																			// nothing to do
 
-		if (currAlias && alias !== currAlias && loginAlias !== currAlias) {				// signOut of previous AuthOther
+		if (currUser && currAlias && alias !== currAlias && loginAlias !== currAlias) {				// signOut of previous AuthOther
 			const where = addWhere(FIELD.uid, currUser.uid);
 			this.sync.off(COLLECTION.member, { where });
 			this.sync.off(COLLECTION.attend, { where });
