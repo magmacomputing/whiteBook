@@ -12,8 +12,7 @@ import { NavigateService } from '@route/router/navigate.service';
 export class AppComponent implements OnInit {
 	public app$ = this.state.getMemberData();
 
-	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService) { }
+	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService) {	}
 
 	ngOnInit() { }
-
 }

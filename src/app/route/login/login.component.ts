@@ -8,7 +8,7 @@ import { AuthService } from '@service/auth/auth.service';
 import { MemberService } from '@service/member/member.service';
 import { DataService } from '@dbase/data/data.service';
 
-import { FIELD, Auth, STORE } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
 import { StateService } from '@dbase/state/state.service';
 
