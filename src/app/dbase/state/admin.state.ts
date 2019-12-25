@@ -21,7 +21,7 @@ export class AdminState implements NgxsOnInit {
 
 	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /**this.init(); */}
 
 	private init() { this.dbg('init:'); }
 
