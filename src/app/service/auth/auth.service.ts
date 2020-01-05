@@ -49,7 +49,8 @@ export class AuthService {
 	}
 
 	public async signIn(provider: IProvider, opts: Record<string, any> = {}) {
-		this.dbg('signIn: %j', provider);
+		const { image, ...rest } = provider;								// drop the <image> for debug
+		this.dbg('signIn: %j', rest);
 
 		switch (provider[FIELD.type]) {
 			case undefined:
