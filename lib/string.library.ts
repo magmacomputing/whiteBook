@@ -30,7 +30,7 @@ export const randomString = (len = 36) =>
  * if the format does not contain a corresponding '%'-char, then de-construct the arguments
  */
 export const sprintf = (fmt: any, ...msg: any[]) => {
-	let sfmt = fmt;								// allow for changed fmt
+	let sfmt = fmt;								// avoid mutate fmt
 	if (isString(fmt) && !fmt.includes('%')) {
 		msg.unshift(fmt);						// put the format into the msg array
 		sfmt = msg     							// and build a new format string

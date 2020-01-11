@@ -255,7 +255,7 @@ export class StateService {
 	}
 
 	/**
-	 * Assemble an Object describing the Timetable for a specified date, as , where keys are:  
+	 * Assemble an Object describing the Timetable for a specified date, where keys are:  
 	 * schedule   -> has an array of Schedule info for the weekday of the date  
 	 * calendar		-> has the Calendar event for that date (to override regular class)  
 	 * event			-> has the Events that are indicated on that calendar
