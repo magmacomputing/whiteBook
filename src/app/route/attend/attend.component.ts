@@ -97,14 +97,14 @@ export class AttendComponent implements OnDestroy {
 			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
-		this.date = this.offset > 6			// only allow up-to 6 days in the past
-			? today												// else reset to today
+		this.date = this.offset > 6												// only allow up-to 6 days in the past
+			? today																					// else reset to today
 			: offset
 
-		this.getSchedule();							// get day's Schedule
+		this.getSchedule();																// get day's Schedule
 
 		if (!this.timerSubscription)
-			this.setTimer();							// set a Schedule-view timeout
+			this.setTimer();																// set a Schedule-view timeout
 	}
 
 	private getSchedule() {
@@ -119,7 +119,7 @@ export class AttendComponent implements OnDestroy {
 	/** If the Member is still sitting on this page at midnight, move this.date to next day */
 	private setTimer() {
 		const defer = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeOut: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
+		this.dbg('timeOut: %s', defer.format(Instant.FORMAT.dayTime));
 
 		this.timerSubscription && this.timerSubscription.unsubscribe();
 		this.timerSubscription = of(0)										// a single-emit Observable
