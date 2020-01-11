@@ -2,7 +2,7 @@ import { fix } from '@lib/number.library';
 import { asString, asNumber } from '@lib/string.library';
 import { getType, isString, isNumber, isUndefined } from '@lib/type.library';
 
-interface IInstant {											// Date components
+interface IInstant {											// Instant components
 	readonly yy: number;										// year[4]
 	readonly mm: number;										// month; Jan=1, Dec=12
 	readonly dd: number;										// day; 1-31
@@ -114,9 +114,9 @@ export class Instant {
 	/** milliseconds */		get ms() { return this.date.ms }
 	/** timezone offset */get tz() { return this.date.tz }
 	/** number of weeks*/	get ww() { return this.date.ww }
-	/** weekday number */	get dow() { return this.date.dow }
-	/** short day name */	get ddd() { return this.date.ddd }
 	/** short month name*/get mmm() { return this.date.mmm }
+	/** short day name */	get ddd() { return this.date.ddd }
+	/** weekday number */	get dow() { return this.date.dow }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting*/
@@ -142,7 +142,7 @@ export class Instant {
 	private parseDate = (dt?: TDate, args: TArgs = []) => {
 		let date: Date;
 
-		if (isString(dt) && Instant.PATTERN.hhmi.test(dt))								// if only HH:MI supplied...
+		if (isString(dt) && Instant.PATTERN.hhmi.test(dt))				// if only HH:MI supplied...
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
 		if ((isString(dt) || isNumber(dt)) && Instant.PATTERN.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
 			dt = asString(dt).replace(Instant.PATTERN.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
@@ -167,6 +167,7 @@ export class Instant {
 					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAYS[dt as keyof typeof Instant.WEEKDAYS]);
 					dt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
 				}
+
 				const fmt = dt as string;
 				date = args.length
 					? this.formatString(fmt, ...args)										// free-format string
