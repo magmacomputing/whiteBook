@@ -2,8 +2,8 @@ import { isString } from '@lib/type.library';
 import { sprintf } from '@lib/string.library';
 
 /** setup a reference for debug(), bind the current component name */
-export const dbg = (self: any) =>
-	lprintf.bind(self, self.constructor.name);
+export const dbg = (self: any, component?: string) =>
+	lprintf.bind(self, component || self.constructor.name);
 
 /** console.log() formatter */
 export const lprintf = (name: string = '', fmt?: any, ...msg: any[]) => {
