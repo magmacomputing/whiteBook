@@ -455,7 +455,7 @@ export namespace Instant {
 	export enum FORMAT {											// pre-configured format names
 		display = 'ddd, dd mmm yyyy',
 		dayTime = 'ddd, yyyy-mmm-dd HH:MI',
-		dateTime = 'yyyy-mm-dd HH:MI',
+		sortTime = 'yyyy-mm-dd HH:MI',					// useful for sorting display-strings
 		dayMonth = 'dd-mmm',
 		HHMI = 'HH:MI',													// 24-hour format
 		hhmi = 'hh:mi',													// 12-hour format
