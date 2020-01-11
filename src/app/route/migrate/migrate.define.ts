@@ -17,6 +17,13 @@ export const LOOKUP: Record<string, CLASS> = {
 	prevZumba: CLASS.Zumba,
 	prevZumbaStep: CLASS.ZumbaStep,
 	prevStepIn: CLASS.StepIn,
+	priorStep: CLASS.MultiStep,
+	priorSmartStep: CLASS.SmartStep,
+	priorStepDown: CLASS.StepDown,
+	priorAeroStep: CLASS.AeroStep,
+	priorHiLo: CLASS.HiLo,
+	priorZumba: CLASS.Zumba,
+	priorZumbaStep: CLASS.ZumbaStep,
 }
 
 export const SPECIAL = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];

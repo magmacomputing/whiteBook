@@ -20,7 +20,6 @@ import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
 import { SetMember } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
-import { SyncService } from '@dbase/sync/sync.service';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
@@ -396,7 +395,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let event: IEvent;
 		let idx: number = 0;
 		let migrate: IMigrate | undefined;
-		debugger;
+
 		if (SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
