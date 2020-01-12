@@ -64,7 +64,7 @@ export class AttendService {
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// check we are not re-booking same Class on same Day in same Location at same Time
+		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
 		const bookAttend = await this.data.getStore<IAttend>(STORE.attend, [
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(`track.${FIELD.date}`, when),
@@ -74,6 +74,7 @@ export class AttendService {
 		]);
 
 		if (bookAttend.length) {															// disallow same Class, same Note
+			debugger;
 			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 			return false;																				// discard Attend

@@ -11,8 +11,8 @@ import { AttendService } from '@service/member/attend.service';
 import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
 import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
-import { DataService } from '@dbase/data/data.service';
 
+import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
@@ -83,10 +83,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	ngOnInit() { }
 
-	ngOnDestroy() {
-		// if (this.current)
-		// 	this.signOut();
-	}
+	ngOnDestroy() { }
 
 	/**
 	 * Very drastic:  remove all references to a Member  
@@ -464,7 +461,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
-					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,// note: caldr.name,
+					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: row.note,
 				}
 				break;
 
@@ -492,7 +489,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
+					// note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
+					note: row.note, amount: price,
 				}
 				break;
 
