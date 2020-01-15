@@ -1,6 +1,6 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
-const SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
+enum SWIPE { left = 'swipeleft', right = 'swiperight' };
 const BASE_VELOCITY = 0.3;
 
 // allow for UI to swipe left/right
@@ -23,11 +23,11 @@ export const swipe = (thisIndex: number, lastIndex: number, event: any) => {
 			break;
 	}
 
-	if (event.type === SWIPE_ACTION.LEFT) {
+	if (event.type === SWIPE.left) {
 		const isLast = thisIndex + steps >= lastIndex - 1;
 		thisIndex = isLast ? lastIndex - 1 : thisIndex + steps;
 	}
-	if (event.type === SWIPE_ACTION.RIGHT) {
+	if (event.type === SWIPE.right) {
 		const isFirst = thisIndex - steps <= 0;
 		thisIndex = isFirst ? 0 : thisIndex - steps;
 	}
