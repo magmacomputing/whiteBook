@@ -8,8 +8,8 @@ import { Store } from '@ngxs/store';
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
+import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
+import { LOOKUP, PACK, SPECIAL, ADMIN_KEY } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
 
 import { DataService } from '@dbase/data/data.service';
@@ -24,7 +24,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
-import { sortKeys, cloneObj, getPath } from '@lib/object.library';
+import { sortKeys, cloneObj, getPath, ifObject } from '@lib/object.library';
 import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
 import { IPromise, setPromise } from '@lib/utility.library';
@@ -40,9 +40,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
 	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	private prefix = 'alert';
-	public hidden = false;
-	public creditIdx = 0;
-	public credit = ['value', 'zero', 'all'];
 
 	public dash$!: Observable<IAdminState["dash"]>;
 	private account$!: Observable<IAccountState>;
@@ -62,13 +59,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
 		this.history = setPromise<MHistory[]>();
+		this.filter();																					// restore the previous filter state
 
-		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
-		this.creditIdx = local.idx;
-		this.hidden = local.hidden;
-		this.filter();
-
-		Promise.all([
+		Promise.all([																						// fetch required Stores
 			this.state.getAuthData().pipe(take(1)).toPromise(),
 			this.data.getStore<ISchedule>(STORE.schedule),
 			this.data.getStore<ICalendar>(STORE.calendar),
@@ -77,7 +70,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.user = auth.auth.user;														// stash the Auth'd user
 			this.schedule = schedule;
 			this.calendar = calendar;
-			this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
+			this.events = events.groupBy(FIELD.key as string);
 		})
 	}
 
@@ -108,12 +101,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle showing Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
+		const admin = getLocalStore<IAdminStore>(ADMIN_KEY) || {};
+		const migrate = admin.migrate || { hidden: false, idx: 2 };
+		const credit = ['value', 'zero', 'all'];
+
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row.register.migrate)
-				.filter(row => !!row.register[FIELD.hidden] === this.hidden)
+				.filter(row => !!row.register[FIELD.hidden] === migrate.hidden)
 				.filter(row => {
-					switch (this.credit[this.creditIdx]) {
+					switch (credit[migrate.idx]) {
 						case 'all':
 							return true;
 						case 'value':
@@ -126,16 +123,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		switch (key) {
 			case 'hide':
-				this.hidden = !this.hidden;
+				migrate.hidden = !migrate.hidden;
 				break;
 			case 'credit':
-				this.creditIdx += 1;
-				if (!this.credit.hasOwnProperty(this.creditIdx))
-					this.creditIdx = 0;
+				migrate.idx += 1;
+				if (!credit.hasOwnProperty(migrate.idx))
+					migrate.idx = 0;
 				break;
 		}
 
-		setLocalStore('admin.migrate.filter', { hidden: this.hidden, idx: this.creditIdx });
+		setLocalStore(ADMIN_KEY, { ...admin, migrate });				// persist settings
 	}
 
 	async signIn(register: IRegister) {
@@ -411,10 +408,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			])
 			const obj = prices
 				.filter(row => row[FIELD.key] === plan[0].plan)
-				.reduce((accum, row) => {
-					accum[row[FIELD.type]] = row;
-					return accum;
-				}, {} as Record<PRICE, IPrice>)
+				.groupBy(FIELD.type as unknown as PRICE)
 			const sunday = bonus.find(row => row[FIELD.key] === BONUS.sunday);
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);

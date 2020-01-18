@@ -33,7 +33,7 @@ const setStorage = (key: string, obj: any, target: Storage) => {
 }
 
 const getStorage = <T>(key: string, target: Storage, dflt?: T) =>
-	ifObject<T>(target.getItem(key)) || dflt;
+	ifObject<T>(target.getItem(key)) as T || dflt;
 
 const delStorage = (key: string, target: Storage) =>
 	target.removeItem(key);
