@@ -50,6 +50,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private user!: firebase.UserInfo | null;
 	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
+	private admin = getLocalStore<IAdminStore>(ADMIN_KEY);
+	private credit = ['value', 'zero', 'all'];
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -101,16 +103,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle showing Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
-		const admin = getLocalStore<IAdminStore>(ADMIN_KEY) || {};
-		const migrate = admin.migrate || { hidden: false, idx: 2 };
-		const credit = ['value', 'zero', 'all'];
+		this.admin = getLocalStore<IAdminStore>(ADMIN_KEY) || {};
+		const migrate = this.admin.migrate || { hidden: false, idx: 2 };
 
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row.register.migrate)
 				.filter(row => !!row.register[FIELD.hidden] === migrate.hidden)
 				.filter(row => {
-					switch (credit[migrate.idx]) {
+					switch (this.credit[migrate.idx]) {
 						case 'all':
 							return true;
 						case 'value':
@@ -127,12 +128,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 			case 'credit':
 				migrate.idx += 1;
-				if (!credit.hasOwnProperty(migrate.idx))
+				if (!this.credit.hasOwnProperty(migrate.idx))
 					migrate.idx = 0;
 				break;
 		}
 
-		setLocalStore(ADMIN_KEY, { ...admin, migrate });				// persist settings
+		setLocalStore(ADMIN_KEY, { ...this.admin, migrate });				// persist settings
 	}
 
 	async signIn(register: IRegister) {
