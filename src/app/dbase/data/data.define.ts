@@ -42,6 +42,8 @@ export enum STORE {
 	schema = '_schema_',
 	register = 'register',
 	import = 'import',
+	account = 'account',
+	connect = 'connect',
 	// Forum
 	comment = 'comment',
 	react = 'react',

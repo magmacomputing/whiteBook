@@ -5,7 +5,7 @@ import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
 	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
-	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment,
+	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment, IImport,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -46,15 +46,16 @@ export interface IUserState {
 
 export interface IAdminState {
 	[STORE.register]: IRegister[];
-	account: IStatusAccount[];
-	connect: IStatusConnect[];
+	[STORE.account]: IStatusAccount[];
+	[STORE.connect]: IStatusConnect[];
+	[STORE.import]: IImport[];
 	dash: {
 		[STORE.register]: IRegister;
-		account: IStatusAccount;
-		connect: IStatusConnect;
+		[STORE.account]?: IStatusAccount;
+		[STORE.connect]?: IStatusConnect;
+		[STORE.import]?: IImport;
 	}[]
-};
-
+}
 
 export interface IApplicationState {		// application-wide settings
 	application: {
