@@ -106,7 +106,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.admin = getLocalStore<IAdminStore>(ADMIN_KEY) || {};
 		const migrateFilter = this.admin.migrate || { hidden: false, idx: 2 };
 
-		console.log('migrateFilter: ', migrateFilter);
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row.import)
@@ -148,8 +147,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.pipe(take(1))
 			.subscribe(async _other => {
 				const action = 'history,status';
-				const { uid, providerId } = register.user.providerData![0] as UserInfo;
-				this.fetch(action, `provider=${providerId}&id=${uid}`)
+				const { id, provider } = import_.providers![0];
+				this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
 						return (resp.history || []).sort(sortKeys(FIELD.stamp));
