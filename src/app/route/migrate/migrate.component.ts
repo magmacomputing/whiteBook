@@ -200,6 +200,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.data.batch(creates, updates);
 	}
 
+	get credit() {
+		return CREDIT;
+	}
+
 	/** get the data needed to migrate a Member */
 	private async getMember() {
 		return Promise.all([
