@@ -11,7 +11,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
-import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase, IComment, IReact } from '@dbase/data/data.schema';
+import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase, IComment, IReact, IImport } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
@@ -21,6 +21,7 @@ import { asArray } from '@lib/array.library';
 import { Instant, TDate, getDate } from '@lib/instant.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
+import { sortedChanges } from '@angular/fire/firestore';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -97,22 +98,26 @@ export class StateService {
 	 * dash.register	-> has an array of the current state of /admin/register
 	 * dash.account		-> has an array of the current value of /admin/account
 	 * dash.connect 	-> has an array of the current connections in /admin/connect
+	 * dash.import		-> has an array of the current state of /admin/import
 	 */
 	getAdminData(): Observable<IAdminState> {
 		return this.admin$.pipe(
 			map(source => ({
 				[STORE.register]: source[STORE.register] as IRegister[],
-				account: source.account as IStatusAccount[],
-				connect: source.connect as IStatusConnect[],
+				[STORE.account]: source[STORE.account] as IStatusAccount[],
+				[STORE.connect]: source[STORE.connect] as IStatusConnect[],
+				[STORE.import]: source[STORE.import] as IImport[],
 				dash: [...(source[STORE.register] || [])]
 					.sort(sortKeys(...asArray(SORTBY[STORE.register])))
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
-						account: (source.account || [])
+						[STORE.account]: (source[STORE.account] || [])
 							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as IStatusAccount,
-						connect: (source.connect || [])
+						[STORE.connect]: (source[STORE.connect] || [])
 							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as IStatusConnect,
-					})),
+						[STORE.import]: (source[STORE.import] || [])
+							.find(migrate => migrate[FIELD.uid] === reg[FIELD.uid]) as IImport,
+					}))
 			}))
 		)
 	}

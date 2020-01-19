@@ -4,6 +4,9 @@ export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] :
 
 declare global {
 	interface Array<T> {
+		/** return reduced Array as keyed-Object */
+		groupBy<K extends string>(key: K): Record<K, T>;
+
 		/** return new Array with no repeated elements */
 		distinct(): T[];
 		/** return mapped Array with no repeated elements */
@@ -15,6 +18,12 @@ declare global {
 		/** return cartesian-product of Array of Arrays */
 		cartesian(): T;
 		cartesian(...args: T[][]): T[];
+	}
+}
+
+if (!Array.prototype.hasOwnProperty('groupBy')) {
+	Array.prototype.groupBy = function (key = 'key' as any) {
+		return this.reduce((acc, row) => { acc[row[key]] = row; return acc; }, {});
 	}
 }
 

@@ -8,7 +8,7 @@ import { TString } from '@lib/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
-type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status;
+type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status | STORE.import;
 type TStoreForum = STORE.comment | STORE.react;
 
 export type FBoolean = boolean | undefined | firestore.FieldValue;
@@ -58,6 +58,17 @@ export interface IForumBase extends IMeta {
 		date: number;													// yearMonthDay
 		[key: string]: string | number;				// additional info to assist tracking
 	},
+}
+export interface IImport extends IUserBase {
+	[FIELD.store]: STORE.import;						// record of Google Sheet on migrate
+	credit: number;
+	email: string;
+	picture: string;
+	plan: string;
+	sheetName: string;
+	uid: string;
+	userName: string;
+	providers: TProviderInfo[]
 }
 export interface IMigrate extends IMeta {	// these allow for reconciliation of migrated event
 	[FIELD.store]: STORE.migrate;
@@ -437,16 +448,6 @@ type TProviderInfo = {
 export interface IRegister extends IUserBase {
 	[FIELD.store]: STORE.register;
 	user: TUser;
-	migrate?: {
-		credit: number;
-		email: string;
-		picture: string;
-		plan: string;
-		sheetName: string;
-		uid: string;
-		userName: string;
-		providers: TProviderInfo[]
-	};
 }
 
 //	/member/status
