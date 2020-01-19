@@ -2,19 +2,19 @@ import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { take, map, retry } from 'rxjs/operators';
-import { firestore } from 'firebase/app';
+import { firestore, UserInfo } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, ADMIN_KEY } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL, ADMIN_KEY, CREDIT } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment } from '@dbase/data/data.schema';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, IImport } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
@@ -24,7 +24,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
-import { sortKeys, cloneObj, getPath, ifObject } from '@lib/object.library';
+import { sortKeys, cloneObj, getPath } from '@lib/object.library';
 import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
 import { asString, asNumber } from '@lib/string.library';
 import { IPromise, setPromise } from '@lib/utility.library';
@@ -43,15 +43,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	public dash$!: Observable<IAdminState["dash"]>;
 	private account$!: Observable<IAccountState>;
+	private user!: firebase.UserInfo | null;
 	private history: IPromise<MHistory[]>;
 	private status!: { [key: string]: any };
 	private migrate!: IMigrate[];
 	private current: IRegister | null = null;
-	private user!: firebase.UserInfo | null;
+	private import_: IImport | null = null;
 	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
 	private admin = getLocalStore<IAdminStore>(ADMIN_KEY);
-	private credit = ['value', 'zero', 'all'];
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -82,7 +82,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	/**
 	 * Very drastic:  remove all references to a Member  
-	 * use getFire() to delete direct from Firestore (and not from NGXS)
+	 * uses getFire() to delete directly from Firestore (and not from State)
 	 */
 	async delUser() {
 		const where: TWhere = addWhere(FIELD.uid, this.current!.uid);
@@ -104,14 +104,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 */
 	public filter(key?: 'hide' | 'credit') {
 		this.admin = getLocalStore<IAdminStore>(ADMIN_KEY) || {};
-		const migrate = this.admin.migrate || { hidden: false, idx: 2 };
+		const migrateFilter = this.admin.migrate || { hidden: false, idx: 2 };
 
+		console.log('migrateFilter: ', migrateFilter);
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
-				.filter(row => row.register.migrate)
-				.filter(row => !!row.register[FIELD.hidden] === migrate.hidden)
+				.filter(row => row.import)
+				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
 				.filter(row => {
-					switch (this.credit[migrate.idx]) {
+					switch (CREDIT[migrateFilter.idx]) {
 						case 'all':
 							return true;
 						case 'value':
@@ -120,33 +121,35 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
-			))
+			)
+		)
 
 		switch (key) {
 			case 'hide':
-				migrate.hidden = !migrate.hidden;
+				migrateFilter.hidden = !migrateFilter.hidden;
 				break;
 			case 'credit':
-				migrate.idx += 1;
-				if (!this.credit.hasOwnProperty(migrate.idx))
-					migrate.idx = 0;
+				migrateFilter.idx += 1;
+				if (migrateFilter.idx >= CREDIT.length)
+					migrateFilter.idx = 0;
 				break;
 		}
 
-		setLocalStore(ADMIN_KEY, { ...this.admin, migrate });				// persist settings
+		setLocalStore(ADMIN_KEY, { ...this.admin, migrateFilter });				// persist settings
 	}
 
-	async signIn(register: IRegister) {
+	async signIn(register: IRegister, import_: IImport) {
 		if (this.current && this.current!.user.customClaims!.alias === register.user.customClaims!.alias)
-			return this.signOut();																// <click> on picture will signIn / signOut
-		this.current = register;																// stash current Member
+			return this.signOut();																		// <click> on picture will signIn / signOut
+		this.current = register;																		// stash current Member
+		this.import_ = import_;																			// stash Members Import sheet
 
 		this.store.dispatch(new AuthOther(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
 				const action = 'history,status';
-				const { id, provider } = register.migrate!.providers[0];
-				this.fetch(action, `provider=${provider}&id=${id}`)
+				const { uid, providerId } = register.user.providerData![0] as UserInfo;
+				this.fetch(action, `provider=${providerId}&id=${uid}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
 						return (resp.history || []).sort(sortKeys(FIELD.stamp));
