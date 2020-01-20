@@ -169,6 +169,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	async	signOut() {																					// signOut of 'on-behalf' mode
 		this.current = null;
+		this.import_ = null;
 		this.history = setPromise<MHistory[]>();
 		this.hide = '';
 
