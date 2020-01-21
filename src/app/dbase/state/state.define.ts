@@ -49,7 +49,7 @@ export interface IAdminState {
 	[STORE.account]: IStatusAccount[];
 	[STORE.connect]: IStatusConnect[];
 	[STORE.import]: IImport[];
-	dash: {
+	dash: {																// align elements of each Admin Array by UID
 		[STORE.register]: IRegister;
 		[STORE.account]?: IStatusAccount;
 		[STORE.connect]?: IStatusConnect;

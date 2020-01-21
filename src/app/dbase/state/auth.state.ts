@@ -232,8 +232,11 @@ export class AuthState {
 
 	@Action(AuthOther)															// behalf of another User
 	private otherMember(ctx: StateContext<IAuthState>, { alias }: AuthOther) {
+		debugger;
+
 		const currUser = ctx.getState().current;
 		const currAlias = getPath(currUser, 'customClaims.alias') as string | undefined;
+		const loginUser = ctx.getState().user;
 		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
 
 		if (!currUser && !alias)
@@ -252,7 +255,7 @@ export class AuthState {
 			)
 			.subscribe(reg => {
 				if (reg && reg.user) {
-					const where = addWhere(FIELD.uid, reg.user.uid);
+					const where = addWhere(FIELD.uid, [loginUser!.uid, reg.user.uid]);
 					this.sync.on(COLLECTION.member, { where });
 					this.sync.on(COLLECTION.attend, { where });
 				}

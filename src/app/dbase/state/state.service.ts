@@ -21,7 +21,6 @@ import { asArray } from '@lib/array.library';
 import { Instant, TDate, getDate } from '@lib/instant.library';
 import { cloneObj, sortKeys } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
-import { sortedChanges } from '@angular/fire/firestore';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -116,7 +115,7 @@ export class StateService {
 						[STORE.connect]: (source[STORE.connect] || [])
 							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as IStatusConnect,
 						[STORE.import]: (source[STORE.import] || [])
-							.find(migrate => migrate[FIELD.uid] === reg[FIELD.uid]) as IImport,
+							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as IImport,
 					}))
 			}))
 		)
