@@ -165,8 +165,8 @@ export class StateService {
 	 */
 	getMemberData(date?: TDate): Observable<IMemberState> {
 		const filterProfile = [
-			addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   // where the <type> is either 'plan', 'info', 'gift' or 'account'
-			addWhere(FIELD.uid, '{{auth.current.uid}}'),  		// and the <uid> is current active User
+			addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
+			addWhere(FIELD.uid, '{{auth.current.uid}}'),  								// and the <uid> is current active User
 		]
 		const filterPlan = addWhere(FIELD.key, '{{member.plan[0].plan}}');
 		const filterMessage = addWhere(FIELD.type, 'alert');
@@ -279,6 +279,7 @@ export class StateService {
 		const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
 
 		const filterSchedule = addWhere('day', now.dow);
+		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>=');
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.agenda}}`);
@@ -294,7 +295,7 @@ export class StateService {
 		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
 		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay))];
-
+		console.log('filterCalendar: ', filterCalendar);
 		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
 			map(([forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),

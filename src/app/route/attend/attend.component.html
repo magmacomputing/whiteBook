@@ -19,13 +19,21 @@
 				<h3> {{ loc.name }} </h3>
 				<div *ngFor="let alert of timetable.client?.alert;">
 					<p>{{ alert.note }}</p>
+					<hr>
 				</div>
 				<div *ngIf="timetable.bonus">
 					<p>{{ timetable.bonus.desc }}</p>
 				</div>
-				<div *ngFor="let calendar of timetable.client?.calendar;">
-					<p>{{ calendar.name }} </p>
-					<p>{{ calendar.desc }}</p>
+
+				<div *ngIf="timetable.client?.calendar?.length">
+					<fieldset id="fsComments" style="border-width:1px;">
+						<legend id="wbCommentLegend">Calendar</legend>
+						<div *ngFor="let calendar of timetable.client?.calendar;">
+							<p>{{ calendar.desc }}</p>
+							<p>{{ calendar.name }} </p>
+							<hr>
+						</div>
+					</fieldset>
 				</div>
 
 				<div *ngIf="timetable.client?.location.length > 1">
