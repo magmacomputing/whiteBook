@@ -15,43 +15,43 @@ export enum COLLECTION {
 
 export enum STORE {
 	// Client
-	provider = 'provider',
 	alert = 'alert',
+	bonus = 'bonus',
+	calendar = 'calendar',
 	class = 'class',
 	event = 'event',
-	price = 'price',
-	plan = 'plan',
 	icon = 'icon',
-	schedule = 'schedule',
-	calendar = 'calendar',
-	location = 'location',
 	instructor = 'instructor',
-	bonus = 'bonus',
+	location = 'location',
+	plan = 'plan',
+	price = 'price',
+	provider = 'provider',
+	schedule = 'schedule',
 	span = 'span',
-	// Member
-	profile = 'profile',
-	payment = 'payment',
-	setting = 'setting',
-	migrate = 'migrate',
-	message = 'message',
-	status = 'status',
-	gift = 'gift',
-	// Admin
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
-	register = 'register',
-	import = 'import',
-	account = 'account',
-	connect = 'connect',
+	// Member
+	gift = 'gift',
+	payment = 'payment',
+	message = 'message',
+	migrate = 'migrate',
+	profile = 'profile',
+	setting = 'setting',
+	status = 'status',
+	// Admin
+	account = 'account',						// summary of Member's current account balance
+	connect = 'connect',						// Member's connection status
+	import = 'import',							// imported details from Google Apps Sheets
+	register = 'register',					// copy of Firestore Authentication object
 	// Forum
 	comment = 'comment',
 	react = 'react',
 	// Attend
 	attend = 'attend',
 	// misc
-	log = 'log',
 	local = '@config@',
+	log = 'log',
 }
 
 export enum FIELD {								// common Field names
@@ -62,17 +62,17 @@ export enum FIELD {								// common Field names
 	access = '_access',							// date-time accessed
 	hidden = '_hidden',							// valid, but not displayed to User
 	disable = '_disable',						// displayed, but greyed to User
-	unknown = 'unknown',
+	id = '_id',
+	key = 'key',
+	type = 'type',
+	store = 'store',
 	stamp = 'stamp',
+	uid = 'uid',
 	note = 'note',
 	date = 'date',
-	id = '_id',
-	uid = 'uid',
-	store = 'store',
 	sort = 'sort',
-	type = 'type',
 	image = 'image',
-	key = 'key',
+	unknown = 'unknown',
 };
 
 export enum CLASS {
@@ -89,8 +89,8 @@ export enum CLASS {
 }
 
 export enum MESSAGE {
-	diary = 'diary',
-	alert = 'alert',
+	// diary = 'diary',
+	// alert = 'alert',
 }
 
 export enum EVENT {
