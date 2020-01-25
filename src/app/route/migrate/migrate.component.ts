@@ -491,8 +491,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					// note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 					note: row.note, amount: price,
+					// note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 				}
 				break;
 

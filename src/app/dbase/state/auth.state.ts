@@ -232,35 +232,47 @@ export class AuthState {
 
 	@Action(AuthOther)															// behalf of another User
 	private otherMember(ctx: StateContext<IAuthState>, { alias }: AuthOther) {
-		debugger;
-
 		const currUser = ctx.getState().current;
-		const currAlias = getPath(currUser, 'customClaims.alias') as string | undefined;
 		const loginUser = ctx.getState().user;
 		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
+		const loginUID = (loginUser && loginUser.uid) as string;
 
 		if (!currUser && !alias)
 			return;																			// nothing to do
+		if (alias && alias === loginAlias)
+			return;																			// already auth'd
 
-		if (currUser && currAlias && alias !== currAlias && loginAlias !== currAlias) {				// signOut of previous AuthOther
-			const where = addWhere(FIELD.uid, currUser.uid);
-			this.sync.off(COLLECTION.member, { where });
-			this.sync.off(COLLECTION.attend, { where });
+		if (!alias) {
+			this.syncUID(loginUID);
+			return;
 		}
 
-		return this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
+		/**
+		 * get /admin/register to lookup the <uid> for the supplied <alias>.  
+		 * establish a listener for the loginUID and the register uid
+		 */
+		this.store.selectOnce<TStateSlice<IRegister>>(state => state[SLICE.admin])
 			.pipe(
 				map(admin => admin[STORE.register]),			// get the Register segment
 				map(table => table.find(row => getPath(row, 'user.customClaims.alias') === alias)),
 			)
 			.subscribe(reg => {
-				if (reg && reg.user) {
-					const where = addWhere(FIELD.uid, [loginUser!.uid, reg.user.uid]);
-					this.sync.on(COLLECTION.member, { where });
-					this.sync.on(COLLECTION.attend, { where });
-				}
-				return ctx.patchState({ current: reg && reg.user || null });
+				if (reg && reg.user)
+					this.syncUID([loginUID, reg.user.uid]);
+
+				ctx.patchState({ current: reg && reg.user || null });
 			})
+	}
+
+	private syncUID(uids: string | string[] | null) {
+		if (uids) {
+			this.sync.off(COLLECTION.member);						// unsubscribe from /member
+			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend
+
+			const where = addWhere(FIELD.uid, uids);
+			this.sync.on(COLLECTION.member, { where });	// re-subscribe to /member, with supplied UIDs
+			this.sync.on(COLLECTION.attend, { where });	// re-subscribe to /attend, with supplied UIDs
+		}
 	}
 
 	@Action([LoginSetup, LoginSuccess])

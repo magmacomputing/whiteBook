@@ -90,7 +90,7 @@ export class SyncService {
 				ofActionDispatched(event), 											// listen for an NGXS event
 				debounce(_ => timer(500)), 											// let State settle
 				take(1), 																				// unsubscribe after first occurence
-				timeout(timeOut)
+				timeout(timeOut)																// but wait on max <timeOut> ms
 			)
 				.subscribe(
 					payload => {
