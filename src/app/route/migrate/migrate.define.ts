@@ -28,6 +28,5 @@ export const LOOKUP: Record<string, CLASS> = {
 
 export const SPECIAL = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
 export const PACK = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
-export const ADMIN_KEY = '@@ADMIN';
 
 export const CREDIT = ['value', 'zero', 'all'];

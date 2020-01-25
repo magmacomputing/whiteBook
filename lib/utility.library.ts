@@ -1,7 +1,7 @@
 
 export interface IPromise<T> {
 	promise: Promise<T>;
-	status: boolean;
+	status?: boolean;
 	resolve: (value?: T | PromiseLike<T> | undefined) => void;
 	reject: (reason?: any) => void;
 }

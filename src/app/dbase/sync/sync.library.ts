@@ -33,12 +33,12 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);
 
-	Object.keys(localSlice).forEach(key => localList.push(...localSlice[key].map(remMeta)));
+	Object.entries(localSlice).forEach(([_key, value]) => localList.push(...value.map(remMeta)));
 	const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
 	const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
 	const [localHash, storeHash] = await Promise.all([
 		cryptoHash(localSort),
-		cryptoHash(snapSort)
+		cryptoHash(snapSort),
 	]);
 
 	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
@@ -52,12 +52,12 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 
 // TODO: call to meta introduces an unacceptable delay (for payback at this time)
 export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire?: any) => {//FireService) => {
-	// const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
+	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		[FIELD.id]: snap.payload.doc.id,
-		// [FIELD.create]: meta[FIELD.create],
-		// [FIELD.update]: meta[FIELD.update],
-		// [FIELD.access]: meta[FIELD.access],
+		[FIELD.create]: meta[FIELD.create],
+		[FIELD.update]: meta[FIELD.update],
+		[FIELD.access]: meta[FIELD.access],
 		...snap.payload.doc.data()
 	} as TStoreBase
 }

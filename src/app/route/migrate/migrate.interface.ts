@@ -28,7 +28,7 @@ export interface MHistory {
 }
 
 export interface IAdminStore {
-	migrate?: {
+	migrateFilter?: {
 		hidden: boolean;
 		idx: number;
 	}

@@ -2,14 +2,14 @@ import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { take, map, retry } from 'rxjs/operators';
-import { firestore, UserInfo } from 'firebase/app';
+import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, ADMIN_KEY, CREDIT } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL, CREDIT } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
 
 import { DataService } from '@dbase/data/data.service';
@@ -20,6 +20,7 @@ import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
 import { SetMember } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
+import { AdminStorage } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
@@ -51,7 +52,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private import_: IImport | null = null;
 	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
-	private admin = getLocalStore<IAdminStore>(ADMIN_KEY);
+	private admin: IAdminStore = {};
 	public hide = 'Un';
 
 	private schedule!: ISchedule[];
@@ -103,8 +104,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle showing Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
-		this.admin = getLocalStore<IAdminStore>(ADMIN_KEY) || {};
-		const migrateFilter = this.admin.migrate || { hidden: false, idx: 2 };
+		this.admin = getLocalStore(AdminStorage) || {};
+		const migrateFilter = this.admin.migrateFilter || { hidden: false, idx: 2 };
 
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
@@ -134,7 +135,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		setLocalStore(ADMIN_KEY, { ...this.admin, migrateFilter });				// persist settings
+		setLocalStore(AdminStorage, { ...this.admin, migrateFilter });				// persist settings
 	}
 
 	async signIn(register: IRegister, import_: IImport) {

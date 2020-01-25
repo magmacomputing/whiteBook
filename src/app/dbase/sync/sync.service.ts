@@ -47,7 +47,7 @@ export class SyncService {
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, key);
 
-		this.off(collection, query);											// detach any prior Subscription
+		this.off(collection, query);											// detach any prior Subscription of the same signature
 		this.listener.set(key, {
 			key,																						// save a reference to the key
 			ready,
@@ -125,7 +125,6 @@ export class SyncService {
 	private async sync(key: IListenKey, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
-		const isAdmin = key.collection === COLLECTION.admin;
 
 		const source = getSource(snaps);
 		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
@@ -140,7 +139,7 @@ export class SyncService {
 		this.dbg('sync: %s %j #%s detected from %s (add:%s, upd:%s, del:%s)',
 			key.collection, key.query || {}, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-		if (listen.cnt === 0 && !isAdmin) {               // initial snapshot, but Admin will arrive in multiple snapshots
+		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps))
 				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot

@@ -243,7 +243,7 @@ export class AuthState {
 			return;																			// already auth'd
 
 		if (!alias) {
-			this.syncUID(loginUID);
+			this.syncUID(loginUID);											// reset /member and /attend listeners
 			return;
 		}
 

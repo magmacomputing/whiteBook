@@ -30,3 +30,4 @@ export interface IListen {
 }
 
 export const StoreStorage = '@@STATE';	// NGXS Store in localStorage
+export const AdminStorage = '@@ADMIN';	// Administrator settings
