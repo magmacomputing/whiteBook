@@ -120,10 +120,10 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 
 			map(res => {
 				if (store === STORE.calendar && !isUndefined(date)) {	// special logic to filter Calendar
-					const now = getDate(date).ts;
+					const now = getDate(date).ts;												// because it does not generally track _effect/_expire
 					res[0] = (res[0] as ICalendar[])
 						.filter(row => now < (row[FIELD.expire] || getDate(row[FIELD.key]).endOf('day').ts))
-						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).startOf('day').ts))
+						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).ts))
 				}
 
 				const nodes = node && node.split('.') || [];					// specific branch on node

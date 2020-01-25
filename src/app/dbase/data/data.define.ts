@@ -28,7 +28,6 @@ export enum STORE {
 	instructor = 'instructor',
 	bonus = 'bonus',
 	span = 'span',
-	diary = 'diary',
 	// Member
 	profile = 'profile',
 	payment = 'payment',
