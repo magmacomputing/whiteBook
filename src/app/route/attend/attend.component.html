@@ -25,10 +25,10 @@
 					<p>{{ timetable.bonus.desc }}</p>
 				</div>
 
-				<div *ngIf="timetable.client?.calendar?.length">
+				<div *ngIf="timetable.client?.diary?.length">
 					<fieldset id="fsComments" style="border-width:1px;">
-						<legend id="wbCommentLegend">Calendar</legend>
-						<div *ngFor="let calendar of timetable.client?.calendar;">
+						<legend id="wbCommentLegend">Upcoming Events</legend>
+						<div *ngFor="let calendar of timetable.client?.diary;">
 							<p>{{ calendar.desc }}</p>
 							<p>{{ calendar.name }} </p>
 							<hr>

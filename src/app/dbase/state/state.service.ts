@@ -262,6 +262,7 @@ export class StateService {
 	 * Assemble an Object describing the Timetable for a specified date, where keys are:  
 	 * schedule   -> has an array of Schedule info for the weekday of the date  
 	 * calendar		-> has the Calendar event for that date (to override regular class)  
+	 * diary			-> has the future Calendar events
 	 * event			-> has the Events that are indicated on that calendar
 	 * class      -> has the Classes that are available on that schedule or event  
 	 * location   -> has the Locations that are indicated on that schedule or calendar
@@ -279,7 +280,7 @@ export class StateService {
 		const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
 
 		const filterSchedule = addWhere('day', now.dow);
-		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>=');
+		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>');
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterTypeEvent = addWhere(FIELD.key, `{{client.event.agenda}}`);
@@ -287,20 +288,21 @@ export class StateService {
 		const filterInstructor = addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
 		const filterIcon = addWhere(FIELD.type, [STORE.class, STORE.default]);
-		const filterAlert = [
-			addWhere(FIELD.type, STORE.schedule),
-			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
-		]
 		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
 		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
 		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay))];
-		console.log('filterCalendar: ', filterCalendar);
+		const filterAlert = [
+			addWhere(FIELD.type, STORE.schedule),
+			addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
+		]
+
 		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
 			map(([forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
 			joinDoc(this.states, 'client', STORE.calendar, undefined, date, calendarDay),				// get calendar for this date
+			joinDoc(this.states, 'client.diary', STORE.calendar, filterCalendar),								// get future events
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date
 			joinDoc(this.states, 'client', STORE.class, filterTypeClass, date),									// get classes for this weekday
 			joinDoc(this.states, 'client', STORE.class, filterTypeEvent, date),									// get agenda for this calendar-date

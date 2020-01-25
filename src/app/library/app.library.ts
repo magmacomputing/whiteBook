@@ -82,6 +82,6 @@ export const asAt = <T>(table: T[], cond: TWhere = [], date?: TDate) => {
 	return filterTable(table as (T & IMeta)[], cond)		// return the rows where date is between _effect and _expire
 		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
-		.filter(row => !row[FIELD.hidden])								// discard rows that are not visible
+		.filter(row => !row[FIELD.hidden])								// discard rows that should not be visible
 		.map(row => row as T)
 }

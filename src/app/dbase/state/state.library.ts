@@ -119,21 +119,21 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 			}),
 
 			map(res => {
-				if (store === STORE.calendar) {											// special logic to filter Calendar
+				if (store === STORE.calendar && !isUndefined(date)) {	// special logic to filter Calendar
 					const now = getDate(date).ts;
 					res[0] = (res[0] as ICalendar[])
 						.filter(row => now < (row[FIELD.expire] || getDate(row[FIELD.key]).endOf('day').ts))
-						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).ts))
+						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).startOf('day').ts))
 				}
 
-				const nodes = node && node.split('.') || [];
+				const nodes = node && node.split('.') || [];					// specific branch on node
 				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
 							const type = (getSlice(store) === COLLECTION.client)
-								? row[FIELD.store]
+								? (nodes[1] || row[FIELD.store])
 								: (nodes[1] || row[FIELD.type] || row[FIELD.store])
 
 							joins[type] = joins[type] || [];

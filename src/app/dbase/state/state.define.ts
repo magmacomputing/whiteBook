@@ -135,6 +135,7 @@ export interface ITimetableState extends IMemberState, IApplicationState {
 		class?: IClass[];
 		event?: IEvent[];
 		calendar?: ICalendar[];
+		diary?: ICalendar[];
 		location?: ILocation[];
 		instructor?: IInstructor[];
 		plan?: IPlan[];
