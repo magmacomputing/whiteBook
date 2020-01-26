@@ -6,11 +6,7 @@ import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 
 import { LState } from '@dbase/state/state.define';
-import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
-import { SetClient, DelClient, TruncClient } from '@dbase/state/state.action';
-import { SetMember, DelMember, TruncMember } from '@dbase/state/state.action';
-import { SetAttend, DelAttend, TruncAttend } from '@dbase/state/state.action';
-import { SetAdmin, DelAdmin, TruncAdmin } from '@dbase/state/state.action';
+import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { sortKeys } from '@lib/object.library';
@@ -74,19 +70,19 @@ export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
 export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
 		case COLLECTION.client:
-			return { setStore: SetClient, delStore: DelClient, truncStore: TruncClient }
+			return { setStore: Client.Set, delStore: Client.Del, truncStore: Client.Trunc }
 
 		case COLLECTION.member:
-			return { setStore: SetMember, delStore: DelMember, truncStore: TruncMember }
+			return { setStore: Member.Set, delStore: Member.Del, truncStore: Member.Trunc }
 
 		case COLLECTION.attend:
-			return { setStore: SetAttend, delStore: DelAttend, truncStore: TruncAttend }
+			return { setStore: Attend.Set, delStore: Attend.Del, truncStore: Attend.Trunc }
 
 		case COLLECTION.device:
-			return { setStore: SetDevice, delStore: DelDevice, truncStore: TruncDevice }
+			return { setStore: Device.Set, delStore: Device.Del, truncStore: Device.Trunc }
 
 		case COLLECTION.admin:
-			return { setStore: SetAdmin, delStore: DelAdmin, truncStore: TruncAdmin }
+			return { setStore: Admin.Set, delStore: Admin.Del, truncStore: Admin.Trunc }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

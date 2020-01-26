@@ -5,7 +5,7 @@ import { take } from 'rxjs/operators';
 import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
-import { SyncAttend } from '@dbase/state/state.action';
+import { Attend } from '@dbase/state/state.action';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
@@ -212,7 +212,7 @@ export class AttendService {
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
-		return this.data.batch(creates, updates, undefined, SyncAttend)
+		return this.data.batch(creates, updates, undefined, Attend.Sync)
 			.then(_ => this.member.setAccount(creates, updates, data))
 	}
 

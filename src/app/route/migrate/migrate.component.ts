@@ -18,7 +18,7 @@ import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, I
 import { asAt } from '@library/app.library';
 import { AuthOther } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
-import { SetMember } from '@dbase/state/state.action';
+import { Member } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { AdminStorage } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -299,7 +299,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
 			creates.push(this.setGift(giftCnt, start, rest));
 
-		this.data.batch(creates, undefined, undefined, SetMember)
+		this.data.batch(creates, undefined, undefined, Member.Set)
 			.then(_ => this.member.updAccount())
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
@@ -616,7 +616,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			}
 		}
 
-		this.data.batch(creates, updates, undefined, SetMember)
+		this.data.batch(creates, updates, undefined, Member.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
@@ -635,7 +635,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (full)
 			deletes.push(...await this.data.getStore<IMigrate>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		return this.data.batch(creates, updates, deletes, SetMember)
+		return this.data.batch(creates, updates, deletes, Member.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
@@ -695,7 +695,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.dbg('attends: Nothing to do');
 
 		await this.member.setAccount(creates, updates);
-		return this.data.batch(creates, updates, deletes, SetMember)
+		return this.data.batch(creates, updates, deletes, Member.Set)
 	}
 
 	private async fetch(action: string, query: string) {

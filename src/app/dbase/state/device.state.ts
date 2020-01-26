@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SetDevice, DelDevice, TruncDevice } from '@dbase/state/state.action';
+import { Device } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
@@ -31,8 +31,8 @@ export class DeviceState implements NgxsOnInit {
 		this.dbg('init:');
 	}
 
-	@Action(SetDevice)
-	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetDevice) {
+	@Action(Device.Set)
+	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Device.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -49,8 +49,8 @@ export class DeviceState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(DelDevice)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelDevice) {
+	@Action(Device.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Device.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -67,8 +67,8 @@ export class DeviceState implements NgxsOnInit {
 	}
 
 	// TODO: dont delete local-device store?
-	@Action(TruncDevice)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncDevice) {
+	@Action(Device.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Device.Trunc) {
 		if (debug) this.dbg('truncDevice');
 		setState({});
 	}

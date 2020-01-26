@@ -1,6 +1,6 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { TStateSlice } from '@dbase/state/state.define';
-import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/state.action';
+import { Attend } from '@dbase/state/state.action';
 
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
@@ -23,8 +23,8 @@ export class AttendState implements NgxsOnInit {
 		this.dbg('init:');
 	}
 
-	@Action(SetAttend)
-	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAttend) {
+	@Action(Attend.Set)
+	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Attend.Set) {
 		const state = cloneObj(getState()) || {};
 		let empty: { [segment: string]: boolean; } = {};
 
@@ -41,11 +41,11 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new SyncAttend(payload));								// tell any listener we have sync'd
+		dispatch(new Attend.Sync(payload));								// tell any listener we have sync'd
 	}
 
-	@Action(DelAttend)																	// very rare Event
-	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAttend) {
+	@Action(Attend.Del)																	// very rare Event
+	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Attend.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -59,11 +59,11 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new SyncAttend(payload));									// tell any listener we have sync'd
+		dispatch(new Attend.Sync(payload));									// tell any listener we have sync'd
 	}
 
-	@Action(TruncAttend)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncAttend) {
+	@Action(Attend.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Attend.Trunc) {
 		if (debug) this.dbg('truncAttend');
 		setState({});
 	}

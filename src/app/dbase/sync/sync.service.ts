@@ -19,7 +19,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { setPromise } from '@lib/utility.library';
+import { setPromise, TPromiseStatus } from '@lib/utility.library';
 import { isFunction, isUndefined } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
@@ -69,7 +69,7 @@ export class SyncService {
 	}
 
 	public status(collection?: COLLECTION) {
-		const result: Partial<{ collection: string, query: IQuery, promise: boolean }>[] = [];
+		const result: Partial<{ collection: string, query: IQuery, promise: TPromiseStatus }>[] = [];
 
 		for (const [key, listen] of this.listener.entries())
 			if (isUndefined(collection) || collection === key.collection)

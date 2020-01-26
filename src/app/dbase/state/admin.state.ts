@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
-import { SetAdmin, DelAdmin, TruncAdmin, filterState } from '@dbase/state/state.action';
+import { Admin, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
@@ -25,8 +25,8 @@ export class AdminState implements NgxsOnInit {
 
 	private init() { this.dbg('init:'); }
 
-	@Action(SetAdmin)
-	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetAdmin) {
+	@Action(Admin.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Admin.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -42,8 +42,8 @@ export class AdminState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(DelAdmin)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelAdmin) {
+	@Action(Admin.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Admin.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -60,8 +60,8 @@ export class AdminState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(TruncAdmin)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncAdmin) {
+	@Action(Admin.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Admin.Trunc) {
 		if (debug) this.dbg('truncAdmin');
 		setState({});
 	}

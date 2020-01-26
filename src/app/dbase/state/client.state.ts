@@ -1,5 +1,5 @@
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { SetClient, DelClient, TruncClient, filterState } from '@dbase/state/state.action';
+import { Client, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { SLICES, COMMENT } from '@library/config.define';
@@ -32,8 +32,8 @@ export class ClientState implements NgxsOnInit {
 			})
 	}
 
-	@Action(SetClient)
-	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: SetClient) {
+	@Action(Client.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Client.Set) {
 		const state = cloneObj(getState()) || {};
 		const schema: IStoreMeta[] = [];
 		const config: IStoreMeta[] = [];
@@ -58,8 +58,8 @@ export class ClientState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(DelClient)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: DelClient) {
+	@Action(Client.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Client.Del) {
 		const state = cloneObj(getState()) || {};
 		const schema: IStoreMeta[] = [];
 		const config: IStoreMeta[] = [];
@@ -85,8 +85,8 @@ export class ClientState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(TruncClient)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: TruncClient) {
+	@Action(Client.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Client.Trunc) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}

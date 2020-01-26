@@ -54,6 +54,10 @@ export enum STORE {
 	log = 'log',
 }
 
+export enum TYPE {								// standard <type> field names
+	claim = 'claim',
+}
+
 export enum FIELD {								// common Field names
 	effect = '_effect',							// valid when greater-than-or-equal-to
 	expire = '_expire',							// valid when less-than
@@ -161,7 +165,7 @@ export namespace Auth {
 		em = '@',											// Email/Password
 		jwt = 'jwt',									// JSON Web Token 
 	}
-	
+
 	export enum METHOD {
 		identity = 'identity',
 		oauth = 'oauth',
