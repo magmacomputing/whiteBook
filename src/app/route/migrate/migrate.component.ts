@@ -16,7 +16,7 @@ import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, IImport } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
-import { AuthOther } from '@dbase/state/auth.action';
+import { Login } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
 import { Member } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
@@ -144,7 +144,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.current = register;																		// stash current Member
 		this.import_ = import_;																			// stash Members Import sheet
 
-		this.store.dispatch(new AuthOther(register.uid))
+		this.store.dispatch(new Login.Other(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
 				const action = 'history,status';
@@ -174,7 +174,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.history = setPromise<MHistory[]>();
 		this.hide = '';
 
-		this.store.dispatch(new AuthOther());
+		this.store.dispatch(new Login.Other());
 	}
 
 	/**

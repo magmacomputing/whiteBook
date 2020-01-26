@@ -3,7 +3,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
-import { LoginIdentity, Logout, LoginEmail, LoginToken, AuthInfo, LoginAnon } from '@dbase/state/auth.action';
+import { Login, Event } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
@@ -45,7 +45,7 @@ export class AuthService {
 	}
 
 	public signOut() {
-		this.store.dispatch(new Logout());
+		this.store.dispatch(new Login.Out());
 	}
 
 	public async signIn(provider: IProvider, opts: Record<string, any> = {}) {
@@ -106,7 +106,7 @@ export class AuthService {
 		if (provider.params)
 			(authProvider as TParams).setCustomParameters(provider.params);
 
-		return this.store.dispatch(new LoginIdentity(authProvider))
+		return this.store.dispatch(new Login.Identity(authProvider))
 	}
 
 	/** This runs in the main thread */
@@ -119,7 +119,7 @@ export class AuthService {
 		const child = this.openChannel('token');// link to the child popup
 		child.onmessage = (msg) => {						// when child sends a message...
 			child.close();												// 	close BroadcastChannel
-			this.store.dispatch(new AuthInfo({ info: JSON.parse(msg.data) }));
+			this.store.dispatch(new Event.Info({ info: JSON.parse(msg.data) }));
 		}
 
 		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
@@ -134,7 +134,7 @@ export class AuthService {
 		const parent = this.openChannel('token');// link to the parent of this popup
 		this.dbg('signInToken: %j', response);
 
-		return this.store.dispatch(new LoginToken(response.token, response.prefix, response.user))
+		return this.store.dispatch(new Login.Token(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
 				if (state.auth.info) 								// tell the parent to update State
@@ -146,15 +146,15 @@ export class AuthService {
 	}
 
 	private signInEmail(provider: IProvider, email: string, password: string) {
-		return this.store.dispatch(new LoginEmail(email, password))
+		return this.store.dispatch(new Login.Email(email, password))
 	}
 
 	private signInAnon(provider: IProvider) {
-		return this.store.dispatch(new LoginAnon())
+		return this.store.dispatch(new Login.Anon())
 	}
 
 	private signInCustom(token: string) {
-		return this.store.dispatch(new LoginToken(token, Auth.PROVIDER.jwt, {}));
+		return this.store.dispatch(new Login.Token(token, Auth.PROVIDER.jwt, {}));
 	}
 
 	private signInOIDC(provider: IProvider) { }

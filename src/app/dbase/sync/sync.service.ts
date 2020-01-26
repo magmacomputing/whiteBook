@@ -11,7 +11,7 @@ import { NavigateService } from '@route/navigate.service';
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 import { IListenKey, IListen } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
-import { AuthToken, IAuthState } from '@dbase/state/auth.action';
+import { Event, IAuthState } from '@dbase/state/auth.action';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
@@ -161,7 +161,7 @@ export class SyncService {
 						case 'added':
 						case 'modified':
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-								this.store.dispatch(new AuthToken());   // special: access-level has changed
+								this.store.dispatch(new Event.Token());   // special: access-level has changed
 
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 								this.navigate.route(ROUTE.attend);			// special: initial Plan is set

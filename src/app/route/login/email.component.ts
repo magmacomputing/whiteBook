@@ -1,18 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngxs/store';
 
-import { LoginLink } from '@dbase/state/auth.action';
+import { Login } from '@dbase/state/auth.action';
 
 @Component({
-  selector: 'wb-email',
-  templateUrl: './email.component.html',
+	selector: 'wb-email',
+	templateUrl: './email.component.html',
 })
 export class EMailComponent implements OnInit {
 
-  constructor(private store: Store) { }
+	constructor(private store: Store) { }
 
-  ngOnInit() { 
-    this.store.dispatch(new LoginLink(window.location.href));
-   }
+	ngOnInit() {
+		this.store.dispatch(new Login.Link(window.location.href));
+	}
 
 }
