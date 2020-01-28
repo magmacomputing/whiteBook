@@ -26,7 +26,7 @@ export const LOOKUP: Record<string, CLASS> = {
 	priorZumbaStep: CLASS.ZumbaStep,
 }
 
-export const SPECIAL = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine'];
+export const SPECIAL = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine', 'Fiesta'];
 export const PACK = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
 export const CREDIT = ['value', 'zero', 'all'];
