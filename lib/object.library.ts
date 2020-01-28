@@ -2,7 +2,10 @@ import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nul
 
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 
-/** Get nested value; allow for array-references in <path> */
+/**
+ * Get nested value,  
+ * allow for array-references in <path>
+ */
 export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | number): T | undefined => {
 	if (!isObject(obj) && !isArray(obj))
 		return dflt || undefined;
