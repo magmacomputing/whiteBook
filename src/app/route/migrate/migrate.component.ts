@@ -725,11 +725,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private async migrateComment() {
-		const uid = 'BronwynH';
+		const uid = 'LucyC';
 		const filter = [
 			addWhere(FIELD.uid, uid),
 			// addWhere(FIELD.note, '', '>'),
-			addWhere('track.date', 20191007),
+			addWhere('track.date', 20200127),
 		]
 		const list = await this.data.getFire<IAttend>(COLLECTION.attend, { where: filter });
 
