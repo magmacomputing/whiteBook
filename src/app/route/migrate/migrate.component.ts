@@ -9,7 +9,7 @@ import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, CREDIT } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL, CREDIT, SHEET_URL, SHEET_PREFIX } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
 
 import { DataService } from '@dbase/data/data.service';
@@ -39,9 +39,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class MigrateComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
-	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
-	private prefix = 'alert';
-
+	
 	public dash$!: Observable<IAdminState["dash"]>;
 	private account$!: Observable<IAccountState>;
 	private user!: firebase.UserInfo | null;
@@ -53,7 +51,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
 	private admin: IAdminStore = {};
-	public hide = 'Un';
+	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
@@ -91,7 +89,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
 			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
 			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
+			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
 		return this.data.batch(undefined, undefined, deletes.flat());
@@ -219,6 +217,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		])
 	}
 
+	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
 		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
 		const creates: IStoreMeta[] = hist
@@ -267,6 +266,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				} as IPayment
 			});
 
+			// parse the Attends to look for 'Gift' notes, and build a Gift document
 		let giftCnt = 0;
 		let start = 0;
 		let rest: string | undefined = undefined;
@@ -324,6 +324,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		return expiry;
 	}
 
+	// a Gift is effective from the start of day, unless there is a 'start <hh:mm>' note
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getDate(start).startOf('day').ts;
 		if (note && note.includes('start: ')) {
@@ -699,13 +700,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private async fetch(action: string, query: string) {
-		const urlParams = `${this.url}?${query}&action=${action}&prefix=${this.prefix}`;
+		const urlParams = `${SHEET_URL}?${query}&action=${action}&prefix=${SHEET_PREFIX}`;
 		try {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
 				.pipe(retry(2))
 				.toPromise();
-			const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
+			const json = res.substring(0, res.length - 1).substring(SHEET_PREFIX.length + 1, res.length);
 			this.dbg('fetch: %j', urlParams);
 			try {
 				const obj = JSON.parse(json);
