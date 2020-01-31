@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map, retry } from 'rxjs/operators';
+import { take, map, retry, tap } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -106,6 +106,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const migrateFilter = this.admin.migrateFilter || { hidden: false, idx: 2 };
 
 		this.dash$ = this.state.getAdminData().pipe(
+			tap(data => console.log(data)),
 			map(data => data.dash
 				.filter(row => row.import)
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)

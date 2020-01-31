@@ -86,6 +86,9 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+	console.log('discard.discards: ', discards);
+	console.log('discard.nextDoc: ', nextDoc);
+	console.log('discard.currDocs: ', currDocs);
 	const discardFields = asArray(discards);				// list of fields to use in comparison
 	if (discardFields.length === 0)
 		return true;																	// nothing to compare
