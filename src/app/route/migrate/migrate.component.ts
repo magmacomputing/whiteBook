@@ -106,7 +106,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const migrateFilter = this.admin.migrateFilter || { hidden: false, idx: 2 };
 
 		this.dash$ = this.state.getAdminData().pipe(
-			tap(data => console.log(data)),
+			// tap(data => console.log(data)),
 			map(data => data.dash
 				.filter(row => row.import)
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
@@ -121,7 +121,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					}
 				})
 			),
-			tap(data => console.log(data)),
+			// tap(data => console.log(data)),
 		)
 
 		switch (key) {
