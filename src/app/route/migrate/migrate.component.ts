@@ -120,7 +120,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
-			)
+			),
+			tap(data => console.log(data)),
 		)
 
 		switch (key) {
