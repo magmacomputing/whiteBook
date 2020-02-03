@@ -454,7 +454,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				if (!migrate.attend[sfx]) {
 					for (idx = 0; idx < event.agenda.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)} for ${parseInt(row.debit || '0') * -1}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 							break;
 					}
 					if (idx === event.agenda.length)
@@ -480,7 +480,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.agenda.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)} for ${parseInt(row.debit || '0') * -1}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 								break;
 						}
 						if (idx === event.agenda.length)
@@ -505,7 +505,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				let className = migrate.attend.class || null;
 
 				if (isNull(className)) {
-					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)}?`, this.dflt) as CLASS;
+					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)} for ${parseInt(row.debit || '0') * -1}?`, this.dflt) as CLASS;
 					if (isNull(className))
 						throw new Error('Cannot determine class');
 					this.dflt = className;
