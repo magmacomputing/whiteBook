@@ -5,7 +5,6 @@ import { REACT } from '@dbase/data/data.define';
 @Component({
 	selector: 'reaction',
 	templateUrl: './reaction.component.html',
-	styleUrls: ['./reaction.component.scss'],
 })
 export class ReactionComponent implements OnInit, OnDestroy {
 

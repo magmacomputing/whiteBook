@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@service/material/material.module';
-import { AdminComponent } from './admin.component';
+import { ForumComponent } from './forum.component';
+import { ReactionComponent } from '@service/forum/reaction.component';
 
 const routes: Routes = [
-	{ path: 'admin', component: AdminComponent },
+	{ path: 'forum', component: ForumComponent },
 ];
 
 @NgModule({
@@ -15,6 +16,6 @@ const routes: Routes = [
 		MaterialModule,
 		RouterModule.forChild(routes),
 	],
-	declarations: [AdminComponent]
+	declarations: [ForumComponent, ReactionComponent]
 })
-export class AdminModule { }
+export class ForumModule { }

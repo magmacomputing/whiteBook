@@ -80,8 +80,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-						"browserTarget": "whiteBook:build",
-						"port": 4205
+            "browserTarget": "whiteBook:build",
+            "port": 4205
           },
           "configurations": {
             "production": {
@@ -146,5 +146,8 @@
       }
     }
   },
-  "defaultProject": "whiteBook"
+  "defaultProject": "whiteBook",
+  "cli": {
+    "analytics": "7af0852b-d1a9-4d7f-b754-1e7f0a23a325"
+  }
 }

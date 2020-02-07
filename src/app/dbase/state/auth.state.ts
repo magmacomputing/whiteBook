@@ -1,9 +1,11 @@
+import { Injectable } from '@angular/core';
+import { AngularFireAuth } from '@angular/fire/auth';
+
 import * as firebase from 'firebase/app';
+import { State, StateContext, Action, Store } from '@ngxs/store';
 import { BehaviorSubject } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 
-import { AngularFireAuth } from '@angular/fire/auth';
-import { State, StateContext, Action, Store } from '@ngxs/store';
 import { IAuthState, Login, Event } from '@dbase/state/auth.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
@@ -24,6 +26,7 @@ import { getPath, cloneObj } from '@lib/object.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
+@Injectable()
 @State<IAuthState>({
 	name: SLICE.auth,
 	defaults: {

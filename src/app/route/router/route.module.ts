@@ -30,6 +30,7 @@ const routes: Routes = [
 	{ path: ROUTE.attend, component: AttendComponent, ...canActivate(toLogin), canActivate: [ProfileGuard] },
 	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
 	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), ...canActivate(isAdmin) },
+	{ path: ROUTE.forum, loadChildren: () => import('@route/forum/forum.module').then(m => m.ForumModule), ...canActivate(isAdmin) },
 	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), ...canActivate(isAdmin) },
 	{ path: '**', redirectTo: ROUTE.attend, pathMatch: 'full' },
 ];

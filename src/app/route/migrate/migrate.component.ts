@@ -50,7 +50,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private import_: IImport | null = null;
 	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
-	private admin: IAdminStore = {};
+	public admin: IAdminStore = {};
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	private schedule!: ISchedule[];

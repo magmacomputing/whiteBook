@@ -8,6 +8,7 @@ export enum ROUTE {
 	history = 'profile/history',
 	attend = 'attend',
 	admin = 'admin',
+	forum = 'forum',
 
 	migrate = 'migrate',
 }

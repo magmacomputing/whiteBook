@@ -17,7 +17,7 @@
     "lib": [
       "esnext",
       "dom"
-    ],
+		],
     "strict": true,
     "paths": {
       "@env/*": [
@@ -40,5 +40,5 @@
         "src/app/route/router/*"
       ]
     }
-  }
+	}
 }

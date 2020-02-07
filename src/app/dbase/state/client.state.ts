@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { Client, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
@@ -11,6 +12,7 @@ import { asArray } from '@lib/array.library';
 import { isEmpty, cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
+@Injectable()
 @State<TStateSlice<IStoreMeta>>({
 	name: COLLECTION.client,
 	defaults: {}
