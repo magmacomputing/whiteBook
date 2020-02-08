@@ -15,6 +15,7 @@ import { asArray } from '@lib/array.library';
  */
 export const calcBonus = (source: ITimetableState, event: string, date?: TDate, elect?: BONUS) => {
 	const now = getDate(date);
+	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const upd: IGift[] = [];																// an array of updates for caller to apply on Gifts
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
@@ -74,13 +75,14 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			break;																							//	so no further checking needed
 
 		/**
-		 * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.week.level).  
+		 * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus days in a week (scheme.week.level).  
 		 * (note: even 'Gift Attends' count towards a Bonus)
 		 * The Member must also have claimed less than the free limit (scheme.week.free) to enable this bonus
 		 */
 		case scheme.week
 			&& attendWeek																				// sum the non-Bonus -or- Gift Attends
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
+				// .filter(row => row.track[FIELD.date] !== today)					// dont count today's attend
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.week.level											// must attend the 'level' number
 			&& attendWeek																				// sum the 'week' bonus claimed
@@ -97,6 +99,29 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			break;
 
 		/**
+		 * The Class scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.class.level).  
+		 * (note: 'Gift' attends do not count towards a Bonus)
+		 * THe Member must also have claimed less than the free limit (scheme.class.free) to enable this bonus
+		 */
+		case scheme.class
+			&& attendWeek
+				.filter(row => isUndefined(row.bonus))						// only non-Bonus attends
+				.length >= scheme.class.level											// must attend the 'level' number
+			&& attendWeek																				// sum the 'week' bonus claimed
+				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.class)
+				.length < scheme.class.free												// must attend less than 'free' number
+			&& (isUndefined(elect) || elect === BONUS.class):		// if not skipped, then Bonus will apply
+
+			bonus = {
+				[FIELD.id]: scheme.class[FIELD.id],
+				[FIELD.type]: BONUS.class,
+				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.class).length + 1,
+				desc: scheme.class.desc,
+			}
+			break;
+
+
+		/**
 		 * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.sunday.level).  
 		 * Note: the Week scheme takes precendence (if qualifies on Sunday, and not claimed on Saturday)
 		 * The class must be in the free list (scheme.week.free) to qualify for this bonus
@@ -104,6 +129,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		case scheme.sunday
 			&& attendWeek																				// count Attends this week either Gift or non-Bonus
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
+				// .filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.sunday.level										// required number of Attends this week
 			&& now.dow === Instant.WEEKDAY.Sun									// today is 'Sunday'
@@ -125,6 +151,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		case scheme.month
 			&& attendMonth
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
+				// .filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
 				.distinct(row => row.track[FIELD.date])
 				.length >= scheme.month.level
 			&& attendMonth

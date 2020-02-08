@@ -9,7 +9,7 @@ import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, CREDIT, SHEET_URL, SHEET_PREFIX } from '@route/migrate/migrate.define';
+import { LOOKUP, PACK, SPECIAL, CREDIT, SHEET_URL, SHEET_PREFIX, INSTRUCTOR } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
 
 import { DataService } from '@dbase/data/data.service';
@@ -39,7 +39,7 @@ import { dbg } from '@lib/logger.library';
 })
 export class MigrateComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
-	
+
 	public dash$!: Observable<IAdminState["dash"]>;
 	private account$!: Observable<IAccountState>;
 	private user!: firebase.UserInfo | null;
@@ -236,7 +236,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					approve.stamp = row.approved!;
-					approve.uid = 'JorgeEC';
+					approve.uid = INSTRUCTOR;
 				}
 
 				if (payType === PRICE.topUp) {
@@ -268,7 +268,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				} as IPayment
 			});
 
-			// parse the Attends to look for 'Gift' notes, and build a Gift document
+		// parse the Attends to look for 'Gift' notes, and build a Gift document
 		let giftCnt = 0;
 		let start = 0;
 		let rest: string | undefined = undefined;
@@ -454,7 +454,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				if (!migrate.attend[sfx]) {
 					for (idx = 0; idx < event.agenda.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)} for ${parseInt(row.debit || '0') * -1}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 							break;
 					}
 					if (idx === event.agenda.length)
@@ -480,7 +480,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.agenda.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)} for ${parseInt(row.debit || '0') * -1}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 								break;
 						}
 						if (idx === event.agenda.length)
@@ -505,7 +505,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				let className = migrate.attend.class || null;
 
 				if (isNull(className)) {
-					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)} for ${parseInt(row.debit || '0') * -1}?`, this.dflt) as CLASS;
+					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}?`, this.dflt) as CLASS;
 					if (isNull(className))
 						throw new Error('Cannot determine class');
 					this.dflt = className;
@@ -547,7 +547,25 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						throw new Error('stopping');
 					return res;
 				})
-				.then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment }) })
+				// .then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment }) })
+				.then(_ => new Promise((resolve, reject) => {
+					if (comment) {
+						debugger;
+						const where: TWhere[] = [
+							addWhere(FIELD.uid, this.current!.uid),
+							addWhere(FIELD.store, STORE.schedule),
+							addWhere(FIELD.date, row.stamp),
+							addWhere('comment', comment),
+						]
+						this.data.getStore<STORE.comment>(STORE.comment)
+							.then(list => {
+								if (!list.length)
+									this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment })
+								resolve(true);
+							})
+					}
+					else resolve(false);
+				}))
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
@@ -641,19 +659,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		return this.data.batch(creates, updates, deletes, Member.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
-	}
-
-	async revPayment(full: boolean) {
-		const dt = window.prompt('From which date');
-		if (dt) {
-			const now = getDate(dt);
-			if (!now.isValid()) {
-				window.alert(`'${dt}': Not a valid date`);
-				return;
-			}
-			if (window.confirm(`${now.format(Instant.FORMAT.display)}: are you sure you want to delete from this date?`))
-				this.attend.delPayment(addWhere(FIELD.stamp, now.ts, '>='));
-		}
 	}
 
 	async revAttend() {

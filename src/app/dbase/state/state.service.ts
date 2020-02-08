@@ -133,8 +133,9 @@ export class StateService {
 			filterAttend.push(addWhere(`${STORE.payment}.${FIELD.id}`, payment))
 
 		return this.attend$.pipe(
+			switchMap(_attnd => this.getAuthData()),
 			joinDoc(this.states, 'application', STORE.default),
-			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend),
+			joinDoc(this.states, 'attend', STORE.attend, filterAttend),
 		)
 	}
 
@@ -216,7 +217,7 @@ export class StateService {
 	 * Add Account details to the Member Profile Observable  
 	 * account.payment-> has an array of open (not asAt) details about the Member's account payments  
 	 * account.attend	-> has an array of attendances against the <active> payment  
-	 * account.summary-> has an object summarising the Member's account value as { paid: $, bank: $, adjust: $, spend: $, credit: $, funds: $ }
+	 * account.summary-> has an object summarising the Member's Account value as { paid: $, bank: $, adjust: $, spend: $, credit: $, funds: $ }
 	 */
 	getAccountData(date?: TDate): Observable<IAccountState> {
 		const filterPayment = [
@@ -228,8 +229,9 @@ export class StateService {
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 
-		return combineLatest(this.getAttendData(), this.getPaymentData()).pipe(
-			switchMap(_ => this.getMemberData(date)),
+		// return combineLatest(this.getAttendData(), this.getPaymentData()).pipe(
+		// 	switchMap(_ => this.getMemberData(date)),
+		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
 		)
@@ -277,7 +279,7 @@ export class StateService {
 	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
-		const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
+		// const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
 
 		const filterSchedule = addWhere('day', now.dow);
 		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>');
@@ -289,8 +291,8 @@ export class StateService {
 		const filterSpan = addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
 		const filterIcon = addWhere(FIELD.type, [STORE.class, STORE.default]);
 		const attendGift = [isMine, addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
-		const attendWeek = [isMine, notToday, addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
-		const attendMonth = [isMine, notToday, addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
+		const attendWeek = [isMine, addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
+		const attendMonth = [isMine, addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
 		const attendToday = [isMine, addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay))];
 		const filterAlert = [
 			addWhere(FIELD.type, STORE.schedule),
@@ -316,7 +318,7 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendGift', STORE.attend, attendGift),								// get any Attends against active Gifts
 			joinDoc(this.states, 'attend.attendWeek', STORE.attend, attendWeek),								// get any Attends for this week
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends for this month
-			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends for this day)
+			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends for this day
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
 		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}

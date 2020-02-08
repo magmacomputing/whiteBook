@@ -87,7 +87,7 @@ export class Instant {
 	private static PATTERN = {
 		hhmi: /^\d\d:\d\d$/,																				// regex to match HH:MI
 		yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
-		ddmmyyyy: /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19\d{2}|20\d{2})$/,
+		ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
 	}
 	private static maxStamp = new Date('9999-12-31').valueOf() / 1000;
 	private static minStamp = new Date('1000-01-01').valueOf() / 1000;
@@ -146,6 +146,8 @@ export class Instant {
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
 		if ((isString(dt) || isNumber(dt)) && Instant.PATTERN.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
 			dt = asString(dt).replace(Instant.PATTERN.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
+		if ((isString(dt) || isNumber(dt)) && Instant.PATTERN.ddmmyyyy.test(asString(dt)))
+			dt = asString(dt).replace(Instant.PATTERN.ddmmyyyy, '$2-$1-$3 00:00:00');				// convert to US format
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Undefined':																				// default to 'now'

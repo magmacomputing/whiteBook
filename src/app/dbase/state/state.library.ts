@@ -36,7 +36,10 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
 	)
 }
 
-/** Get all documents by filter, do not exclude _expire unless <date> specified */
+/**
+ * Get all documents by filter,  
+ * do not exclude _expire unless <date> specified
+ */
 export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
 	if (store === slice.toString())													// top-level slice (eg. Attend)
@@ -109,7 +112,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 
 		return source.pipe(
 			switchMap(data => {
-				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
+				const filters = decodeFilter(cloneObj(data), cloneObj(filter)); // loop through filters
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(store === STORE.attend
@@ -170,7 +173,6 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
  */
 const decodeFilter = (parent: any, filter: TWhere = []) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
-
 		cond.value = asArray(cond.value)
 			.flatMap(value => {    																// loop through filter's <value>
 				const isPath = isString(value) && value.startsWith('{{');
@@ -191,7 +193,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 			.distinct()																						// remove duplicates
 
 		if (cond.value.length === 1)
-			cond.value = cond.value[0];                           // an array of only one value, return as string
+			cond.value = cond.value[0];                           // an array of only one value; return as string
 
 		return cond;                                            // rebuild each filter
 	})

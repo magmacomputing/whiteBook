@@ -23,10 +23,10 @@ import { getPath, isEmpty, sortKeys } from '@lib/object.library';
 import { asArray } from '@lib/array.library';
 import { dbg } from '@lib/logger.library';
 
-/** Manage the 'attend' store */
+/** Add/Delete to the Attend collection */
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
-	private dbg = dbg(this);
+	private dbg = dbg(this, 'AttendService');
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
@@ -75,9 +75,13 @@ export class AttendService {
 
 		if (bookAttend.length) {															// disallow same Class, same Note
 			debugger;
-			this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
-			this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
-			return false;																				// discard Attend
+			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
+			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
+			if (noNote || isNote) {
+				this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
+				this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
+				return false;																				// discard Attend
+			}
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -243,25 +247,10 @@ export class AttendService {
 		return now.ts;																					// timestamp
 	}
 
-	public delPayment = async (where: TWhere) => {
-		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
-		const filter = asArray(where);
-		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
-			filter.push(memberUid);
-
-		const updates: IStoreMeta[] = [];
-		const deletes: IStoreMeta[] = await this.data.getStore<IPayment>(STORE.payment, filter);
-
-		if (deletes.length === 0) {
-			this.dbg('No items to delete');
-			return;
-		}
-	}
-
 	/**
 	 * Removing Attends is a tricky business...  
 	 * it may need to walk back a couple of related Documents.  
-	 * Take great care when deleting a non-latest Attend,
+	 * Avoid deleting a non-latest Attend,
 	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
 	 */
 	public delAttend = async (where: TWhere) => {
