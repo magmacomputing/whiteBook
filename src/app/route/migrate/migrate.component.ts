@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { take, map, retry, tap } from 'rxjs/operators';
+import { take, map, retry } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
@@ -22,7 +22,7 @@ import { Member } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { AdminStorage } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
-import { TWhere } from '@dbase/fire/fire.interface';
+import { TWhere, IWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
 import { sortKeys, cloneObj, getPath } from '@lib/object.library';
@@ -550,14 +550,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				// .then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment }) })
 				.then(_ => new Promise((resolve, reject) => {
 					if (comment) {
-						debugger;
-						const where: TWhere[] = [
+						const where: TWhere = [
 							addWhere(FIELD.uid, this.current!.uid),
-							addWhere(FIELD.store, STORE.schedule),
-							addWhere(FIELD.date, row.stamp),
-							addWhere('comment', comment),
+							addWhere('track.class', sched[FIELD.key]),
+							addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
 						]
-						this.data.getStore<STORE.comment>(STORE.comment)
+						this.data.getFire(COLLECTION.forum, { where })
+						// this.data.getStore<STORE.comment>(STORE.comment)
 							.then(list => {
 								if (!list.length)
 									this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment })

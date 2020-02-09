@@ -82,7 +82,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		case scheme.week
 			&& attendWeek																				// sum the non-Bonus -or- Gift Attends
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-				// .filter(row => row.track[FIELD.date] !== today)					// dont count today's attend
+				.filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.week.level											// must attend the 'level' number
 			&& attendWeek																				// sum the 'week' bonus claimed
@@ -129,7 +129,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		case scheme.sunday
 			&& attendWeek																				// count Attends this week either Gift or non-Bonus
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-				// .filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
+				.filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.sunday.level										// required number of Attends this week
 			&& now.dow === Instant.WEEKDAY.Sun									// today is 'Sunday'
@@ -151,7 +151,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		case scheme.month
 			&& attendMonth
 				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-				// .filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
+				.filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
 				.distinct(row => row.track[FIELD.date])
 				.length >= scheme.month.level
 			&& attendMonth
@@ -169,7 +169,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	}
 
 	if (upd.length)																		// whether or not we found an applicable Bonus
-		bonus.gift = upd;																//	let caller know about any pending Gift updates
+		bonus.gift = upd;																//let caller know about any pending Gift updates
 
 	return bonus;
 }

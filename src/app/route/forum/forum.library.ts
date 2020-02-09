@@ -13,7 +13,7 @@ export const cleanNote = (note?: TString) => {
 	let result: TString | undefined;
 	let clean: TString | undefined = undefined;
 
-	if (note) {
+	if (note && !note.toString().replace(' ', '').includes('xZS')) {
 		clean = asArray(note)
 			.map(note => {														// first, clean the Note of noise-words
 				COMMENT.patterns
@@ -42,6 +42,7 @@ export const cleanNote = (note?: TString) => {
 		if (clean.length === 0)
 			clean = undefined;												// unused note
 	}
+	else clean = note;
 
 	if (comment.length > 1)
 		result = comment;														// Comment string[]

@@ -74,10 +74,10 @@ export class AttendService {
 		]);
 
 		if (bookAttend.length) {															// disallow same Class, same Note
-			debugger;
 			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
 			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
 			if (noNote || isNote) {
+				debugger;
 				this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 				this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 				return false;																				// discard Attend
