@@ -559,7 +559,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						// this.data.getStore<STORE.comment>(STORE.comment)
 							.then(list => {
 								if (!list.length)
-									this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment })
+									this.forum.setComment({ key: sched[FIELD.id], type: sched[FIELD.store], date: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
 								resolve(true);
 							})
 					}
