@@ -144,7 +144,7 @@ export class MemberService {
 			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
 
-	/** Determine theS member's topUp amount */
+	/** Determine this member's topUp amount */
 	getPayPrice = async (data?: IAccountState) => {
 		data = data || await this.getAccount();
 
