@@ -276,8 +276,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const search = (row.note && row.note.search('Gift #') + 6) || 0;
-				const match = search && row.note!.substring(search).match(/\d+/g);
+				const search = (row.note && row.note.search('Gift #') + 6) || 0;		// find the start of the pattern
+				const match = search && row.note!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
 				if (match) {
 					const nbr = parseInt(match[0]);
 					if (nbr === 1) {
@@ -289,7 +289,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							.substring(search + match[0].length)
 							// .replace(/[^\x20-\x7E]/g, '')
 							.trim();
-						if (rest && rest.startsWith(':'))
+						if (rest && (rest.startsWith(':') || rest.startsWith(',')))
 							rest = rest.substring(1).trim();
 						start = row.stamp;
 					}
