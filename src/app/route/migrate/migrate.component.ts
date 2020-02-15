@@ -279,7 +279,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const search = (row.note && row.note.search('Gift #') + 6) || 0;		// find the start of the pattern
 				const match = search && row.note!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
 				if (match) {
-					const nbr = parseInt(match[0]);
+					const nbr = parseInt(match[0]);																		// TODO: this should be the last element?
 					if (nbr === 1) {
 						if (giftCnt && start && !gifts.find(row => row[FIELD.stamp] === start)) {
 							creates.push(this.setGift(giftCnt, start, rest));
@@ -326,7 +326,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		return expiry;
 	}
 
-	// a Gift is effective from the start of day, unless there is a 'start <hh:mm>' note
+	// a Gift is effective from the start of day, unless there is a 'start <HH:MM>' note
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getDate(start).startOf('day').ts;
 		if (note && note.includes('start: ')) {
@@ -361,8 +361,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const start = attend.sort(sortKeys('-track.date'));
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2019-Apr-23').format(Instant.FORMAT.yearMonthDay)).length;
-		// table.splice(table.length - endAt);
+		// const endAt = table.filter(row => row.date >= getDate('2017-Dec-31').format(Instant.FORMAT.yearMonthDay)).length;
+		// table.splice(table.length - endAt);							// up-to, but not includng endAt
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
