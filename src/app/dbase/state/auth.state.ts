@@ -231,11 +231,11 @@ export class AuthState {
 	}
 
 	@Action(Login.Other)															// behalf of another User
-	private otherMember(ctx: StateContext<IAuthState>, { alias }: Login.Other) {
+	private (ctx: StateContext<IAuthState>, { alias }: Login.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
 		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
-		const loginUID = (loginUser && loginUser.uid) as string;
+		const loginUID = loginUser?.uid as string;
 
 		if (!currUser && !alias)
 			return;																			// nothing to do
@@ -257,14 +257,14 @@ export class AuthState {
 				map(table => table.find(row => getPath(row, 'user.customClaims.alias') === alias)),
 			)
 			.subscribe(reg => {
-				if (reg && reg.user)
+				if (reg?.user)
 					this.syncUID([loginUID, reg.user.uid]);
 
 				ctx.patchState({ current: reg && reg.user || null });
 			})
 	}
 
-	private syncUID(uids: string | string[] | null) {
+	private syncUID(uids?: string | string[] | null) {
 		if (uids) {
 			this.sync.off(COLLECTION.member);						// unsubscribe from /member
 			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend

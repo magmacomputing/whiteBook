@@ -10,7 +10,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "esnext",
+    "target": "es2019",
     "typeRoots": [
       "node_modules/@types"
     ],
