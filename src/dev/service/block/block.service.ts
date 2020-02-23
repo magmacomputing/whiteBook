@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { IBlockPrev, IBlockBase, IBlock } from '@service/block/block.interface';
+import { IBlockPrev, IBlockBase, IBlock } from '../block/block.interface';
 
 import { cryptoHash } from '@lib/crypto.library';
 import { dbg } from '@lib/logger.library';

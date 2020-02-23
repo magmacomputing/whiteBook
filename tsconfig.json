@@ -10,6 +10,7 @@
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"importHelpers": true,
+		"incremental": true,
 		"target": "es2019",
 		"typeRoots": [
 			"node_modules/@types"
@@ -40,5 +41,8 @@
 				"src/app/route/router/*"
 			]
 		}
-	}
+	},
+	"exclude": [
+		"doc/**/*.ts"
+	]
 }
