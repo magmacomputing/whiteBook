@@ -22,7 +22,7 @@ import { Member } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { AdminStorage } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
-import { TWhere, IWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
 import { sortKeys, cloneObj, getPath } from '@lib/object.library';
