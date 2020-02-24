@@ -96,7 +96,8 @@ export class AttendService {
 				timetable.price!.amount = timetable.bonus.amount || 0;	// override Plan price
 		}
 
-		// if the caller provided a schedule.amount, and it is different to the calculated amount!
+		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
+		// this is useful for the bulk Migration of attends
 		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price!.amount) {// calculation mis-match
 			this.dbg('bonus: %j', timetable.bonus);
 			this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
