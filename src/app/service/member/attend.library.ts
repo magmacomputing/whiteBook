@@ -168,8 +168,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			break;
 	}
 
-	if (upd.length)																		// whether or not we found an applicable Bonus
-		bonus.gift = upd;																//let caller know about any pending Gift updates
+	if (upd.length)																					// whether or not we found an applicable Bonus
+		bonus.gift = upd;																			//let caller know about any pending Gift updates
 
 	return bonus;
 }
