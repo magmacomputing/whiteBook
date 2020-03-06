@@ -23,7 +23,7 @@
     "@angular/service-worker": "^9.0.5",
     "@ngxs/storage-plugin": "^3.6.2",
     "@ngxs/store": "^3.6.2",
-    "firebase": "^7.9.3",
+    "firebase": "^7.10.0",
     "hammerjs": "^2.0.8",
     "rxjs": "^6.5.4",
     "typescript": "^3.7.5",
