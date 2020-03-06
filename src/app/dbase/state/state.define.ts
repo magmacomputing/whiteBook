@@ -105,13 +105,13 @@ export interface IBonusState extends IUserState, IApplicationState {
 
 export interface ISummary {
 	bank: number;													// rollover from previous Payment
-	paid: number;													// topUp Amount
-	pend: number;													// sum of not-yet-Active Payments
-	adjust: number;												// debits
+	paid: number;													// topUp amount for active Payment
+	adjust: number;												// debit amount for active Payment
 	spend: number;												// sum of Attends' amount
-
-	credit: number;												// bank + pend + paid + adjust - spend
-	funds: number;												// bank + paid + adjust - spend
+	funds: number;												// active Payment credit:	bank + paid + adjust - spend
+	
+	credit: number;												// whole Account credit:	bank + paid + adjust - spend + pend
+	pend: number;													// sum of not-yet-Active Payments
 }
 export interface IAccountState extends IMemberState, IPlanState {
 	account: {

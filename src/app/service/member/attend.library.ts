@@ -23,10 +23,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const plan = (source.client.plan || [])[0];							// Member's current plan
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
 	const scheme = (source.client.bonus || [])
-		.reduce((acc, row) => {
-			acc[row[FIELD.key]] = row;													// get the <rules> for each Bonus
-			return acc;
-		}, {} as Record<BONUS, IBonus>);
+		.groupBy(FIELD.key as unknown as BONUS)								// get the <rules> for each Bonus
 
 	switch (true) {
 		/**
