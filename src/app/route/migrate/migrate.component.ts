@@ -538,7 +538,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			if (row.note && row.note.includes('elect false'))
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-
 			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
 			sched.note = note;													// replace note with cleaned note
 			this.attend.setAttend(sched, row.stamp)
@@ -658,6 +657,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		return this.data.batch(creates, updates, deletes, Member.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
+	}
+
+	async revPayment() {
+		this.dbg('revPayment:  not implemented');
+		return;
 	}
 
 	async revAttend() {
