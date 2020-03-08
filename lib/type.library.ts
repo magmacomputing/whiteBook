@@ -33,9 +33,9 @@ export const isPromise = <T>(obj?: unknown): obj is Promise<T> => isType(obj, 'P
 export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
 export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 
-export const nullToZero = (obj?: number) => isUndefined(obj) || isNull(obj) ? 0 : obj;
-export const nullToEmpty = (obj?: string) => isUndefined(obj) || isNull(obj) ? '' : obj;
-export const nullToValue = (obj?: unknown, value?: any) => isUndefined(obj) || isNull(obj) ? value : obj;
+export const nullToZero = (obj?: number) => obj ?? 0;
+export const nullToEmpty = (obj?: string) => obj ?? '';
+export const nullToValue = (obj?: unknown, value?: any) => obj ?? value;
 
 export type TString = string | string[];
 export type TNumber = number | number[];
