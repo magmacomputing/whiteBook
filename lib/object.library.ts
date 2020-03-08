@@ -1,7 +1,7 @@
 import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero, isDate } from '@lib/type.library';
 
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
-
+export type TObject = { [key: string]: any; };
 /**
  * Get nested value,  
  * allow for array-references in <path>
@@ -34,7 +34,7 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 }
 
 /** sort Object by multiple keys */
-export const sortKeys = (...keys: string[]): any => (a: any, b: any) => {
+export const sortKeys = (...keys: string[]): any => (a: TObject, b: TObject) => {
 	const desc = keys.length ? (keys[0].startsWith('-')) : false;
 	const key = desc ? keys[0].substring(1) : keys[0];// take out the first key
 
@@ -42,12 +42,12 @@ export const sortKeys = (...keys: string[]): any => (a: any, b: any) => {
 		case keys.length === 0:
 			return 0;
 
-		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && !desc:
-		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && desc:
+		case nullToZero(a?.[key]) < nullToZero(b?.[key]) && !desc:
+		case nullToZero(a?.[key]) > nullToZero(b?.[key]) && desc:
 			return -1;
 
-		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && desc:
-		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && !desc:
+		case nullToZero(a?.[key]) < nullToZero(b?.[key]) && desc:
+		case nullToZero(a?.[key]) > nullToZero(b?.[key]) && !desc:
 			return 1;
 
 		default:
