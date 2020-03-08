@@ -42,12 +42,12 @@ export const sortKeys = (...keys: string[]): any => (a: TObject, b: TObject) => 
 		case keys.length === 0:
 			return 0;
 
-		case nullToZero(a?.[key]) < nullToZero(b?.[key]) && !desc:
-		case nullToZero(a?.[key]) > nullToZero(b?.[key]) && desc:
+		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && !desc:
+		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && desc:
 			return -1;
 
-		case nullToZero(a?.[key]) < nullToZero(b?.[key]) && desc:
-		case nullToZero(a?.[key]) > nullToZero(b?.[key]) && !desc:
+		case nullToZero(getPath(a, key)) < nullToZero(getPath(b, key)) && desc:
+		case nullToZero(getPath(a, key)) > nullToZero(getPath(b, key)) && !desc:
 			return 1;
 
 		default:
