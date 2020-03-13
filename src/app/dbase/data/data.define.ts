@@ -1,7 +1,3 @@
-/** The global whiteBook namespace */
-export declare namespace whiteBook {
-
-}
 
 export enum COLLECTION {
 	log = 'log',						// App actions
