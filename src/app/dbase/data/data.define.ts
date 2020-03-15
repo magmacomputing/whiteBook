@@ -121,7 +121,7 @@ export enum PLAN {
 	casual = 'casual',
 	gratis = 'gratis',
 	student = 'student',
-	pension = 'pension',
+	senior = 'senior',
 	core = 'core',
 	intro = 'intro',
 }

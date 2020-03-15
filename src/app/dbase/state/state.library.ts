@@ -294,7 +294,7 @@ export const buildPlan = (source: IPlanState) => {
 		if (plan[FIELD.key] === PLAN.intro)										// Special: Intro is only available to new Members
 			plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
 
-		if (plan[FIELD.key] === PLAN.pension) {								// Special: Pension is only available to senior Member
+		if (plan[FIELD.key] === PLAN.senior) {								// Special: Senior is only available to >=60 Member
 			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
 			plan[FIELD.hidden] = notAllow;
 			plan[FIELD.disable] = notAllow;
