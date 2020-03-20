@@ -108,7 +108,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.dash$ = this.state.getAdminData().pipe(
 			// tap(data => console.log(data)),
 			map(data => data.dash
-				.filter(row => row.import)
+				.filter(row => row[STORE.import])
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
 				.filter(row => {
 					switch (CREDIT[migrateFilter.idx]) {
