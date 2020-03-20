@@ -735,7 +735,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	private async migrateComment() {
+	public async migrateComment() {
 		const uid = 'BronwynH';
 		const filter = [
 			addWhere(FIELD.uid, uid),
