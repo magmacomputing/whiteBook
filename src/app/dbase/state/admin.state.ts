@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { SetAdmin, DelAdmin, TruncAdmin, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
@@ -12,6 +13,7 @@ import { dbg } from '@lib/logger.library';
 /**
  * AdminState is for items that only Admin Users (with roles['admin'] in their customClaims) can see
  */
+@Injectable()
 @State<TStateSlice<IStoreMeta>>({
 	name: COLLECTION.admin,
 	defaults: {}

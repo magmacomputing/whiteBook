@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { TStateSlice } from '@dbase/state/state.define';
 import { SetAttend, DelAttend, TruncAttend, SyncAttend } from '@dbase/state/state.action';
@@ -8,6 +9,7 @@ import { asArray } from '@lib/array.library';
 import { cloneObj } from '@lib/object.library';
 import { dbg } from '@lib/logger.library';
 
+@Injectable()
 @State<TStateSlice<IStoreMeta>>({
 	name: COLLECTION.attend,
 	defaults: {}

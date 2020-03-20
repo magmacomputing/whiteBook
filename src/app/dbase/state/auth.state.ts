@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import * as firebase from 'firebase/app';
 import { BehaviorSubject } from 'rxjs';
 import { map, take } from 'rxjs/operators';
@@ -27,6 +28,7 @@ import { getPath, cloneObj } from '@lib/object.library';
 import { isNull } from '@lib/type.library';
 import { dbg } from '@lib/logger.library';
 
+@Injectable()
 @State<IAuthState>({
 	name: SLICE.auth,
 	defaults: {
