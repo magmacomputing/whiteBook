@@ -150,5 +150,8 @@
       }
     }
   },
-  "defaultProject": "whiteBook"
+  "defaultProject": "whiteBook",
+  "cli": {
+    "analytics": "acac1bb3-eb1e-426d-b8d8-ce02e84937d4"
+  }
 }
