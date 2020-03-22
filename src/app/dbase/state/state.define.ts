@@ -5,7 +5,7 @@ import { STORE } from '@dbase/data/data.define';
 import {
 	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
 	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
-	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment, IImport,
+	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment, IImport, ISummary,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -103,16 +103,6 @@ export interface IBonusState extends IUserState, IApplicationState {
 	}
 }
 
-export interface ISummary {
-	bank: number;													// rollover from previous Payment
-	paid: number;													// topUp amount for active Payment
-	adjust: number;												// debit amount for active Payment
-	spend: number;												// sum of Attends' amount
-	funds: number;												// active Payment credit:	bank + paid + adjust - spend
-	
-	credit: number;												// whole Account credit:	bank + paid + adjust - spend + pend
-	pend: number;													// sum of not-yet-Active Payments
-}
 export interface IAccountState extends IMemberState, IPlanState {
 	account: {
 		payment: IPayment[];								// array of open payment documents, sorted by <stamp>

@@ -5,7 +5,6 @@ import { COLLECTION } from '@dbase/data/data.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
 import { IPromise } from '@lib/utility.library';
-import { DocumentChangeType } from '@angular/fire/firestore';
 
 export interface IListenKey {
 	collection: COLLECTION;

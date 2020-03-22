@@ -2,8 +2,8 @@ import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { FILTER } from '@library/config.define';
-import { FIELD } from '@dbase/data/data.define';
-import { TStoreBase, isClientDocument, IStoreMeta, FType, FNumber } from '@dbase/data/data.schema';
+import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
+import { TStoreBase, IStoreMeta, FType, FNumber, IClientBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString } from '@lib/type.library';
@@ -11,6 +11,10 @@ import { equalObj, getPath } from '@lib/object.library';
 import { asString } from '@lib/string.library';
 import { asArray } from '@lib/array.library';
 import { addWhere } from '@dbase/fire/fire.library';
+
+// client documents have a '<key>' field, user documents have a '<uid>' field
+export const isClientDocument = (document: TStoreBase): document is IClientBase =>
+	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {

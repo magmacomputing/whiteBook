@@ -1,10 +1,7 @@
 import { UserInfo, firestore } from 'firebase/app';
 
-import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN } from '@dbase/data/data.define';
-import { ISummary } from '@dbase/state/state.define';
-import { getSlice } from '@dbase/state/state.library';
-
 import { TString } from '@lib/type.library';
+import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN } from '@dbase/data/data.define';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
@@ -38,7 +35,7 @@ export interface IMeta {
  * the other for 'admin', 'member', 'forum' & 'attend', keyed by 'store/type?/uid'
  */
 export type TStoreBase = IClientBase | IUserBase | IForumBase | IMigrate;
-interface IClientBase extends IMeta {
+export interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
 	[FIELD.image]?: string;									// an optional icon for the UI
@@ -84,9 +81,6 @@ export interface IStoreMeta extends IMeta {
 	[key: string]: any;											// add in index-signature
 }
 export type TStoreMeta = IStoreMeta | IStoreMeta[];
-// client documents have a '<key>' field, user documents have a '<uid>' field
-export const isClientDocument = (document: TStoreBase): document is IClientBase =>
-	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
@@ -448,6 +442,17 @@ type TProviderInfo = {
 export interface IRegister extends IUserBase {
 	[FIELD.store]: STORE.register;
 	user: TUser;
+}
+
+export interface ISummary {
+	bank: number;													// rollover from previous Payment
+	paid: number;													// topUp amount for active Payment
+	adjust: number;												// debit amount for active Payment
+	spend: number;												// sum of Attends' amount
+	funds: number;												// active Payment credit:	bank + paid + adjust - spend
+	
+	credit: number;												// whole Account credit:	bank + paid + adjust - spend + pend
+	pend: number;													// sum of not-yet-Active Payments
 }
 
 //	/member/status
