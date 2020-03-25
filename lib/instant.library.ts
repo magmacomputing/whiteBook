@@ -47,7 +47,7 @@ export type TDate = string | number | Date | Instant | IInstant | Timestamp | IT
 class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
-	now: number;
+	private now: number;
 
 	constructor(seconds?: number, nanoseconds?: number) {
 		const now = new Date();
@@ -82,16 +82,16 @@ class Timestamp {
  * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
  */
 export class Instant {
-	private date: IInstant;																				// Date parsed into components
+	private date: IInstant;																			// Date parsed into components
 
 	static readonly PATTERN = {
-		hhmi: /^\d\d:\d\d$/,																	// regex to match HH:MI
+		hhmi: /^\d\d:\d\d$/,																			// regex to match HH:MI
 		yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
 		ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})/,	// d-m-yyyy {HH:MI}
 	}
 	static readonly maxStamp = new Date('9999-12-31').valueOf() / 1000;
 	static readonly minStamp = new Date('1000-01-01').valueOf() / 1000;
-	static readonly divideBy = {														// approx date-offset divisors (unix-timestamp precision)
+	static readonly divideBy = {																// approx date-offset divisors (unix-timestamp precision)
 		years: 31536000000,
 		months: 2628000000,
 		weeks: 604800000,
