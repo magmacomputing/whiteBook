@@ -11,15 +11,16 @@ import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
-import { DBaseModule } from '@dbase/dbase.module';
+import { asAt } from '@library/app.library';
 import { AuthService } from '@service/auth/auth.service';
 import { IUserInfo } from '@service/auth/auth.interface';
-import { StateService } from '@dbase/state/state.service';
+
+import { DBaseModule } from '@dbase/dbase.module';
 import { getSlice } from '@dbase/state/state.library';
+import { StateService } from '@dbase/state/state.service';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { asAt } from '@library/app.library';
 
 import { TString } from '@lib/type.library';
 import { getStamp, TDate } from '@lib/instant.library';

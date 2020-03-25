@@ -29,6 +29,7 @@ export enum STORE {
 	schema = '_schema_',
 	// Member
 	gift = 'gift',
+	diary = 'diary',
 	payment = 'payment',
 	message = 'message',
 	migrate = 'migrate',

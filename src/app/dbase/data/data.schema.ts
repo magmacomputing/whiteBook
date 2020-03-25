@@ -52,7 +52,7 @@ export interface IForumBase extends IMeta {
 	[FIELD.key]: string;										// key to the Store the Member is referencing
 	[FIELD.stamp]: number;
 	track: {																// to use in feedback-analysis
-		date: number;													// yearMonthDay
+		[FIELD.date]: number;									// yearMonthDay
 		[key: string]: string | number;				// additional info to assist tracking
 	},
 }

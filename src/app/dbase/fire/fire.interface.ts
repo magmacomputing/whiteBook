@@ -29,11 +29,11 @@ export interface IQuery {
 
 /** FirestoreFunction getMeta() */
 export interface IDocMeta {
-	exists: boolean;
 	[FIELD.id]: string;
 	[FIELD.create]?: number;
 	[FIELD.update]?: number;
 	[FIELD.access]?: number;
 	subcollections: string[];
+	exists: boolean;
 	path: string;
 }
