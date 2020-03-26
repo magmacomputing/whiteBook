@@ -388,7 +388,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 		if (flag) this.dbg('hist: %j', row);
 
-		let what: CLASS = LOOKUP[row.type] || row.type;
+		let what: CLASS = LOOKUP[row.type] ?? row.type;
 		const now = getDate(row.date);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
@@ -500,7 +500,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				}
 				break;
 
-			case prefix === FIELD.unknown:									// no color on the cell, so guess the 'class'
+			case prefix === 'unknown':									// no color on the cell, so guess the 'class'
 				migrate = this.lookupMigrate(now.format(Instant.FORMAT.yearMonthDay));
 				let className = migrate.attend.class || null;
 
