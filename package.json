@@ -36,6 +36,6 @@
     "@angular/compiler-cli": "^9.1.0",
     "@angular/language-service": "9.1.0",
     "@types/node": "^13.9.3",
-    "tslint": "^6.1.0"
+    "tslint": "~6.1.0"
   }
 }
