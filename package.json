@@ -23,7 +23,7 @@
     "@angular/service-worker": "^9.1.0",
     "@ngxs/storage-plugin": "^3.6.2",
     "@ngxs/store": "^3.6.2",
-    "firebase": "^7.12.0",
+    "firebase": "^7.13.0",
     "hammerjs": "^2.0.8",
     "rxjs": "^6.5.4",
     "typescript": "^3.8.3",
@@ -35,7 +35,7 @@
     "@angular/cli": "^9.1.0",
     "@angular/compiler-cli": "^9.1.0",
     "@angular/language-service": "9.1.0",
-    "@types/node": "^13.9.3",
+    "@types/node": "^13.9.5",
     "codelyzer": "^5.2.2",
     "tslint": "~6.1.0"
   }
