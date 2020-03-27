@@ -104,13 +104,13 @@ export class DataService {
 		return this.fire.setDoc(store, doc);
 	}
 
-	updDoc(store: STORE, docId: string, data: TStoreBase) {
-		return this.fire.updDoc(store, docId, data);
-	}
-
 	/** mark a field for deletion */
 	get del() {
 		return firestore.FieldValue.delete();
+	}
+
+	updDoc(store: STORE, docId: string, data: TStoreBase) {
+		return this.fire.updDoc(store, docId, data);
 	}
 
 	/** Expire any current matching docs, and Create new doc */
@@ -177,8 +177,6 @@ export class DataService {
 
 	connect(onOff: boolean) {
 		this.dbg('server: %s', onOff ? 'online' : 'offline');
-		return onOff
-			? this.fire.connect(true)
-			: this.fire.connect(false)
+		return this.fire.connect(onOff);
 	}
 }

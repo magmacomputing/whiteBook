@@ -402,18 +402,18 @@ export interface IAttend extends IUserBase {
 //	/forum/comment
 export interface IComment extends IForumBase {
 	[FIELD.store]: STORE.comment;
-	comment: TString;
+	[STORE.comment]: TString;
 	response?: {
-		uid: string;
-		stamp: number;
-		comment: TString;
+		[FIELD.uid]: string;
+		[FIELD.stamp]: number;
+		[STORE.comment]: TString;
 		seen?: boolean;
 	}[];
 }
 //	/forum/react
 export interface IReact extends IForumBase {
 	[FIELD.store]: STORE.react;
-	react: REACT;
+	[STORE.react]: REACT;
 }
 
 //	/admin/register
@@ -450,7 +450,7 @@ export interface ISummary {
 	adjust: number;												// debit amount for active Payment
 	spend: number;												// sum of Attends' amount
 	funds: number;												// active Payment credit:	bank + paid + adjust - spend
-	
+
 	credit: number;												// whole Account credit:	bank + paid + adjust - spend + pend
 	pend: number;													// sum of not-yet-Active Payments
 }
