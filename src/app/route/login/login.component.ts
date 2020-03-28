@@ -12,8 +12,8 @@ import { FIELD } from '@dbase/data/data.define';
 import { IProvider } from '@dbase/data/data.schema';
 import { StateService } from '@dbase/state/state.service';
 
-import { drag } from '@lib/html.library';
-import { dbg } from '@lib/logger.library';
+import { drag } from '@library/html.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-login',

@@ -2,9 +2,9 @@ import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { FILTER, SLICES, SORTBY, COMMENT } from '@library/config.define';
 import { ISchema, IConfig } from '@dbase/data/data.schema';
 
-import { isString } from '@lib/type.library';
-import { sortInsert } from '@lib/array.library';
-import { makeTemplate } from '@lib/string.library';
+import { isString } from '@library/type.library';
+import { sortInsert } from '@library/array.library';
+import { makeTemplate } from '@library/string.library';
 
 /** rebuild values for SLICES, SORTBY, FILTER variables */
 export const setSchema = (schemas: ISchema[] = []) => {

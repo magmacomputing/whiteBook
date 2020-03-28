@@ -17,10 +17,10 @@ import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 
-import { asArray } from '@lib/array.library';
-import { Instant, TDate, getDate } from '@lib/instant.library';
-import { cloneObj, sortKeys } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { asArray } from '@library/array.library';
+import { Instant, TDate, getDate } from '@library/instant.library';
+import { cloneObj, sortKeys } from '@library/object.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  

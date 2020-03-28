@@ -7,10 +7,10 @@ import { AuthService } from '@service/auth/auth.service';
 import { STORE, FIELD } from '@dbase/data/data.define';
 import { ETrack, ITrack } from '../track/track.define';
 
-import { sprintf } from '@lib/string.library';
-import { fix } from '@lib/number.library';
-import { getDate } from '@lib/instant.library';
-import { dbg } from '@lib/logger.library';
+import { sprintf } from '@library/string.library';
+import { fix } from '@library/number.library';
+import { getDate } from '@library/instant.library';
+import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class TrackService {

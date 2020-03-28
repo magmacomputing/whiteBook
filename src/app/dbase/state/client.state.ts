@@ -8,9 +8,10 @@ import { setSchema, setConfig } from '@library/config.library';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, ISchema, IConfig } from '@dbase/data/data.schema';
 
-import { asArray } from '@lib/array.library';
-import { isEmpty, cloneObj } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { asArray } from '@library/array.library';
+import { cloneObj } from '@library/object.library';
+import { isEmpty } from '@library/type.library';
+import { dbg } from '@library/logger.library';
 
 @Injectable()
 @State<TStateSlice<IStoreMeta>>({
@@ -22,7 +23,7 @@ export class ClientState implements NgxsOnInit {
 
 	constructor(private readonly store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /** this.init(); */}
+	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');

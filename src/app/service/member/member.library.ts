@@ -4,10 +4,10 @@ import { IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
-import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
-import { cloneObj } from '@lib/object.library';
-import { getStamp, getDate } from '@lib/instant.library';
+import { isString, isObject, isNumber, isUndefined } from '@library/type.library';
+import { asArray } from '@library/array.library';
+import { cloneObj } from '@library/object.library';
+import { getStamp, getDate } from '@library/instant.library';
 
 // Library of member-related functions
 

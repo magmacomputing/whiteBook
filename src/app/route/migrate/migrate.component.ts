@@ -24,14 +24,14 @@ import { AdminStorage } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
-import { sortKeys, cloneObj, getPath } from '@lib/object.library';
-import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
-import { asString, asNumber } from '@lib/string.library';
-import { IPromise, setPromise } from '@lib/utility.library';
-import { setLocalStore, getLocalStore } from '@lib/browser.library';
-import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
+import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';
+import { sortKeys, cloneObj, getPath } from '@library/object.library';
+import { isUndefined, isNull, isBoolean, TString } from '@library/type.library';
+import { asString, asNumber } from '@library/string.library';
+import { IPromise, setPromise } from '@library/utility.library';
+import { setLocalStore, getLocalStore } from '@library/browser.library';
+import { asArray } from '@library/array.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-migrate',

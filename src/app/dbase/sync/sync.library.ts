@@ -8,10 +8,10 @@ import { IListen, StoreStorage } from '@dbase/sync/sync.define';
 import { LState } from '@dbase/state/state.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
-import { cryptoHash } from '@lib/crypto.library';
-import { sortKeys } from '@lib/object.library';
-import { getLocalStore } from '@lib/browser.library';
-import { lprintf } from '@lib/logger.library';
+import { cryptoHash } from '@library/crypto.library';
+import { sortKeys } from '@library/object.library';
+import { getLocalStore } from '@library/browser.library';
+import { lprintf } from '@library/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firestore.SnapshotMetadata;

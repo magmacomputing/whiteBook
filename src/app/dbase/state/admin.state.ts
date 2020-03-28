@@ -7,9 +7,9 @@ import { TStateSlice } from '@dbase/state/state.define';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
 
-import { asArray } from '@lib/array.library';
-import { cloneObj } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { asArray } from '@library/array.library';
+import { cloneObj } from '@library/object.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * AdminState is for items that only Admin Users (with roles['admin'] in their customClaims) can see

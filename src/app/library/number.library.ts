@@ -1,6 +1,6 @@
-import { asString } from '@lib/string.library';
-import { asArray } from '@lib/array.library';
-import { TNumber } from '@lib/type.library';
+import { asString } from '@library/string.library';
+import { asArray } from '@library/array.library';
+import { TNumber } from '@library/type.library';
 
 export const toHex = (num: TNumber = [], len: number = 64) => {
 	return asArray(num)
@@ -28,5 +28,4 @@ export const suffix = (idx: number) => {
 	return str + sfx;
 }
 
-export const fix = (nbr: string | number, max = 2, fill = '0') =>
-	nbr.toString().padStart(max, fill);
+export const fix = (nbr: string | number, max = 2, fill = '0') => nbr.toString().padStart(max, fill);

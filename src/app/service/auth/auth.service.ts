@@ -13,9 +13,9 @@ import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
-import { asArray } from '@lib/array.library';
+import { asArray } from '@library/array.library';
 import { getConfig } from '@library/config.library';
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {

@@ -1,5 +1,5 @@
-import { isString } from '@lib/type.library';
-import { sprintf } from '@lib/string.library';
+import { isString } from '@library/type.library';
+import { sprintf } from '@library/string.library';
 
 /** setup a reference for debug(), bind the current component name */
 export const dbg = (self: any, component?: string) =>

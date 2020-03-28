@@ -1,5 +1,5 @@
-import { asString } from '@lib/string.library';
-import { toHex } from '@lib/number.library';
+import { asString } from '@library/string.library';
+import { toHex } from '@library/number.library';
 
 enum CRYPTO {
 	algorithm = 'SHA-256',

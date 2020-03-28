@@ -1,22 +1,22 @@
 import { Injectable } from '@angular/core';
 import { take, first } from 'rxjs/operators';
 
-import { asAt } from '@library/app.library';
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/material/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
+import { asAt } from '@library/app.library';
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@lib/instant.library';
-import { isUndefined, isNull } from '@lib/type.library';
+import { getStamp, TDate } from '@library/instant.library';
+import { isUndefined, isNull } from '@library/type.library';
 import { IAccountState } from '@dbase/state/state.define';
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
@@ -44,7 +44,7 @@ export class MemberService {
 			[FIELD.effect]: getStamp(dt),
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.plan,
-			plan
+			[STORE.plan]: plan
 		} as IProfilePlan;
 		this.dbg('plan: %j', doc);
 

@@ -73,7 +73,6 @@ export enum FIELD {								// common Field names
 	date = 'date',
 	sort = 'sort',
 	image = 'image',
-	unknown = 'unknown',
 };
 
 export enum CLASS {

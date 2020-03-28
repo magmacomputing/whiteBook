@@ -8,7 +8,7 @@ import { getConfig } from '@library/config.library';
 
 import { STORE } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-oauth',

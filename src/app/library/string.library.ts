@@ -1,5 +1,5 @@
 import { format } from 'util';
-import { isString, isObject } from '@lib/type.library';
+import { isString, isObject } from '@library/type.library';
 
 // General <string> functions
 
@@ -8,19 +8,6 @@ export const toProperCase = (...str: string[]): string =>
 		.map(text => text.replace(/\w\S*/g,
 			word => word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()))
 		.join(' ')
-
-export const isNumeric = (str: any): str is number =>
-	!isNaN(parseFloat(str)) && isFinite(str);
-
-export const toNumeric = (str: string | number, stripZero: boolean = false) =>
-	isNumeric(str) && (!str.toString().startsWith('0') || stripZero)
-		? parseInt(str.toString(), 10)
-		: str
-
-export const asNumber = (str: string | number) =>
-	isNumeric(str)
-		? parseInt(str.toString(), 10)
-		: NaN
 
 export const randomString = (len = 36) =>
 	Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15);
@@ -52,5 +39,11 @@ export const asTemplate = (templateString: string) =>
 		new Function('return `' + templateString + '`;')();
 
 export const asString = (str: any = '') => isString(str) ? str : (str.toString ? str.toString() : JSON.stringify(str));
+export const asNumber = (str: string | number) => isNumeric(str) ? parseInt(str.toString(), 10) : NaN;
+
+export const isNumeric = (str: any): str is number => !isNaN(parseFloat(str)) && isFinite(str);
+export const toNumeric = (str: string | number, stripZero: boolean = false) =>
+	isNumeric(str) && (!str.toString().startsWith('0') || stripZero) ? parseInt(str.toString(), 10) : str;
+
 export const toLower = (str: string) => isString(str) ? str.toLowerCase() : str;
 export const toUpper = (str: string) => isString(str) ? str.toUpperCase() : str;

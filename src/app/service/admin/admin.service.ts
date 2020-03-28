@@ -7,10 +7,10 @@ import { MemberService } from '@service/member/member.service';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IStoreMeta, IGift } from '@dbase/data/data.schema';
 
-import { getStamp, TDate, getDate } from '@lib/instant.library';
-import { TString } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
+import { getStamp, TDate, getDate } from '@library/instant.library';
+import { TString } from '@library/type.library';
+import { asArray } from '@library/array.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * User must have role = 'admin' or 'instructor'.  

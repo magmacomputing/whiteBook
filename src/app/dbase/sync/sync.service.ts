@@ -19,9 +19,9 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { setPromise, TPromiseStatus } from '@lib/utility.library';
-import { isFunction, isUndefined } from '@lib/type.library';
-import { dbg } from '@lib/logger.library';
+import { setPromise, TPromiseStatus } from '@library/utility.library';
+import { isFunction, isUndefined } from '@library/type.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * Establish a new SyncService per remote Cloud Firestore instance

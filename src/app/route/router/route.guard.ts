@@ -14,9 +14,9 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
-import { getLocalStore } from '@lib/browser.library';
-import { getPath } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { getLocalStore } from '@library/browser.library';
+import { getPath } from '@library/object.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * TODO: The ROUTE.oauth should not be accessible by the Member.

@@ -1,7 +1,25 @@
-import { cloneObj } from '@lib/object.library';
+import { isIterable } from '@library/type.library';
+import { cloneObj } from '@library/object.library';
 
-export const asArray = <T>(arr: T | T[] = []) => Array.isArray(arr) ? [...arr] : [arr];
+export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? Array.from(arr) : [arr];
 
+// insert a value into an array by its sorted position
+export const sortInsert = <T>(arr: T[], val: T) => {
+	let low = 0, high = arr.length;
+	let clone = cloneObj(arr);
+
+	while (low < high) {
+		const mid = (low + high) >>> 1;				// divide by 2
+		if (clone[mid] < val)
+			low = mid + 1
+		else high = mid
+	}
+
+	clone.splice(low, 0, val);
+	return clone;
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 declare global {
 	interface Array<T> {
 		/** return reduced Array as keyed-Object */
@@ -53,19 +71,3 @@ if (!Array.prototype.hasOwnProperty('cartesian')) {
 }
 
 const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
-
-// insert a value into an array by its sorted position
-export const sortInsert = <T>(arr: T[], val: T) => {
-	let low = 0, high = arr.length;
-	let clone = cloneObj(arr);
-
-	while (low < high) {
-		const mid = (low + high) >>> 1;				// divide by 2
-		if (clone[mid] < val)
-			low = mid + 1
-		else high = mid
-	}
-
-	clone.splice(low, 0, val);
-	return clone;
-}

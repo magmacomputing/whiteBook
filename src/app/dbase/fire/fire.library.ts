@@ -2,9 +2,9 @@ import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 
-import { asArray } from '@lib/array.library';
-import { isNumeric } from '@lib/string.library';
-import { isUndefined } from '@lib/type.library';
+import { asArray } from '@library/array.library';
+import { isNumeric } from '@library/string.library';
+import { isUndefined } from '@library/type.library';
 
 /**
  * Array of Query functions with any limit / order criteria.  

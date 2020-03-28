@@ -24,11 +24,8 @@
 			"@env/*": [
 				"src/environments/*"
 			],
-			"@lib/*": [
-				"lib/*"
-			],
 			"@dbase/*": [
-				"src/app/dbase/*"
+				"src/app/dbase/*",
 			],
 			"@library/*": [
 				"src/app/library/*"

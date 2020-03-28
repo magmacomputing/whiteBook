@@ -2,31 +2,32 @@ import { Injectable } from '@angular/core';
 import { combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
 
+import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { Attend } from '@dbase/state/state.action';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
-import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
 
-import { getDate, Instant, TDate } from '@lib/instant.library';
-import { isUndefined, isNumber } from '@lib/type.library';
-import { getPath, isEmpty, sortKeys } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
+import { getDate, Instant, TDate } from '@library/instant.library';
+import { isUndefined, isNumber, isEmpty } from '@library/type.library';
+import { getPath, sortKeys } from '@library/object.library';
+import { asArray } from '@library/array.library';
+import { dbg } from '@library/logger.library';
 
 /** Add/Delete to the Attend collection */
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
-	private dbg = dbg(this, 'AttendService');
+	private self = 'AttendService';
+	private dbg = dbg(this, this.self);
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
@@ -36,7 +37,7 @@ export class AttendService {
 		const updates: IStoreMeta[] = [];
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered
+		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered.  
 		// This presumes that the <key> is from Schedule store, and not Calendar
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
@@ -57,11 +58,8 @@ export class AttendService {
 			? FIELD.id																			// compare requested schedule to timetable's ID
 			: FIELD.key																			// compare requested event to class's Key
 		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
-		if (!timetable) {																	// this schedule is not actually offered on this date!
-			this.dbg(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
-			this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
-			return false;																		// this should not happen
-		}
+		if (!timetable)																		// this schedule is not actually offered on this date!
+			return this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`, this.self);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
@@ -76,12 +74,8 @@ export class AttendService {
 		if (bookAttend.length) {															// disallow same Class, same Note
 			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
 			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
-			if (noNote || isNote) {
-				debugger;
-				this.dbg(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
-				this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
-				return false;																				// discard Attend
-			}
+			if (noNote || isNote)
+				return this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`, this.self);
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,15 +87,14 @@ export class AttendService {
 				delete timetable.bonus.desc;											// not needed
 			}
 			if (timetable.bonus[FIELD.id])
-				timetable.price!.amount = timetable.bonus.amount || 0;	// override Plan price
+				timetable.price!.amount = timetable.bonus.amount ?? 0;	// override Plan price
 		}
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
 		// this is useful for the bulk Migration of attends
 		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price!.amount) {// calculation mis-match
 			this.dbg('bonus: %j', timetable.bonus);
-			this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
-			throw new Error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
+			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
 		}
 		schedule.amount = timetable.price!.amount;				// the price to use for this class
 
@@ -131,7 +124,7 @@ export class AttendService {
 
 			// If over-limit (100+ Attends per Payment) but still have sufficient funds to cover this Class price,
 			// 	insert an auto-approved $0 Payment (only if the next Attend is earlier than any future Payments)
-			if (!tests[PAY.under_limit] && tests[PAY.enough_funds] /** && tests[PAY.not_expired] */) {
+			if (!tests[PAY.under_limit] && tests[PAY.enough_funds]) {
 				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
 					const payment = await this.member.setPayment(0, stamp);
 					payment.approve = { uid: ATTEND.autoApprove, stamp };
@@ -166,15 +159,11 @@ export class AttendService {
 				data.account.attend = await this.data.getStore(STORE.attend, addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
 			}
 
-			if (isUndefined(next)) {
+			if (isUndefined(next))
 				return this.snack.error('Could not allocate a new Payment');
-				// throw new Error('Could not allocate a new Payment');
-			}
 		}																									// repeat the loop to test if this now-Active Payment is useable
-		if (isUndefined(active)) {
+		if (isUndefined(active))
 			return this.snack.error('Could not allocate an active Payment');
-			// throw new Error('Could not allocate an active Payment');
-		}
 
 		const upd: Partial<IPayment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
@@ -184,11 +173,11 @@ export class AttendService {
 		if (!active.expiry && active.approve && isEmpty(timetable.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
-		if (Object.keys(upd).length)											// changes to the active Payment
+		if (!isEmpty(upd))																// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
 		if (data.member.plan[0].plan === PLAN.intro && (data.account.summary.funds - schedule.amount) <= 0)
-			this.member.setPlan(PLAN.member, stamp + 1);				// auto-bump 'intro' to 'member' Plan
+			this.member.setPlan(PLAN.member, stamp + 1);		// auto-bump 'intro' to 'member' Plan
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
@@ -201,7 +190,7 @@ export class AttendService {
 				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
 				[FIELD.key]: schedule[FIELD.key],							// the Attend's class
 				[FIELD.store]: schedule[FIELD.type] === SCHEDULE.class ? STORE.schedule : STORE.calendar,
-				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class','event','special')
+				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class', 'event', 'special')
 			},
 			payment: {
 				[FIELD.id]: active[FIELD.id],									// <id> of Account's current active document
@@ -258,7 +247,7 @@ export class AttendService {
 		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
-			filter.push(memberUid);
+			filter.push(memberUid);											// ensure UID is present in where-clause
 
 		const updates: IStoreMeta[] = [];
 		const deletes: IStoreMeta[] = await this.data.getStore<IAttend>(STORE.attend, filter);
@@ -304,7 +293,7 @@ export class AttendService {
 
 		// build a link-link of Payments, assume pre-sorted by stamp [desc]
 		payments
-			.sort(sortKeys('-' + FIELD.stamp, FIELD.type))
+			.sort(sortKeys(`-${FIELD.stamp}`, FIELD.type))
 			.forEach((payment, idx, arr) => {
 				payment.link = {
 					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,

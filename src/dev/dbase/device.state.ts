@@ -5,11 +5,11 @@ import { TStateSlice } from '@dbase/state/state.define';
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, IConfig } from '@dbase/data/data.schema';
 
-import { makeTemplate } from '@lib/string.library';
-import { cloneObj } from '@lib/object.library';
-import { isString } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
+import { makeTemplate } from '@library/string.library';
+import { cloneObj } from '@library/object.library';
+import { isString } from '@library/type.library';
+import { asArray } from '@library/array.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * DeviceState is for items derived from the server.  

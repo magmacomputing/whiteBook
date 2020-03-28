@@ -10,8 +10,8 @@ import { StateService } from '@dbase/state/state.service';
 import { FIELD, PRICE } from '@dbase/data/data.define';
 import { IPrice, IPlan } from '@dbase/data/data.schema';
 
-import { isUndefined } from '@lib/type.library';
-import { dbg } from '@lib/logger.library';
+import { isUndefined } from '@library/type.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-plan',

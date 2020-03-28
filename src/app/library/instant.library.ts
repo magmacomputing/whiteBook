@@ -1,6 +1,6 @@
-import { fix } from '@lib/number.library';
-import { asString, asNumber } from '@lib/string.library';
-import { getType, isString, isNumber, isUndefined } from '@lib/type.library';
+import { fix } from '@library/number.library';
+import { asString, asNumber } from '@library/string.library';
+import { getType, isString, isNumber, isUndefined } from '@library/type.library';
 
 interface IInstant {											// Instant components
 	readonly yy: number;										// year[4]
@@ -43,7 +43,7 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
 
 export type TDate = string | number | Date | Instant | IInstant | Timestamp | ITimestamp;
 
-/** Mirror the Firestore Timestamp */
+/** Mirror the Firestore Timestamp class */
 class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
@@ -83,23 +83,8 @@ class Timestamp {
  */
 export class Instant {
 	private date: IInstant;																			// Date parsed into components
-
-	static readonly PATTERN = {
-		hhmi: /^\d\d:\d\d$/,																			// regex to match HH:MI
-		yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
-		ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})/,	// d-m-yyyy {HH:MI}
-	}
-	static readonly maxStamp = new Date('9999-12-31').valueOf() / 1000;
-	static readonly minStamp = new Date('1000-01-01').valueOf() / 1000;
-	static readonly divideBy = {																// approx date-offset divisors (unix-timestamp precision)
-		years: 31536000000,
-		months: 2628000000,
-		weeks: 604800000,
-		days: 86400000,
-		hours: 3600000,
-		minutes: 60000,
-		seconds: 1000,
-	}
+	static maxStamp = new Date('9999-12-31').valueOf() / 1000;	// static property
+	static minStamp = new Date('1000-01-01').valueOf() / 1000;	// static property
 
 	constructor(dt?: TDate, ...args: TArgs) { this.date = this.parseDate(dt, args); }
 
@@ -119,6 +104,7 @@ export class Instant {
 	/** weekday number */	get dow() { return this.date.dow }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 	/** apply formatting*/
 	format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
 	/** calc diff Dates, default as <years> */
@@ -140,14 +126,19 @@ export class Instant {
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
 	private parseDate = (dt?: TDate, args: TArgs = []) => {
+		const pat = {
+			hhmi: /^\d\d:\d\d$/,																		// regex to match HH:MI
+			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
+			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})/,	// d-m-yyyy {HH:MI}
+		}
 		let date: Date;
 
-		if (isString(dt) && Instant.PATTERN.hhmi.test(dt))				// if only HH:MI supplied...
-			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
-		if ((isString(dt) || isNumber(dt)) && Instant.PATTERN.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
-			dt = asString(dt).replace(Instant.PATTERN.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
-		if ((isString(dt) || isNumber(dt)) && Instant.PATTERN.ddmmyyyy.test(asString(dt)))
-			dt = asString(dt).replace(Instant.PATTERN.ddmmyyyy, '$2-$1-$3');								// convert to US format
+		if (isString(dt) && pat.hhmi.test(dt))											// if only HH:MI supplied...
+			dt = `${new Date().toDateString()} ${dt}`;								// 	prepend current date
+		if ((isString(dt) || isNumber(dt)) && pat.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
+			dt = asString(dt).replace(pat.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
+		if ((isString(dt) || isNumber(dt)) && pat.ddmmyyyy.test(asString(dt)))
+			dt = asString(dt).replace(pat.ddmmyyyy, '$2-$1-$3');		// convert to US format
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Undefined':																				// default to 'now'
@@ -172,7 +163,7 @@ export class Instant {
 
 				const fmt = dt as string;
 				date = args.length
-					? this.formatString(fmt, ...args)									// free-format string
+					? this.formatString(fmt, ...args)										// free-format string
 					: new Date(fmt)																			// let browser interpret string
 
 				if (date.getFullYear() === 2001) {										// Javascript default year, if none in parse-string
@@ -228,12 +219,25 @@ export class Instant {
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
-		const ww = Math.floor((thu - ny) / Instant.divideBy.weeks + 1);	// ISO Week Number
+		const ww = Math.floor((thu - ny) / this.divideBy('weeks') + 1);	// ISO Week Number
 
 		return {
 			yy, mm, dd, HH, MI, SS, ts, ms, tz, ww, dow,
 			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
 		} as IInstant;
+	}
+
+	/** hide some working-variables */
+	private divideBy = (unit: TUnitDiff) => {													// approx date-offset divisors (unix-timestamp precision)
+		return {
+			years: 31536000000,
+			months: 2628000000,
+			weeks: 604800000,
+			days: 86400000,
+			hours: 3600000,
+			minutes: 60000,
+			seconds: 1000,
+		}[unit]
 	}
 
 	/** create a new offset Instant */
@@ -445,26 +449,33 @@ export class Instant {
 		const offset = this.parseDate(dt2, args);
 		const diff = (this.date.ts * 1000 + this.date.ms) - (offset.ts * 1000 + offset.ms);
 		return diff < 0
-			? Math.ceil(diff / Instant.divideBy[unit])
-			: Math.floor(diff / Instant.divideBy[unit])
+			? Math.ceil(diff / this.divideBy(unit))
+			: Math.floor(diff / this.divideBy(unit))
 	}
 }
 
 export namespace Instant {
-	export enum WEEKDAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun }
-	export enum WEEKDAYS { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday }
-	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec }
-	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December }
+	export enum WEEKDAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun };
+	export enum WEEKDAYS { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
+	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
+	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December };
 
-	export enum FORMAT {											// pre-configured format names
+	export enum FORMAT {
 		display = 'ddd, dd mmm yyyy',
 		dayTime = 'ddd, yyyy-mmm-dd HH:MI',
-		sortTime = 'yyyy-mm-dd HH:MI',					// useful for sorting display-strings
+		sortTime = 'yyyy-mm-dd HH:MI', 						// useful for sorting display-strings
 		dayMonth = 'dd-mmm',
-		HHMI = 'HH:MI',													// 24-hour format
-		hhmi = 'hh:mi',													// 12-hour format
+		HHMI = 'HH:MI',														// 24-hour format
+		hhmi = 'hh:mi', 													// 12-hour format
 		yearWeek = 'yyyyww',
 		yearMonth = 'yyyymm',
 		yearMonthDay = 'yyyymmdd',
 	}
 }
+// block changes to Instant()
+// doesn't work in Angular
+// Object.freeze(Instant);
+// for (const key of Reflect.ownKeys(Instant))
+// 	Object.freeze(Instant[key as keyof typeof Instant]);
+// for (const key of Reflect.ownKeys(Instant.prototype))
+// 	Object.freeze(Instant.prototype[key as keyof typeof Instant.prototype]);

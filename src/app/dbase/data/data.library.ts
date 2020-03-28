@@ -5,12 +5,12 @@ import { FILTER } from '@library/config.define';
 import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IStoreMeta, FType, FNumber, IClientBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
-
-import { isObject, TString } from '@lib/type.library';
-import { equalObj, getPath } from '@lib/object.library';
-import { asString } from '@lib/string.library';
-import { asArray } from '@lib/array.library';
 import { addWhere } from '@dbase/fire/fire.library';
+
+import { isObject, TString } from '@library/type.library';
+import { isEqual, getPath } from '@library/object.library';
+import { asString } from '@library/string.library';
+import { asArray } from '@library/array.library';
 
 // client documents have a '<key>' field, user documents have a '<uid>' field
 export const isClientDocument = (document: TStoreBase): document is IClientBase =>
@@ -102,7 +102,7 @@ export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: I
 			discardFields																// against each of the field-names to match...
 				.map(field => {
 					const bool = isObject(nextDoc[field])		// compare field-by-field
-						? equalObj(nextDoc[field], currDoc[field])
+						? isEqual(nextDoc[field], currDoc[field])
 						: asString(nextDoc[field]) == asString(currDoc[field])
 					if (!bool)
 						console.log('change ', field, ': ', currDoc[field], ' => ', nextDoc[field]);

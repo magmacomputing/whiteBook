@@ -3,7 +3,7 @@ import * as firebase from 'firebase/app';
 import { IUserState } from '@dbase/state/state.define';
 import { Auth } from '@dbase/data/data.define';
 
-import { isNull } from '@lib/type.library';
+import { isNull } from '@library/type.library';
 
 interface IEmailToken {
 	email: string;

@@ -4,7 +4,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { COLLECTION } from '@dbase/data/data.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
-import { IPromise } from '@lib/utility.library';
+import { IPromise } from '@library/utility.library';
 
 export interface IListenKey {
 	collection: COLLECTION;

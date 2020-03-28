@@ -1,7 +1,7 @@
 import { COMMENT } from '@library/config.define';
 
-import { TString } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
+import { TString } from '@library/type.library';
+import { asArray } from '@library/array.library';
 
 /**
  * Remove unnecessary text-strings from Note field.  

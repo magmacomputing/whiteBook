@@ -9,14 +9,14 @@ import { DialogService } from '@service/material/dialog.service';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, REACT } from '@dbase/data/data.define';
+import { ISchedule, IForumBase } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
-import { isUndefined, TString } from '@lib/type.library';
-import { Instant } from '@lib/instant.library';
-import { suffix } from '@lib/number.library';
-import { swipe } from '@lib/html.library';
-import { dbg } from '@lib/logger.library';
-import { ISchedule, IForumBase } from '@dbase/data/data.schema';
+import { isUndefined, TString } from '@library/type.library';
+import { Instant } from '@library/instant.library';
+import { suffix } from '@library/number.library';
+import { swipe } from '@library/html.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-attend',

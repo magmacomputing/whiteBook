@@ -1,16 +1,16 @@
 import { TStateSlice } from '@dbase/state/state.define';
-import { IStoreMeta, TStoreMeta } from '@dbase/data/data.schema';
+import { IStoreMeta } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
 
 /** Actions */
 export namespace Client {
 	export class Set {									// Add a Client object into the Store
 		static readonly type = '[Sync Service] Set Client';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Del {									// Remove a Client object from the Store
 		static readonly type = '[Sync Service] Delete Client';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Trunc {								// Truncate a Client object from the Store
 		static readonly type = '[Sync Service] Truncate Client';
@@ -21,11 +21,11 @@ export namespace Client {
 export namespace Device {
 	export class Set {										// Add a Client object-clone into the local Store
 		static readonly type = '[Sync Service] Set Device';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Del {
 		static readonly type = '[Sync Service] Delete Device';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Trunc {
 		static readonly type = '[Sync Service] Truncate Device';
@@ -36,11 +36,11 @@ export namespace Device {
 export namespace Member {
 	export class Set {									// Add a Member object into the Store
 		static readonly type = '[Sync Service] Set Member';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Del {									// Remove a Member object from the Store
 		static readonly type = '[Sync Service] Delete Member';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Trunc {								// Truncate a Member object from the Store
 		static readonly type = '[Sync Service] Truncate Member';
@@ -51,11 +51,11 @@ export namespace Member {
 export namespace Attend {
 	export class Set {									// Add Attend object into the Store
 		static readonly type = '[Sync Service] Set Attend';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Del {									// Remove Attend object from the Store
 		static readonly type = '[Sync Service] Delete Attend';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Trunc {								// Truncate Attend object from the Store
 		static readonly type = '[Sync Service] Truncate Attend';
@@ -63,18 +63,18 @@ export namespace Attend {
 	}
 	export class Sync {									// new Attend written
 		static readonly type = 'Sync Service] Sync Attend';
-		constructor(public payload: TStoreMeta) { }
+		constructor(public payload: IStoreMeta[]) { }
 	}
 }
 
 export namespace Admin {
 	export class Set {										// Add Admin object into the Store
 		static readonly type = '[Sync Service] Set Admin';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Del {										// Remove Admin object from the Store
 		static readonly type = '[Sync Service] Delete Admin';
-		constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+		constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 	}
 	export class Trunc {									// Truncate Admin object from the Store
 		static readonly type = '[Sync Service] Truncate Admin';
@@ -85,11 +85,11 @@ export namespace Admin {
 // export namespace Forum {
 // export class Set {
 // 	static readonly type = '[Sync Service] Set Forum';
-// 	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+// 	constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 // }
 // export class Det {
 // 	static readonly type = '[Sync Service] Delete Forum';
-// 	constructor(public payload: TStoreMeta, public debug: boolean = true) { }
+// 	constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
 // }
 // export class Trunc {
 // 	static readonly type = '[Sync Service] Truncate Forum';

@@ -1,5 +1,5 @@
-import { ifObject } from '@lib/object.library';
-import { isObject } from '@lib/type.library';
+import { ifObject } from '@library/object.library';
+import { isObject } from '@library/type.library';
 
 export const setLocalStore = (key: string, obj: any) =>
 	setStorage(key, obj, window.localStorage);
@@ -37,19 +37,3 @@ const getStorage = <T>(key: string, target: Storage, dflt?: T) =>
 
 const delStorage = (key: string, target: Storage) =>
 	target.removeItem(key);
-
-/** calculate an approximate browser fingerprint */
-export const getDeviceId = () => {
-	let nav = window.navigator;
-	let screen = window.screen;
-
-	return `
-		${nav.mimeTypes.length}
-		${nav.userAgent.replace(/\D+/g, '')}
-		${nav.plugins.length}
-		${screen.height || ''}
-		${screen.width || ''}
-		${screen.pixelDepth || ''}
-		`
-		.replace(/(\r\n|\n|\r|\t|\s)/gm, "")
-}

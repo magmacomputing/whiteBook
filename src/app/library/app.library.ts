@@ -2,11 +2,11 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@lib/instant.library';
-import { isString, isUndefined, isArray } from '@lib/type.library';
-import { cloneObj, getPath } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
-import { toLower } from '@lib/string.library';
+import { getStamp, TDate } from '@library/instant.library';
+import { isString, isUndefined, isArray } from '@library/type.library';
+import { cloneObj, getPath } from '@library/object.library';
+import { asArray } from '@library/array.library';
+import { toLower } from '@library/string.library';
 
 /**
  * apply filters to an array (table) of objects (rows).  

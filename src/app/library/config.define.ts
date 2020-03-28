@@ -1,5 +1,5 @@
 import { COLLECTION, STORE } from '@dbase/data/data.define';
-import { TString } from '@lib/type.library';
+import { TString } from '@library/type.library';
 
 /** These variables are built in ClientState snapshots */
 

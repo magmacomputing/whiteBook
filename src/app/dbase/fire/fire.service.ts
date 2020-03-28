@@ -7,18 +7,18 @@ import { AngularFirestore, DocumentReference, AngularFirestoreCollection, Docume
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { IUserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
-import { DBaseModule } from '@dbase/dbase.module';
 
+import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
-import { cloneObj } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { isUndefined } from '@library/type.library';
+import { asArray } from '@library/array.library';
+import { cloneObj } from '@library/object.library';
+import { dbg } from '@library/logger.library';
 
 type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
