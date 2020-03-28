@@ -1,4 +1,4 @@
-import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero, TObject } from '@library/type.library';
+import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero } from '@library/type.library';
 import { isNumeric } from '@library/string.library';
 
 /**
@@ -34,7 +34,7 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 }
 
 /** sort Object by multiple keys */
-export const sortKeys = (...keys: string[]): any => (a: TObject<any>, b: TObject<any>) => {
+export const sortKeys = (...keys: string[]): any => (a: Record<string, any>, b: Record<string, any>) => {
 	const desc = keys.length ? (keys[0].startsWith('-')) : false;
 	const key = desc ? keys[0].substring(1) : keys[0];// take out the first key
 
@@ -71,7 +71,7 @@ export const cloneObj = <T>(obj: T) => {
 
 /** lowerCase Object keys */
 export const lowerObj = (obj: any) => {
-	let newObj: TObject<any>;
+	let newObj: Record<string, any>;
 
 	if (!isObject(obj))
 		return obj;
@@ -94,23 +94,9 @@ export const lowerObj = (obj: any) => {
 	return newObj;
 }
 
-/** Convert Array[{}] to Object{{}} */
-export const objArray = (obj: any) => {
-	if (isArray(obj) && isObject(obj[0])) {
-		const newObj: TObject<any> = {};
-
-		obj.forEach(itm =>
-			Object.keys(itm)
-				.forEach(key => newObj[key] = itm[key])
-		)
-		return newObj;
-	}
-	else return obj;
-}
-
 /** Sort Object by its keys */
 export const sortObj = (obj: any, deep: boolean = true): any => {
-	const col: TObject<any> = {};
+	const col: Record<string, any> = {};
 
 	if (!isObject(obj))
 		return obj;

@@ -13,7 +13,7 @@ import { getStamp, getDate } from '@library/instant.library';
 
 // assemble a standard Member Info object
 export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
-	const profile: { [key: string]: any; } = provider.profile || {};
+	const profile: Record<string, any> = provider.profile || {};
 
 	const profileInfo: IMemberInfo = {
 		providerId: provider.providerId,

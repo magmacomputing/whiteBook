@@ -53,9 +53,9 @@ export interface IForumBase extends IMeta {
 	[FIELD.stamp]: number;
 	track: {																// to use in feedback-analysis
 		date: number;													// yearMonthDay
-		[key: string]: string | number;				// additional info to assist tracking
-	},
+	} & Record<string, string | number>,		// additional info to assist tracking
 }
+
 export interface IImport extends IUserBase {
 	[FIELD.store]: STORE.import;						// record of Google Sheet on migrate
 	[FIELD.uid]: string;
@@ -76,11 +76,7 @@ export interface IMigrate extends IMeta {	// these allow for reconciliation of m
 		[order: string]: CLASS;
 	}
 }
-export interface IStoreMeta extends IMeta {
-	[FIELD.store]: STORE;
-	[key: string]: any;											// add in index-signature
-}
-// export type TStoreMeta = IStoreMeta ;//| IStoreMeta[];
+export interface IStoreMeta extends IMeta, Record<string, any> {}
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
@@ -210,9 +206,7 @@ export interface ILocation extends IClientBase {
 		state?: string;
 		postcode?: number;
 	},
-	contact?: {
-		[key: string]: any;
-	},
+	contact?: Record<string, any>,
 	map?: {
 		geo?: {
 			latitude: number;

@@ -57,7 +57,6 @@ export const nullToValue = (obj?: unknown, value?: any) => obj ?? value;
 
 export type TString = string | string[];
 export type TNumber = number | number[];
-export type TObject<T> = { [key: string]: T; };
 
 /**
 const getType = (obj) => {

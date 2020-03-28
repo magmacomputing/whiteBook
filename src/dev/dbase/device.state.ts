@@ -83,7 +83,7 @@ export class DeviceState implements NgxsOnInit {
 
 	/** resolve some placeholder variables in IConfig[] */
 	private fixConfig = () => {
-		const placeholder: { [key: string]: string; } = {};
+		const placeholder: Record<string, string> = {};
 		const state = this.store.selectSnapshot(state => state);	// get existing state
 		const config = (state.client[STORE.config] as IConfig[])
 			.filter(row => !row[FIELD.expire]);							// slice it to get Config, skip expired
@@ -96,7 +96,7 @@ export class DeviceState implements NgxsOnInit {
 		return cloneObj(config)
 			.filter(row => row[FIELD.key] !== 'default')		// skip Config 'defaults'
 			.map(row => {
-				const subst: { [key: string]: string; } = {}
+				const subst: Record<string, string> = {}
 				Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
 					const tpl = makeTemplate(item[1]);					// turn it into a template literal
 					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders

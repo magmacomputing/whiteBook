@@ -44,7 +44,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private account$!: Observable<IAccountState>;
 	private user!: firebase.UserInfo | null;
 	private history: IPromise<MHistory[]>;
-	private status!: { [key: string]: any };
+	private status!: Record<string, any>;
 	private migrate!: IMigrate[];
 	private current: IRegister | null = null;
 	private import_: IImport | null = null;
@@ -555,7 +555,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
 						]
 						this.data.getFire(COLLECTION.forum, { where })
-						// this.data.getStore<STORE.comment>(STORE.comment)
+							// this.data.getStore<STORE.comment>(STORE.comment)
 							.then(list => {
 								if (!list.length)
 									this.forum.setComment({ key: sched[FIELD.id], type: sched[FIELD.store], date: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })

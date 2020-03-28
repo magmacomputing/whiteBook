@@ -1,12 +1,11 @@
 import { isIterable } from '@library/type.library';
-import { cloneObj } from '@library/object.library';
 
 export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? Array.from(arr) : [arr];
 
 // insert a value into an array by its sorted position
 export const sortInsert = <T>(arr: T[], val: T) => {
 	let low = 0, high = arr.length;
-	let clone = cloneObj(arr);
+	let clone = asArray(arr);
 
 	while (low < high) {
 		const mid = (low + high) >>> 1;				// divide by 2
@@ -22,7 +21,7 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
 declare global {
 	interface Array<T> {
-		/** return reduced Array as keyed-Object */
+		/** return reduced Array-of-Objects as keyed-Object-of-Arrays */
 		groupBy<K extends string>(key: K): Record<K, T>;
 
 		/** return new Array with no repeated elements */

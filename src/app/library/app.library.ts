@@ -23,7 +23,7 @@ import { toLower } from '@library/string.library';
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
 export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
-	const clone = asArray(table);											// clone to avoid mutating original array
+	const clone = asArray(table);												// clone to avoid mutating original array
 
 	return clone
 		.filter((row: Record<string, any>) => {						// for each row, ...

@@ -6,7 +6,7 @@ export interface IForumArgs {
 	key: string,
 	store?: STORE.react | STORE.comment;
 	type?: STORE,
-	track?: { [key: string]: string | number };
+	track?: Record<string, string | number>;
 	date?: TDate;
 	uid?: string;
 }

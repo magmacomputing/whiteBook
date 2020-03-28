@@ -130,7 +130,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				}
 
 				const nodes = node && node.split('.') || [];					// specific branch on node
-				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
+				let joins: Record<string, TStoreBase[]> = nodes[0] && parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {
