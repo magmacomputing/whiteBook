@@ -66,7 +66,8 @@ if (!Array.prototype.hasOwnProperty('cartesian')) {
 
 		return b.length
 			? this.cartesian(cartFn(a, b), ...c)
-			: [...a || []]
+			: Array.from(a || [])
+			// : [...a || []]
 	}
 }
 
