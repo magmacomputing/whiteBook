@@ -4,7 +4,7 @@ import { IMeta } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@library/instant.library';
 import { isString, isUndefined, isArray } from '@library/type.library';
-import { cloneObj, getPath } from '@library/object.library';
+import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { toLower } from '@library/string.library';
 
@@ -23,9 +23,9 @@ import { toLower } from '@library/string.library';
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
 export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
-	const clone = cloneObj(table);											// clone to avoid mutating original array
+	const clone = asArray(table);											// clone to avoid mutating original array
 
-	return clone 																				// clone to avoid mutating original array
+	return clone
 		.filter((row: Record<string, any>) => {						// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
