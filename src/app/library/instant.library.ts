@@ -24,8 +24,7 @@ interface ITimestamp {
 	readonly nanoseconds: number;
 }
 
-interface IDateFmt {											// pre-configured format strings
-	[str: string]: string | number;					// allow for dynamic format-codes
+interface IDateFmt extends Record<string, string | number> {	// pre-configured format strings
 	readonly "ddd, dd mmm yyyy": string;
 	readonly "yyyy-mm-dd HH:MI": string;
 	readonly "dd-mmm": string;
