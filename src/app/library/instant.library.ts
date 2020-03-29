@@ -309,10 +309,10 @@ export class Instant {
 				[date.MI, date.SS, date.ms] = [59, 59, 999];
 				break;
 			case 'end.minute':
-				[date.MI, date.SS, date.ms] = [59, 59, 999];
+				[date.SS, date.ms] = [59, 999];
 				break;
 			case 'end.second':
-				[date.SS, date.ms] = [59, 999];
+				date.ms = 999;
 				break;
 
 			case 'add.year':
