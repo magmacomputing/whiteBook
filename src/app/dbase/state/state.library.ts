@@ -378,7 +378,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	// for each item on the schedule, poke in 'price' and 'icon',
 	// override plan-price if entitled to bonus
 	source.client.schedule = times
-		.map(time => {
+		.map(table => {
+			const time = cloneObj(table);
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
 			time.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
