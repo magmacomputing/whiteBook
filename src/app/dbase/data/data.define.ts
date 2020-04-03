@@ -87,7 +87,6 @@ export enum CLASS {
 	Zumba = 'Zumba',
 	ZumbaStep = 'ZumbaStep'
 }
-
 export enum MESSAGE {
 	// diary = 'diary',
 	// alert = 'alert',
