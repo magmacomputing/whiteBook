@@ -16,7 +16,7 @@ export const getType = (obj?: any): string => {
 	}
 }
 
-export const isEmpty = <T>(obj: T) => {
+export const isEmpty = <T>(obj: T | Iterable<T>) => {
 	switch (getType(obj)) {
 		case 'Object':
 		case 'String':
@@ -25,7 +25,7 @@ export const isEmpty = <T>(obj: T) => {
 		case 'Array':
 		case 'Set':
 		case 'Map':
-			return Array.from(obj as unknown as Iterable<T>).length === 0;
+			return Array.from(obj as Iterable<T>).length === 0;
 
 		default:
 			return false;
