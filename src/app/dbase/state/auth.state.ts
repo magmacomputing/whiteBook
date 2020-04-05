@@ -96,7 +96,7 @@ export class AuthState {
 	 */
 	@Action(Login.Credential)													// attempt to link multiple providers
 	private async loginCredential(ctx: StateContext<IAuthState>, { link }: Login.Credential) {
-		const methods = await this.afAuth.auth.fetchSignInMethodsForEmail(link.email);
+		const methods = await this.afAuth.fetchSignInMethodsForEmail(link.email);
 
 		switch (methods[0]) {														// check the first-method
 			case firebase.auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
@@ -123,7 +123,7 @@ export class AuthState {
 	@Action(Login.Identity)														// process signInWithPopup()
 	private async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: Login.Identity) {
 		try {
-			const response = await this.afAuth.auth.signInWithPopup(authProvider);
+			const response = await this.afAuth.signInWithPopup(authProvider);
 
 			if (!credential)
 				ctx.patchState({ info: response.additionalUserInfo, credential: response.credential });
@@ -144,7 +144,7 @@ export class AuthState {
 		}
 		ctx.patchState({ info: additionalUserInfo });
 
-		this.afAuth.auth.signInWithCustomToken(token)
+		this.afAuth.signInWithCustomToken(token)
 			.then(response => ctx.dispatch(new Event.Setup(response.user!)))
 			.catch(error => this.dbg('failed: %j', error.toString()));
 	}
@@ -157,7 +157,7 @@ export class AuthState {
 		this.dbg('loginEmail: %s', method);
 
 		try {
-			return this.afAuth.auth[thisMethod](email, password)
+			return this.afAuth[thisMethod](email, password)
 				.then(response => this.authSuccess(ctx, response.user, credential))
 				.catch(async error => {
 					switch (error.code) {
@@ -176,7 +176,7 @@ export class AuthState {
 	/** Attempt to signIn User anonymously */
 	@Action(Login.Anon)
 	private loginAnon(ctx: StateContext<IAuthState>) {
-		return this.afAuth.auth.signInAnonymously()
+		return this.afAuth.signInAnonymously()
 			.catch(error => ctx.dispatch(new Event.Failed(error)));
 	}
 
@@ -185,12 +185,12 @@ export class AuthState {
 	private async loginLink(ctx: StateContext<IAuthState>, { link, credential }: Login.Link) {
 		const localItem = 'emailForSignIn';
 
-		if (this.afAuth.auth.isSignInWithEmailLink(link)) {
+		if (this.afAuth.isSignInWithEmailLink(link)) {
 			const email = getLocalStore<string>(localItem) ||
 				prompt('Please provide your email for confirmation') ||
 				'';
 
-			const response = await this.afAuth.auth.signInWithEmailLink(email, link);
+			const response = await this.afAuth.signInWithEmailLink(email, link);
 			delLocalStore(localItem);
 
 			if (credential)
@@ -203,7 +203,7 @@ export class AuthState {
 	@Action(Login.Out)																// process signOut()
 	private logout(ctx: StateContext<IAuthState>) {
 		this.user = null;
-		this.afAuth.auth.signOut()
+		this.afAuth.signOut()
 			.then(_ => ctx.dispatch(new Login.Off()))
 		return;
 	}
@@ -213,7 +213,7 @@ export class AuthState {
 	private onMember(ctx: StateContext<IAuthState>, { user }: Event.Success) {
 		const query: IQuery = { where: addWhere(FIELD.uid, user.uid) };
 
-		if (this.afAuth.auth.currentUser) {
+		if (this.afAuth.currentUser) {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
@@ -231,7 +231,7 @@ export class AuthState {
 	}
 
 	@Action(Login.Other)															// behalf of another User
-	private (ctx: StateContext<IAuthState>, { alias }: Login.Other) {
+	private(ctx: StateContext<IAuthState>, { alias }: Login.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
 		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
@@ -277,7 +277,7 @@ export class AuthState {
 
 	@Action([Event.Setup, Event.Success])
 	private setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: Event.Setup) {
-		if (this.afAuth.auth.currentUser) {
+		if (this.afAuth.currentUser) {
 			const clone = cloneObj(user);								// safe copy of User
 
 			if (!clone.email) {
@@ -291,10 +291,11 @@ export class AuthState {
 
 	@Action(Event.Token)															// fetch latest IdToken
 	private setToken(ctx: StateContext<IAuthState>) {
-		if (this.afAuth.auth.currentUser) {
-			let token: firebase.auth.IdTokenResult;
+		if (this.afAuth.currentUser) {
+			let token: firebase.auth.IdTokenResult | undefined;
 
-			this.afAuth.auth.currentUser.getIdTokenResult(true)
+			this.afAuth.currentUser
+				.then(user => user?.getIdTokenResult(true))
 				.then(result => token = result)
 				.then(_ => ctx.patchState({ token }))
 				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { AngularFireModule } from '@angular/fire';
 import { AngularFirestoreModule } from '@angular/fire/firestore';
-import { AngularFireFunctionsModule, FunctionsRegionToken } from '@angular/fire/functions';
+import { AngularFireFunctionsModule, REGION } from '@angular/fire/functions';
 import { environment } from '@env/environment';
 
 import { NgxsModule } from '@ngxs/store';
@@ -25,7 +25,7 @@ const fb = environment.firebase || {};
 		AngularFireFunctionsModule,
 	],
 	providers: [
-		{ provide: FunctionsRegionToken, useValue: fb.config.region },
+		{ provide: REGION, useValue: fb.config.region },
 	],
 	declarations: [InfoSnackBar, WarnSnackBar, ErrorSnackBar],
 })
