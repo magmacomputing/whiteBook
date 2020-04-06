@@ -163,6 +163,13 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				desc: scheme.month.desc,
 			}
 			break;
+
+			/**
+			 * The Home scheme qualifies as a Bonus is the Member has already attended an '@Home' class earlier today
+			 */
+		case scheme.home
+			&& attendToday.length >= scheme.home.level:
+			break;
 	}
 
 	if (upd.length)																					// whether or not we found an applicable Bonus

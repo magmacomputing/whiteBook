@@ -201,6 +201,7 @@ export enum BONUS {
 	week = 'week',
 	month = 'month',
 	sunday = 'sunday',
+	home = 'home',
 }
 
 export enum REACT {
