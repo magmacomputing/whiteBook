@@ -7,6 +7,7 @@ export enum COLLECTION {
 	admin = 'admin',				// Administrator records
 	device = 'device',			// Connected Devices (per Member)
 	forum = 'forum',				// Comments / Reactions / Feedback
+	zoom = 'zoom',					// Zoom Meeting integration
 }
 
 export enum STORE {
@@ -49,6 +50,7 @@ export enum STORE {
 	// misc
 	local = '@config@',
 	log = 'log',
+	zoom = 'zoom',
 }
 
 export enum TYPE {								// standard <type> field names
@@ -85,7 +87,9 @@ export enum CLASS {
 	StepDown = 'StepDown',
 	StepIn = 'StepIn',
 	Zumba = 'Zumba',
-	ZumbaStep = 'ZumbaStep'
+	ZumbaStep = 'ZumbaStep',
+	"Step@Home" = 'Step@Home',
+	"Rumba@Home" = 'Rumbe@Home',
 }
 export enum MESSAGE {
 	// diary = 'diary',
