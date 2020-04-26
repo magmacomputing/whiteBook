@@ -413,7 +413,7 @@ export interface IReact extends IForumBase {
 //	/admin/register
 export interface ICustomClaims {		// a special sub-set of fields from the User Token
 	alias?: string;
-	roles?: Auth.ROLE[];
+	roles?: Auth.ROLE[];							// TODO: does this need to be Array?
 	allow?: string[];
 	deny?: string[];
 }

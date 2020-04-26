@@ -20,9 +20,7 @@ import { getPath } from '@library/object.library';
 
 const toLogin = () => redirectUnauthorizedTo([ROUTE.login]);
 const toAttend = () => redirectLoggedInTo([ROUTE.attend]);
-const isAdmin = () => pipe(customClaims,
-	map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)),
-);
+const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)));
 
 const routes: Routes = [
 	{ path: ROUTE.oauth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
