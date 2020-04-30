@@ -11,4 +11,5 @@ export enum ROUTE {
 	forum = 'forum',
 
 	migrate = 'migrate',
+	zoom = 'zoom',
 }
