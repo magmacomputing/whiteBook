@@ -1,6 +1,6 @@
 import { firestore, UserInfo } from 'firebase';
 
-import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, Zoom } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
@@ -76,7 +76,7 @@ export interface IMigrate extends IMeta {	// these allow for reconciliation of m
 		[order: string]: CLASS;
 	}
 }
-export interface IStoreMeta extends IMeta, Record<string, any> {}
+export interface IStoreMeta extends IMeta, Record<string, any> { }
 
 //	/client/_default_
 export interface IDefault extends IClientBase {
@@ -462,4 +462,193 @@ export interface IStatusConnect extends IStatus {
 	[FIELD.type]: STATUS.connect;
 	state: CONNECT;
 	device?: string | null;
+}
+
+export interface IZoom<T extends ZStatus | ZStarted | ZEnded | ZJoined | ZLeft> {
+	[FIELD.id]: string;
+	[FIELD.create]: string;
+	[FIELD.update]: string;
+	[FIELD.store]: COLLECTION.zoom;
+	[FIELD.type]: Zoom.EVENT;
+	[FIELD.stamp]: number;
+	head: Record<string, any>;
+	body: T;
+	track: {
+		date: number;
+		day: number;
+		week: number;
+		month: number;
+	},
+	white?: IWhite;
+}
+
+export type ZLeft = {
+	event: Zoom.EVENT.left;
+	payload: {
+		account_id: string;
+		object: {
+			start_time: Date;
+			topic: string;
+			type: number;
+			id: string;
+			duration: number;
+			uuid: string;
+			host_id: string;
+			participant: {
+				id: string;
+				leave_time: Date;
+				user_id: string;
+				user_name: string;
+			},
+			timezone: 'Australia/Sydney';
+		}
+	}
+}
+
+export type ZJoined = {
+	event: Zoom.EVENT.joined;
+	payload: {
+		account_id: string;
+		object: {
+			start_time: Date;
+			topic: string;
+			type: number;
+			id: string;
+			duration: number;
+			uuid: string;
+			host_id: string;
+			participant: {
+				id: string;
+				join_time: Date;
+				user_id: string;
+				user_name: string;
+			},
+			timezone: string;
+		}
+	}
+}
+
+export type ZStarted = {
+	event: Zoom.EVENT.started;
+	payload: {
+		account_id: string;
+		object: {
+			id: string;
+			uuid: string;
+			host_id: string;
+			topic: string;
+			type: Zoom.TYPE;
+			start_time: Date;
+			timezone: string;
+			duration: number;
+		}
+	};
+}
+
+export type ZEnded = {
+	event: Zoom.EVENT.ended;
+	payload: {
+		account_id: string;
+		object: {
+			id: string;
+			uuid: string;
+			host_id: string;
+			topic: string;
+			type: Zoom.TYPE;
+			start_time: Date;
+			end_time: Date;
+			timezone: string;
+			duration: number;
+		}
+	}
+}
+
+export type ZStatus = {
+	event: Zoom.EVENT.status;
+	payload: {
+		account_id: string;
+		object: {
+			date_time: Date;
+			email?: string;
+			id: string;
+			presence_status: Zoom.PRESENCE;
+		}
+	}
+}
+
+export interface IMeeting {
+	uuid: string;
+	meeting_id: string;
+	topic?: string;
+	start: {
+		[FIELD.id]: string;
+		[FIELD.stamp]: number;
+		start_time: Date;
+		white?: IWhite;
+	},
+	end?: {
+		[FIELD.id]: string;
+		[FIELD.stamp]: number;
+		end_time: Date;
+	}
+	participants: {
+		participant_id: string;
+		user_id: string;
+		user_name: string;
+		join: {
+			[FIELD.id]: string;
+			[FIELD.stamp]: number;
+			join_time: Date;
+			white: IWhite;
+		},
+		leave?: {
+			[FIELD.id]: string;
+			[FIELD.stamp]: number;
+			leave_time: Date;
+		}
+	}[]
+}
+
+export interface IZoomEnv {
+	id: string;
+	start: string;
+	end: string;
+	event: string;
+}
+
+export interface IWhite {
+	class?: string;
+	alias?: string;
+	checkIn?: ICheckIn;
+	paid?: true;
+}
+
+export interface ICheckIn {
+	track: {
+		history: number;
+	}
+	history: Record<string, any>[];
+	status: {
+		lastVisit: string;
+		eventType: string;
+		eventPrice: string;
+		eventNote?: string;
+		hr1?: string;
+		creditExpires: string;
+		creditRemaining: string;
+		trackDaysThisWeek: number;
+		_week: string;
+	}
+	checkIn: {
+		type: string;
+		price: number;
+		nextAttend: {
+			row: number;
+			col: number;
+			spend: number;
+			bank: number;
+			amt: number;
+			pre: number;
+		}
+	}
 }

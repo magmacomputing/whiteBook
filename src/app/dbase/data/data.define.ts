@@ -153,6 +153,31 @@ export enum SPAN {
 	half = 'half',
 }
 
+export namespace Zoom {
+	export enum EVENT {
+		type = 'body.event',
+		joined = 'meeting.participant_joined',
+		left = 'meeting.participant_left',
+		started = 'meeting.started',
+		ended = 'meeting.ended',
+		status = 'user.presence_status_updated',
+	}
+
+	export enum TYPE {
+		instant = 1,
+		scheduled,
+		recurring,
+		personal,
+		recurringScheduled = 8,
+	}
+
+	export enum PRESENCE {
+		available = 'Available',
+		away = 'Away',
+		disturb = 'Do Not Disturb',
+	}
+}
+
 export namespace Auth {
 	export enum PROVIDER {
 		fb = 'fb',										// Facebook
