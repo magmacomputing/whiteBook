@@ -141,7 +141,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { price } = doc.white?.checkIn || {};
 							const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const credit = doc.white?.paid ? bank + amt - spend + pre : undefined;
+							const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
 							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
 							if (idx !== -1)
 								meeting[idx].participants.push({ join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit }, participant_id, user_id, user_name, });
