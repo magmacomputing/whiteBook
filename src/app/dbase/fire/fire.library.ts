@@ -15,7 +15,7 @@ import { isUndefined } from '@library/type.library';
 export const fnQuery = (query: IQuery = {}) => {
 	return splitQuery(query)
 		.map<QueryFn>(split =>
-			(colRef: Query) => {													// map a Query-function
+			(colRef: Query) => {															// map a Query-function
 				if (split.where)
 					asArray(split.where)
 						.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value, not supported
@@ -54,10 +54,13 @@ export const fnQuery = (query: IQuery = {}) => {
  */
 const splitQuery = (query: IQuery = {}) => {
 	const wheres = asArray(query.where)						// for each 'where' clause
-		.map(where => asArray(where.value)					// for each 'value'
-			.distinct()																// remove duplicates
-			.map(value => addWhere(where.fieldPath, value, where.opStr))
-		)
+		.map(where => {
+			return where.opStr === 'in'
+				? where
+				: asArray(where.value)									// for each 'value'
+					.distinct()														// remove duplicates
+					.map(value => addWhere(where.fieldPath, value, where.opStr))
+		})
 		.cartesian();																// cartesian product of IWhere array
 
 	const split: IQuery[] = wheres.map(where =>		// for each split IWhere,
