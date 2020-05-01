@@ -89,6 +89,10 @@ export class DataService {
 			.toPromise()
 	}
 
+	getLive<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection as observable
+		return this.fire.listen<T>(collection, query);
+	}
+
 	asPromise<T>(obs: Observable<T[]>) {
 		return obs
 			.pipe(take(1))

@@ -1,1 +1,58 @@
-<p>zoom works!</p>
+<div *ngIf="(meetings$ | async) || []; let meetings">
+	<div class="center">
+		<button mat-icon-button [disabled]="offset==6" (click)="setDate(-1)">
+			<mat-icon>arrow_left</mat-icon>
+		</button>
+		<button [disabled]="offset==0" (click)="setDate(0)"> {{ date.format('ddd, dd mmm yyyy') }} </button>
+		<button mat-icon-button [disabled]="offset==0" (click)="setDate(1)">
+			<mat-icon>arrow_right</mat-icon>
+		</button>
+	</div>
+
+	<div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+		<mat-tab-group [(selectedIndex)]="selectedIndex">
+			<div *ngFor="let meeting of meetings">
+				<mat-tab label=" {{ meeting.start.label }}">
+					<table>
+						<tr>
+							<td colspan="2">
+								<h3>{{ meeting.start?.white?.class }}</h3>
+							</td>
+							<td>started: </td>
+							<td>
+								<h4>{{ meeting.start.label }}</h4>
+							</td>
+							<td>ended: </td>
+							<td>
+								<h4>{{ meeting.end?.label }}</h4>
+							</td>
+						</tr>
+					</table>
+
+					<table>
+						<thead>
+							<tr>
+								<th>UserName</th>
+								<th>Join</th>
+								<th>Left</th>
+								<th>Alias</th>
+								<th>Paid</th>
+								<th>Credit</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let party of meeting.participants; let idx = index">
+								<td>{{ party.user_name }}</td>
+								<td>{{ party.join.label }}</td>
+								<td>{{ party.leave?.label }}</td>
+								<td>{{ party.join.white?.alias }}</td>
+								<td>{{ party.join.price | number }}</td>
+								<td>{{ party.join.credit| number }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</mat-tab>
+			</div>
+		</mat-tab-group>
+	</div>
+</div>

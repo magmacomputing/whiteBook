@@ -63,17 +63,18 @@ const splitQuery = (query: IQuery = {}) => {
 		})
 		.cartesian();																// cartesian product of IWhere array
 
-	const split: IQuery[] = wheres.map(where =>		// for each split IWhere,
-		({																					// build an array of IQuery
-			orderBy: query.orderBy,
-			limitTo: query.limit,
-			startAt: query.startAt,
-			startAfter: query.startAfter,
-			endAt: query.endAt,
-			endBefore: query.endBefore,
-			where: where,
-		})
-	)
+	const split: IQuery[] = asArray(wheres)
+		.map(where =>																// for each split IWhere,
+			({																				// build an array of IQuery
+				orderBy: query.orderBy,
+				limitTo: query.limit,
+				startAt: query.startAt,
+				startAfter: query.startAfter,
+				endAt: query.endAt,
+				endBefore: query.endBefore,
+				where: where,
+			})
+		)
 
 	return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query
 }

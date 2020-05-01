@@ -464,7 +464,7 @@ export interface IStatusConnect extends IStatus {
 	device?: string | null;
 }
 
-export interface IZoom<T extends ZStatus | ZStarted | ZEnded | ZJoined | ZLeft> {
+export interface IZoom<T extends TStarted | TEnded | TJoined | TLeft | TStatus> {
 	[FIELD.id]: string;
 	[FIELD.create]: string;
 	[FIELD.update]: string;
@@ -482,7 +482,7 @@ export interface IZoom<T extends ZStatus | ZStarted | ZEnded | ZJoined | ZLeft> 
 	white?: IWhite;
 }
 
-export type ZLeft = {
+export type TLeft = {
 	event: Zoom.EVENT.left;
 	payload: {
 		account_id: string;
@@ -505,7 +505,7 @@ export type ZLeft = {
 	}
 }
 
-export type ZJoined = {
+export type TJoined = {
 	event: Zoom.EVENT.joined;
 	payload: {
 		account_id: string;
@@ -528,7 +528,7 @@ export type ZJoined = {
 	}
 }
 
-export type ZStarted = {
+export type TStarted = {
 	event: Zoom.EVENT.started;
 	payload: {
 		account_id: string;
@@ -545,7 +545,7 @@ export type ZStarted = {
 	};
 }
 
-export type ZEnded = {
+export type TEnded = {
 	event: Zoom.EVENT.ended;
 	payload: {
 		account_id: string;
@@ -563,7 +563,7 @@ export type ZEnded = {
 	}
 }
 
-export type ZStatus = {
+export type TStatus = {
 	event: Zoom.EVENT.status;
 	payload: {
 		account_id: string;
@@ -584,12 +584,14 @@ export interface IMeeting {
 		[FIELD.id]: string;
 		[FIELD.stamp]: number;
 		start_time: Date;
+		label: string;							// to be displayed on an UI tab
 		white?: IWhite;
 	},
 	end?: {
 		[FIELD.id]: string;
 		[FIELD.stamp]: number;
 		end_time: Date;
+		label: string;							// to be displayed on an UI tab
 	}
 	participants: {
 		participant_id: string;
@@ -599,12 +601,16 @@ export interface IMeeting {
 			[FIELD.id]: string;
 			[FIELD.stamp]: number;
 			join_time: Date;
+			label: string;							// to be displayed on an UI tab
 			white: IWhite;
+			price?: number;
+			credit?: number;
 		},
 		leave?: {
 			[FIELD.id]: string;
 			[FIELD.stamp]: number;
 			leave_time: Date;
+			label: string;							// to be displayed on an UI tab
 		}
 	}[]
 }
@@ -619,16 +625,12 @@ export interface IZoomEnv {
 export interface IWhite {
 	class?: string;
 	alias?: string;
-	checkIn?: ICheckIn;
 	paid?: true;
-}
-
-export interface ICheckIn {
-	track: {
+	track?: {
 		history: number;
-	}
-	history: Record<string, any>[];
-	status: {
+	},
+	history?: Record<string, any>[];
+	status?: {
 		lastVisit: string;
 		eventType: string;
 		eventPrice: string;
@@ -638,8 +640,8 @@ export interface ICheckIn {
 		creditRemaining: string;
 		trackDaysThisWeek: number;
 		_week: string;
-	}
-	checkIn: {
+	},
+	checkIn?: {
 		type: string;
 		price: number;
 		nextAttend: {
