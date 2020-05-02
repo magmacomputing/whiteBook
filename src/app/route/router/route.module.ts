@@ -33,7 +33,7 @@ const routes: Routes = [
 	{ path: ROUTE.forum, loadChildren: () => import('@route/forum/forum.module').then(m => m.ForumModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
 	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
 
-	{ path: '**', redirectTo: ROUTE.attend, pathMatch: 'full' },
+	{ path: '**', redirectTo: ROUTE.zoom, pathMatch: 'full' },
 ];
 
 @NgModule({

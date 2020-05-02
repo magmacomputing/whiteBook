@@ -40,11 +40,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		this.timerSubscription?.unsubscribe();						// reset the end-of-day Subscription
-		this.meetingSubscription?.unsubscribe();					// reset the /zoom Subscription
 	}
 
 	swipe(idx: number, event: any) {
-		// this.firstPaint = false;                          // ok to animate
+		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, this.meetings, event);
 	}
 
@@ -169,9 +168,5 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					return meeting;
 				})
 			)
-
-		this.meetingSubscription?.unsubscribe();								// if already subscribed
-		this.meetingSubscription = this.meetings$.subscribe(next => {})
 	}
-
 }
