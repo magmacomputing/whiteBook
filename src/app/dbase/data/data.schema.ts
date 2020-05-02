@@ -605,6 +605,10 @@ export interface IMeeting {
 			white: IWhite;
 			price?: number;
 			credit?: number;
+			bgcolor?: {
+				price: string;
+				credit: string;
+			}
 		},
 		leave?: {
 			[FIELD.id]: string;

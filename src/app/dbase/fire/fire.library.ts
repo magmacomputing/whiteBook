@@ -4,7 +4,7 @@ import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
-import { isUndefined } from '@library/type.library';
+import { isUndefined, isArray } from '@library/type.library';
 
 /**
  * Array of Query functions with any limit / order criteria.  
@@ -55,6 +55,12 @@ export const fnQuery = (query: IQuery = {}) => {
 const splitQuery = (query: IQuery = {}) => {
 	const wheres = asArray(query.where)						// for each 'where' clause
 		.map(where => {
+			if (isArray(where.value)) {
+				where.value = where.value.distinct();
+				if (where.opStr === 'in' && where.value.length === 0)
+					where.value = ['<null>'];
+			}
+
 			return where.opStr === 'in'
 				? where
 				: asArray(where.value)									// for each 'value'

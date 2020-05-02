@@ -9,6 +9,10 @@
 		</button>
 	</div>
 
+	<div class="center" *ngIf="meetings.length !== 0; else noMeeting">
+		<h3>Here is today's Meetings</h3>
+	</div>
+
 	<div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
 			<div *ngFor="let meeting of meetings">
@@ -46,8 +50,8 @@
 								<td>{{ party.join.label }}</td>
 								<td>{{ party.leave?.label }}</td>
 								<td>{{ party.join.white?.alias }}</td>
-								<td align="right">{{ party.join.price | number }}</td>
-								<td align="right">{{ party.join.credit| number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.price">{{ party.join.price | number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit">{{ party.join.credit| number }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -56,3 +60,7 @@
 		</mat-tab-group>
 	</div>
 </div>
+
+<ng-template #noMeeting>
+	<h3>{{ noMeetings }}</h3>
+</ng-template>

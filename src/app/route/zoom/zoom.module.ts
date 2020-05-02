@@ -10,7 +10,9 @@ const routes: Routes = [
 ];
 
 @NgModule({
-	declarations: [ZoomComponent],
+	declarations: [
+		ZoomComponent,
+	],
 	imports: [
 		CommonModule,
 		MaterialModule,
