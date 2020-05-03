@@ -1,6 +1,9 @@
 <div *ngIf="app$ | async as app">
 	<mat-toolbar color="primary">
-		<span>Dance & Fitness Republic</span>
+		<button mat-icon-button>
+			<img src="../favicon.ico" />
+		</button>
+		<span>&nbsp;&nbsp;&nbsp;Dance & Fitness Republic</span>
 		<span class="spacer"></span>
 
 		<div *ngIf="app.auth.user; else noLogin">
