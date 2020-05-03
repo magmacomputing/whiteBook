@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { Observable, Subscription, of } from 'rxjs';
-import { delay, map, switchMap, mergeMap, take } from 'rxjs/operators';
+import { delay, map, switchMap } from 'rxjs/operators';
 
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
-import { COLLECTION, FIELD, COLOR, Zoom, STORE, CLASS } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass } from '@dbase/data/data.schema';
 
@@ -12,7 +12,6 @@ import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
 import { swipe } from '@library/html.library';
 import { suffix } from '@library/number.library';
-import { asArray } from '@library/array.library';
 import { getPath } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -106,83 +105,82 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	 * then collect all documents that relate to those uuid's,  
 	 * then assemble details into an array of IMeeting
 	 */
-	private async getMeetings() {
+	private getMeetings() {
 		const where = [
 			addWhere('track.date', this.date.format(Instant.FORMAT.yearMonthDay)),
 			addWhere(FIELD.type, Zoom.EVENT.started),
 		]
-		const uuids = new Set<string>();
-		await this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where })
-			.pipe(take(1))
-			.toPromise()
-			.then(start => start.forEach(doc => uuids.add(doc.body.payload.object.uuid)));
+		this.meetings$ = this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where })
+			.pipe(
+				switchMap(start => {
+					const uuids = start.map(doc => doc.body.payload.object.uuid);
+					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
+						where: addWhere('body.payload.object.uuid', uuids, 'in'),
+						orderBy: addOrder(FIELD.stamp),
+					})
+				}),
+				map(track => {
+					this.selectedIndex = 0;
+					const meeting: IMeeting[] = [];							// in reality, we are expecting only 1 Meeting per report
 
-		this.meetings$ = this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
-			where: addWhere('body.payload.object.uuid', asArray(uuids), 'in'),
-			orderBy: addOrder(FIELD.stamp)
-		}).pipe(
-			map(track => {
-				this.selectedIndex = 0;
-				const meeting: IMeeting[] = [];							// in reality, we are expecting only 1 Meeting per report
+					// First, get Meeting.Start
+					(track as IZoom<TStarted>[])
+						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
+						.forEach(doc => {
+							const { id: meeting_id, start_time, ...rest } = doc.body.payload.object;
+							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
 
-				// First, get Meeting.Start
-				(track as IZoom<TStarted>[])
-					.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
-					.forEach(doc => {
-						const { id: meeting_id, start_time, ...rest } = doc.body.payload.object;
-						const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-						const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
+							meeting.push({ start: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white, start_time, label, color }, meeting_id, participants: [], ...rest })
+						});
 
-						meeting.push({ start: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white, start_time, label, color }, meeting_id, participants: [], ...rest })
-					});
+					// look for Meeting.End
+					(track as IZoom<TEnded>[])
+						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
+						.forEach(doc => {
+							const { uuid, end_time, ...rest } = doc.body.payload.object;
+							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const idx = meeting.findIndex(mtg => mtg.uuid === uuid);
+							if (idx !== -1)
+								meeting[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
+						});
 
-				// look for Meeting.End
-				(track as IZoom<TEnded>[])
-					.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
-					.forEach(doc => {
-						const { uuid, end_time, ...rest } = doc.body.payload.object;
-						const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-						const idx = meeting.findIndex(mtg => mtg.uuid === uuid);
-						if (idx !== -1)
-							meeting[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
-					});
+					// add Participants.Join
+					(track as IZoom<TJoined>[])
+						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
+						.forEach(doc => {
+							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
+							const { price } = doc.white?.checkIn || {};
+							const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
+							const weekTrack = (doc.white?.status?._week || '0.0.0').split('.').map(Number);
+							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
+							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
 
-				// add Participants.Join
-				(track as IZoom<TJoined>[])
-					.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
-					.forEach(doc => {
-						const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
-						const { price } = doc.white?.checkIn || {};
-						const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
-						const weekTrack = (doc.white?.status?._week || '0.0.0').split('.').map(Number);
-						const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-						const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
-						const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
+							const bgcolor = {
+								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
+								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit <= 10 ? '#e6b8af' : '#fff2cc',
+								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
+							}
 
-						const bgcolor = {
-							price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
-							credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit <= 10 ? '#e6b8af' : '#fff2cc',
-							bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
-						}
+							if (idx !== -1)
+								meeting[idx].participants.push({ join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor }, participant_id, user_id, user_name, });
+						});
 
-						if (idx !== -1)
-							meeting[idx].participants.push({ join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor }, participant_id, user_id, user_name, });
-					});
-
-				// add Participants.Leave
-				(track as IZoom<TLeft>[])
-					.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
-					.forEach(doc => {
-						const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
-						const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-						const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
-						if (idx !== -1) {
-							const part = meeting[idx].participants.findIndex(part => part.user_id === user_id);
-							meeting[idx].participants[part].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
-						}
-					});
-				return meeting;
-			})
-		)
+					// add Participants.Leave
+					(track as IZoom<TLeft>[])
+						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
+						.forEach(doc => {
+							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
+							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
+							if (idx !== -1) {
+								const part = meeting[idx].participants.findIndex(part => part.user_id === user_id);
+								meeting[idx].participants[part].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
+							}
+						});
+					return meeting;
+				})
+			)
 	}
 }
