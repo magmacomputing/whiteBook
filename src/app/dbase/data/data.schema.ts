@@ -1,6 +1,6 @@
 import { firestore, UserInfo } from 'firebase';
 
-import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, Zoom } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
@@ -585,6 +585,7 @@ export interface IMeeting {
 		[FIELD.stamp]: number;
 		start_time: Date;
 		label: string;							// to be displayed on an UI tab
+		color?: string;
 		white?: IWhite;
 	},
 	end?: {

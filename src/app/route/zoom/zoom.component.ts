@@ -4,9 +4,9 @@ import { Observable, Subscription, of } from 'rxjs';
 import { delay, map, switchMap } from 'rxjs/operators';
 
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
-import { COLLECTION, FIELD, Zoom } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, COLOR, Zoom, STORE, CLASS } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft } from '@dbase/data/data.schema';
+import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass } from '@dbase/data/data.schema';
 
 import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
@@ -34,7 +34,17 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private meetingSubscription!: Subscription;					// the Meeting's Observable	
 	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
 
-	constructor(private data: DataService) { this.setDate(0); }
+	private color!: Record<CLASS, string>;
+
+	constructor(private data: DataService) {
+		this.setDate(0);
+		this.getColor();
+	}
+
+	private async getColor() {
+		this.color = await this.data.getStore<IClass>(STORE.class)
+			.then(store => store.reduce((acc, itm) => { acc[itm[FIELD.key]] = itm.color; return acc; }, {} as Record<CLASS, string>))
+	}
 
 	ngOnInit(): void { }
 
@@ -118,8 +128,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, ...rest } = doc.body.payload.object;
-							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp)
-							meeting.push({ start: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white, start_time, label }, meeting_id, participants: [], ...rest })
+							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
+
+							meeting.push({ start: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white, start_time, label, color }, meeting_id, participants: [], ...rest })
 						});
 
 					// look for Meeting.End
@@ -140,6 +152,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { price } = doc.white?.checkIn || {};
 							const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
+							const weekTrack = (doc.white?.status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
 							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
@@ -147,6 +160,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const bgcolor = {
 								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
 								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit <= 10 ? '#e6b8af' : '#fff2cc',
+								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
 							}
 
 							if (idx !== -1)

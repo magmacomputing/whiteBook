@@ -153,6 +153,27 @@ export enum SPAN {
 	half = 'half',
 }
 
+export enum COLOR {
+	MultiStep = '#0000ff',
+	SingleStep = '#00afff',
+	StepBasic = '#bf9000',
+	SmartStep = '#0897a6',
+	StepDown = '#cc0000',
+	AeroStep = '#ff8c00',
+	StepIn = '#222222',
+	HiLo = '#35c42c',
+	Zumba = '#ff00ff',
+	ZumbaStep = '#7700ee',
+	'3Pack' = '#9ba602',							// old way of recording multiple Sunday Bonus attends
+	'Step@Home' = '#77aaff',
+	// 'Rumba@Home' = '#bf9000',
+	'Rumba@Home' = '#ac716e',
+	collection = '#4a86e8',
+	store = '#980000',
+	admin = '#38761d',
+	black = '#ffffff',
+}
+
 export namespace Zoom {
 	export enum EVENT {
 		type = 'body.event',

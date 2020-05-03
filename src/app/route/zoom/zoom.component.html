@@ -19,7 +19,7 @@
 				<mat-tab label=" {{ meeting.start.label }}">
 					<table>
 						<tr>
-							<td colspan="2">
+							<td colspan="2" [style.color]="meeting.start.color">
 								<h3>{{ meeting.start?.white?.class }}</h3>
 							</td>
 							<td>started: </td>
@@ -42,6 +42,7 @@
 								<th>Alias</th>
 								<th>Paid</th>
 								<th>Credit</th>
+								<th>Week</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -51,7 +52,8 @@
 								<td>{{ party.leave?.label }}</td>
 								<td>{{ party.join.white?.alias }}</td>
 								<td align="right" [attr.bgcolor]="party.join.bgcolor?.price">{{ party.join.price | number }}</td>
-								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit">{{ party.join.credit| number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit">{{ party.join.credit | number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.bonus">{{ party.join.white?.status?.trackDaysThisWeek | number }}</td>
 							</tr>
 						</tbody>
 					</table>
