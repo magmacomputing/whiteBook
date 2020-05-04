@@ -137,7 +137,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
 						where: addWhere('body.payload.object.uuid', meeting.map(mtg => mtg.uuid), 'in'),
-						orderBy: addOrder(FIELD.stamp),
 					})
 				}),
 
@@ -189,8 +188,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
 							if (idx !== -1) {
-								const part = meeting[idx].participants.findIndex(party => party.user_id === user_id);
-								meeting[idx].participants[part].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
+								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
+								if (pdx !== -1)
+									meeting[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
 							}
 						});
 
