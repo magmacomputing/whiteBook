@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, Subscription, of } from 'rxjs';
-import { delay, map, switchMap } from 'rxjs/operators';
+import { Observable, Subscription, of, combineLatest } from 'rxjs';
+import { delay, map, switchMap, tap, mergeMap, flatMap } from 'rxjs/operators';
 
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
@@ -10,9 +10,9 @@ import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass } from '@dbas
 
 import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
-import { swipe } from '@library/html.library';
-import { suffix } from '@library/number.library';
 import { getPath } from '@library/object.library';
+import { suffix } from '@library/number.library';
+import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
 
 @Component({
@@ -28,10 +28,8 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public meetings = 0;
-	public noMeetings?: string;													// a temporary message
 
 	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
-	private meetingSubscription!: Subscription;					// the Meeting's Observable	
 	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
 
 	private color!: Record<CLASS, string>;
@@ -46,7 +44,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			.then(store => store.reduce((acc, itm) => { acc[itm[FIELD.key]] = itm.color; return acc; }, {} as Record<CLASS, string>))
 	}
 
-	ngOnInit(): void { }
+	ngOnInit() { }
 
 	ngOnDestroy() {
 		this.timerSubscription?.unsubscribe();						// reset the end-of-day Subscription
@@ -68,7 +66,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
    * 			if 0,		show today
    */
 	setDate(dir: -1 | 0 | 1) {
-		this.noMeetings = undefined;											// reset the 'No Meetings' message
 		const today = new Instant();
 		const offset = dir === 0
 			? today
@@ -80,7 +77,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			: offset
 
 		this.getMeetings();																// get day's Schedule
-		setTimeout(_ => this.noMeetings = 'No Meetings for this day', 4000);
 
 		if (!this.timerSubscription)											// if not already listening...
 			this.setTimer();																// set a Schedule-view timeout
@@ -100,6 +96,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			})
 	}
 
+	public log(meeting: IMeeting) {
+		console.log(meeting);
+	}
+
 	/**
 	 * first get the meeting.started  Events for this.date  to determined uuid's.  
 	 * then collect all documents that relate to those uuid's,  
@@ -108,24 +108,27 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private getMeetings() {
 		const where = [
 			addWhere('track.date', this.date.format(Instant.FORMAT.yearMonthDay)),
-			addWhere(FIELD.type, Zoom.EVENT.started),
+			// addWhere(FIELD.type, Zoom.EVENT.started),
 		]
-		this.meetings$ = this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where })
+
+		this.meetings$ = this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, { where })
 			.pipe(
-				switchMap(start => {
-					const uuids = start.map(doc => doc.body.payload.object.uuid);
-					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
-						where: addWhere('body.payload.object.uuid', uuids, 'in'),
-						orderBy: addOrder(FIELD.stamp),
-					})
-				}),
+				// tap(start => console.log(start)),
+				// flatMap(start => {
+				// 	const uuids = start.map(doc => doc.body.payload.object.uuid);
+				// 	return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
+				// 		where: addWhere('body.payload.object.uuid', uuids, 'in'),
+				// 		orderBy: addOrder(FIELD.stamp),
+				// 	})
+				// }),
 				map(track => {
 					this.selectedIndex = 0;
-					const meeting: IMeeting[] = [];							// in reality, we are expecting only 1 Meeting per report
+					const meeting: IMeeting[] = [];
 
 					// First, get Meeting.Start
 					(track as IZoom<TStarted>[])
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
+						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: meeting_id, start_time, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
@@ -148,6 +151,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					// add Participants.Join
 					(track as IZoom<TJoined>[])
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
+						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { price } = doc.white?.checkIn || {};
@@ -180,7 +184,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 						});
 					return meeting;
-				})
+				}),
 			)
 	}
 }

@@ -7,10 +7,9 @@
 		<button mat-icon-button [disabled]="offset==0" (click)="setDate(1)">
 			<mat-icon>arrow_right</mat-icon>
 		</button>
-	</div>
-
-	<div class="center" *ngIf="meetings.length !== 0; else noMeeting">
-		<h3>Here is today's Meetings</h3>
+		<h2 style="font-weight:normal;">
+			<span style="font-weight:bold;color:mediumblue;">{{ meetings.length }} </span>Meeting{{ meetings.length == 1 ? '' : 's'}} today
+		</h2>
 	</div>
 
 	<div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
@@ -53,7 +52,8 @@
 								<td>{{ party.join.white?.alias }}</td>
 								<td align="right" [attr.bgcolor]="party.join.bgcolor?.price">{{ party.join.price | number }}</td>
 								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit">{{ party.join.credit | number }}</td>
-								<td align="right" [attr.bgcolor]="party.join.bgcolor?.bonus">{{ party.join.white?.status?.trackDaysThisWeek | number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.bonus">
+									{{ party.join.white?.status?.trackDaysThisWeek | number }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -62,7 +62,3 @@
 		</mat-tab-group>
 	</div>
 </div>
-
-<ng-template #noMeeting>
-	<h3>{{ noMeetings }}</h3>
-</ng-template>

@@ -121,7 +121,7 @@ export class AttendComponent implements OnDestroy {
 		const defer = new Instant().add(1, 'day').startOf('day');
 		this.dbg('timeOut: %s', defer.format(Instant.FORMAT.dayTime));
 
-		this.timerSubscription && this.timerSubscription.unsubscribe();
+		this.timerSubscription?.unsubscribe();
 		this.timerSubscription = of(0)										// a single-emit Observable
 			.pipe(delay(defer.toDate()))
 			.subscribe(() => {

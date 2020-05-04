@@ -210,17 +210,19 @@ export class AuthState {
 
 	/** Events */
 	@Action(Event.Success)														// on each Event.Success, fetch /member collection
-	private onMember(ctx: StateContext<IAuthState>, { user }: Event.Success) {
+	private async onMember(ctx: StateContext<IAuthState>, { user }: Event.Success) {
 		const query: IQuery = { where: addWhere(FIELD.uid, user.uid) };
+		const currUser = await this.afAuth.currentUser;
 
-		if (this.afAuth.currentUser) {
+		if (currUser) {
 			this.sync.on(COLLECTION.attend, query);
 			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this._memberSubject.complete())
-				.then(_ => {															// if on "/" or "/login", redirect to "/attend"
+				.then(_ => this.isAdmin())
+				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend"
 					if (['/', '/login'].includes(this.navigate.url))
-						this.navigate.route(ROUTE.attend)
+						this.navigate.route(isAdmin ? ROUTE.zoom : ROUTE.attend)
 				})
 		}
 	}
@@ -290,26 +292,44 @@ export class AuthState {
 	}
 
 	@Action(Event.Token)															// fetch latest IdToken
-	private setToken(ctx: StateContext<IAuthState>) {
-		if (this.afAuth.currentUser) {
-			let token: firebase.auth.IdTokenResult | undefined;
+	private async setToken(ctx: StateContext<IAuthState>) {
+		const currUser = await this.afAuth.currentUser;
 
-			this.afAuth.currentUser
-				.then(user => user?.getIdTokenResult(true))
-				.then(result => token = result)
-				.then(_ => ctx.patchState({ token }))
-				.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
-				.then(_ => {
-					const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
-					if (roles.includes(Auth.ROLE.admin))
-						this.sync.on(COLLECTION.admin, undefined,
-							[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
-					else {
-						this.sync.off(COLLECTION.admin);
-						this.navigate.route(ROUTE.attend);
-					}
-				})
+		if (currUser) {
+			const token = await currUser.getIdTokenResult(true)
+			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
+			ctx.patchState({ token });
+			this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims);
+
+			if (roles.includes(Auth.ROLE.admin)) {
+				this.sync.on(COLLECTION.admin, undefined,
+					[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
+				this.navigate.route(ROUTE.zoom);
+			} else {
+				this.sync.off(COLLECTION.admin);
+				this.navigate.route(ROUTE.attend);
+			}
+
+			// this.afAuth.currentUser
+			// 	.then(user => user?.getIdTokenResult(true))
+			// 	.then(result => token = result)
+			// 	.then(_ => ctx.patchState({ token }))
+			// 	.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
+			// 	.then(_ => {
+			// 		if (roles.includes(Auth.ROLE.admin)) {
+			// 		} else {
+			// 		})
 		}
+	}
+
+	private async isAdmin() {
+		const currUser = await this.afAuth.currentUser;
+		if (currUser) {
+			const token = await currUser.getIdTokenResult(true);
+			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
+			return roles.includes(Auth.ROLE.admin);
+		}
+		return false;
 	}
 
 	@Action([Event.Failed, Login.Off])
