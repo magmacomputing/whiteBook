@@ -38,7 +38,7 @@ export class AttendComponent implements OnDestroy {
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnDestroy() {
-		this.timerSubscription && this.timerSubscription.unsubscribe();
+		this.timerSubscription?.unsubscribe();
 	}
 
 	// Build info to show in a Dialog

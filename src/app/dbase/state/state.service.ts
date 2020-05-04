@@ -279,8 +279,7 @@ export class StateService {
 	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
-		// const notToday = addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay), '!=');
-
+	
 		const filterSchedule = addWhere('day', now.dow);
 		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>');
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
