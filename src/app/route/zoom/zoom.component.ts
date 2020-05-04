@@ -72,7 +72,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
-		this.date = this.offset > 6												// only allow up-to 6 days in the past
+		this.date = this.offset > 6	&& false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
 
@@ -110,10 +110,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			addWhere('track.date', this.date.format(Instant.FORMAT.yearMonthDay)),
 			// addWhere(FIELD.type, Zoom.EVENT.started),
 		]
+		// const meeting: IMeeting[] = [];
 
 		this.meetings$ = this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, { where })
 			.pipe(
-				// tap(start => console.log(start)),
+				tap(start => console.log('tap: ', start)),
 				// flatMap(start => {
 				// 	const uuids = start.map(doc => doc.body.payload.object.uuid);
 				// 	return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
@@ -122,6 +123,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				// 	})
 				// }),
 				map(track => {
+					console.log('map: ', track);
 					this.selectedIndex = 0;
 					const meeting: IMeeting[] = [];
 

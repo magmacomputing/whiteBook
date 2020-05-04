@@ -1,6 +1,6 @@
 <div *ngIf="(meetings$ | async) || []; let meetings">
 	<div class="center">
-		<button mat-icon-button [disabled]="offset==6" (click)="setDate(-1)">
+		<button mat-icon-button [disabled]="offset==999" (click)="setDate(-1)">
 			<mat-icon>arrow_left</mat-icon>
 		</button>
 		<button [disabled]="offset==0" (click)="setDate(0)"> {{ date.format('ddd, dd mmm yyyy') }} </button>
