@@ -72,8 +72,8 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
-		this.date = this.offset > 6	&& false							
-		// only allow up-to 6 days in the past
+		this.date = this.offset > 6 && false
+			// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
 
@@ -109,38 +109,42 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private getMeetings() {
 		const where = [
 			addWhere('track.date', this.date.format(Instant.FORMAT.yearMonthDay)),
-			// addWhere(FIELD.type, Zoom.EVENT.started),
+			addWhere(FIELD.type, Zoom.EVENT.started),
 		]
-		// const meeting: IMeeting[] = [];
+		const meeting: IMeeting[] = [];										// whenever the Date changes, reset the Meeting Observable
+		this.selectedIndex = 0;														// reset to the first Meeting <tab>
 
-		this.meetings$ = this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, { where })
+		this.meetings$ = this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where })
 			.pipe(
-				// tap(start => console.log('tap: ', start)),
-				// flatMap(start => {
-				// 	const uuids = start.map(doc => doc.body.payload.object.uuid);
-				// 	return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
-				// 		where: addWhere('body.payload.object.uuid', uuids, 'in'),
-				// 		orderBy: addOrder(FIELD.stamp),
-				// 	})
-				// }),
-				map(track => {
-					this.selectedIndex = 0;
-					const meeting: IMeeting[] = [];
+				tap(track => console.log('tap: ', track)),
 
-					// First, get Meeting.Start
-					(track as IZoom<TStarted>[])
-						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
+				mergeMap(track => {
+					track																								// First, get Meeting.Started
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
-							const { id: meeting_id, start_time, ...rest } = doc.body.payload.object;
+							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
 
-							meeting.push({ start: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white, start_time, label, color }, meeting_id, participants: [], ...rest })
+							meeting.push({
+								uuid, meeting_id, participants: [], ...rest,
+								start: {
+									[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
+									white: doc.white, start_time, label, color
+								},
+							})
 						});
 
-					// look for Meeting.End
-					(track as IZoom<TEnded>[])
+					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
+						where: addWhere('body.payload.object.uuid', meeting.map(mtg => mtg.uuid), 'in'),
+						orderBy: addOrder(FIELD.stamp),
+					})
+				}),
+
+				tap(track => console.log('map: ', track)),
+
+				map(track => {
+					(track as IZoom<TEnded>[])													// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
@@ -150,8 +154,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								meeting[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
 						});
 
-					// add Participants.Join
-					(track as IZoom<TJoined>[])
+					(track as IZoom<TJoined>[])													// add Participants.Joined
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
@@ -169,22 +172,28 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
 							}
 
-							if (idx !== -1)
-								meeting[idx].participants.push({ join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor }, participant_id, user_id, user_name, });
+							if (idx !== -1) {
+								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
+								if (pdx === -1)
+									meeting[idx].participants.push({
+										participant_id, user_id, user_name,
+										join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor },
+									});
+							}
 						});
 
-					// add Participants.Leave
-					(track as IZoom<TLeft>[])
+					(track as IZoom<TLeft>[])														// add Participants.Left
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
 							if (idx !== -1) {
-								const part = meeting[idx].participants.findIndex(part => part.user_id === user_id);
+								const part = meeting[idx].participants.findIndex(party => party.user_id === user_id);
 								meeting[idx].participants[part].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
 							}
 						});
+
 					return meeting;
 				}),
 			)
