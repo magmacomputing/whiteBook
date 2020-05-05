@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, Subscription, of, combineLatest } from 'rxjs';
-import { delay, map, switchMap, tap, mergeMap, flatMap } from 'rxjs/operators';
+import { Observable, Subscription, Subject, of, BehaviorSubject } from 'rxjs';
+import { delay, map, switchMap, mergeMap } from 'rxjs/operators';
 
-import { addWhere, addOrder } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass } from '@dbase/data/data.schema';
@@ -27,14 +27,16 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
-	public meetings = 0;
 
 	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
+	private meetings: IMeeting[] = [];
 	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
+	private meetingDate = new BehaviorSubject<Instant>(new Instant());
 
 	private color!: Record<CLASS, string>;
 
 	constructor(private data: DataService) {
+		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
 		this.getColor();
 	}
@@ -52,7 +54,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	swipe(idx: number, event: any) {
 		this.firstPaint = false;                          // ok to animate
-		this.selectedIndex = swipe(idx, this.meetings, event);
+		this.selectedIndex = swipe(idx, this.meetings.length, event);
 	}
 
 	suffix(idx: number) {
@@ -72,12 +74,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
-		this.date = this.offset > 6 && false
-			// only allow up-to 6 days in the past
+		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
 
-		this.getMeetings();																// get day's Schedule
+		this.meetingDate.next(this.date);									// give the date to the Observable
 
 		if (!this.timerSubscription)											// if not already listening...
 			this.setTimer();																// set a Schedule-view timeout
@@ -97,67 +98,63 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			})
 	}
 
-	public log(meeting: IMeeting) {
-		console.log(meeting);
-	}
-
 	/**
 	 * first get the meeting.started  Events for this.date  to determined uuid's.  
 	 * then collect all documents that relate to those uuid's,  
 	 * then assemble details into an array of IMeeting
 	 */
 	private getMeetings() {
-		const where = [
-			addWhere('track.date', this.date.format(Instant.FORMAT.yearMonthDay)),
-			addWhere(FIELD.type, Zoom.EVENT.started),
-		]
-		const meeting: IMeeting[] = [];										// whenever the Date changes, reset the Meeting Observable
-		this.selectedIndex = 0;														// reset to the first Meeting <tab>
-
-		this.meetings$ = this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where })
+		return this.meetings$ = this.meetingDate					// wait on the Subject
 			.pipe(
-				// tap(track => console.log('tap: ', track)),
+				switchMap(inst => {
+					const where = [
+						addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
+						addWhere(FIELD.type, Zoom.EVENT.started),
+					]
 
+					this.meetings = [];													// whenever the Date changes, reset the Meeting Observable
+					this.selectedIndex = 0;											// reset to the first Meeting <tab>
+					return this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where });
+				}),
 				mergeMap(track => {
-					track																								// First, get Meeting.Started
+					track																				// First, get Meeting.Started
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
-							const idx = meeting.findIndex(mtg => mtg.uuid === uuid);
+							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {
-								meeting.push({
+								this.meetings.push({
 									uuid, meeting_id, participants: [], ...rest,
 									start: {
 										[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
 										white: doc.white, start_time, label, color
 									},
 								})
+
 							}
 						});
 
 					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
-						where: addWhere('body.payload.object.uuid', meeting.map(mtg => mtg.uuid), 'in'),
+						where: addWhere('body.payload.object.uuid', this.meetings.map(meeting => meeting.uuid), 'in'),
 					})
 				}),
 
-				// tap(track => console.log('map: ', track)),
-
 				map(track => {
-					(track as IZoom<TEnded>[])													// look for Meeting.Ended
+					(track as IZoom<TEnded>[])									// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const idx = meeting.findIndex(mtg => mtg.uuid === uuid);
+							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx !== -1)
-								meeting[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
+								this.meetings[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
 						});
 
-					(track as IZoom<TJoined>[])													// add Participants.Joined
+					(track as IZoom<TJoined>[])									// add Participants.Joined
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
@@ -167,7 +164,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const weekTrack = (doc.white?.status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
-							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
+							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							const bgcolor = {
 								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
@@ -176,30 +173,31 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 
 							if (idx !== -1) {
-								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
+								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
 
-								meeting[idx].participants[pdx === -1 ? meeting[idx].participants.length : pdx] = {
+								this.meetings[idx].participants[pdx === -1 ? this.meetings[idx].participants.length : pdx] = {
 									participant_id, user_id, user_name,
 									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor },
 								};
 							}
 						});
 
-					(track as IZoom<TLeft>[])														// add Participants.Left
+					(track as IZoom<TLeft>[])										// add Participants.Left
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
+							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							if (idx !== -1) {
-								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
+								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
 								if (pdx !== -1)
-									meeting[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
+									this.meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
 							}
 						});
 
-					return meeting;
+					this.selectedIndex = this.meetings.length - 1;
+					return this.meetings;
 				}),
 			)
 	}

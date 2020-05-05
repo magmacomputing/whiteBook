@@ -20,6 +20,11 @@
   }
 }
 
+.blink {
+	border-color: "c1e0ff";
+	animation: "blinking .5s 4";
+}
+
 th, td {
   padding: 3px;
 }
