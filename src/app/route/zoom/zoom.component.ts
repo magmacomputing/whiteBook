@@ -116,7 +116,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 		this.meetings$ = this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where })
 			.pipe(
-				tap(track => console.log('tap: ', track)),
+				// tap(track => console.log('tap: ', track)),
 
 				mergeMap(track => {
 					track																								// First, get Meeting.Started
@@ -125,14 +125,17 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
+							const idx = meeting.findIndex(mtg => mtg.uuid === uuid);
 
-							meeting.push({
-								uuid, meeting_id, participants: [], ...rest,
-								start: {
-									[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
-									white: doc.white, start_time, label, color
-								},
-							})
+							if (idx === -1) {
+								meeting.push({
+									uuid, meeting_id, participants: [], ...rest,
+									start: {
+										[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
+										white: doc.white, start_time, label, color
+									},
+								})
+							}
 						});
 
 					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
@@ -140,7 +143,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					})
 				}),
 
-				tap(track => console.log('map: ', track)),
+				// tap(track => console.log('map: ', track)),
 
 				map(track => {
 					(track as IZoom<TEnded>[])													// look for Meeting.Ended
@@ -149,6 +152,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const idx = meeting.findIndex(mtg => mtg.uuid === uuid);
+
 							if (idx !== -1)
 								meeting[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
 						});
@@ -172,12 +176,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 
 							if (idx !== -1) {
+								console.log(JSON.stringify(doc.body.payload.object.participant));
 								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
-								if (pdx === -1)
-									meeting[idx].participants.push({
-										participant_id, user_id, user_name,
-										join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor },
-									});
+
+								meeting[idx].participants[pdx === -1 ? meeting[idx].participants.length : pdx] = {
+									participant_id, user_id, user_name,
+									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor },
+								};
 							}
 						});
 
@@ -187,6 +192,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const idx = meeting.findIndex(mtg => mtg.uuid === doc.body.payload.object.uuid);
+
 							if (idx !== -1) {
 								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
 								if (pdx !== -1)
