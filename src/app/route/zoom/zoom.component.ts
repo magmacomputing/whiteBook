@@ -176,7 +176,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 
 							if (idx !== -1) {
-								console.log(JSON.stringify(doc.body.payload.object.participant));
 								const pdx = meeting[idx].participants.findIndex(party => party.user_id === user_id);
 
 								meeting[idx].participants[pdx === -1 ? meeting[idx].participants.length : pdx] = {
