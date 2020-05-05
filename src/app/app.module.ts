@@ -27,7 +27,7 @@ import { SafePipe } from '@service/material/safe.pipe';
 	imports: [
 		NgxsModule.forRoot([], { developmentMode: !environment.production }),
 		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
-		ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
+		// ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 		BrowserModule,
 		DBaseModule,
 		AuthModule,
