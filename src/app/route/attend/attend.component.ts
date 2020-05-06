@@ -73,7 +73,8 @@ export class AttendComponent implements OnDestroy {
 		this.dialog.open({ content, title, subtitle, image, actions });
 	}
 
-	swipe(idx: number, event: any) {
+	onSwipe(idx: number, event: Event) {
+		alert(JSON.stringify(event.target));
 		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, this.locations, event);
 	}

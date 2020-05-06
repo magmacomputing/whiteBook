@@ -13,7 +13,7 @@
 		<p>Please select an Event from the list below...</p>
 	</div>
 
-	<div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)" (swiperight)="onSwipe(selectedIndex, $event)">
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
 			<mat-tab *ngFor="let loc of timetable.client?.location; let sfx = index">
 				<h3> {{ loc.name }} </h3>

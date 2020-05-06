@@ -20,7 +20,6 @@ import { getPath } from '@library/object.library';
 
 const toLogin = () => redirectUnauthorizedTo([ROUTE.login]);
 const toAttend = () => redirectLoggedInTo([ROUTE.zoom, ROUTE.attend]);
-const toZoom = () => redirectLoggedInTo([ROUTE.zoom]);
 const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)));
 
 const routes: Routes = [

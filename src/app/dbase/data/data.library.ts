@@ -7,7 +7,7 @@ import { TStoreBase, IStoreMeta, FType, FNumber, IClientBase } from '@dbase/data
 import { getSlice } from '@dbase/state/state.library';
 import { addWhere } from '@dbase/fire/fire.library';
 
-import { isObject, TString } from '@library/type.library';
+import { isObject, TString, isString } from '@library/type.library';
 import { isEqual, getPath } from '@library/object.library';
 import { asString } from '@library/string.library';
 import { asArray } from '@library/array.library';
@@ -101,9 +101,16 @@ export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: I
 		.map(currDoc => 															// for each current document
 			discardFields																// against each of the field-names to match...
 				.map(field => {
-					const bool = isObject(nextDoc[field])		// compare field-by-field
-						? isEqual(nextDoc[field], currDoc[field])
-						: asString(nextDoc[field]) == asString(currDoc[field])
+					const val1 = nextDoc[field];
+					const val2 = currDoc[field];
+					const url1 = isString(val1) && (val1.startsWith('http://') || val1.startsWith('https://'));
+					const url2 = isString(val2) && (val2.startsWith('http://') || val2.startsWith('https://'));
+					const fld1 = url1 ? new URL(val1).pathname : val1;
+					const fld2 = url2 ? new URL(val2).pathname : val2;
+
+					const bool = isObject(fld1)
+						? isEqual(fld1, fld2)									// compare field-by-field
+						: asString(fld1) == asString(fld2)		// compare string-value
 					if (!bool)
 						console.log('change ', field, ': ', currDoc[field], ' => ', nextDoc[field]);
 					return bool;														// <true> if fields are equal

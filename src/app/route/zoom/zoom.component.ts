@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, Subscription, Subject, of, BehaviorSubject } from 'rxjs';
+import { Observable, Subscription, BehaviorSubject, of } from 'rxjs';
 import { delay, map, switchMap, mergeMap } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
@@ -52,7 +52,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.timerSubscription?.unsubscribe();						// reset the end-of-day Subscription
 	}
 
-	swipe(idx: number, event: any) {
+	onSwipe(idx: number, event: Event) {
+		alert(JSON.stringify(event.target));
+		console.log(event);
 		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, this.meetings.length, event);
 	}
@@ -80,7 +82,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 		this.meetingDate.next(this.date);									// give the date to the Observable
 
-		if (!this.timerSubscription)											// if not already listening...
+		if (!this.timerSubscription || this.timerSubscription.closed)								// if not already listening...
 			this.setTimer();																// set a Schedule-view timeout
 	}
 

@@ -12,7 +12,7 @@
 		</h2>
 	</div>
 
-	<div [@.disabled]="firstPaint" (swipeleft)="swipe(selectedIndex, $event)" (swiperight)="swipe(selectedIndex, $event)">
+	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)" (swiperight)="onSwipe(selectedIndex, $event)">
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
 			<div *ngFor="let meeting of meetings">
 				<mat-tab label=" {{ meeting.start.label }}">

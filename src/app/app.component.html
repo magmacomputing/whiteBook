@@ -28,6 +28,7 @@
 			</mat-menu>
 
 			<mat-menu #acctMenu="matMenu">
+				<button mat-menu-item (click)="this.navigate.route('attend')">Attend</button>
 				<button mat-menu-item (click)="this.navigate.route('profile/plan')">Plan</button>
 				<button mat-menu-item (click)="this.navigate.route('profile/account')">Status</button>
 				<button mat-menu-item (click)="this.navigate.route('profile/history')">History</button>

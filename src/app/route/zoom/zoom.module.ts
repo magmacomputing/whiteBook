@@ -17,6 +17,6 @@ const routes: Routes = [
 		CommonModule,
 		MaterialModule,
 		RouterModule.forChild(routes),
-	]
+	],
 })
 export class ZoomModule { }
