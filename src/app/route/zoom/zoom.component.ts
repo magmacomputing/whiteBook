@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, Subscription, BehaviorSubject, of } from 'rxjs';
-import { delay, map, switchMap, mergeMap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, Subscription, timer, Subject } from 'rxjs';
+import { map, switchMap, mergeMap, takeUntil, delay } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
@@ -28,14 +28,15 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 
-	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
+	private stop$ = new Subject();											// notify Subscriptions to complete
 	private meetings: IMeeting[] = [];
-	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
 	private meetingDate = new BehaviorSubject<Instant>(new Instant());
+	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
 
-	private color!: Record<CLASS, string>;
+	private color!: Record<CLASS, IClass>;
 
 	constructor(private data: DataService) {
+		this.setTimer();																	// subscribe to midnight
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
 		this.getColor();
@@ -43,13 +44,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	private async getColor() {
 		this.color = await this.data.getStore<IClass>(STORE.class)
-			.then(store => store.reduce((acc, itm) => { acc[itm[FIELD.key]] = itm.color; return acc; }, {} as Record<CLASS, string>))
+			.then(store => store.groupBy<CLASS>(FIELD.key))
 	}
 
 	ngOnInit() { }
 
 	ngOnDestroy() {
-		this.timerSubscription?.unsubscribe();						// reset the end-of-day Subscription
+		this.stop$.next(true);
+		this.stop$.unsubscribe();
 	}
 
 	onSwipe(idx: number, event: Event) {
@@ -81,22 +83,21 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			: offset
 
 		this.meetingDate.next(this.date);									// give the date to the Observable
-
-		if (!this.timerSubscription || this.timerSubscription.closed)								// if not already listening...
-			this.setTimer();																// set a Schedule-view timeout
 	}
 
 	/** If the Member is still sitting on this page at midnight, move this.date to next day */
 	private setTimer() {
-		const midnight = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeOut: %s', midnight.format(Instant.FORMAT.dayTime));
+		const tomorrow = 86400000;
+		const now = new Instant();
+		const midnight = now.add(1, 'day').startOf('day');
+		const diff = (midnight.ts * 1000 + midnight.ms) - (now.ts * 1000 + now.ms)
 
-		this.timerSubscription?.unsubscribe();
-		this.timerSubscription = of(0)										// a single-emit Observable
-			.pipe(delay(midnight.toDate()))									// emit at midnight
-			.subscribe(() => {
-				this.timerSubscription?.unsubscribe();				// stop watching for midnight
-				this.setDate(0);															// onNext, show new day's timetable
+		this.dbg('timeOut: %s', midnight.format(Instant.FORMAT.dayTime));
+		timer(diff, tomorrow)															// every midnight
+			.pipe(takeUntil(this.stop$))
+			.subscribe(_ => {
+				this.dbg('timeOut: %s', new Instant().format(Instant.FORMAT.dayTime));
+				this.setDate(0);															// move UI to new date
 			})
 	}
 
@@ -108,6 +109,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private getMeetings() {
 		return this.meetings$ = this.meetingDate					// wait on the Subject
 			.pipe(
+				takeUntil(this.stop$),
 				switchMap(inst => {
 					const where = [
 						addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
@@ -124,7 +126,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const color = doc.white?.class && this.color[doc.white.class as CLASS] || 'black';
+							const color = doc.white?.class && this.color[doc.white.class as CLASS][FIELD.key] || 'black';
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {

@@ -71,7 +71,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.user = auth.auth.user;														// stash the Auth'd user
 			this.schedule = schedule;
 			this.calendar = calendar;
-			this.events = events.groupBy(FIELD.key as string);
+			this.events = events.groupBy(FIELD.key);
 		})
 	}
 

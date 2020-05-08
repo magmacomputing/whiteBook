@@ -22,7 +22,7 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 declare global {
 	interface Array<T> {
 		/** return reduced Array-of-Objects as keyed-Object-of-Arrays */
-		groupBy<K extends string>(key: K): Record<K, T>;
+		groupBy<K extends string>(key: string): Record<K, T>;
 
 		/** return new Array with no repeated elements */
 		distinct(): T[];
@@ -66,7 +66,7 @@ if (!Array.prototype.hasOwnProperty('cartesian')) {
 		return b.length
 			? this.cartesian(cartFn(a, b), ...c)
 			: Array.from(a || [])
-			// : [...a || []]
+		// : [...a || []]
 	}
 }
 

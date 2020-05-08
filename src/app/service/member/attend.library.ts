@@ -23,7 +23,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const plan = (source.client.plan || [])[0];							// Member's current plan
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
 	const scheme = (source.client.bonus || [])
-		.groupBy(FIELD.key as unknown as BONUS)								// get the <rules> for each Bonus
+		.groupBy<BONUS>(FIELD.key);														// get the <rules> for each Bonus
 
 	switch (true) {
 		/**
@@ -164,9 +164,9 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			}
 			break;
 
-			/**
-			 * The Home scheme qualifies as a Bonus is the Member has already attended an '@Home' class earlier today
-			 */
+		/**
+		 * The Home scheme qualifies as a Bonus is the Member has already attended an '@Home' class earlier today
+		 */
 		case scheme.home
 			&& attendToday.length >= scheme.home.level:
 			break;
