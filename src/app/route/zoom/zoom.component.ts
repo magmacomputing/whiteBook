@@ -76,8 +76,8 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		const offset = dir === 0
 			? today
 			: new Instant(this.date).add(dir, 'days')
-		this.offset = today.diff('days', offset);
 
+		this.offset = today.diff('days', offset);
 		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
@@ -88,12 +88,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	/** If the Member is still sitting on this page at midnight, move this.date to next day */
 	private setTimer() {
 		const tomorrow = 86400000;
-		const now = new Instant();
-		const midnight = now.add(1, 'day').startOf('day');
-		const diff = (midnight.ts * 1000 + midnight.ms) - (now.ts * 1000 + now.ms)
+		const midnight = new Instant().add(1, 'day').startOf('day');
 
 		this.dbg('timeOut: %s', midnight.format(Instant.FORMAT.dayTime));
-		timer(diff, tomorrow)															// every midnight
+		timer(midnight.diff('seconds') * 1000, tomorrow)	// every midnight
 			.pipe(takeUntil(this.stop$))
 			.subscribe(_ => {
 				this.dbg('timeOut: %s', new Instant().format(Instant.FORMAT.dayTime));

@@ -231,7 +231,7 @@ export class Instant {
 	}
 
 	/** hide some working-variables */
-	private divideBy = (unit: TUnitDiff) => {													// approx date-offset divisors (unix-timestamp precision)
+	private divideBy = (unit: TUnitDiff) => {										// approx date-offset divisors (unix-timestamp precision)
 		return {
 			years: 31536000000,
 			months: 2628000000,
