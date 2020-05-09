@@ -8,11 +8,13 @@
 			<mat-icon>arrow_right</mat-icon>
 		</button>
 		<h2 style="font-weight:normal;">
-			<span style="font-weight:bold;color:mediumblue;">{{ meetings.length }} </span>Meeting{{ meetings.length == 1 ? '' : 's'}} today
+			<span style="font-weight:bold;color:mediumblue;">{{ meetings.length }}
+			</span>Meeting{{ meetings.length == 1 ? '' : 's'}} today
 		</h2>
 	</div>
 
-	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)" (swiperight)="onSwipe(selectedIndex, $event)">
+	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)"
+		(swiperight)="onSwipe(selectedIndex, $event)">
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
 			<div *ngFor="let meeting of meetings">
 				<mat-tab label=" {{ meeting.start.label }}">
@@ -35,7 +37,7 @@
 					<table>
 						<thead>
 							<tr>
-								<th>UserName</th>
+								<th>ZoomName</th>
 								<th>Join</th>
 								<th>Left</th>
 								<th>Alias</th>
@@ -50,9 +52,13 @@
 								<td>{{ party.join.label }}</td>
 								<td>{{ party.leave?.label }}</td>
 								<td>{{ party.join.white?.alias }}</td>
-								<td align="right" [attr.bgcolor]="party.join.bgcolor?.price">{{ party.join.price | number }}</td>
-								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit">{{ party.join.credit | number }}</td>
-								<td align="right" [attr.bgcolor]="party.join.bgcolor?.bonus">
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.price" [matTooltip]="party.join.bgcolor.priceTip"
+									matTooltipPosition="before">{{ party.join.price | number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit"
+									[matTooltip]="party.join.bgcolor.creditTip" matTooltopPosition="before">
+									{{ party.join.credit | number }}</td>
+								<td align="right" [attr.bgcolor]="party.join.bgcolor?.bonus" [matTooltip]="party.join.bgcolor.bonusTip"
+									matTooltipPosition="before">
 									{{ party.join.white?.status?.trackDaysThisWeek | number }}</td>
 							</tr>
 						</tbody>

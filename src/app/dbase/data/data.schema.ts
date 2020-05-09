@@ -606,9 +606,13 @@ export interface IMeeting {
 			white: IWhite;
 			price?: number;
 			credit?: number;
-			bgcolor?: {
+			bgcolor: {
 				price: string;
 				credit: string;
+				bonus: string;
+				priceTip?: string;
+				creditTip?: string;
+				bonusTip?: string;
 			}
 		},
 		leave?: {
@@ -640,6 +644,7 @@ export interface IWhite {
 		eventType: string;
 		eventPrice: string;
 		eventNote?: string;
+		bonus?: string;
 		hr1?: string;
 		creditExpires: string;
 		creditRemaining: string;

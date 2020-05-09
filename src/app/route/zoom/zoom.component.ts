@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, BehaviorSubject, Subscription, timer, Subject } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil, delay } from 'rxjs/operators';
+import { Observable, BehaviorSubject, timer, Subject } from 'rxjs';
+import { map, switchMap, mergeMap, takeUntil } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
@@ -163,16 +163,28 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { price } = doc.white?.checkIn || {};
 							const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
-							const weekTrack = (doc.white?.status?._week || '0.0.0').split('.').map(Number);
+							const status = (doc.white?.status);
+							const weekTrack = (status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
 							const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
-							const bgcolor = {
+							const bgcolor: IMeeting["participants"][0]["join"]["bgcolor"] = {
 								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
 								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit <= 10 ? '#e6b8af' : '#fff2cc',
 								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
 							}
+							if (bgcolor.price !== '#ffffff' && status?.eventNote)
+								bgcolor.priceTip = status.eventNote.startsWith('Bonus: ')
+									? status.eventNote.split(':')[1].trim()
+									: status?.eventNote;
+							if (bgcolor.credit !== '#ffffff') {
+								bgcolor.creditTip = (credit || 0) <= 0 ? 'TopUp Due' : (credit || 0) <= 10 ? 'Low Credit' : 'Watch Credit'
+							}
+							if (status?.bonus)
+								bgcolor.bonusTip = status.bonus.indexOf('>')
+									? status.bonus.split('>')[1].split('<')[0]
+									: status.bonus
 
 							if (idx !== -1) {
 								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
