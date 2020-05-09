@@ -629,6 +629,8 @@ export interface IZoomEnv {
 	start: string;
 	end: string;
 	event: string;
+	color: string;
+	day?: number[];
 }
 
 export interface IWhite {

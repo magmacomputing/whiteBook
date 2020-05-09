@@ -124,7 +124,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const color = doc.white?.class && this.color[doc.white.class as CLASS][FIELD.key] || 'black';
+							const color = doc.white?.class && this.color[doc.white.class as CLASS].color || 'black';
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {

@@ -1,30 +1,101 @@
 {
-	"checkIn": {
-		"track": {
-			"history": 140
-		},
-		"history": [],
-		"status": {
-			"lastVisit": "Sat, 2020-May-02  (10:48:21)",
-			"eventType": "<font style=\"color:#bf9000;\">Step@Home",
-			"eventPrice": "$ 10.00",
-			"hr1": "<hr style=\"border: 1px dashed black;\">",
-			"creditExpires": "Sun, 2021-Jan-03",
-			"creditRemaining": "$ 140.00",
-			"trackDaysThisWeek": 2,
-			"_week": "202018.6.2"
-		},
-		"checkIn": {
-			"type": "Member",
-			"price": 10,
-			"nextAttend": {
-				"row": 0,
-				"col": 3,
-				"spend": 20,
-				"bank": 0,
-				"amt": 170,
-				"pre": 0
-			}
-		}
+	"AeroStep": {
+		"_id": "lQVYyTJ6Aprh8Qhx2ETm",
+		"desc": "75% around the platform",
+		"color": "#ff8c00",
+		"key": "AeroStep",
+		"type": "full",
+		"store": "class"
+	},
+	"HiLo": {
+		"_id": "b0HrAj1OJ7G7r5HJp8km",
+		"desc": "Aerobic Action",
+		"color": "#35c42c",
+		"key": "HiLo",
+		"type": "full",
+		"store": "class"
+	},
+	"MultiStep": {
+		"_id": "3M7tI5vN4voSHcdfsEXg",
+		"desc": "Multi-Platform routines",
+		"color": "#0000ff",
+		"key": "MultiStep",
+		"type": "full",
+		"store": "class"
+	},
+	"Rumba@Home": {
+		"_id": "4MXKki7QxYF5i95Fv3M5",
+		"key": "Rumba@Home",
+		"color": "#ac716e",
+		"_effect": 1585659600,
+		"desc": "Rumba at your place !",
+		"type": "full",
+		"store": "class"
+	},
+	"SingleStep": {
+		"_id": "EDHj99nQ94Z9oDAJs9Rx",
+		"desc": "Single-Platform routines",
+		"color": "#00afff",
+		"key": "SingleStep",
+		"type": "full",
+		"store": "class"
+	},
+	"SmartStep": {
+		"_id": "z4YdKbXNHW8yQHvhC8B0",
+		"color": "#0897a6",
+		"key": "SmartStep",
+		"type": "full",
+		"store": "class",
+		"desc": "A challenge for your brain, as well as your feet"
+	},
+	"Step@Home": {
+		"_id": "gBcj2VAomwJipiwYVtYh",
+		"color": "#77aaff",
+		"_effect": 1585659600,
+		"key": "Step@Home",
+		"desc": "Step at your place !",
+		"type": "full",
+		"store": "class"
+	},
+	"StepBasic": {
+		"_id": "bxZuumthkLpnuNbL1Liv",
+		"_hidden": true,
+		"color": "#bf9000",
+		"key": "StepBasic",
+		"desc": "Learn the basics of the Platform",
+		"type": "half",
+		"store": "class"
+	},
+	"StepDown": {
+		"_id": "4yq0gDgn52jsM68Zh6QP",
+		"desc": "Start from the top of the Platform",
+		"color": "#cc0000",
+		"key": "StepDown",
+		"type": "full",
+		"store": "class"
+	},
+	"StepIn": {
+		"_id": "802WOihz6jLh7ZkmGXdi",
+		"type": "full",
+		"store": "class",
+		"desc": "Stepping inwards",
+		"color": "#222222",
+		"key": "StepIn"
+	},
+	"Zumba": {
+		"_id": "bjrSxOgEmhZneYni5yDE",
+		"color": "#ff00ff",
+		"key": "Zumba",
+		"type": "full",
+		"store": "class",
+		"desc": "Dancing"
+	},
+	"ZumbaStep": {
+		"_id": "VB0uWbcVyU2lJIG2X7iL",
+		"desc": "Dancing with a platform",
+		"color": "#7700ee",
+		"key": "ZumbaStep",
+		"type": "half",
+		"store": "class"
 	}
 }
