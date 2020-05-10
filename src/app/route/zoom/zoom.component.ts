@@ -6,7 +6,7 @@ import { map, switchMap, mergeMap, takeUntil, delay, tap } from 'rxjs/operators'
 import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
-import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass } from '@dbase/data/data.schema';
+import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite } from '@dbase/data/data.schema';
 
 import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
@@ -81,7 +81,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
-		console.log('timer: ', this.date.format(Instant.FORMAT.dayTime));
+		// console.log('timer: ', this.date.format(Instant.FORMAT.dayTime));
 		this.meetingDate.next(this.date);									// give the date to the Observable
 	}
 
@@ -167,24 +167,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
-							const { price } = doc.white?.checkIn || {};
-							const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
-							const credit = doc.white?.credit;
-
-							const status = (doc.white?.status);
+							const { class: event, price, credit, status = {} as IWhite["status"] } = doc.white || {};
 							const weekTrack = (status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							// let credit: number | undefined;
-							// if (doc.white?.status?.creditRemaining) {
-							// 	const str = doc.white?.status?.creditRemaining.includes('>')
-							// 		? doc.white.status.creditRemaining.split('>')[1]
-							// 		: doc.white?.status?.creditRemaining
-							// 	credit = Number(str.replace('$', ''));
-							// }
-							// else credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
-
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
+							const fgcolor = { alias: this.color[event as CLASS]?.color };
 							const bgcolor: IMeeting["participants"][0]["join"]["bgcolor"] = {
 								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
 								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit <= 10 ? '#e6b8af' : '#fff2cc',
@@ -207,7 +195,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 								this.meetings[idx].participants[pdx === -1 ? this.meetings[idx].participants.length : pdx] = {
 									participant_id, user_id, user_name,
-									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, bgcolor },
+									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, fgcolor, bgcolor },
 								};
 							}
 						});

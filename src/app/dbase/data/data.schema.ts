@@ -606,7 +606,10 @@ export interface IMeeting {
 			white: IWhite;
 			price?: number;
 			credit?: number;
-			bgcolor: {
+			fgcolor?: {
+				alias: string;
+			}
+			bgcolor?: {
 				price: string;
 				credit: string;
 				bonus: string;
@@ -638,6 +641,7 @@ export interface IWhite {
 	alias?: string;
 	paid?: true;
 	credit?: number;
+	price?: number;
 	track?: {
 		history: number;
 	},

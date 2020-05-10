@@ -51,7 +51,7 @@
 								<td>{{ party.user_name }}</td>
 								<td>{{ party.join.label }}</td>
 								<td>{{ party.leave?.label }}</td>
-								<td>{{ party.join.white?.alias }}</td>
+								<td [style.color]="party.join.fgcolor?.alias">{{ party.join.white?.alias }}</td>
 								<td align="right" [attr.bgcolor]="party.join.bgcolor?.price" [matTooltip]="party.join.bgcolor.priceTip"
 									matTooltipPosition="before">{{ party.join.price | number }}</td>
 								<td align="right" [attr.bgcolor]="party.join.bgcolor?.credit"
