@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, BehaviorSubject, timer, Subject } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil } from 'rxjs/operators';
+import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { map, switchMap, mergeMap, takeUntil, delay, tap } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
@@ -54,11 +54,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.stop$.unsubscribe();
 	}
 
-	onSwipe(idx: number, event: Event) {
+	onSwipe(idx: number, len: number, event: Event) {
 		alert(JSON.stringify(event.target));
 		console.log(event);
 		this.firstPaint = false;                          // ok to animate
-		this.selectedIndex = swipe(idx, this.meetings.length, event);
+		this.selectedIndex = swipe(idx, len, event);
 	}
 
 	suffix(idx: number) {
@@ -72,7 +72,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
    * 			if 0,		show today
    */
 	setDate(dir: -1 | 0 | 1) {
-		const today = new Instant();
+		const today = new Instant().startOf('day');
 		const offset = dir === 0
 			? today
 			: new Instant(this.date).add(dir, 'days')
@@ -81,22 +81,28 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
-
+		console.log('timer: ', this.date.format(Instant.FORMAT.dayTime));
 		this.meetingDate.next(this.date);									// give the date to the Observable
 	}
 
 	/** If the Member is still sitting on this page at midnight, move this.date to next day */
 	private setTimer() {
-		const tomorrow = 86400000;
-		const midnight = new Instant().add(1, 'day').startOf('day');
+		// const mid = new BehaviorSubject<Instant>(new Instant());
+		// let midnight = new Instant().add(10, 'seconds');
 
-		this.dbg('timeOut: %s', midnight.format(Instant.FORMAT.dayTime));
-		timer(midnight.diff('seconds') * 1000, tomorrow)	// every midnight
-			.pipe(takeUntil(this.stop$))
-			.subscribe(_ => {
-				this.dbg('timeOut: %s', new Instant().format(Instant.FORMAT.dayTime));
-				this.setDate(0);															// move UI to new date
-			})
+		// mid
+		// 	.pipe(
+		// 		takeUntil(this.stop$),
+		// 		delay(midnight.toDate()),
+		// 	)
+		// 	.subscribe(
+		// 		(now) => {
+		// 			this.setDate(0);														// move the UI to new day
+		// 			mid.next(now);															// restart the timer
+		// 			midnight = new Instant().add(1, 'day').startOf('day');
+		// 			this.dbg('timer: %s', midnight.format(Instant.FORMAT.dayTime))
+		// 		}
+		// 	)
 	}
 
 	/**
@@ -163,10 +169,20 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { price } = doc.white?.checkIn || {};
 							const { bank = 0, amt = 0, spend = 0, pre = 0 } = doc.white?.checkIn?.nextAttend || {};
+							const credit = doc.white?.credit;
+
 							const status = (doc.white?.status);
 							const weekTrack = (status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
+							// let credit: number | undefined;
+							// if (doc.white?.status?.creditRemaining) {
+							// 	const str = doc.white?.status?.creditRemaining.includes('>')
+							// 		? doc.white.status.creditRemaining.split('>')[1]
+							// 		: doc.white?.status?.creditRemaining
+							// 	credit = Number(str.replace('$', ''));
+							// }
+							// else credit = doc.white?.paid ? bank + amt - spend + pre - price! : undefined;
+
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							const bgcolor: IMeeting["participants"][0]["join"]["bgcolor"] = {

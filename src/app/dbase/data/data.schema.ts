@@ -637,6 +637,7 @@ export interface IWhite {
 	class?: string;
 	alias?: string;
 	paid?: true;
+	credit?: number;
 	track?: {
 		history: number;
 	},
