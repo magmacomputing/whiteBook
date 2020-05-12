@@ -7,10 +7,10 @@
 		<button mat-icon-button [disabled]="offset==0" (click)="setDate(1)">
 			<mat-icon>arrow_right</mat-icon>
 		</button>
-		<h2 style="font-weight:normal;">
+		<div class="mat-headline">
 			<span style="font-weight:bold;color:mediumblue;">{{ meetings.length }}
 			</span>Meeting{{ meetings.length == 1 ? '' : 's'}} today
-		</h2>
+		</div>
 	</div>
 
 	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)"
@@ -20,17 +20,13 @@
 				<mat-tab label=" {{ meeting.start.label }}">
 					<table>
 						<tr>
-							<td colspan="2" [style.color]="meeting.start.color">
-								<h3>{{ meeting.start?.white?.class }}</h3>
+							<td colspan="2" class="mat-h2" [style.color]="meeting.start.color">
+								{{ meeting.start?.white?.class }}
 							</td>
 							<td>started: </td>
-							<td>
-								<h4>{{ meeting.start.label }}</h4>
-							</td>
+							<td class="mat-h3" style="font-weight:bold;"> {{ meeting.start.label }} </td>
 							<td>ended: </td>
-							<td>
-								<h4 class="blink">{{ meeting.end?.label }}</h4>
-							</td>
+							<td class="mat-h3" style="font-weight:bold;">{{ meeting.end?.label }} </td>
 						</tr>
 					</table>
 

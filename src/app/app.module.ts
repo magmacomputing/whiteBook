@@ -1,5 +1,5 @@
 import { NgModule, Injector } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, HammerModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
@@ -12,12 +12,10 @@ import { AppComponent } from './app.component';
 import { NgxsModule } from '@ngxs/store';
 import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
+import { SafePipe } from '@service/material/safe.pipe';
+
 import { StoreStorage } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
-
-import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
-import { InfoDialogComponent } from '@service/material/dialog.service';
-import { SafePipe } from '@service/material/safe.pipe';
 
 @NgModule({
 	declarations: [
@@ -29,6 +27,7 @@ import { SafePipe } from '@service/material/safe.pipe';
 		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
 		// ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 		BrowserModule,
+		HammerModule,
 		DBaseModule,
 		AuthModule,
 		RoutingModule,
@@ -37,7 +36,6 @@ import { SafePipe } from '@service/material/safe.pipe';
 	],
 	providers: [],
 	bootstrap: [AppComponent],
-	entryComponents: [InfoSnackBar, WarnSnackBar, ErrorSnackBar, InfoDialogComponent],
 })
 export class AppModule {
 	static injector: Injector;

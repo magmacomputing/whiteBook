@@ -175,7 +175,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const fgcolor = { alias: this.color[event as CLASS]?.color };
 							const bgcolor: IMeeting["participants"][0]["join"]["bgcolor"] = {
 								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
-								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit <= 10 ? '#e6b8af' : '#fff2cc',
+								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit < 10 ? '#e6b8af' : '#fff2cc',
 								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
 							}
 							if (bgcolor.price !== '#ffffff' && status?.eventNote)
@@ -183,7 +183,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 									? status.eventNote.split(':')[1].trim()
 									: status?.eventNote;
 							if (bgcolor.credit !== '#ffffff') {
-								bgcolor.creditTip = (credit || 0) <= 0 ? 'TopUp Due' : (credit || 0) <= 10 ? 'Low Credit' : 'Watch Credit'
+								bgcolor.creditTip = (credit || 0) <= 0 ? 'TopUp Due' : (credit || 0) < 10 ? 'Low Credit' : 'Credit Alert'
 							}
 							if (status?.bonus)
 								bgcolor.bonusTip = status.bonus.indexOf('>')
