@@ -196,7 +196,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								this.meetings[idx].participants[pdx === -1 ? this.meetings[idx].participants.length : pdx] = {
 									participant_id, user_id, user_name,
 									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, fgcolor, bgcolor },
-								};
+								}
 							}
 						});
 
