@@ -178,7 +178,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit < 10 ? '#e6b8af' : '#fff2cc',
 								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
 							}
-							if (bgcolor.price !== '#ffffff' && status?.eventNote)
+							if (bgcolor?.price !== '#ffffff' && status?.eventNote)
 								bgcolor.priceTip = status.eventNote.startsWith('Bonus: ')
 									? status.eventNote.split(':')[1].trim()
 									: status?.eventNote;
@@ -211,6 +211,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
 								if (pdx !== -1)
 									this.meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
+								else this.meetings[idx].participants.push({
+									participant_id, user_id, user_name,
+									join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', bgcolor: { price: '', credit: '', bonus: '' }, fgcolor: { alias: '' }, },
+									leave: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label },
+								})
 							}
 						});
 
