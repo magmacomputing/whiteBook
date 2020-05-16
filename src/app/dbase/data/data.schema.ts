@@ -137,7 +137,7 @@ export interface IClass extends IClientBase {
 	[FIELD.store]: STORE.class;
 	[FIELD.type]: SPAN;
 	[FIELD.key]: CLASS;
-	color: string;
+	color: COLOR;
 	desc?: string;
 }
 
@@ -585,7 +585,7 @@ export interface IMeeting {
 		[FIELD.stamp]: number;
 		start_time: Date;
 		label: string;							// to be displayed on an UI tab
-		color?: string;
+		color?: COLOR;
 		white?: IWhite;
 	},
 	end?: {
@@ -607,7 +607,7 @@ export interface IMeeting {
 			price?: number;
 			credit?: number;
 			fgcolor?: {
-				alias: string;
+				alias?: COLOR;
 			}
 			bgcolor?: {
 				price?: COLOR;
@@ -632,7 +632,7 @@ export interface IZoomEnv {
 	start: string;
 	end: string;
 	event: string;
-	color: string;
+	color: COLOR;
 	day?: number[];
 }
 

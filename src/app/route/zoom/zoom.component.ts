@@ -130,7 +130,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const color = doc.white?.class && this.color[doc.white.class as CLASS].color || 'black';
+							const color = doc.white?.class && this.color[doc.white.class as CLASS].color || COLOR.black;
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {
@@ -212,7 +212,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								if (pdx === -1) {										// Leave without a corresponding Join
 									this.meetings[idx].participants.push({
 										participant_id, user_id, user_name,
-										join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', fgcolor: { alias: '' }, },
+										join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', },
 										leave: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label },
 									})
 								}

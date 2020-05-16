@@ -171,6 +171,7 @@ export enum COLOR {
 	collection = '#4a86e8',
 	store = '#980000',
 	admin = '#38761d',
+
 	black = '#ffffff',
 	yellow = '#fff2cc',
 	green = '#d9ead3',
