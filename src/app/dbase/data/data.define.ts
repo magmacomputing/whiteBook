@@ -172,6 +172,9 @@ export enum COLOR {
 	store = '#980000',
 	admin = '#38761d',
 	black = '#ffffff',
+	yellow = '#fff2cc',
+	green = '#d9ead3',
+	red = '#e6b8af',
 }
 
 export namespace Zoom {

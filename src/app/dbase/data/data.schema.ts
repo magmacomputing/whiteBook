@@ -610,9 +610,9 @@ export interface IMeeting {
 				alias: string;
 			}
 			bgcolor?: {
-				price: string;
-				credit: string;
-				bonus: string;
+				price?: COLOR;
+				credit?: COLOR;
+				bonus?: COLOR;
 				priceTip?: string;
 				creditTip?: string;
 				bonusTip?: string;

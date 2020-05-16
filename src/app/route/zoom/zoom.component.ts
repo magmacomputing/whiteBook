@@ -4,7 +4,7 @@ import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, delay, tap } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
-import { COLLECTION, FIELD, Zoom, STORE, CLASS } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite } from '@dbase/data/data.schema';
 
@@ -174,15 +174,15 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 							const fgcolor = { alias: this.color[event as CLASS]?.color };
 							const bgcolor: IMeeting["participants"][0]["join"]["bgcolor"] = {
-								price: isUndefined(price) || price > 0 ? '#ffffff' : '#d9ead3',
-								credit: isUndefined(credit) || credit > 20 ? '#ffffff' : credit < 10 ? '#e6b8af' : '#fff2cc',
-								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? '#ffffff' : '#fff2cc',
+								price: isUndefined(price) || price > 0 ? COLOR.black : COLOR.green,
+								credit: isUndefined(credit) || credit > 20 ? COLOR.black : credit < 10 ? COLOR.red : COLOR.yellow,
+								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? COLOR.black : COLOR.yellow,
 							}
-							if (bgcolor?.price !== '#ffffff' && status?.eventNote)
+							if (bgcolor?.price !== COLOR.black && status?.eventNote)
 								bgcolor.priceTip = status.eventNote.startsWith('Bonus: ')
 									? status.eventNote.split(':')[1].trim()
 									: status?.eventNote;
-							if (bgcolor.credit !== '#ffffff') {
+							if (bgcolor.credit !== COLOR.black) {
 								bgcolor.creditTip = (credit || 0) <= 0 ? 'TopUp Due' : (credit || 0) < 10 ? 'Low Credit' : 'Credit Alert'
 							}
 							if (status?.bonus)
@@ -209,13 +209,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 							if (idx !== -1) {
 								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
-								if (pdx !== -1)
-									this.meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
-								else this.meetings[idx].participants.push({
-									participant_id, user_id, user_name,
-									join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', bgcolor: { price: '', credit: '', bonus: '' }, fgcolor: { alias: '' }, },
-									leave: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label },
-								})
+								if (pdx === -1) {										// Leave without a corresponding Join
+									this.meetings[idx].participants.push({
+										participant_id, user_id, user_name,
+										join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', fgcolor: { alias: '' }, },
+										leave: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label },
+									})
+								}
+								else this.meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
 							}
 						});
 
