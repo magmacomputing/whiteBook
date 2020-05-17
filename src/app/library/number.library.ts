@@ -30,3 +30,5 @@ export const suffix = (idx: number) => {
 
 export const fix = (nbr: string | number, max = 2, fill?: number) =>
 	nbr.toString().padStart(max, isUndefined(fill) && isNumeric(nbr) ? '0' : ' ');
+
+export const asCurrency = (str: string | number, nbr = 2) => Number(str).toFixed(nbr);

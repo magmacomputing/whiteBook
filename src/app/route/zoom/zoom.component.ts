@@ -3,15 +3,17 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, delay, tap } from 'rxjs/operators';
 
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
-import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite } from '@dbase/data/data.schema';
+import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite, IImport } from '@dbase/data/data.schema';
+import { DialogService } from '@service/material/dialog.service';
 
 import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
-import { suffix } from '@library/number.library';
+import { suffix, asCurrency } from '@library/number.library';
 import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
 
@@ -35,7 +37,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	private color!: Record<CLASS, IClass>;
 
-	constructor(private data: DataService) {
+	constructor(private data: DataService, public dialog: DialogService) {
 		this.setTimer();																	// subscribe to midnight
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
@@ -56,7 +58,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	onSwipe(idx: number, len: number, event: Event) {
 		alert(JSON.stringify(event.target));
-		console.log(event);
+		this.dbg(event);
 		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, len, event);
 	}
@@ -81,7 +83,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
-		// console.log('timer: ', this.date.format(Instant.FORMAT.dayTime));
+		// this.dbg('timer: ', this.date.format(Instant.FORMAT.dayTime));
 		this.meetingDate.next(this.date);									// give the date to the Observable
 	}
 
@@ -224,5 +226,42 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					return this.meetings;
 				}),
 			)
+	}
+
+	async showWeek(white: IWhite) {
+		if (!white.alias)
+			return;
+		if (!white.status?.trackDaysThisWeek)
+			return;
+
+		const where: TWhere = [
+			addWhere(FIELD.type, Zoom.EVENT.joined),
+			addWhere('white.alias', white.alias),
+			addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
+		]
+
+		const [join, imports] = await Promise.all([
+			this.data.getFire<IZoom<TJoined>>(COLLECTION.zoom, { where, orderBy: addOrder(FIELD.stamp) }),
+			this.data.getFire<IImport>(COLLECTION.admin, { where: [addWhere(FIELD.uid, white.alias), addWhere(FIELD.store, STORE.import)] })
+		])
+		const image = imports[0].picture;
+		const title = white.alias;
+		const subtitle = `Attends this week for ${imports[0].userName}`;
+		const actions = ['Close'];
+
+		let content: string[] = [];
+		join
+			.filter(doc => !isUndefined(doc.white?.price))
+			.forEach(doc => {
+				const { class: event, price } = doc.white || {};
+				const { user_name, join_time } = doc.body.payload.object.participant || {};
+				content.push(`
+			${new Instant(join_time).format('ddd, HH:MM')} 
+			${event}
+			${asCurrency(price!)}
+`)
+			})
+
+		this.dialog.open({ image, title, subtitle, actions, content });
 	}
 }

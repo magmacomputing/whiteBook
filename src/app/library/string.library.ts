@@ -40,6 +40,7 @@ export const asTemplate = (templateString: string) =>
 
 export const asString = (str: any = '') => isString(str) ? str : (str.toString ? str.toString() : JSON.stringify(str));
 export const asNumber = (str: string | number) => isNumeric(str) ? parseInt(str.toString(), 10) : NaN;
+export const padString = (str: string | number | undefined, pad = 6) => (isNumeric(str) ? str.toFixed(2).toString() : str ?? '').padStart(pad, '\u007F');
 
 export const isNumeric = (str: any): str is number => !isNaN(parseFloat(str)) && isFinite(str);
 export const toNumeric = (str: string | number, stripZero: boolean = false) =>

@@ -54,7 +54,7 @@
 									[matTooltip]="party.join.bgcolor?.creditTip" matTooltopPosition="before">
 									{{ party.join.credit | number }}</td>
 								<td align="right" [attr.bgcolor]="party.join.bgcolor?.bonus" [matTooltip]="party.join.bgcolor?.bonusTip"
-									matTooltipPosition="before">
+									matTooltipPosition="before" (click)="showWeek(party.join.white)">
 									{{ party.join.white?.status?.trackDaysThisWeek | number }}</td>
 							</tr>
 						</tbody>

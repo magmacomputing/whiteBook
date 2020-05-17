@@ -14,7 +14,7 @@ import { dbg } from '@library/logger.library';
 
     <mat-dialog-content class="mat-typography">
       <h3> {{ data.subtitle }} </h3><p>
-      <div *ngFor="let content of data.content">
+      <div *ngFor="let content of data.content" style="font-family:monospace;">
         {{ content }}
       </div>
     </mat-dialog-content>
