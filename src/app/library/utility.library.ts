@@ -34,7 +34,7 @@ export const setPromise = <T>() => {
 
 /** memoize repeated lookups */
 export const memoize = (fn: Function) => {
-	const cache = new Map();
+	const cache = new Map<string, any>();
 
 	return (...args: any[]) => {
 		const key = JSON.stringify(args) ?? 'undefined';
