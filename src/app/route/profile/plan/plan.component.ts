@@ -22,7 +22,7 @@ export class PlanComponent implements OnInit {
 	public data$!: Observable<IPlanState>;
 	private dbg = dbg(this);
 
-	constructor(private readonly member: MemberService, private readonly state: StateService, public dialog: DialogService) { }
+	constructor(public readonly member: MemberService, private readonly state: StateService, public dialog: DialogService) { }
 
 	ngOnInit() {
 		this.data$ = this.state.getPlanData().pipe(
