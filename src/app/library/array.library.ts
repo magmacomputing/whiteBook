@@ -1,6 +1,6 @@
 import { isIterable } from '@library/type.library';
 
-export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? Array.from(arr) : [arr];
+export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? [...arr] : [arr];
 
 // insert a value into an array by its sorted position
 export const sortInsert = <T>(arr: T[], val: T) => {

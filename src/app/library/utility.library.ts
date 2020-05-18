@@ -31,3 +31,17 @@ export const setPromise = <T>() => {
 
 	return obj as IPromise<T>;											// remove the 'Partial' type
 }
+
+/** memoize repeated lookups */
+export const memoize = (fn: Function) => {
+	const cache = new Map();
+
+	return (...args: any[]) => {
+		const key = JSON.stringify(args) ?? 'undefined';
+
+		if (!cache.has(key))
+			cache.set(key, fn(...args));
+
+		return cache.get(key);
+	}
+}

@@ -8,7 +8,7 @@ import { dbg } from '@library/logger.library';
   selector: 'info-dialog',
   template: `
     <div mat-dialog-title>
-      <img [src]="data.image || 'https://source.unsplash.com/random/200x200'">
+      <img [src]="data.image || 'https://source.unsplash.com/random/200x200'" width="100" height="100">
       <h2> {{ data.title }} </h2>
     </div>
 

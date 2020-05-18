@@ -14,6 +14,7 @@ import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { suffix, asCurrency } from '@library/number.library';
+import { memoize } from '@library/utility.library';
 import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
 
@@ -36,6 +37,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
 
 	private color!: Record<CLASS, IClass>;
+	private colorCache!: (white: IWhite | undefined) => COLOR
 
 	constructor(private data: DataService, public dialog: DialogService) {
 		this.setTimer();																	// subscribe to midnight
@@ -47,6 +49,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private async getColor() {
 		this.color = await this.data.getStore<IClass>(STORE.class)
 			.then(store => store.groupBy<CLASS>(FIELD.key))
+		this.colorCache = memoize(this.setColor.bind(this));
 	}
 
 	ngOnInit() { }
@@ -132,7 +135,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
-							const color = doc.white?.class && this.color[doc.white.class as CLASS].color || COLOR.black;
+							const color = this.colorCache(doc.white);
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {
@@ -228,7 +231,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			)
 	}
 
+	/**
+	 * Popup an attend-this-week summary
+	 */
 	async showWeek(white: IWhite) {
+		if (isUndefined(white))
+			return;
 		if (!white.alias)
 			return;
 		if (!white.status?.trackDaysThisWeek)
@@ -239,11 +247,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			addWhere('white.alias', white.alias),
 			addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
-
 		const [join, imports] = await Promise.all([
 			this.data.getFire<IZoom<TJoined>>(COLLECTION.zoom, { where, orderBy: addOrder(FIELD.stamp) }),
 			this.data.getFire<IImport>(COLLECTION.admin, { where: [addWhere(FIELD.uid, white.alias), addWhere(FIELD.store, STORE.import)] })
 		])
+
 		const image = imports[0].picture;
 		const title = white.alias;
 		const subtitle = `Attends this week for ${imports[0].userName}`;
@@ -254,14 +262,19 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			.filter(doc => !isUndefined(doc.white?.price))
 			.forEach(doc => {
 				const { class: event, price } = doc.white || {};
+				const color = this.colorCache(doc.white);
 				const { user_name, join_time } = doc.body.payload.object.participant || {};
 				content.push(`
 			${new Instant(join_time).format('ddd, HH:MM')} 
-			${event}
+			${color} ${event}
 			${asCurrency(price!)}
 `)
 			})
 
 		this.dialog.open({ image, title, subtitle, actions, content });
+	}
+
+	setColor(white?: IWhite) {
+		return (white?.class && this.color[white.class as CLASS].color) || COLOR.black;
 	}
 }
