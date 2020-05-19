@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Observable, Subscription, of } from 'rxjs';
+import { Observable, Subscription, of, Subject } from 'rxjs';
 import { map, delay } from 'rxjs/operators';
 
 import { ForumService } from '@service/forum/forum.service';
@@ -33,11 +33,14 @@ export class AttendComponent implements OnDestroy {
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
 	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
+	private stop$ = new Subject();											// notify Subscriptions to complete
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnDestroy() {
+		this.stop$.next();
+		this.stop$.unsubscribe();
 		this.timerSubscription?.unsubscribe();
 	}
 

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, delay, tap } from 'rxjs/operators';
 
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
@@ -26,6 +26,7 @@ import { dbg } from '@library/logger.library';
 export class ZoomComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
+	private dateChange = false;													// used to set the selectedIndex
 	public offset!: number;															// the number of days before today 
 
 	public firstPaint = true;                           // indicate first-paint
@@ -35,6 +36,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private meetings: IMeeting[] = [];
 	private meetingDate = new BehaviorSubject<Instant>(new Instant());
 	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
+	private timer$!: Subscription;											// watch for midnight, then reset this.date
 
 	private color!: Record<CLASS, IClass>;
 	private colorCache!: (white: IWhite | undefined) => COLOR
@@ -113,7 +115,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	/**
 	 * first get the meeting.started  Events for this.date  to determined uuid's.  
 	 * then collect all documents that relate to those uuid's,  
-	 * then assemble details into an array of IMeeting
+	 * then assemble details into an IMeeting[]
 	 */
 	private getMeetings() {
 		return this.meetings$ = this.meetingDate					// wait on the Subject
@@ -126,7 +128,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					]
 
 					this.meetings = [];													// whenever the Date changes, reset the Meeting Observable
-					this.selectedIndex = 0;											// reset to the first Meeting <tab>
+					this.dateChange = true;
 					return this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where });
 				}),
 				mergeMap(track => {
@@ -225,7 +227,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 						});
 
-					this.selectedIndex = this.meetings.length - 1;
+					if (this.dateChange) {
+						this.dateChange = false;
+						this.selectedIndex = this.meetings.length - 1;
+					}
 					return this.meetings;
 				}),
 			)
@@ -266,7 +271,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				const { user_name, join_time } = doc.body.payload.object.participant || {};
 				content.push(`
 			${new Instant(join_time).format('ddd, HH:MM')} 
-			${color} ${event}
+			${event}
 			${asCurrency(price!)}
 `)
 			})
