@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil, delay, tap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, Subject } from 'rxjs';
+import { map, switchMap, mergeMap, takeUntil } from 'rxjs/operators';
 
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
@@ -9,6 +9,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
 import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite, IImport } from '@dbase/data/data.schema';
 import { DialogService } from '@service/material/dialog.service';
+import { TimerService } from '@service/observable/timer.service';
 
 import { Instant, fmtDate } from '@library/instant.library';
 import { isUndefined } from '@library/type.library';
@@ -36,13 +37,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private meetings: IMeeting[] = [];
 	private meetingDate = new BehaviorSubject<Instant>(new Instant());
 	public meetings$!: Observable<IMeeting[]>;					// the date's Meetings
-	private timer$!: Subscription;											// watch for midnight, then reset this.date
 
 	private color!: Record<CLASS, IClass>;
 	private colorCache!: (white: IWhite | undefined) => COLOR
 
-	constructor(private data: DataService, public dialog: DialogService) {
-		this.setTimer();																	// subscribe to midnight
+	constructor(private data: DataService, public dialog: DialogService, private timer: TimerService) {
+		this.timer.setTimer(this.stop$)
+			.subscribe(_val => this.setDate(0));						// subscribe to midnight
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
 		this.getColor();
@@ -88,28 +89,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
-		// this.dbg('timer: ', this.date.format(Instant.FORMAT.dayTime));
+
 		this.meetingDate.next(this.date);									// give the date to the Observable
 	}
 
 	/** If the Member is still sitting on this page at midnight, move this.date to next day */
 	private setTimer() {
-		// const mid = new BehaviorSubject<Instant>(new Instant());
-		// let midnight = new Instant().add(10, 'seconds');
-
-		// mid
-		// 	.pipe(
-		// 		takeUntil(this.stop$),
-		// 		delay(midnight.toDate()),
-		// 	)
-		// 	.subscribe(
-		// 		(now) => {
-		// 			this.setDate(0);														// move the UI to new day
-		// 			mid.next(now);															// restart the timer
-		// 			midnight = new Instant().add(1, 'day').startOf('day');
-		// 			this.dbg('timer: %s', midnight.format(Instant.FORMAT.dayTime))
-		// 		}
-		// 	)
+		this.timer.setTimer(this.stop$)
+			.subscribe(_val => this.setDate(0));
 	}
 
 	/**

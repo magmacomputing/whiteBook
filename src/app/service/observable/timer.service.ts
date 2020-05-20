@@ -1,31 +1,27 @@
 import { Injectable } from '@angular/core';
-import { Subject, of, BehaviorSubject, scheduled } from 'rxjs';
-import { delay, takeUntil } from 'rxjs/operators';
+import { Subject, of } from 'rxjs';
+import { delay, takeUntil, repeat, tap } from 'rxjs/operators';
 
 import { Instant } from '@library/instant.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: 'root' })
 export class TimerService {
-	private self = 'TimerService';
-	private dbg = dbg(this, this.self);
+	private dbg = dbg(this, this.constructor.name);
+	stop$!: Subject<any>;
 
-	private subject!: BehaviorSubject<any>;
+	constructor() { this.dbg('new'); }
 
-	constructor(private stop$: Subject<any>) {
-		this.setTimer();
-	}
+	setTimer(stop?: Subject<any>) {
+		if (stop)
+			this.stop$ = stop;						// set a timer-stop
 
-	setTimer() {
-		const defer = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeOut: %s', defer.format(Instant.FORMAT.dayTime));
-
-		// this.subject.
-
-		return scheduled()										// a single-emit Observable
+		return of(0)										// a single-emit Observable
 			.pipe(
 				takeUntil(this.stop$),
-				delay(defer.toDate()),
+				tap(_ => this.dbg('timer: %s', new Instant().add(1, 'day').startOf('day').format(Instant.FORMAT.dayTime))),
+				delay(new Instant().add(1, 'day').startOf('day').toDate()),
+				repeat(),										// restart the Observable
 			)
 	}
 }

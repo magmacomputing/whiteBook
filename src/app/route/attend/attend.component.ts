@@ -5,6 +5,7 @@ import { map, delay } from 'rxjs/operators';
 import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
+import { TimerService } from '@service/observable/timer.service';
 
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
@@ -32,16 +33,18 @@ export class AttendComponent implements OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
-	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
 	private stop$ = new Subject();											// notify Subscriptions to complete
 
-	constructor(private readonly attend: AttendService, public readonly state: StateService,
-		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
+	constructor(private readonly attend: AttendService, public readonly state: StateService, private timer: TimerService,
+		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) {
+		this.timer.setTimer(this.stop$)
+			.subscribe(_emit => this.setDate(0));						// on midnight, move display to new date
+		this.setDate(0);																	// start off on current date
+	}
 
 	ngOnDestroy() {
 		this.stop$.next();
 		this.stop$.unsubscribe();
-		this.timerSubscription?.unsubscribe();
 	}
 
 	// Build info to show in a Dialog
@@ -106,9 +109,6 @@ export class AttendComponent implements OnDestroy {
 			: offset
 
 		this.getSchedule();																// get day's Schedule
-
-		if (!this.timerSubscription)
-			this.setTimer();																// set a Schedule-view timeout
 	}
 
 	private getSchedule() {
@@ -118,20 +118,6 @@ export class AttendComponent implements OnDestroy {
 				return data;
 			})
 		)
-	}
-
-	/** If the Member is still sitting on this page at midnight, move this.date to next day */
-	private setTimer() {
-		const defer = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeOut: %s', defer.format(Instant.FORMAT.dayTime));
-
-		this.timerSubscription?.unsubscribe();
-		this.timerSubscription = of(0)										// a single-emit Observable
-			.pipe(delay(defer.toDate()))
-			.subscribe(() => {
-				this.timerSubscription.unsubscribe();					// stop watching for midnight
-				this.setDate(0);															// onNext, show new day's timetable
-			})
 	}
 
 	public getForum() {
