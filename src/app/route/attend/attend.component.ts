@@ -33,13 +33,17 @@ export class AttendComponent implements OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
-	private stop$ = new Subject();											// notify Subscriptions to complete
+	private stop$ = new Subject<any>();									// notify Subscriptions to complete
 
 	constructor(private readonly attend: AttendService, public readonly state: StateService, private timer: TimerService,
-		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) {
-		this.timer.setTimer(this.stop$)
-			.subscribe(_emit => this.setDate(0));						// on midnight, move display to new date
-		this.setDate(0);																	// start off on current date
+		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
+
+	ngOnInit() {
+		this.timer.setTimer(this.stop$)										// on midnight, move display to new date
+			.subscribe(_emit => {
+				this.dbg('alarm');
+				this.setDate(0);
+			});
 	}
 
 	ngOnDestroy() {
@@ -80,7 +84,7 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	onSwipe(idx: number, event: Event) {
-		alert(JSON.stringify(event.target));
+		// alert(JSON.stringify(event.target));
 		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, this.locations, event);
 	}

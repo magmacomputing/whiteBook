@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil } from 'rxjs/operators';
+import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
@@ -27,8 +27,8 @@ import { dbg } from '@library/logger.library';
 export class ZoomComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
-	private dateChange = false;													// used to set the selectedIndex
 	public offset!: number;															// the number of days before today 
+	private dateChange = false;													// used to set the selectedIndex
 
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
@@ -43,7 +43,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	constructor(private data: DataService, public dialog: DialogService, private timer: TimerService) {
 		this.timer.setTimer(this.stop$)
-			.subscribe(_val => this.setDate(0));						// subscribe to midnight
+			.subscribe(_val => {														// watch for midnight
+				this.dbg('alarm');
+				this.setDate(0);															// force refresh of UI
+			});
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
 		this.getColor();
@@ -62,22 +65,18 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.stop$.unsubscribe();
 	}
 
-	onSwipe(idx: number, len: number, event: Event) {
-		alert(JSON.stringify(event.target));
-		this.dbg(event);
-		this.firstPaint = false;                          // ok to animate
-		this.selectedIndex = swipe(idx, len, event);
-	}
-
-	suffix(idx: number) {
-		return suffix(idx);
-	}
+	// onSwipe(idx: number, len: number, event: Event) {
+	// 	alert(JSON.stringify(event.target));
+	// 	this.dbg(event);
+	// 	this.firstPaint = false;                          // ok to animate
+	// 	this.selectedIndex = swipe(idx, len, event);
+	// }
 
 	/**
    * Call this onInit, whenever the Admin changes the UI-date, and at midnight.  
    * dir:	if -1,	show previous day  
-   * 			if 1,		show next day  
-   * 			if 0,		show today
+   * 			if  1,	show next day  
+   * 			if  0,	show today
    */
 	setDate(dir: -1 | 0 | 1) {
 		const today = new Instant().startOf('day');
@@ -93,12 +92,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.meetingDate.next(this.date);									// give the date to the Observable
 	}
 
-	/** If the Member is still sitting on this page at midnight, move this.date to next day */
-	private setTimer() {
-		this.timer.setTimer(this.stop$)
-			.subscribe(_val => this.setDate(0));
-	}
-
 	/**
 	 * first get the meeting.started  Events for this.date  to determined uuid's.  
 	 * then collect all documents that relate to those uuid's,  
@@ -107,19 +100,21 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private getMeetings() {
 		return this.meetings$ = this.meetingDate					// wait on the Subject
 			.pipe(
-				takeUntil(this.stop$),
-				switchMap(inst => {
-					const where = [
-						addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
-						addWhere(FIELD.type, Zoom.EVENT.started),
-					]
+				takeUntil(this.stop$),												// teardown Subject
+				tap(_ => this.meetings = []),									// reset the assembled details
+				tap(_ => this.dateChange = true),							// move the selectedIndex to latest meeting
 
-					this.meetings = [];													// whenever the Date changes, reset the Meeting Observable
-					this.dateChange = true;
-					return this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, { where });
-				}),
-				mergeMap(track => {
-					track																				// First, get Meeting.Started
+				switchMap(inst =>															// get all meeting.started events for this.date
+					this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, {
+						where: [
+							addWhere(FIELD.type, Zoom.EVENT.started),
+							addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
+						]
+					})
+				),
+
+				mergeMap(track => {														// merge with all events for the meeting.started events
+					track
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
@@ -136,8 +131,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 									},
 								})
 
+								if (!this.dateChange)									// a new meeting.started today
+									this.dateChange = this.date.format(Instant.FORMAT.yearMonthDay) === new Instant().format(Instant.FORMAT.yearMonthDay);
+							} else {																// change to existing meeting
+								this.meetings[idx].start = { ...this.meetings[idx].start, white: doc.white, color };
 							}
-						});
+						})
 
 					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
 						where: addWhere('body.payload.object.uuid', this.meetings.map(meeting => meeting.uuid), 'in'),
@@ -257,10 +256,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				const color = this.colorCache(doc.white);
 				const { user_name, join_time } = doc.body.payload.object.participant || {};
 				content.push(`
-			${new Instant(join_time).format('ddd, HH:MM')} 
-			${event}
-			${asCurrency(price!)}
-`)
+					${new Instant(join_time).format('ddd, HH:MM')} 
+					${event}
+					${asCurrency(price!)}
+				`)
 			})
 
 		this.dialog.open({ image, title, subtitle, actions, content });
