@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
@@ -116,12 +116,10 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	private getSchedule() {
-		this.timetable$ = this.state.getScheduleData(this.date).pipe(
-			map(data => {
-				this.selectedIndex = 0;                       // start on the first-page
-				return data;
-			})
-		)
+		this.timetable$ = this.state.getScheduleData(this.date)
+			.pipe(
+				tap(_ => this.selectedIndex = 0),								// start on the first-location
+			)
 	}
 
 	public getForum() {
