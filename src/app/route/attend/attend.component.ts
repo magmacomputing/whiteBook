@@ -5,7 +5,6 @@ import { map } from 'rxjs/operators';
 import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
-import { TimerService } from '@service/observable/timer.service';
 
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
@@ -14,6 +13,7 @@ import { ISchedule, IForumBase } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined, TString } from '@library/type.library';
+import { setTimer } from '@library/observable.library';
 import { Instant } from '@library/instant.library';
 import { suffix } from '@library/number.library';
 import { swipe } from '@library/html.library';
@@ -35,14 +35,14 @@ export class AttendComponent implements OnDestroy {
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
 	private stop$ = new Subject<any>();									// notify Subscriptions to complete
 
-	constructor(private readonly attend: AttendService, public readonly state: StateService, private timer: TimerService,
+	constructor(private readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnInit() {
-		this.timer.setTimer(this.stop$)										// on midnight, move display to new date
+		setTimer(this.stop$)															// watch for midnight
 			.subscribe(_emit => {
 				this.dbg('alarm');
-				this.setDate(0);
+				this.setDate(0);															// force refresh of UI
 			});
 	}
 

@@ -9,14 +9,13 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
 import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite, IImport } from '@dbase/data/data.schema';
 import { DialogService } from '@service/material/dialog.service';
-import { TimerService } from '@service/observable/timer.service';
 
 import { Instant, fmtDate } from '@library/instant.library';
+import { setTimer } from '@library/observable.library';
+import { asCurrency } from '@library/number.library';
 import { isUndefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
-import { suffix, asCurrency } from '@library/number.library';
 import { memoize } from '@library/utility.library';
-import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
 
 @Component({
@@ -41,8 +40,8 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private color!: Record<CLASS, IClass>;
 	private colorCache!: (white: IWhite | undefined) => COLOR
 
-	constructor(private data: DataService, public dialog: DialogService, private timer: TimerService) {
-		this.timer.setTimer(this.stop$)
+	constructor(private data: DataService, public dialog: DialogService) {
+		setTimer(this.stop$)
 			.subscribe(_val => {														// watch for midnight
 				this.dbg('alarm');
 				this.setDate(0);															// force refresh of UI
