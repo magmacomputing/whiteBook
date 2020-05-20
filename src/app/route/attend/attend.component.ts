@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Observable, Subscription, of, Subject } from 'rxjs';
-import { map, delay } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
