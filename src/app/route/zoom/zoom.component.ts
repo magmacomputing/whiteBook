@@ -238,7 +238,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
 		const [join, imports] = await Promise.all([
-			this.data.getFire<IZoom<TJoined>>(COLLECTION.zoom, { where, orderBy: addOrder(FIELD.stamp) }),
+			this.data.getFire<IZoom<TJoined>>(COLLECTION.zoom, { where }),
 			this.data.getFire<IImport>(COLLECTION.admin, { where: [addWhere(FIELD.uid, white.alias), addWhere(FIELD.store, STORE.import)] })
 		])
 
@@ -250,6 +250,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		let content: string[] = ['<table>'];
 		join
 			.filter(doc => !isUndefined(doc.white?.price))
+			.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 			.forEach(doc => {
 				const { class: event, price } = doc.white || {};
 				const color = this.colorCache(doc.white);

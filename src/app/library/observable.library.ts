@@ -4,7 +4,7 @@ import { takeUntil, tap, delay, repeat } from 'rxjs/operators';
 import { Instant } from '@library/instant.library';
 
 /**
- * return an Observable, delayed until midnight.  
+ * return an Observable which emits at midnight everyday.   
  * provide a Subject, used to tear-down the Observable
  */
 export const setTimer = (stop: Subject<any>) => {
