@@ -11,11 +11,8 @@
 				<button mat-menu-item [matMenuTriggerFor]="acctMenu">
 					<mat-icon>face</mat-icon>Account
 				</button>
-				<div [hidden]="!app.auth.token ||
-				!app.auth.token.claims.claims ||
-				!app.auth.token.claims.claims.roles || 
-				!app.auth.token.claims.claims.roles.includes('admin')">
-					<button mat-menu-item [matMenuTriggerFor]="adminMenu">
+				<div [hidden]="!app.auth.token?.claims.claims?.roles?.includes(ROLE.admin)">
+					<button mat-menu-item [matMenuTriggerFor]=" adminMenu">
 						<mat-icon>supervisor_account</mat-icon>Admin
 					</button>
 				</div>
@@ -41,14 +38,14 @@
 
 			<div matRipple>
 				<button [matMenuTriggerFor]="appMenu" mat-icon-button
-					[style.background-image]=" app.auth.user.photoURL | safe: 'style' ">
+					[style.background-image]=" app.auth.user?.photoURL | safe: 'style' ">
 				</button>
 			</div>
 		</div>
 	</mat-toolbar>
 
 	<div *ngFor="let message of app.member.message">
-		<div *ngIf="message.type == 'alert'">
+		<div *ngIf="message.type == MESSAGE.alert">
 			<p>{{ message.note }}</p>
 		</div>
 	</div>

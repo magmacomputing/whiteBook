@@ -92,8 +92,8 @@ export enum CLASS {
 	"Rumba@Home" = 'Rumbe@Home',
 }
 export enum MESSAGE {
-	// diary = 'diary',
-	// alert = 'alert',
+	diary = 'diary',
+	alert = 'alert',
 }
 
 export enum EVENT {

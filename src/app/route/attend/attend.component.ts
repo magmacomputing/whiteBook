@@ -35,7 +35,7 @@ export class AttendComponent implements OnDestroy {
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
 	private stop$ = new Subject<any>();									// notify Subscriptions to complete
 
-	constructor(private readonly attend: AttendService, public readonly state: StateService,
+	constructor(public readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnInit() {

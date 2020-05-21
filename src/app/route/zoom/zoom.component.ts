@@ -244,22 +244,26 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 		const image = imports[0].picture;
 		const title = white.alias;
-		const subtitle = `Attends this week for ${imports[0].userName}`;
+		const subtitle = `Attends this week for <span style="font-weight:bold;">${imports[0].userName}</span>`;
 		const actions = ['Close'];
 
-		let content: string[] = [];
+		let content: string[] = ['<table>'];
 		join
 			.filter(doc => !isUndefined(doc.white?.price))
 			.forEach(doc => {
 				const { class: event, price } = doc.white || {};
 				const color = this.colorCache(doc.white);
 				const { user_name, join_time } = doc.body.payload.object.participant || {};
-				content.push(`
-					${new Instant(join_time).format('ddd, HH:MM')} 
-					${event}
-					${asCurrency(price!)}
+				const join = new Instant(join_time);
+				content.push(`<tr>
+					<td>${join.format('ddd')}</td>
+					<td>${join.format('HH:MM')}<td>
+					<td style="color:${color};font-weight:bold;">${event}</td>
+					<td align="right">${asCurrency(price!)}</td>
+					</tr>
 				`)
 			})
+		content.push('</table>');
 
 		this.dialog.open({ image, title, subtitle, actions, content });
 	}

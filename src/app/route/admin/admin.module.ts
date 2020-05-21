@@ -4,9 +4,10 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@service/material/material.module';
 import { AdminComponent } from './admin.component';
+import { Auth } from '@dbase/data/data.define';
 
 const routes: Routes = [
-	{ path: 'admin', component: AdminComponent },
+	{ path: Auth.ROLE.admin, component: AdminComponent },
 ];
 
 @NgModule({
