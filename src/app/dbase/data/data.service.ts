@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, delay, first } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
@@ -44,8 +44,11 @@ export class DataService {
 	}
 
 	/** Make Store data available in a Promise */
-	private snap<T>(store: STORE) {
+	private snap<T>(store: STORE, query?: IQuery) {
 		const slice = getSlice(store);
+
+		if (query)
+			return this.getFire<T>(slice, query);
 
 		return this.store
 			.selectOnce<T[]>(state => state[slice][store])
@@ -84,9 +87,7 @@ export class DataService {
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
-		return this.fire.listen<T>(collection, query)
-			.pipe(take(1))
-			.toPromise()
+		return this.fire.get<T>(collection, query)
 	}
 
 	getLive<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection as observable
@@ -127,6 +128,7 @@ export class DataService {
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.effect] as FType<FNumber> || stamp;
 			let where: TWhere;
+			const collection = getSlice(nextDoc[FIELD.store]);
 
 			try {
 				nextDoc = docPrep(nextDoc, uid);										// make sure we have a <key/uid>
@@ -136,7 +138,8 @@ export class DataService {
 				return;                                             // abort the Create/Update
 			}
 
-			const currDocs = await this.snap<any>(nextDoc[FIELD.store])// read the store
+			// const currDocs = await this.snap<any>(nextDoc[FIELD.store])// read the store
+			const currDocs = await this.getFire<any>(collection, { where })
 				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 

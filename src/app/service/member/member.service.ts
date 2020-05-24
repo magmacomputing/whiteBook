@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { take, first } from 'rxjs/operators';
+import { take, first, delay } from 'rxjs/operators';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
@@ -8,9 +8,10 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { asAt } from '@library/app.library';
+import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
+import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT, TYPE } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@library/instant.library';
@@ -27,7 +28,7 @@ export class MemberService {
 		this.listenInfo(true);
 	}
 
-	public async listenInfo(init: boolean = false) {
+	public async listenInfo(init = false) {
 		if (init) {
 			const user = await this.auth.auth;
 			if (!user) return;														// dont listen if not logged-in on constructor()
@@ -35,7 +36,10 @@ export class MemberService {
 
 		this.dbg('listen');
 		this.auth.memberSubject													// this.auth will call complete() after first emit
-			.pipe(first(info => !isNull(info)))						// subscribe until the first non-null response
+			.pipe(
+				first(info => !isNull(info)),								// subscribe until the first non-null response
+				delay(5000),																// or if no response in 5 seconds.
+			)
 			.subscribe(info => this.getAuthProfile(info))
 	}
 
@@ -158,17 +162,21 @@ export class MemberService {
 			return;																				// No AdditionalUserInfo available
 		this.dbg('info: %s', info.providerId);
 
-		// const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.info,
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
 			[FIELD.uid]: uid || (await this.data.getUID()),
-			[PROFILE.info]: { ...memberInfo },								// spread the conformed member info
+			[PROFILE.info]: { ...memberInfo },						// spread the conformed member info
 		}
+		const where: TWhere = [
+			// addWhere(FIELD.store, STORE.profile),
+			// addWhere(FIELD.type, TYPE.info),
+			addWhere(`${PROFILE.info}.providerId`, info.providerId),
+		]
 
-		this.data.insDoc(profileInfo as IProfileInfo, addWhere(`${PROFILE.info}.providerId`, info.providerId), PROFILE.info);
+		this.data.insDoc(profileInfo as IProfileInfo, where, PROFILE.info);
 	}
 
 }

@@ -1,101 +1,20 @@
 {
-	"AeroStep": {
-		"_id": "lQVYyTJ6Aprh8Qhx2ETm",
-		"desc": "75% around the platform",
-		"color": "#ff8c00",
-		"key": "AeroStep",
-		"type": "full",
-		"store": "class"
-	},
-	"HiLo": {
-		"_id": "b0HrAj1OJ7G7r5HJp8km",
-		"desc": "Aerobic Action",
-		"color": "#35c42c",
-		"key": "HiLo",
-		"type": "full",
-		"store": "class"
-	},
-	"MultiStep": {
-		"_id": "3M7tI5vN4voSHcdfsEXg",
-		"desc": "Multi-Platform routines",
-		"color": "#0000ff",
-		"key": "MultiStep",
-		"type": "full",
-		"store": "class"
-	},
-	"Rumba@Home": {
-		"_id": "4MXKki7QxYF5i95Fv3M5",
-		"key": "Rumba@Home",
-		"color": "#ac716e",
-		"_effect": 1585659600,
-		"desc": "Rumba at your place !",
-		"type": "full",
-		"store": "class"
-	},
-	"SingleStep": {
-		"_id": "EDHj99nQ94Z9oDAJs9Rx",
-		"desc": "Single-Platform routines",
-		"color": "#00afff",
-		"key": "SingleStep",
-		"type": "full",
-		"store": "class"
-	},
-	"SmartStep": {
-		"_id": "z4YdKbXNHW8yQHvhC8B0",
-		"color": "#0897a6",
-		"key": "SmartStep",
-		"type": "full",
-		"store": "class",
-		"desc": "A challenge for your brain, as well as your feet"
-	},
-	"Step@Home": {
-		"_id": "gBcj2VAomwJipiwYVtYh",
-		"color": "#77aaff",
-		"_effect": 1585659600,
-		"key": "Step@Home",
-		"desc": "Step at your place !",
-		"type": "full",
-		"store": "class"
-	},
-	"StepBasic": {
-		"_id": "bxZuumthkLpnuNbL1Liv",
-		"_hidden": true,
-		"color": "#bf9000",
-		"key": "StepBasic",
-		"desc": "Learn the basics of the Platform",
-		"type": "half",
-		"store": "class"
-	},
-	"StepDown": {
-		"_id": "4yq0gDgn52jsM68Zh6QP",
-		"desc": "Start from the top of the Platform",
-		"color": "#cc0000",
-		"key": "StepDown",
-		"type": "full",
-		"store": "class"
-	},
-	"StepIn": {
-		"_id": "802WOihz6jLh7ZkmGXdi",
-		"type": "full",
-		"store": "class",
-		"desc": "Stepping inwards",
-		"color": "#222222",
-		"key": "StepIn"
-	},
-	"Zumba": {
-		"_id": "bjrSxOgEmhZneYni5yDE",
-		"color": "#ff00ff",
-		"key": "Zumba",
-		"type": "full",
-		"store": "class",
-		"desc": "Dancing"
-	},
-	"ZumbaStep": {
-		"_id": "VB0uWbcVyU2lJIG2X7iL",
-		"desc": "Dancing with a platform",
-		"color": "#7700ee",
-		"key": "ZumbaStep",
-		"type": "half",
-		"store": "class"
-	}
+  "textPayload": "Function execution took 26 ms, finished with status: 'crash'",
+  "insertId": "000000-0f140bf2-fb77-4d9b-b08b-458466e4e784",
+  "resource": {
+    "type": "cloud_function",
+    "labels": {
+      "project_id": "whitefire-51840",
+      "function_name": "zoomHook",
+      "region": "us-central1"
+    }
+  },
+  "timestamp": "2020-05-23T10:47:45.935271037Z",
+  "severity": "DEBUG",
+  "labels": {
+    "execution_id": "pixvsa5wamvc"
+  },
+  "logName": "projects/whitefire-51840/logs/cloudfunctions.googleapis.com%2Fcloud-functions",
+  "trace": "projects/whitefire-51840/traces/79188f3203c26316255eca8153d5c247",
+  "receiveTimestamp": "2020-05-23T10:47:46.700004642Z"
 }

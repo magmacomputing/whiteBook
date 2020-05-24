@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
-import { merge, concat, Observable, combineLatest } from 'rxjs';
+import { merge, concat, Observable, combineLatest, defer } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
@@ -69,6 +69,14 @@ export class FireService {
 				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() } as T)))
 			)
 	}
+
+	get<T>(collection: COLLECTION, query?: IQuery) {
+		return this.afs
+			.collection(collection, fnQuery(query)[0])
+			.get({ source: 'server' })								// get the server-data, rather than cache
+			.toPromise()
+			.then(snap => snap.docs.map(doc => ({ [FIELD.id]: doc.id, ...doc.data() as T })))
+	}	
 
 	/** Document Reference, for existing or new */
 	docRef(store: STORE, docId?: string) {

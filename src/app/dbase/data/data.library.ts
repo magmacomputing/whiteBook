@@ -88,6 +88,7 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param discards: string[]      array of field-names to use in the compare
  * @param nextDoc:  IStoreMeta    document about to be Created
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
+ * @returns boolean:							true indicates at least one currDoc matches nextDoc, so no Insert needed
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
 	console.log('discard.discards: ', discards);
@@ -111,8 +112,10 @@ export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: I
 					const bool = isObject(fld1)
 						? isEqual(fld1, fld2)									// compare field-by-field
 						: asString(fld1) == asString(fld2)		// compare string-value
-					if (!bool)
-						console.log('change ', field, ': ', currDoc[field], ' => ', nextDoc[field]);
+					if (!bool) {
+						console.log('change ', field, 'from : ', currDoc[field]);
+						console.log('change ', field, 'into : ', nextDoc[field]);
+					}
 					return bool;														// <true> if fields are equal
 				})
 				.every(bool => bool === true)							// is a match if *all* fields are equal

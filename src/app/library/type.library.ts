@@ -73,7 +73,7 @@ const getType = (obj) => {
 			default:
 					return type;
 	}
-};
+}
 const isEmpty = (obj) => {
 	switch (getType(obj)) {
 			case 'Object':

@@ -55,6 +55,8 @@ export enum STORE {
 
 export enum TYPE {								// standard <type> field names
 	claim = 'claim',
+	info = 'info',
+	token = 'token',
 }
 
 export enum FIELD {								// common Field names
@@ -117,6 +119,7 @@ export enum PROFILE {
 	claim = 'claim',
 	info = 'info',
 	pref = 'pref',
+	token = 'token',
 }
 
 export enum PLAN {
