@@ -9,9 +9,9 @@ import { Instant } from '@library/instant.library';
  */
 export const setTimer = (stop: Subject<any>) => {
 	const midnight = new Instant().add(1, 'day').startOf('day');
-	const day = 86_400_000;					// number of milliseconds in a day
+	const addOneDay = 86_400_000;					// number of milliseconds in a day
 
-	return timer(midnight.toDate(), day)
+	return timer(midnight.toDate(), addOneDay)
 		.pipe(
 			takeUntil(stop),
 			tap(nbr => console.log('ObservableLibrary.setTimer: (%s) %s', nbr, new Instant().format(Instant.FORMAT.dayTime)),
