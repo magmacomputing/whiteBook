@@ -1,5 +1,5 @@
-import { Subject, of } from 'rxjs';
-import { takeUntil, tap, delay, repeat } from 'rxjs/operators';
+import { Subject, timer } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 
 import { Instant } from '@library/instant.library';
 
@@ -8,11 +8,13 @@ import { Instant } from '@library/instant.library';
  * provide a Subject, used to tear-down the Observable
  */
 export const setTimer = (stop: Subject<any>) => {
-	return of(0)										// a single-emit Observable
+	const midnight = new Instant().add(1, 'day').startOf('day');
+	const day = 86_400_000;					// number of milliseconds in a day
+
+	return timer(midnight.toDate(), day)
 		.pipe(
 			takeUntil(stop),
-			tap(_ => console.log('ObservableLibrary.setTimer: %s', new Instant().add(1, 'day').startOf('day').format(Instant.FORMAT.dayTime))),
-			delay(new Instant().add(1, 'day').startOf('day').toDate()),
-			repeat(),										// restart the Observable
-		)
+			tap(nbr => console.log('ObservableLibrary.setTimer: (%s) %s', nbr, new Instant().format(Instant.FORMAT.dayTime)),
+			)
+		);
 }
