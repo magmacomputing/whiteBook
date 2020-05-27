@@ -14,7 +14,7 @@ export const setTimer = (stop: Subject<any>) => {
 	return timer(midnight.toDate(), addOneDay)
 		.pipe(
 			takeUntil(stop),
-			tap(nbr => console.log('ObservableLibrary.setTimer: (%s) %s', nbr, new Instant().format(Instant.FORMAT.dayTime)),
+			tap(nbr => console.log('lib.setTimer: (%s) %s', nbr, new Instant().format(Instant.FORMAT.dayTime)),
 			)
 		);
 }
