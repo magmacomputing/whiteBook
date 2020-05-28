@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
+import { map, switchMap, mergeMap, takeUntil, tap, scan, filter } from 'rxjs/operators';
 
-import { addWhere, addOrder } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
+import { StateService } from '@dbase/state/state.service';
 import { IMeeting, IZoom, TStarted, TEnded, TJoined, TLeft, IClass, IWhite, IImport } from '@dbase/data/data.schema';
 import { DialogService } from '@service/material/dialog.service';
 
@@ -40,7 +41,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private color!: Record<CLASS, IClass>;
 	private colorCache!: (white: IWhite | undefined) => COLOR
 
-	constructor(private data: DataService, public dialog: DialogService) {
+	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
 		setTimer(this.stop$)
 			.subscribe(_val => {														// watch for midnight
 				this.dbg('alarm');
@@ -238,35 +239,37 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
 		const [join, imports] = await Promise.all([
-			this.data.getFire<IZoom<TJoined>>(COLLECTION.zoom, { where }),
-			this.data.getFire<IImport>(COLLECTION.admin, { where: [addWhere(FIELD.uid, white.alias), addWhere(FIELD.store, STORE.import)] })
+			this.data.getLive<IZoom<TJoined>>(COLLECTION.zoom, { where }),
+			this.state.getSingle<IImport>(STORE.import, addWhere(FIELD.uid, white.alias))
 		])
 
-		const image = imports[0].picture;
+		const image = imports.picture;
 		const title = white.alias;
-		const subtitle = `Attends this week for <span style="font-weight:bold;">${imports[0].userName}</span>`;
+		const subtitle = `Attends this week for <span style="font-weight:bold;">${imports.userName}</span>`;
 		const actions = ['Close'];
 
-		let content: string[] = ['<table>'];
-		join
-			.filter(doc => !isUndefined(doc.white?.price))
-			.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
-			.forEach(doc => {
-				const { class: event, price } = doc.white || {};
-				const color = this.colorCache(doc.white);
-				const { user_name, join_time } = doc.body.payload.object.participant || {};
-				const join = new Instant(join_time);
-				content.push(`<tr>
-					<td>${join.format('ddd')}</td>
-					<td>${join.format('HH:MM')}<td>
-					<td style="color:${color};font-weight:bold;">${event}</td>
-					<td align="right">${asCurrency(price!)}</td>
-					</tr>
-				`)
-			})
-		content.push('</table>');
+		let obs = join.pipe(
+			map(docs => docs
+				.filter(doc => !isUndefined(doc.white?.price))
+				.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
+				.map(doc => {
+					const { class: event, price } = doc.white || {};
+					const color = this.colorCache(doc.white);
+					const { user_name, join_time } = doc.body.payload.object.participant || [];
+					const join = new Instant(join_time);
 
-		this.dialog.open({ image, title, subtitle, actions, content });
+					return `
+					<tr>
+					<td>${join.format('ddd')}</td>
+					<td>${ join.format('HH:MM')} </td>
+					<td style="color:${color};font-weight:bold;" > ${event} </td>
+					<td align = "right" > ${ asCurrency(price!)} </td>
+					</tr>`
+				}),
+			),
+		)
+
+		this.dialog.open({ image, title, subtitle, actions, observe: obs });
 	}
 
 	setColor(white?: IWhite) {
