@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef, MatDialogConfig } from '@angu
 
 import { TString, isArray } from '@library/type.library';
 import { dbg } from '@library/logger.library';
+import { interval } from 'rxjs';
 
 @Component({
 	selector: 'info-dialog',
@@ -14,8 +15,11 @@ import { dbg } from '@library/logger.library';
     </div>
 
     <mat-dialog-content class="mat-typography">
-      <h3> <div [innerHTML]="safe(data.subtitle,'html')"></div> </h3><p>
+      <h3> <div [innerHTML]="safe(data.subtitle, 'html')"></div> </h3><p>
 			<div [innerHTML]="safe(data.content, 'html')"></div>
+			<div *ngIf="(obs$ | async) || -1; let obs">
+				{{ obs }}
+			</div>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
@@ -26,6 +30,8 @@ import { dbg } from '@library/logger.library';
   `,
 })
 export class InfoDialogComponent {
+	obs$ = interval(500);
+
 	constructor(protected sanitize: DomSanitizer, private dialogRef: MatDialogRef<InfoDialogComponent>, @Inject(MAT_DIALOG_DATA) public data: any,) { }
 
 	close() {

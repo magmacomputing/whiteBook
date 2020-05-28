@@ -2,7 +2,6 @@ import { firestore, UserInfo } from 'firebase';
 
 import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
-import { ProfileGuard } from '@route/router/route.guard';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
@@ -328,6 +327,7 @@ export interface IProfileToken extends IProfile {
 	messaging: {
 		token: string;
 		valid: boolean;
+		error?: { code: string; message: string; };
 	}[]
 }
 export type TProfileInfo = IProfileInfo | IProfileInfo[];
