@@ -7,7 +7,6 @@ export const environment = {
 
 	firebase: {
 		dev: {
-			// apiKey: "AIzaSyCQt465v9SVXfKE2gi5kHxWgExYyiXbQXQ",
 			apiKey: "AIzaSyC7TfX6HvGBNTOkDG3lMTjFt0u9WOIHNpQ",
 			authDomain: "whitefire-dev.firebaseapp.com",
 			databaseURL: "https://whitefire-dev.firebaseio.com",

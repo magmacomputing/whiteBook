@@ -1,4 +1,4 @@
-<div *ngIf="(meetings$ | async) || []; let meetings">
+<div *ngIf="(meetings$ | async); let meetings; else meetingInit">
 	<div class="center">
 		<button mat-icon-button [disabled]="offset==999" (click)="setDate(-1)">
 			<mat-icon>arrow_left</mat-icon>
@@ -7,6 +7,7 @@
 		<button mat-icon-button [disabled]="offset==0" (click)="setDate(1)">
 			<mat-icon>arrow_right</mat-icon>
 		</button>
+
 		<div class="mat-headline">
 			<span style="font-weight:bold;color:mediumblue;">{{ meetings.length || 'No' }}
 			</span>Meeting{{ meetings.length == 1 ? '' : 's'}} today
@@ -63,3 +64,12 @@
 		</mat-tab-group>
 	</div>
 </div>
+
+<ng-template #meetingInit>
+	<div>
+		<h2>
+			<p>Welcome to FreeStyle4U !!</p>
+		</h2>
+		<p>Please wait while we fetch today's meetings...</p>
+	</div>
+</ng-template>

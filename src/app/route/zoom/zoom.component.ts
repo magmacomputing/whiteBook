@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { Observable, BehaviorSubject, Subject } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil, tap, scan, filter } from 'rxjs/operators';
+import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
+import { map, switchMap, mergeMap, takeUntil, tap, filter } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
@@ -247,26 +247,31 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		const title = white.alias;
 		const subtitle = `Attends this week for <span style="font-weight:bold;">${imports.userName}</span>`;
 		const actions = ['Close'];
+		const attends: string[] = [];
 
 		let obs = join.pipe(
-			map(docs => docs
-				.filter(doc => !isUndefined(doc.white?.price))
-				.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
-				.map(doc => {
-					const { class: event, price } = doc.white || {};
-					const color = this.colorCache(doc.white);
-					const { user_name, join_time } = doc.body.payload.object.participant || [];
-					const join = new Instant(join_time);
+			takeUntil(this.stop$),												// teardown Subject
 
-					return `
-					<tr>
-					<td>${join.format('ddd')}</td>
-					<td>${ join.format('HH:MM')} </td>
-					<td style="color:${color};font-weight:bold;" > ${event} </td>
-					<td align = "right" > ${ asCurrency(price!)} </td>
-					</tr>`
-				}),
+			map(docs => docs.filter(doc => !isUndefined(doc.white?.price))),
+			map(docs => docs.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])),
+			map(docs => docs.map(doc => {
+				const { class: event, price } = doc.white || {};
+				const color = this.colorCache(doc.white);
+				const { user_name, join_time } = doc.body.payload.object.participant || [];
+				const join = new Instant(join_time);
+
+				const fmt = `
+				<tr>
+				<td>${join.format('ddd')}</td>
+				<td>${ join.format('HH:MM')} </td>
+				<td style="color:${color};font-weight:bold;" > ${event} </td>
+				<td align = "right" > ${ asCurrency(price!)} </td>
+				</tr>`;
+				attends.push(fmt);
+				return fmt;
+			})
 			),
+			switchMap(_ => of(attends)),
 		)
 
 		this.dialog.open({ image, title, subtitle, actions, observe: obs });
