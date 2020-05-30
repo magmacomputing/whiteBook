@@ -271,7 +271,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				return fmt;
 			})
 			),
-			switchMap(_ => of(attends)),
+			switchMap(_ => of(attends)),				// TODO:  is this needed?
 		)
 
 		this.dialog.open({ image, title, subtitle, actions, observe: obs });
