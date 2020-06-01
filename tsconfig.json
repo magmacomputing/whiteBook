@@ -40,6 +40,8 @@
 		}
 	},
 	"exclude": [
-		"doc/**/*.ts"
+		"doc/**/*.ts",
+		"node_modules",
+		"dist"
 	]
 }

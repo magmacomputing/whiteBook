@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
-import { map, switchMap, mergeMap, takeUntil, tap, filter } from 'rxjs/operators';
+import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
 import { addWhere } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
@@ -29,7 +29,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public date!: Instant;															// the date for the Schedule to display
 	public offset!: number;															// the number of days before today 
 	private dateChange = false;													// used to set the selectedIndex
-
+ 
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 
@@ -247,18 +247,19 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		const title = white.alias;
 		const subtitle = `Attends this week for <span style="font-weight:bold;">${imports.userName}</span>`;
 		const actions = ['Close'];
-		const attends: string[] = [];
+		const attends: { date: number, attend?: string }[] = [];
 
 		let obs = join.pipe(
 			takeUntil(this.stop$),												// teardown Subject
 
 			map(docs => docs.filter(doc => !isUndefined(doc.white?.price))),
-			map(docs => docs.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])),
+			// map(docs => docs.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])),
 			map(docs => docs.map(doc => {
 				const { class: event, price } = doc.white || {};
 				const color = this.colorCache(doc.white);
 				const { user_name, join_time } = doc.body.payload.object.participant || [];
 				const join = new Instant(join_time);
+				// const idx = attends.concat({ date: Number.MAX_SAFE_INTEGER }).findIndex(attend => attend.date > doc[FIELD.stamp]);
 
 				const fmt = `
 				<tr>
@@ -267,11 +268,15 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				<td style="color:${color};font-weight:bold;" > ${event} </td>
 				<td align = "right" > ${ asCurrency(price!)} </td>
 				</tr>`;
-				attends.push(fmt);
-				return fmt;
+				return attends.push({ date: doc[FIELD.stamp], attend: fmt });
+				// attends.splice(idx, 0, { date: doc[FIELD.stamp], attend: fmt });
+				// return fmt;
 			})
 			),
-			switchMap(_ => of(attends)),				// TODO:  is this needed?
+			switchMap(_ => of(attends
+				.sort((a, b) => a[FIELD.date] - b[FIELD.date])
+				.map(list => list.attend)
+			)),
 		)
 
 		this.dialog.open({ image, title, subtitle, actions, observe: obs });
