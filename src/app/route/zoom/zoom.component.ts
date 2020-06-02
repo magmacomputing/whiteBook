@@ -29,7 +29,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public date!: Instant;															// the date for the Schedule to display
 	public offset!: number;															// the number of days before today 
 	private dateChange = false;													// used to set the selectedIndex
- 
+
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 
@@ -43,10 +43,8 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
 		setTimer(this.stop$)
-			.subscribe(_val => {														// watch for midnight
-				this.dbg('alarm');
-				this.setDate(0);															// force refresh of UI
-			});
+			.subscribe(_ => this.setDate(0));								// watch for midnight
+
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
 		this.getColor();
