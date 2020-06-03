@@ -251,13 +251,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			takeUntil(this.stop$),												// teardown Subject
 
 			map(docs => docs.filter(doc => !isUndefined(doc.white?.price))),
-			// map(docs => docs.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])),
 			map(docs => docs.map(doc => {
 				const { class: event, price } = doc.white || {};
 				const color = this.colorCache(doc.white);
 				const { user_name, join_time } = doc.body.payload.object.participant || [];
 				const join = new Instant(join_time);
-				// const idx = attends.concat({ date: Number.MAX_SAFE_INTEGER }).findIndex(attend => attend.date > doc[FIELD.stamp]);
 
 				const fmt = `
 				<tr>
@@ -267,8 +265,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				<td align = "right" > ${ asCurrency(price!)} </td>
 				</tr>`;
 				return attends.push({ date: doc[FIELD.stamp], attend: fmt });
-				// attends.splice(idx, 0, { date: doc[FIELD.stamp], attend: fmt });
-				// return fmt;
 			})
 			),
 			switchMap(_ => of(attends
