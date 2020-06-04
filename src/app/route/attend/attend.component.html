@@ -13,10 +13,19 @@
 		<p>Please select an Event from the list below...</p>
 	</div>
 
-	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)" (swiperight)="onSwipe(selectedIndex, $event)">
+	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)"
+		(swiperight)="onSwipe(selectedIndex, $event)">
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
-			<mat-tab *ngFor="let loc of timetable.client?.location; let sfx = index">
-				<h3> {{ loc.name }} </h3>
+			<mat-tab label="{{ loc.key }}" *ngFor="let loc of timetable.client?.location; let sfx = index">
+				<table style="width:100%;">
+					<tr>
+						<td> {{ loc.name }}</td>
+						<td align="right" *ngIf="timetable.client?.location.length > 1">
+							{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
+						</td>
+					</tr>
+				</table>
+
 				<div *ngFor="let alert of timetable.client?.alert;">
 					<p>{{ alert.note }}</p>
 					<hr>
@@ -29,15 +38,11 @@
 					<fieldset id="fsComments" style="border-width:1px;">
 						<legend id="wbCommentLegend">Upcoming Events</legend>
 						<div *ngFor="let calendar of timetable.client?.diary;">
-							<p>{{ calendar.desc }}</p>
-							<p>{{ calendar.name }} </p>
+							<p> {{ calendar.desc }} </p>
+							<p> {{ calendar.name }} </p>
 							<hr>
 						</div>
 					</fieldset>
-				</div>
-
-				<div *ngIf="timetable.client?.location.length > 1">
-					{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
 				</div>
 
 				<div *ngFor="let item of timetable.client?.schedule; let idx = index">
