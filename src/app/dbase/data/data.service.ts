@@ -83,7 +83,12 @@ export class DataService {
 
 	getUID() {
 		return this.auth.current
-			.then(current => current!.uid);
+			.then(current => current!.uid);												// get the impersonate UserID
+	}
+
+	getActiveID() {
+		return this.auth.user
+			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state

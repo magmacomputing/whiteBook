@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-
 import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -91,7 +90,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * first get the meeting.started  Events for this.date  to determined uuid's.  
+	 * first get the meeting.started  Events for this.date  to determine uuid's.  
 	 * then collect all documents that relate to those uuid's,  
 	 * then assemble details into an IMeeting[]
 	 */
@@ -247,14 +246,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		const actions = ['Close'];
 		const attends: { date: number, attend?: string }[] = [];
 
-		let obs = join.pipe(
+		let obs$ = join.pipe(
 			takeUntil(this.stop$),												// teardown Subject
 
 			map(docs => docs.filter(doc => !isUndefined(doc.white?.price))),
 			map(docs => docs.map(doc => {
 				const { class: event, price } = doc.white || {};
 				const color = this.colorCache(doc.white);
-				const { user_name, join_time } = doc.body.payload.object.participant || [];
+				const { join_time } = doc.body.payload.object.participant || [];
 				const join = new Instant(join_time);
 
 				const fmt = `
@@ -273,7 +272,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			)),
 		)
 
-		this.dialog.open({ image, title, subtitle, actions, observe: obs });
+		this.dialog.open({ image, title, subtitle, actions, observe: obs$ });
 	}
 
 	setColor(white?: IWhite) {

@@ -8,14 +8,13 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { asAt } from '@library/app.library';
-import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT, TYPE } from '@dbase/data/data.define';
+import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
 import { getStamp, TDate } from '@library/instant.library';
-import { isUndefined, isNull } from '@library/type.library';
+import { isNull } from '@library/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@library/logger.library';
 
@@ -23,15 +22,15 @@ import { dbg } from '@library/logger.library';
 export class MemberService {
 	private dbg = dbg(this);
 
-	constructor(private readonly data: DataService, private readonly auth: AuthState, private state: StateService, private snack: SnackService) {
+	constructor(private readonly data: DataService, private auth: AuthState, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
 		this.listenInfo(true);
 	}
 
 	public async listenInfo(init = false) {
 		if (init) {
-			const user = await this.auth.auth;
-			if (!user) return;														// dont listen if not logged-in on constructor()
+			if (!await this.data.auth.user)
+				return;																			// dont listen from constructor if not signed-In
 		}
 
 		this.dbg('listen');
@@ -74,8 +73,8 @@ export class MemberService {
 			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: PAYMENT.topUp,
-			amount: isUndefined(amount) ? topUp : amount,
-			stamp: getStamp(stamp),
+			[FIELD.stamp]: getStamp(stamp),
+			amount: amount ?? topUp,
 		} as IPayment
 	}
 
@@ -115,10 +114,10 @@ export class MemberService {
 				[FIELD.store]: STORE.status,
 				[FIELD.type]: STATUS.account,
 				[FIELD.uid]: uid,
-				stamp: getStamp(),
+				[FIELD.stamp]: getStamp(),
 				summary,
 			}
-			: { ...doc[0], stamp: getStamp(), summary }
+			: { ...doc[0], [FIELD.stamp]: getStamp(), summary }
 
 		if (!accountDoc[FIELD.id])
 			creates.push(accountDoc as IStoreMeta)
@@ -158,7 +157,7 @@ export class MemberService {
 
 	/** check for change of User.additionalInfo */
 	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
-		if (isNull(info) || isUndefined(info))
+		if (!info)
 			return;																				// No AdditionalUserInfo available
 		this.dbg('info: %s', info.providerId);
 
@@ -167,14 +166,10 @@ export class MemberService {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.info,
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
-			[FIELD.uid]: uid || (await this.data.getUID()),
+			[FIELD.uid]: uid || (await this.data.getActiveID()),
 			[PROFILE.info]: { ...memberInfo },						// spread the conformed member info
 		}
-		const where: TWhere = [
-			// addWhere(FIELD.store, STORE.profile),
-			// addWhere(FIELD.type, TYPE.info),
-			addWhere(`${PROFILE.info}.providerId`, info.providerId),
-		]
+		const where = addWhere(`${PROFILE.info}.providerId`, info.providerId);
 
 		this.data.insDoc(profileInfo as IProfileInfo, where, PROFILE.info);
 	}

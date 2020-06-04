@@ -12,9 +12,9 @@ interface IInstant {											// Instant components
 	readonly ts: number;										// timestamp
 	readonly ms: number;										// milliseconds
 	readonly ww: number;										// number of weeks
-	readonly mmm: string;										// short month-name
-	readonly ddd: string;										// short day-name
-	readonly dow: number;										// weekday; Mon=1, Sun=7
+	readonly mmm: keyof typeof Instant.MONTH;// short month-name
+	readonly ddd: keyof typeof Instant.WEEKDAY;// short day-name
+	readonly dow: Instant.WEEKDAY;					// weekday; Mon=1, Sun=7
 	readonly tz: number;										// timezone offset in hours
 	readonly value?: TDate;									// original value passed to constructor
 }
@@ -458,10 +458,10 @@ export class Instant {
 }
 
 export namespace Instant {
-	export enum WEEKDAY { Mon = 1, Tue, Wed, Thu, Fri, Sat, Sun };
-	export enum WEEKDAYS { Monday = 1, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
-	export enum MONTH { Jan = 1, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
-	export enum MONTHS { January = 1, February, March, April, May, June, July, August, September, October, November, December };
+	export enum WEEKDAY { All, Mon, Tue, Wed, Thu, Fri, Sat, Sun };
+	export enum WEEKDAYS { Every, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
+	export enum MONTH { All, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
+	export enum MONTHS { Every, January, February, March, April, May, June, July, August, September, October, November, December };
 
 	export enum FORMAT {
 		display = 'ddd, dd mmm yyyy',

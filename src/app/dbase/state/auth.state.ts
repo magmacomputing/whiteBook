@@ -23,7 +23,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { getLocalStore, delLocalStore, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
-import { isNull } from '@library/type.library';
+import { isNull, isArray } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
@@ -220,8 +220,8 @@ export class AuthState {
 				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this._memberSubject.complete())
 				.then(_ => this.isAdmin())
-				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend"
-					if (['/', '/login'].includes(this.navigate.url))
+				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend" or "/zoom"
+					if (['/', `/${ROUTE.login}`].includes(this.navigate.url))
 						this.navigate.route(isAdmin ? ROUTE.zoom : ROUTE.attend)
 				})
 		}
@@ -271,7 +271,7 @@ export class AuthState {
 			this.sync.off(COLLECTION.member);						// unsubscribe from /member
 			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend
 
-			const where = addWhere(FIELD.uid, uids);
+			const where = addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
 			this.sync.on(COLLECTION.member, { where });	// re-subscribe to /member, with supplied UIDs
 			this.sync.on(COLLECTION.attend, { where });	// re-subscribe to /attend, with supplied UIDs
 		}

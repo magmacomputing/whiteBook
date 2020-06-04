@@ -15,7 +15,6 @@ import { cleanNote } from '@route/forum/forum.library';
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
 import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, IImport } from '@dbase/data/data.schema';
-import { asAt } from '@library/app.library';
 import { Login } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
 import { Member } from '@dbase/state/state.action';
@@ -30,6 +29,7 @@ import { isUndefined, isNull, isBoolean, TString } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { IPromise, setPromise } from '@library/utility.library';
 import { setLocalStore, getLocalStore } from '@library/browser.library';
+import { asAt } from '@library/app.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -38,20 +38,20 @@ import { dbg } from '@library/logger.library';
 	templateUrl: './migrate.component.html',
 })
 export class MigrateComponent implements OnInit, OnDestroy {
-	private dbg = dbg(this);
+	private dbg = dbg(this, 'MigrateComponent');
 
 	public dash$!: Observable<IAdminState["dash"]>;
-	private account$!: Observable<IAccountState>;
-	private user!: firebase.UserInfo | null;
+	public account$!: Observable<IAccountState>;
+	public import_: IImport | null = null;
+	public admin: IAdminStore = {};
+	public hide = 'Un';																				// prefix for the <hide> UI button
+
 	private history: IPromise<MHistory[]>;
 	private status!: Record<string, any>;
 	private migrate!: IMigrate[];
 	private current: IRegister | null = null;
-	private import_: IImport | null = null;
 	private dflt!: CLASS;
 	private check!: IPromise<boolean>;
-	public admin: IAdminStore = {};
-	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
@@ -63,12 +63,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.filter();																					// restore the previous filter state
 
 		Promise.all([																						// fetch required Stores
-			this.state.getAuthData().pipe(take(1)).toPromise(),
 			this.data.getStore<ISchedule>(STORE.schedule),
 			this.data.getStore<ICalendar>(STORE.calendar),
 			this.data.getStore<IEvent>(STORE.event),
-		]).then(([auth, schedule, calendar, events]) => {
-			this.user = auth.auth.user;														// stash the Auth'd user
+		]).then(([schedule, calendar, events]) => {
 			this.schedule = schedule;
 			this.calendar = calendar;
 			this.events = events.groupBy(FIELD.key);
@@ -168,7 +166,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			});
 	}
 
-	async	signOut() {																					// signOut of 'on-behalf' mode
+	async signOut() {																					// signOut of 'on-behalf' mode
 		this.current = null;
 		this.import_ = null;
 		this.history = setPromise<MHistory[]>();
@@ -480,7 +478,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.agenda.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}, ${caldr.name}? (${event.agenda.map(itm => itm)})`,
+								event.agenda[idx]) === event.agenda[idx])
 								break;
 						}
 						if (idx === event.agenda.length)
@@ -496,7 +495,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
 					note: row.note, amount: price,
-					// note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
 				}
 				break;
 
@@ -522,7 +520,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 
 			default:
-				const where = [addWhere(FIELD.key, what), addWhere('day', now.dow)];
+				const where = [addWhere(FIELD.key, what), addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in')];
 				sched = asAt(this.schedule, where, row.date)[0];
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
@@ -546,7 +544,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						throw new Error('stopping');
 					return res;
 				})
-				// .then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment }) })
 				.then(_ => new Promise((resolve, reject) => {
 					if (comment) {
 						const where: TWhere = [

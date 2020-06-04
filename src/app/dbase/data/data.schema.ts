@@ -2,6 +2,7 @@ import { firestore, UserInfo } from 'firebase';
 
 import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
+import { Instant } from '@library/instant.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
@@ -157,7 +158,7 @@ export interface ICalendar extends IClientBase {
 	[FIELD.key]: number;
 	name: string;
 	desc?: string;
-	day: number;
+	day: Instant.WEEKDAY;
 	start?: string;
 	[STORE.location]?: string;
 	[STORE.instructor]?: string;
@@ -180,7 +181,7 @@ export interface ISchedule extends IClientBase {
 	[FIELD.store]: STORE.schedule | STORE.calendar;
 	[FIELD.type]: SCHEDULE;
 	[FIELD.key]: CLASS;
-	day: number;
+	day: Instant.WEEKDAY;
 	location?: string;
 	instructor?: string;
 	start: string;
@@ -395,7 +396,7 @@ export interface IAttend extends IUserBase {
 	},
 	track: {													// to use in bonus-checking, attend-analysis, etc.
 		date: number;										// yearMonthDay attended
-		day: number;										// weekDay attended (1-7, 1=Mon)
+		day: Instant.WEEKDAY;						// weekDay attended (1-7, 1=Mon)
 		week: number;										// yearWeek attended
 		month: number;									// yearMonth attended
 	}
@@ -483,7 +484,7 @@ export interface IZoom<T extends TStarted | TEnded | TJoined | TLeft | TStatus> 
 	body: T;
 	track: {
 		date: number;
-		day: number;
+		day: Instant.WEEKDAY;
 		week: number;
 		month: number;
 	},

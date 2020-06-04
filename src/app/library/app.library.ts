@@ -43,6 +43,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 
 							switch (operand) {											// standard firestore query-operators, and '!='
 								case '==':
+								case 'in':
 									return isUndefined(field)
 										? !compare												// if field not present, compare to 'false-y'
 										: field == compare;								// use '==' to allow for string/number match, instead of '==='
