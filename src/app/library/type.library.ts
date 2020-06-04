@@ -35,6 +35,7 @@ export const isEmpty = <T>(obj: T | Iterable<T>) => {
 /** Type-Guards: return a boolean to test <obj> is of <type> */
 export const isType = (obj: unknown, type: string = 'Object'): boolean => getType(obj).toLowerCase() === type.toLowerCase();
 export const isIterable = <T>(obj: T | Iterable<T>): obj is Iterable<T> => Symbol.iterator in Object(obj) && !isString(obj);
+export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
 
 export const isString = (obj?: unknown): obj is string => isType(obj, 'String');
 export const isNumber = (obj?: unknown): obj is number => isType(obj, 'Number');

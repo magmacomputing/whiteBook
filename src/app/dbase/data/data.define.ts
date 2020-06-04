@@ -137,6 +137,7 @@ export enum PRICE {
 	half = 'half',
 	topUp = 'topUp',
 	hold = 'hold',
+	home = 'home',
 }
 
 export enum PAYMENT {
@@ -154,6 +155,7 @@ export enum CALENDAR {
 export enum SPAN {
 	full = 'full',
 	half = 'half',
+	home = 'home',
 }
 
 export enum COLOR {

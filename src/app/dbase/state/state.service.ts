@@ -279,8 +279,8 @@ export class StateService {
 	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
-	
-		const filterSchedule = addWhere('day', now.dow);
+
+		const filterSchedule = addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in');
 		const filterCalendar = addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>');
 		const filterEvent = addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 		const filterTypeClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
@@ -301,7 +301,7 @@ export class StateService {
 		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
 			map(([forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.states, 'application', STORE.default, addWhere(FIELD.type, STORE.icon)),
-			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday
+			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday (or every weekday)
 			joinDoc(this.states, 'client', STORE.calendar, undefined, date, calendarDay),				// get calendar for this date
 			joinDoc(this.states, 'client.diary', STORE.calendar, filterCalendar),								// get future events
 			joinDoc(this.states, 'client', STORE.event, filterEvent, date),											// get event for this calendar-date

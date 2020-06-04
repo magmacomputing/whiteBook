@@ -1,6 +1,6 @@
-import { isIterable } from '@library/type.library';
+import { isIterable, isNullish } from '@library/type.library';
 
-export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? [...arr] : [arr];
+export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? [...arr] : (isNullish(arr) || (arr as unknown as string) === '' ? [] : [arr]);
 
 // insert a value into an array by its sorted position
 export const sortInsert = <T>(arr: T[], val: T) => {

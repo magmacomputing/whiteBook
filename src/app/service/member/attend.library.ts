@@ -16,12 +16,12 @@ import { asArray } from '@library/array.library';
 export const calcBonus = (source: ITimetableState, event: string, date?: TDate, elect?: BONUS) => {
 	const now = getDate(date);
 	const today = now.format(Instant.FORMAT.yearMonthDay);
-	const upd: IGift[] = [];																// an array of updates for caller to apply on Gifts
+	const upd: IGift[] = [];																// an array of updates for caller to apply on /member/gift
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
 	const gifts = source.member.gift;												// the active Gifts for this Member
 	const plan = (source.client.plan || [])[0];							// Member's current plan
-	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source.attend;
+	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [], attendClass = [] } = source.attend;
 	const scheme = (source.client.bonus || [])
 		.groupBy<BONUS>(FIELD.key);														// get the <rules> for each Bonus
 
@@ -83,14 +83,14 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				.distinct(row => row.track[FIELD.date])						// de-dup by day-of-week
 				.length >= scheme.week.level											// must attend the 'level' number
 			&& attendWeek																				// sum the 'week' bonus claimed
-				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week)
+				.filter(row => row.bonus?.[FIELD.type] === BONUS.week)
 				.length < scheme.week.free												// must attend less than 'free' number
 			&& (isUndefined(elect) || elect === BONUS.week):		// if not skipped, then Bonus will apply
 
 			bonus = {
 				[FIELD.id]: scheme.week[FIELD.id],
 				[FIELD.type]: BONUS.week,
-				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.week).length + 1,
+				count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.week).length + 1,
 				desc: scheme.week.desc,
 			}
 			break;
@@ -105,14 +105,14 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				.filter(row => isUndefined(row.bonus))						// only non-Bonus attends
 				.length >= scheme.class.level											// must attend the 'level' number
 			&& attendWeek																				// sum the 'week' bonus claimed
-				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.class)
+				.filter(row => row.bonus?.[FIELD.type] === BONUS.class)
 				.length < scheme.class.free												// must attend less than 'free' number
 			&& (isUndefined(elect) || elect === BONUS.class):		// if not skipped, then Bonus will apply
 
 			bonus = {
 				[FIELD.id]: scheme.class[FIELD.id],
 				[FIELD.type]: BONUS.class,
-				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.class).length + 1,
+				count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.class).length + 1,
 				desc: scheme.class.desc,
 			}
 			break;
@@ -136,7 +136,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			bonus = {
 				[FIELD.id]: scheme.sunday[FIELD.id],
 				[FIELD.type]: BONUS.sunday,
-				count: attendWeek.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.sunday).length + 1,
+				count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.sunday).length + 1,
 				desc: scheme.sunday.desc,
 			}
 			break;
@@ -152,14 +152,14 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				.distinct(row => row.track[FIELD.date])
 				.length >= scheme.month.level
 			&& attendMonth
-				.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month)
+				.filter(row => row.bonus?.[FIELD.type] === BONUS.month)
 				.length < scheme.month.free
 			&& (isUndefined(elect) || elect === BONUS.month):
 
 			bonus = {
 				[FIELD.id]: scheme.month[FIELD.id],
 				[FIELD.type]: BONUS.month,
-				count: attendMonth.filter(row => row.bonus && row.bonus[FIELD.type] === BONUS.month).length + 1,
+				count: attendMonth.filter(row => row.bonus?.[FIELD.type] === BONUS.month).length + 1,
 				desc: scheme.month.desc,
 			}
 			break;
@@ -169,6 +169,13 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		 */
 		case scheme.home
 			&& attendToday.length >= scheme.home.level:
+
+			bonus = {
+				[FIELD.id]: scheme.home[FIELD.id],
+				[FIELD.type]: BONUS.home,
+				count: attendToday.length + 1,
+				desc: scheme.home.desc,
+			}
 			break;
 	}
 

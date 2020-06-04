@@ -521,7 +521,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 			default:
 				const where = [addWhere(FIELD.key, what), addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in')];
-				sched = asAt(this.schedule, where, row.date)[0];
+				const hhmm = this.asTime(now.format(Instant.FORMAT.HHMI));
+
+				sched = asAt(this.schedule, where, row.date)
+					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmm) < Math.abs(this.asTime(near.start) - hhmm) ? itm : near);
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
@@ -570,6 +573,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		p.promise
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
+	}
+
+	private asTime(hhmm: string) {
+		return Number(hhmm.replace(':', ''));
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {
