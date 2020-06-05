@@ -555,7 +555,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
 						]
 						this.data.getFire(COLLECTION.forum, { where })
-							// this.data.getStore<STORE.comment>(STORE.comment)
 							.then(list => {
 								if (!list.length)
 									this.forum.setComment({ key: sched[FIELD.id], type: sched[FIELD.store], date: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
