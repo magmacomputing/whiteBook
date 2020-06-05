@@ -532,6 +532,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.note = row.note;
 				sched.elect = row.elect;
+				break;
 		}
 
 		const p = setPromise<boolean>();
