@@ -388,6 +388,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		let what: CLASS = LOOKUP[row.type] ?? row.type;
 		const now = getDate(row.date);
+		const hhmi = this.asTime(getDate(row.stamp).format(Instant.FORMAT.HHMI));
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
@@ -512,7 +513,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					await this.writeMigrate(migrate);
 				}
 
-				sched = asAt(this.schedule, addWhere(FIELD.key, className), row.date)[0];
+				sched = asAt(this.schedule, addWhere(FIELD.key, className), row.stamp)
+					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near);
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;											// to allow AttendService to check what was charged
@@ -521,10 +523,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 			default:
 				const where = [addWhere(FIELD.key, what), addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in')];
-				const hhmm = this.asTime(now.format(Instant.FORMAT.HHMI));
-
-				sched = asAt(this.schedule, where, row.date)
-					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmm) < Math.abs(this.asTime(near.start) - hhmm) ? itm : near);
+				sched = asAt(this.schedule, where, row.stamp)
+					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near);
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
