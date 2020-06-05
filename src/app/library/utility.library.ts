@@ -12,6 +12,7 @@ export interface IPromise<T> {
 }
 
 /** store a Promise, its status and its callbacks, for later fulfilment */
+// TODO:  This should be a class with private members
 export const setPromise = <T>() => {
 	const obj: Partial<IPromise<T>> = {};						// create the placeholder for the Promise object
 
