@@ -19,7 +19,7 @@
 			<mat-tab label="{{ loc.key }}" *ngFor="let loc of timetable.client?.location; let sfx = index">
 				<table style="width:100%;">
 					<tr>
-						<td> {{ loc.name }}</td>
+						<td> <strong style="font-size:20px;">{{ loc.name }}</strong></td>
 						<td align="right" *ngIf="timetable.client?.location.length > 1">
 							{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
 						</td>
@@ -27,8 +27,10 @@
 				</table>
 
 				<div *ngFor="let alert of timetable.client?.alert;">
-					<p>{{ alert.note }}</p>
-					<hr>
+					<div *ngIf="alert.location === loc.key || alert.location === undefined">
+						<h2>{{ alert.note }}</h2>
+						<hr>
+					</div>
 				</div>
 				<div *ngIf="timetable.bonus">
 					<p>{{ timetable.bonus.desc }}</p>
