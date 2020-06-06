@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Scheduler } from 'rxjs';
 import { take, map, retry } from 'rxjs/operators';
 import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
@@ -538,10 +538,17 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const p = setPromise<boolean>();
 
 		if (flag) {
-			if (row.note && row.note.includes('elect false'))
+			let comment: TString | undefined;
+			if (row.note?.includes('elect false')) {
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
-			sched.note = note;													// replace note with cleaned note
+				sched.note = (row.note.length > 'elect false'.length)
+					? row.note.substring('elect false'.length).trim()
+					: undefined;
+			} else {
+				const obj = cleanNote(sched.note);				// split the row.note into sched.note and forum.comment
+				comment = obj.comment;
+				sched.note = obj.note;										// replace note with cleaned note
+			}
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)

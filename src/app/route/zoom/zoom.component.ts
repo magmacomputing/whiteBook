@@ -246,7 +246,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		const actions = ['Close'];
 		const attends: { date: number, attend?: string }[] = [];
 
-		let obs$ = join.pipe(
+		const obs$ = join.pipe(
 			takeUntil(this.stop$),												// teardown Subject
 
 			map(docs => docs.filter(doc => !isUndefined(doc.white?.price))),

@@ -169,7 +169,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		 */
 		case scheme.home
 			&& attendToday.length >= scheme.home.level					// required number of Attends today
-			&& elect !== BONUS.none:														// Member elected to not take Bonus
+			&& (isUndefined(elect) || elect !== BONUS.none):		// Member elected to not take Bonus
 
 			bonus = {
 				[FIELD.id]: scheme.home[FIELD.id],
