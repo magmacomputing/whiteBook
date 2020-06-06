@@ -165,10 +165,11 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 			break;
 
 		/**
-		 * The Home scheme qualifies as a Bonus is the Member has already attended an '@Home' class earlier today
+		 * The Home scheme qualifies as a Bonus if the Member has already attended an '@Home' class earlier today
 		 */
 		case scheme.home
-			&& attendToday.length >= scheme.home.level:
+			&& attendToday.length >= scheme.home.level					// required number of Attends today
+			&& elect !== BONUS.none:														// Member elected to not take Bonus
 
 			bonus = {
 				[FIELD.id]: scheme.home[FIELD.id],
