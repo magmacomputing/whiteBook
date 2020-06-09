@@ -52,9 +52,9 @@ export const isClass = (obj?: unknown): obj is Function => isType(obj, 'Class');
 export const isPromise = <T>(obj?: unknown): obj is Promise<T> => isType(obj, 'Promise');
 export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 
-export const nullToZero = (obj?: number) => obj ?? 0;
-export const nullToEmpty = <T>(obj?: T) => obj ?? '';
-export const nullToValue = (obj?: unknown, value?: any) => obj ?? value;
+export const nullToZero = (obj: number | null | undefined = null) => obj ?? 0;
+export const nullToEmpty = <T>(obj: T | null | undefined = null) => obj ?? '';
+export const nullToValue = <T>(obj: T | null | undefined = null, value: T) => obj ?? value;
 
 export type TString = string | string[];
 export type TNumber = number | number[];

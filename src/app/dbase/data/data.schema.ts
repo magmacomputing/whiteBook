@@ -480,6 +480,8 @@ export interface IZoom<T extends TStarted | TEnded | TJoined | TLeft | TStatus> 
 	[FIELD.store]: COLLECTION.zoom;
 	[FIELD.type]: Zoom.EVENT;
 	[FIELD.stamp]: number;
+	eventId: string;								// Cloud Functions event Id
+	hook?: number;									// number of times the webhook has been sent
 	head: Record<string, any>;
 	body: T;
 	track: {
