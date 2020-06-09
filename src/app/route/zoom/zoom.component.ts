@@ -144,7 +144,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				map(track => {
 					(track as IZoom<TEnded>[])									// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
-						.filter(doc => !nullToZero(doc.hook))
+						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
@@ -156,7 +156,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 					(track as IZoom<TJoined>[])									// add Participants.Joined
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
-						.filter(doc => !nullToZero(doc.hook))
+						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
@@ -195,7 +195,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 					(track as IZoom<TLeft>[])										// add Participants.Left
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
-						.filter(doc => !nullToZero(doc.hook))
+						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
