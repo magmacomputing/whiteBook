@@ -13,6 +13,7 @@ export const environment = {
 			projectId: "whitefire-dev",
 			storageBucket: "whitefire-dev.appspot.com",
 			messagingSenderId: "919087826501",
+			vapId: "BPYmYiHe66sCBPntd1hrG1-b7cEDSPqzGr_ULlSD55qhy1eS_Cw7Sm-8Sri7BXYPPDGkoXqhQprathL7k7HQVNQ",
 		},
 		prod: {
 			apiKey: "AIzaSyCYo4FvLtznrNtM-I73vzBjTSuyVXebqVI",
@@ -21,7 +22,8 @@ export const environment = {
 			projectId: "whitefire-51840",
 			storageBucket: "whitefire-51840.appspot.com",
 			messagingSenderId: "241706183908",
-			appId: "1:241706183908:web:2e684f93d2af915e"
+			appId: "1:241706183908:web:2e684f93d2af915e",
+			vapId: "BE6LYLfHnJUJXHXNuNPlNoEntZheAtqcyV-n2GYMCrdrtODf41vlVefVPmltvRfHuvwTE_4l9fLfy8W0baPikZA",
 		},
 
 		config: {

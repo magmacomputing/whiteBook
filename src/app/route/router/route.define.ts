@@ -9,6 +9,7 @@ export enum ROUTE {
 	attend = 'attend',
 	admin = 'admin',
 	forum = 'forum',
+	about = 'about',
 
 	migrate = 'migrate',
 	zoom = 'zoom',

@@ -12,12 +12,15 @@
 					<mat-icon>face</mat-icon>Account
 				</button>
 				<div [hidden]="!app.auth.token?.claims.claims?.roles?.includes(ROLE.admin)">
-					<button mat-menu-item [matMenuTriggerFor]=" adminMenu">
+					<button mat-menu-item [matMenuTriggerFor]="adminMenu">
 						<mat-icon>supervisor_account</mat-icon>Admin
 					</button>
 				</div>
 				<button mat-menu-item>
 					<mat-icon>settings</mat-icon>Settings
+				</button>
+				<button mat-menu-item (click)="this.navigate.route('about')">
+					<mat-icon>help_outline</mat-icon>About
 				</button>
 				<button mat-menu-item (click)="data.auth.signOut()">
 					<mat-icon>highlight_off</mat-icon>Logout
