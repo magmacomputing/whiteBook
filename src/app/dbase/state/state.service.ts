@@ -11,7 +11,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
 import { SORTBY } from '@library/config.define';
-import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForumBase, IComment, IReact, IImport } from '@dbase/data/data.schema';
+import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForum, IComment, IReact, IImport } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
@@ -248,8 +248,8 @@ export class StateService {
 			orderBy: addOrder(FIELD.stamp),
 		}
 
-		return this.fire.listen<IForumBase>(COLLECTION.forum, query, 'snapshotChanges').pipe(
-			startWith([] as IForumBase[]),													// dont make subcriber wait for 1st emit
+		return this.fire.listen<IForum>(COLLECTION.forum, query, 'snapshotChanges').pipe(
+			startWith([] as IForum[]),													// dont make subcriber wait for 1st emit
 			distinctUntilChanged((curr, prev) => JSON.stringify(curr) === JSON.stringify(prev)),
 			map(source => ({
 				forum: {

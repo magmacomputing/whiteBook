@@ -42,7 +42,7 @@ export const isNumber = (obj?: unknown): obj is number => isType(obj, 'Number');
 export const isInteger = (obj?: unknown): obj is bigint => isType(obj, 'BigInt');
 export const isBoolean = (obj?: unknown): obj is boolean => isType(obj, 'Boolean');
 export const isArray = (obj?: unknown): obj is any[] => isType(obj, 'Array');
-export const isObject = <T>(obj?: unknown): obj is T => isType(obj, 'Object');
+export const isObject = (obj?: unknown): obj is Record<string, any> => isType(obj, 'Object');
 export const isNull = (obj?: unknown): obj is null => isType(obj, 'Null');
 export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
 
