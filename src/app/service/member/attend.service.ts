@@ -8,7 +8,7 @@ import { StateService } from '@dbase/state/state.service';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 import { Attend } from '@dbase/state/state.action';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForumBase } from '@dbase/data/data.schema';
+import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForum } from '@dbase/data/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -281,7 +281,7 @@ export class AttendService {
 			this.data.getStore<IAttend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
 			this.data.getStore<IPayment>(STORE.payment, memberUid),
 			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
-			this.data.getFire<IForumBase>(COLLECTION.forum, {
+			this.data.getFire<IForum>(COLLECTION.forum, {
 				where: [
 					memberUid,
 					addWhere(FIELD.type, STORE.schedule),
