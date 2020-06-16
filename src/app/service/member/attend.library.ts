@@ -5,6 +5,7 @@ import { IGift, TBonus } from '@dbase/data/data.schema';
 import { TDate, getDate, Instant } from '@library/instant.library';
 import { TString, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
+import { plural } from '@library/string.library';
 
 /**
  * Determine if provided event is entitled to a Gift or a Bonus  
@@ -60,7 +61,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 						[FIELD.id]: gift[FIELD.id],
 						[FIELD.type]: BONUS.gift,
 						count: gift.count,
-						desc: `${giftLeft} gift${giftLeft > 1 ? 's' : ''} left`,
+						desc: `${giftLeft} ${plural(giftLeft, 'gift')}`,
 					}
 				}
 			});

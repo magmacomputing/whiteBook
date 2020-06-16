@@ -1,5 +1,5 @@
 import { format } from 'util';
-import { isString, isObject } from '@library/type.library';
+import { isString, isObject, getType } from '@library/type.library';
 
 // General <string> functions
 
@@ -26,6 +26,15 @@ export const sprintf = (fmt: any, ...msg: any[]) => {
 	}
 
 	return format(sfmt, ...msg);	// NodeJS.format()
+}
+
+export const plural = (val: string | number | Record<string, string>, word: string, plural = word + 's') => {
+	const _plural = (num: string | number | object, word: string, plural = word + 's') =>
+		[1, -1].includes(Number(num)) ? word : plural;
+
+	return isObject<Record<string, string>>(val)
+		? (num: string, word: string) => _plural(num, word, val[word])
+		: _plural(val, word, plural)
 }
 
 /** make an Object's values into a Template Literals, and evaluate */
