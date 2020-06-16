@@ -291,7 +291,7 @@ export class AttendService {
 			}),
 		])
 
-		// build a link-link of Payments, assume pre-sorted by stamp [desc]
+		// build a link-link of Payments
 		payments
 			.sort(sortKeys(`-${FIELD.stamp}`, FIELD.type))
 			.forEach((payment, idx, arr) => {

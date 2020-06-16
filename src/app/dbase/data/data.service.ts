@@ -143,7 +143,6 @@ export class DataService {
 				return;                                             // abort the Create/Update
 			}
 
-			// const currDocs = await this.snap<any>(nextDoc[FIELD.store])// read the store
 			const currDocs = await this.getFire<any>(collection, { where })
 				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>

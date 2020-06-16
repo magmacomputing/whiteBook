@@ -35,7 +35,7 @@ export interface IMeta {
  * a) one for 'client' & 'local' (keyed by 'store/type?/key'),
  * b) the other for 'admin', 'member', 'forum' & 'attend' (keyed by 'store/type?/uid')
  */
-export type TStoreBase = IClientBase | IUserBase | IForumBase | IMigrate;
+export type TStoreBase = IClientBase | IUserBase | IForum | IMigrate;
 export interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
@@ -46,7 +46,7 @@ interface IUserBase extends IMeta {				// this is the base for Member-related do
 	[FIELD.uid]: string;
 	[FIELD.stamp]: number;
 }
-export interface IForumBase extends IMeta {
+export interface IForum extends IMeta {
 	[FIELD.store]: TStoreForum;
 	[FIELD.type]: STORE;										// allow for Forum on any Store type
 	[FIELD.uid]: string;										// the Member making the feedback
@@ -191,7 +191,7 @@ export interface ISchedule extends IClientBase {
 	bonus?: TBonus;											// the Bonus tracking which can be applied to this Schedule
 	elect?: BONUS;											// name the Bonus the Member chooses (override calc)
 	count?: number;											// number of Attends
-	forum?: TForum;
+	forum?: TForum;											// Member comment to use on their Attend of this Schedule
 }
 
 //	/client/location
@@ -403,7 +403,7 @@ export interface IAttend extends IUserBase {
 }
 
 //	/forum/comment
-export interface IComment extends IForumBase {
+export interface IComment extends IForum {
 	[FIELD.store]: STORE.comment;
 	[STORE.comment]: TString;
 	response?: {
@@ -414,7 +414,7 @@ export interface IComment extends IForumBase {
 	}[];
 }
 //	/forum/react
-export interface IReact extends IForumBase {
+export interface IReact extends IForum {
 	[FIELD.store]: STORE.react;
 	[STORE.react]: REACT;
 }
