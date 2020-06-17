@@ -25,8 +25,8 @@ import { dbg } from '@library/logger.library';
 })
 export class ZoomComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this);
-	public date!: Instant;															// the date for the Schedule to display
-	public offset!: number;															// the number of days before today 
+	public date!: Instant;															// the date of the Meeting to display
+	public offset!: number;															// the number of days before today, to control UI date-spiiner
 	private dateChange = false;													// used to set the selectedIndex
 
 	public firstPaint = true;                           // indicate first-paint
@@ -42,7 +42,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
 		setTimer(this.stop$)
-			.subscribe(_ => this.setDate(0));								// watch for midnight
+			.subscribe(_ => this.setDate(0));								// watch for midnight, then update UI to new date
 
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
@@ -76,15 +76,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
    * 			if  0,	show today
    */
 	setDate(dir: -1 | 0 | 1) {
-		const today = new Instant().startOf('day');
-		const offset = dir === 0
-			? today
+		this.offset = dir;
+		this.date = dir === 0
+			? new Instant().startOf('day')
 			: new Instant(this.date).add(dir, 'days')
-
-		this.offset = today.diff('days', offset);
-		this.date = this.offset > 6 && false							// only allow up-to 6 days in the past
-			? today																					// else reset to today
-			: offset
 
 		this.meetingDate.next(this.date);									// give the date to the Observable
 	}
@@ -100,7 +95,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				takeUntil(this.stop$),												// teardown Subject
 				tap(_ => this.meetings = []),									// reset the assembled details
 				tap(_ => this.dateChange = true),							// move the selectedIndex to latest meeting
-
+ 
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, {
 						where: [
@@ -110,7 +105,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					})
 				),
 
-				mergeMap(track => {														// merge with all events for the meeting.started events
+				mergeMap(track => {														// merge with all documents for the meeting.started events
 					track
 						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
@@ -203,7 +198,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 							if (idx !== -1) {
 								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
-								if (pdx === -1) {										// Leave without a corresponding Join
+								if (pdx === -1) {										// Leave without a corresponding Join, so create dummy Join
 									this.meetings[idx].participants.push({
 										participant_id, user_id, user_name,
 										join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', },

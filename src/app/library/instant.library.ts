@@ -46,7 +46,7 @@ export type TDate = string | number | Date | Instant | IInstant | Timestamp | IT
 class Timestamp {
 	readonly seconds: number;
 	readonly nanoseconds: number;
-	private now: number;
+	#now: number;
 
 	constructor(seconds?: number, nanoseconds?: number) {
 		const now = new Date();
@@ -56,10 +56,10 @@ class Timestamp {
 		this.nanoseconds = isUndefined(nanoseconds)
 			? now.getMilliseconds() * 1000000
 			: nanoseconds
-		this.now = now.setHours(0, 0, this.seconds, this.nanoseconds / 1000);
+		this.#now = now.setHours(0, 0, this.seconds, this.nanoseconds / 1000);
 	}
 
-	public toDate = () => new Date(this.now);
+	public toDate = () => new Date(this.#now);
 	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1000000);
 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
 	static now = new Timestamp();
@@ -81,52 +81,53 @@ class Timestamp {
  * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
  */
 export class Instant {
-	private date: IInstant;																			// Date parsed into components
+	#date: IInstant;																						// Date parsed into components
 	static maxStamp = new Date('9999-12-31').valueOf() / 1000;	// static property
 	static minStamp = new Date('1000-01-01').valueOf() / 1000;	// static property
 
-	constructor(dt?: TDate, ...args: TArgs) { this.date = this.parseDate(dt, args); }
+	constructor(dt?: TDate, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** 4-digit year */		get yy() { return this.date.yy }
-	/** month number */		get mm() { return this.date.mm }
-	/** day number */			get dd() { return this.date.dd }
-	/** 24-hour format */	get HH() { return this.date.HH }
-	/** minutes */				get MI() { return this.date.MI }
-	/** seconds */				get SS() { return this.date.SS }
-	/** timestamp */			get ts() { return this.date.ts }
-	/** milliseconds */		get ms() { return this.date.ms }
-	/** timezone offset */get tz() { return this.date.tz }
-	/** number of weeks*/	get ww() { return this.date.ww }
-	/** short month name*/get mmm() { return this.date.mmm }
-	/** short day name */	get ddd() { return this.date.ddd }
-	/** weekday number */	get dow() { return this.date.dow }
+	/** 4-digit year */		get yy() { return this.#date.yy }
+	/** month number */		get mm() { return this.#date.mm }
+	/** day number */			get dd() { return this.#date.dd }
+	/** 24-hour format */	get HH() { return this.#date.HH }
+	/** minutes */				get MI() { return this.#date.MI }
+	/** seconds */				get SS() { return this.#date.SS }
+	/** timestamp */			get ts() { return this.#date.ts }
+	/** milliseconds */		get ms() { return this.#date.ms }
+	/** timezone offset */get tz() { return this.#date.tz }
+	/** number of weeks*/	get ww() { return this.#date.ww }
+	/** short month name*/get mmm() { return this.#date.mmm }
+	/** short day name */	get ddd() { return this.#date.ddd }
+	/** weekday number */	get dow() { return this.#date.dow }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	/** apply formatting*/
-	format = <K extends keyof IDateFmt>(fmt: K) => this.formatDate(fmt);
+	format = <K extends keyof IDateFmt>(fmt: K) => this.#formatDate(fmt);
 	/** calc diff Dates, default as <years> */
-	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.diffDate(unit, dt2, ...args);
+	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
 	/** add date offset, default as <minutes> */
-	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.setDate('add', unit, offset);
+	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
 
 	/** start offset, default as <week> */
-	startOf = (unit: TUnitTime = 'week') => this.setDate('start', unit);
+	startOf = (unit: TUnitTime = 'week') => this.#setDate('start', unit);
 	/** middle offset, default as <week> */
-	midOf = (unit: TUnitTime = 'week') => this.setDate('mid', unit);
+	midOf = (unit: TUnitTime = 'week') => this.#setDate('mid', unit);
 	/** ending offset, default as <week> */
-	endOf = (unit: TUnitTime = 'week') => this.setDate('end', unit);
+	endOf = (unit: TUnitTime = 'week') => this.#setDate('end', unit);
 
-	/** valid Instant */	isValid = () => !isNaN(this.date.ts);
-	/** get raw object */	toJSON = () => ({ ...this.date });
-	/** as Date object */	toDate = () => this.composeDate(this.date);
+	/** valid Instant */	isValid = () => !isNaN(this.#date.ts);
+	/** get raw object */	toJSON = () => ({ ...this.#date });
+	/** as Date object */	toDate = () => this.#composeDate(this.#date);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	private parseDate = (dt?: TDate, args: TArgs = []) => {
+	#parseDate = (dt?: TDate, args: TArgs = []) => {
 		const pat = {
-			hhmi: /^([01]\d|2[0-3]):([0-5]\d)$/,											// regex to match HH:MI
+			ampm: /am|pm$/,
+			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
 			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
 			ddmmyyyyHHMM: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3]):([0-5]\d)/,	// d-m-yyyy {HH:MI}
@@ -134,8 +135,10 @@ export class Instant {
 		}
 		let date: Date;
 
-		if (isString(dt) && pat.hhmi.test(dt))											// if only HH:MI supplied...
-			dt = `${new Date().toDateString()} ${dt}`;								// 	prepend current date
+		if (isString(dt) && (dt.toLowerCase().endsWith('am') || dt.toLowerCase().endsWith('pm')))
+			dt = dt.substring(0, dt.length - 2).trimEnd() + ' ' + dt.substr(-2).toLowerCase();
+		if (isString(dt) && pat.hhmi.test(dt))										// if only HH:MI supplied...
+			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
 		if ((isString(dt) || isNumber(dt)) && pat.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
 			dt = asString(dt).replace(pat.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
 		if ((isString(dt) || isNumber(dt)) && pat.ddmmyyyy.test(asString(dt)))
@@ -166,7 +169,7 @@ export class Instant {
 
 				const fmt = dt as string;
 				date = args.length
-					? this.formatString(fmt, ...args)										// free-format string
+					? this.#formatString(fmt, ...args)									// free-format string
 					: new Date(fmt)																			// let browser interpret string
 
 				if (date.getFullYear() === 2001) {										// Javascript default year, if none in parse-string
@@ -199,7 +202,7 @@ export class Instant {
 					break;
 				}
 				if (isNumber(obj.yy) && isNumber(obj.mm) && isNumber(obj.dd)) {
-					date = this.composeDate(obj);
+					date = this.#composeDate(obj);
 					break;
 				}
 
@@ -222,7 +225,7 @@ export class Instant {
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
-		const ww = Math.floor((thu - ny) / this.divideBy('weeks') + 1);	// ISO Week Number
+		const ww = Math.floor((thu - ny) / this.#divideBy('weeks') + 1);	// ISO Week Number
 
 		return {
 			yy, mm, dd, HH, MI, SS, ts, ms, tz, ww, dow,
@@ -231,21 +234,21 @@ export class Instant {
 	}
 
 	/** hide some working-variables */
-	private divideBy = (unit: TUnitDiff) => {										// approx date-offset divisors (unix-timestamp precision)
+	#divideBy = (unit: TUnitDiff) => {										// approx date-offset divisors (unix-timestamp precision)
 		return {
-			years: 31536000000,
-			months: 2628000000,
-			weeks: 604800000,
-			days: 86400000,
-			hours: 3600000,
-			minutes: 60000,
-			seconds: 1000,
+			years: 31_536_000_000,
+			months: 2_628_000_000,
+			weeks: 604_800_000,
+			days: 86_400_000,
+			hours: 3_600_000,
+			minutes: 60_000,
+			seconds: 1_000,
 		}[unit]
 	}
 
 	/** create a new offset Instant */
-	private setDate = (mutate: TMutate, unit: TUnitTime | TUnitDiff, offset: number = 1) => {
-		const date = { ...this.date };														// clone the current Instant
+	#setDate = (mutate: TMutate, unit: TUnitTime | TUnitDiff, offset: number = 1) => {
+		const date = { ...this.#date };														// clone the current Instant
 		const single = unit.endsWith('s')
 			? unit.substring(0, unit.length - 1)										// remove plural units
 			: unit
@@ -342,16 +345,16 @@ export class Instant {
 				break;
 		}
 
-		return new Instant(this.composeDate(date));
+		return new Instant(this.#composeDate(date));
 	}
 
 	/** compose a Date() from an Instant() */
-	private composeDate = (date: IInstant) =>
+	#composeDate = (date: IInstant) =>
 		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms)
 
 	/** combine Instant components to apply some standard / free-format rules */
-	private formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
-		const date = { ...this.date };													// clone current Instant
+	#formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
+		const date = { ...this.#date };													// clone current Instant
 
 		switch (fmt) {
 			case Instant.FORMAT.yearWeek:
@@ -394,7 +397,7 @@ export class Instant {
 	 * this will return a new Date based on the interpolated fmt string.  
 	 * e.g. ('%dd-%mmm', 20, 'May') will return new Date() for 20-May in current year.
 	 */
-	private formatString = (fmt: string, ...args: TArgs) => {
+	#formatString = (fmt: string, ...args: TArgs) => {
 		const date = new Instant().startOf('day').toJSON()					// date components
 		let argCnt = 0;
 
@@ -444,16 +447,16 @@ export class Instant {
 				argCnt += 1;
 			})
 
-		return this.composeDate(date);
+		return this.#composeDate(date);
 	}
 
 	/** calculate the difference between dates (past is positive, future is negative) */
-	private diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => {
-		const offset = this.parseDate(dt2, args);
-		const diff = (this.date.ts * 1000 + this.date.ms) - (offset.ts * 1000 + offset.ms);
+	#diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => {
+		const offset = this.#parseDate(dt2, args);
+		const diff = (this.#date.ts * 1000 + this.#date.ms) - (offset.ts * 1000 + offset.ms);
 		return diff < 0
-			? Math.ceil(diff / this.divideBy(unit))
-			: Math.floor(diff / this.divideBy(unit))
+			? Math.ceil(diff / this.#divideBy(unit))
+			: Math.floor(diff / this.#divideBy(unit))
 	}
 }
 
@@ -475,10 +478,3 @@ export namespace Instant {
 		yearMonthDay = 'yyyymmdd',
 	}
 }
-// block changes to Instant()
-// doesn't work in Angular
-// Object.freeze(Instant);
-// for (const key of Reflect.ownKeys(Instant))
-// 	Object.freeze(Instant[key as keyof typeof Instant]);
-// for (const key of Reflect.ownKeys(Instant.prototype))
-// 	Object.freeze(Instant.prototype[key as keyof typeof Instant.prototype]);
