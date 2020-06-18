@@ -156,13 +156,14 @@ export class Instant {
 				break;
 
 			case 'String':
-				if (Instant.WEEKDAY[toTitle(dt as string) as keyof typeof Instant.WEEKDAY] || Instant.WEEKDAYS[toTitle(dt as string) as keyof typeof Instant.WEEKDAYS]) {
+				let fmt = dt as string;																// cast as string
+
+				if (Instant.WEEKDAY[toTitle(fmt) as keyof typeof Instant.WEEKDAY] || Instant.WEEKDAYS[toTitle(fmt) as keyof typeof Instant.WEEKDAYS]) {
 					const now = new Date();															// 3-character or full-character Weekday
-					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAY[toTitle(dt as string).substring(0, 3) as keyof typeof Instant.WEEKDAY]);
-					dt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
+					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAY[toTitle(fmt).substring(0, 3) as keyof typeof Instant.WEEKDAY]);
+					fmt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
 				}
 
-				const fmt = dt as string;
 				date = args.length
 					? this.#formatString(fmt, ...args)									// free-format string
 					: new Date(fmt)																			// let browser interpret string
@@ -174,7 +175,7 @@ export class Instant {
 				break;
 
 			case 'Number':																					// could be timestamp, or (with args) date-components
-				const nbr = dt as number;
+				const nbr = dt as number;															// cast as number
 				const vals = args as number[];												// assumed as [MM, DD, HH, MI, SS, ms]
 				date = vals.length
 					? new Date(nbr, vals[0] - 1, ...vals.slice(1))			// change month-number to zero-indexed
