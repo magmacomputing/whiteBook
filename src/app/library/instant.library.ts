@@ -1,5 +1,5 @@
 import { fix } from '@library/number.library';
-import { asString, asNumber } from '@library/string.library';
+import { asString, asNumber, toTitle } from '@library/string.library';
 import { getType, isString, isNumber, isUndefined } from '@library/type.library';
 
 interface IInstant {											// Instant components
@@ -126,7 +126,6 @@ export class Instant {
 	/** parse a Date, return components */
 	#parseDate = (dt?: TDate, args: TArgs = []) => {
 		const pat = {
-			ampm: /am|pm$/,
 			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
 			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
@@ -135,6 +134,7 @@ export class Instant {
 		}
 		let date: Date;
 
+		// first, conform the date
 		if (isString(dt) && (dt.toLowerCase().endsWith('am') || dt.toLowerCase().endsWith('pm')))
 			dt = dt.substring(0, dt.length - 2).trimEnd() + ' ' + dt.substr(-2).toLowerCase();
 		if (isString(dt) && pat.hhmi.test(dt))										// if only HH:MI supplied...
@@ -156,14 +156,9 @@ export class Instant {
 				break;
 
 			case 'String':
-				if (Instant.WEEKDAY[dt as keyof typeof Instant.WEEKDAY]) {
-					const now = new Date();															// 3-character Weekday
-					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAY[dt as keyof typeof Instant.WEEKDAY]);
-					dt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
-				}
-				if (Instant.WEEKDAYS[dt as keyof typeof Instant.WEEKDAYS]) {
-					const now = new Date();															// full character Weekday
-					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAYS[dt as keyof typeof Instant.WEEKDAYS]);
+				if (Instant.WEEKDAY[toTitle(dt as string) as keyof typeof Instant.WEEKDAY] || Instant.WEEKDAYS[toTitle(dt as string) as keyof typeof Instant.WEEKDAYS]) {
+					const now = new Date();															// 3-character or full-character Weekday
+					now.setDate(now.getDate() - 7 - now.getDay() + Instant.WEEKDAY[toTitle(dt as string).substring(0, 3) as keyof typeof Instant.WEEKDAY]);
 					dt = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
 				}
 

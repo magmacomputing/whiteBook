@@ -57,3 +57,7 @@ export const toNumeric = (str: string | number, stripZero: boolean = false) =>
 
 export const toLower = (str: string) => isString(str) ? str.toLowerCase() : str;
 export const toUpper = (str: string) => isString(str) ? str.toUpperCase() : str;
+export const toTitle = (str: string) => str
+	.toLowerCase()
+	.replace(/(^|\s)(\w)/g, (match, prev, letter) => prev + letter.toUpperCase())
+	.replace(/:\s*(\w)/g, letter => letter.toUpperCase())
