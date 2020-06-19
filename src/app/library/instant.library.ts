@@ -230,7 +230,7 @@ export class Instant {
 	}
 
 	/** hide some working-variables */
-	#divideBy = (unit: TUnitDiff) => {										// approx date-offset divisors (unix-timestamp precision)
+	#divideBy = (unit: TUnitDiff) => {													// approx date-offset divisors (unix-timestamp precision)
 		return {
 			years: 31_536_000_000,
 			months: 2_628_000_000,
@@ -346,7 +346,7 @@ export class Instant {
 
 	/** compose a Date() from an Instant() */
 	#composeDate = (date: IInstant) =>
-		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms)
+		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ts * 1000 + date.ms)
 
 	/** combine Instant components to apply some standard / free-format rules */
 	#formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
