@@ -102,16 +102,16 @@ export class Instant {
 
 	/** apply formatting*/
 	format = <K extends keyof IDateFmt>(fmt: K) => this.#formatDate(fmt);
-	/** calc diff Dates, default as <years> */
+	/** calc diff Dates, default as &lt;years> */
 	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
-	/** add date offset, default as <minutes> */
+	/** add date offset, default as &lt;minutes> */
 	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
 
-	/** start offset, default as <week> */
+	/** start offset, default as &lt;week> */
 	startOf = (unit: TUnitTime = 'week') => this.#setDate('start', unit);
-	/** middle offset, default as <week> */
+	/** middle offset, default as &lt;week> */
 	midOf = (unit: TUnitTime = 'week') => this.#setDate('mid', unit);
-	/** ending offset, default as <week> */
+	/** ending offset, default as &lt;week> */
 	endOf = (unit: TUnitTime = 'week') => this.#setDate('end', unit);
 
 	/** valid Instant */	isValid = () => !isNaN(this.#date.ts);
@@ -254,7 +254,7 @@ export class Instant {
 				date.dd = 1;
 				break;
 			case 'start.week':
-				date.dd -= date.dow + Instant.WEEKDAY.Mon;
+				date.dd = date.dd - date.dow + Instant.WEEKDAY.Mon;
 				break;
 			case 'start.day':
 				[date.HH, date.MI, date.SS, date.ms] = [0, 0, 0, 0];
@@ -276,7 +276,7 @@ export class Instant {
 				date.dd = 15;
 				break;
 			case 'mid.week':
-				date.dd -= date.dow + Instant.WEEKDAY.Thu;
+				date.dd = date.dd - date.dow + Instant.WEEKDAY.Thu;
 				break;
 			case 'mid.day':
 				[date.HH, date.MI, date.SS, date.ms] = [12, 0, 0, 0];
@@ -299,7 +299,7 @@ export class Instant {
 				date.dd = 0;
 				break;
 			case 'end.week':
-				date.dd -= date.dow + Instant.WEEKDAY.Sun;
+				date.dd = date.dd - date.dow + Instant.WEEKDAY.Sun;
 				break;
 			case 'end.day':
 				[date.HH, date.MI, date.SS, date.ms] = [23, 59, 59, 999];
