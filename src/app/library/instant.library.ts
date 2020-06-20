@@ -9,7 +9,7 @@ interface IInstant {											// Instant components
 	readonly HH: number;										// hour[24]
 	readonly MI: number;										// minute
 	readonly SS: number;										// second
-	readonly ts: number;										// timestamp
+	readonly ts: number;										// seconds since epoch
 	readonly ms: number;										// milliseconds
 	readonly ww: number;										// number of weeks
 	readonly mmm: keyof typeof Instant.MONTH;// short month-name
@@ -50,12 +50,8 @@ class Timestamp {
 
 	constructor(seconds?: number, nanoseconds?: number) {
 		const now = new Date();
-		this.seconds = isUndefined(seconds)
-			? now.getSeconds()
-			: seconds
-		this.nanoseconds = isUndefined(nanoseconds)
-			? now.getMilliseconds() * 1000000
-			: nanoseconds
+		this.seconds = seconds ?? now.getSeconds();
+		this.nanoseconds = nanoseconds ?? now.getMilliseconds() * 1000000;
 		this.#now = now.setHours(0, 0, this.seconds, this.nanoseconds / 1000);
 	}
 
@@ -346,7 +342,7 @@ export class Instant {
 
 	/** compose a Date() from an Instant() */
 	#composeDate = (date: IInstant) =>
-		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ts * 1000 + date.ms)
+		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms)
 
 	/** combine Instant components to apply some standard / free-format rules */
 	#formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
