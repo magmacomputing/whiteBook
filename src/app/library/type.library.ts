@@ -107,4 +107,5 @@ const isBlob = (obj) => isType(obj, 'Blob');
 const nullToZero = (obj) => obj ?? 0;
 const nullToEmpty = (obj) => obj ?? '';
 const nullToValue = (obj, value) => obj ?? value;
+const isNullish = (obj) => ['Null', 'Undefined'].includes(getType(obj));
  */

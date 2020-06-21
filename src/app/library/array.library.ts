@@ -1,4 +1,5 @@
-import { isIterable, isNullish } from '@library/type.library';
+import { isIterable, isNullish, isNumber } from '@library/type.library';
+import { asString } from './string.library';
 
 export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? [...arr] : (isNullish(arr) || (arr as unknown as string) === '' ? [] : [arr]);
 
@@ -24,6 +25,10 @@ declare global {
 		/** return reduced Array-of-Objects as keyed-Object-of-Arrays */
 		groupBy<K extends string>(key: string): Record<K, T>;
 
+		/** return sorted Array-of-objects */
+		orderBy(keys: string | string[]): T[];
+		sortBy(keys: string | string[]): T[];
+
 		/** return new Array with no repeated elements */
 		distinct(): T[];
 		/** return mapped Array with no repeated elements */
@@ -42,6 +47,28 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 	Array.prototype.groupBy = function (key = 'key' as any) {
 		return this.reduce((acc, row) => { acc[row[key]] = row; return acc; }, {});
 	}
+}
+
+if (!Array.prototype.hasOwnProperty('orderBy')) {
+	Array.prototype.orderBy = function (keys) {
+		return this.sort((a, b) => {
+			let result = 0;
+
+			asArray(keys).forEach(key => {
+				const dir = key.startsWith('-') ? -1 : 1;
+				if (dir === -1) key = key.substring(1);
+
+				if (result === 0) {
+					result = isNumber(a[key]) && isNumber(b[key])
+						? dir * (a[key] - b[key])
+						: dir * asString(a[key]).localeCompare(asString(b[key]));
+				}
+			})
+
+			return result;
+		})
+	}
+	Array.prototype.sortBy = Array.prototype.orderBy;
 }
 
 if (!Array.prototype.hasOwnProperty('truncate')) {

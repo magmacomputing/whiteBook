@@ -85,14 +85,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * first get the meeting.started  Events for this.date  to determine uuid's.  
+	 * first get the meeting.started Events for this.date to determine Zoom uuid's.  
 	 * then collect all documents that relate to those uuid's,  
-	 * then assemble details into an IMeeting[]
+	 * and assemble details into an IMeeting[]
 	 */
 	private getMeetings() {
-		return this.meetings$ = this.meetingDate					// wait on the Subject
+		return this.meetings$ = this.meetingDate					// wait on the date to change
 			.pipe(
-				takeUntil(this.stop$),												// teardown Subject
+				takeUntil(this.stop$),												// teardown Observables
 				tap(_ => this.meetings = []),									// reset the assembled details
 				tap(_ => this.dateChange = true),							// move the selectedIndex to latest meeting
 
@@ -105,7 +105,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					})
 				),
 
-				mergeMap(track => {														// merge with all documents for the meeting.started events
+				mergeMap(track => {														// merge all documents per meeting.started event
 					track
 						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
@@ -137,9 +137,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				}),
 
 				map(track => {
+					track = track
+						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
+						.sortBy(FIELD.stamp);
+
 					(track as IZoom<TEnded>[])									// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
-						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
@@ -151,8 +154,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 					(track as IZoom<TJoined>[])									// add Participants.Joined
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
-						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
-						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { class: event, price, credit, status = {} as IWhite["status"] } = doc.white || {};
@@ -191,7 +192,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 					(track as IZoom<TLeft>[])										// add Participants.Left
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
-						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
@@ -267,7 +267,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			})
 			),
 			switchMap(_ => of(attends
-				.sort((a, b) => a[FIELD.date] - b[FIELD.date])
+				.sortBy(FIELD.date)
 				.map(list => list.attend)
 			)),
 		)
