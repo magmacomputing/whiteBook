@@ -83,19 +83,17 @@ if (!Array.prototype.hasOwnProperty('distinct')) {
 	Array.prototype.distinct = function (selector?: (value: any, index: number, array: any[]) => []) {
 		return selector
 			? this.map(selector).distinct()
-			: Array.from(new Set(this))
+			: asArray(new Set(this))
 	}
 }
 
 if (!Array.prototype.hasOwnProperty('cartesian')) {
 	Array.prototype.cartesian = function (...args: any[]) {
 		const [a, b = [], ...c] = args.length === 0 ? this : args;
+		const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
 
 		return b.length
 			? this.cartesian(cartFn(a, b), ...c)
-			: Array.from(a || [])
-		// : [...a || []]
+			: asArray(a || [])
 	}
 }
-
-const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
