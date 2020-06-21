@@ -3,8 +3,8 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { Client, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
-import { SLICES, COMMENT } from '@library/config.define';
-import { setSchema, setConfig } from '@library/config.library';
+import { SLICES, COMMENT } from '@dbase/state/config.define';
+import { setSchema, setConfig } from '@dbase/state/config.library';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, ISchema, IConfig } from '@dbase/data/data.schema';
 

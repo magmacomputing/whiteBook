@@ -27,6 +27,7 @@ declare global {
 
 		/** return sorted Array-of-objects */
 		orderBy(keys: string | string[]): T[];
+		/** return sorted Array-of-objects */
 		sortBy(keys: string | string[]): T[];
 
 		/** return new Array with no repeated elements */

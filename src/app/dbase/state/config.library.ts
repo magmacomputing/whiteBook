@@ -1,5 +1,5 @@
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { FILTER, SLICES, SORTBY, COMMENT } from '@library/config.define';
+import { FILTER, SLICES, SORTBY, COMMENT } from '@dbase/state/config.define';
 import { ISchema, IConfig } from '@dbase/data/data.schema';
 
 import { isString } from '@library/type.library';

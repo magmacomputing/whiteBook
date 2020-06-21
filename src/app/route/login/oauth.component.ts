@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
-import { getConfig } from '@library/config.library';
+import { getConfig } from '@dbase/state/config.library';
 
 import { STORE } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';

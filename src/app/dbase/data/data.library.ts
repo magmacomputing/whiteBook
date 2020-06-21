@@ -1,7 +1,7 @@
 import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { FILTER } from '@library/config.define';
+import { FILTER } from '@dbase/state/config.define';
 import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
 import { TStoreBase, IStoreMeta, FType, FNumber, IClientBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';

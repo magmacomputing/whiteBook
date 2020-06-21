@@ -14,7 +14,7 @@ import { FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { IProvider, IConfig } from '@dbase/data/data.schema';
 
 import { asArray } from '@library/array.library';
-import { getConfig } from '@library/config.library';
+import { getConfig } from '@dbase/state/config.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: AuthModule })

@@ -1,4 +1,4 @@
-import { COMMENT } from '@library/config.define';
+import { COMMENT } from '@dbase/state/config.define';
 
 import { TString } from '@library/type.library';
 import { asArray } from '@library/array.library';

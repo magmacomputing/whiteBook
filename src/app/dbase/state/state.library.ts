@@ -6,7 +6,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IFireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
-import { SLICES, SORTBY } from '@library/config.define';
+import { SLICES, SORTBY } from '@dbase/state/config.define';
 
 import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IProviderState } from '@dbase/state/state.define';
 import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon, ICalendar, ISummary } from '@dbase/data/data.schema';
