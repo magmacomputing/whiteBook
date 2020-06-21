@@ -95,7 +95,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				takeUntil(this.stop$),												// teardown Subject
 				tap(_ => this.meetings = []),									// reset the assembled details
 				tap(_ => this.dateChange = true),							// move the selectedIndex to latest meeting
- 
+
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<IZoom<TStarted>>(COLLECTION.zoom, {
 						where: [
@@ -180,9 +180,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 							if (idx !== -1) {
 								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
+								const leave = this.meetings[idx].participants[pdx]?.leave;	// in case Join-update where Member already Left
 
 								this.meetings[idx].participants[pdx === -1 ? this.meetings[idx].participants.length : pdx] = {
-									participant_id, user_id, user_name,
+									participant_id, user_id, user_name, leave,
 									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, fgcolor, bgcolor },
 								}
 							}
