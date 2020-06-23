@@ -26,6 +26,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const scheme = (source[COLLECTION.client][STORE.bonus] || [])
 		.groupBy<BONUS>(FIELD.key);														// get the <rules> for each Bonus
 
+	// TODO: I am of the opinion that <gift> should be tested *after* other bonus-types.  
 	switch (true) {
 		/**
 		 * Admin adds 'Gift' records to a Member's account which will detail the start-date
@@ -182,7 +183,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	}
 
 	if (upd.length)																					// whether or not we found an applicable Bonus
-		bonus.gift = upd;																			//let caller know about any pending Gift updates
+		bonus.gift = upd;																			// let caller know about any pending Gift updates
 
 	return bonus;
 }
