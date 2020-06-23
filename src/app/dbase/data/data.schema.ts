@@ -117,7 +117,7 @@ export interface IBonus extends IClientBase {
 	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
 	desc: TString;
-	sort?: number;
+	seq: number;												// sequence of processing
 	count?: number;
 	amount?: number;										// an optional amount to apply
 }

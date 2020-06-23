@@ -85,9 +85,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * first get the meeting.started Events for this.date to determine Zoom uuid's.  
-	 * then collect all documents that relate to those uuid's,  
-	 * and assemble details into an IMeeting[]
+	 * watch for changes to this.date,  
+	 * then switch to get the meeting.started Events for this.date to determine Zoom uuid's,  
+	 * then merge all documents (started/ended/joined/left) that relate to those uuid's,  
+	 * then map everything into an IMeeting[] format for the UI to present
 	 */
 	private getMeetings() {
 		return this.meetings$ = this.meetingDate					// wait on the date to change
@@ -116,7 +117,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {
-								this.meetings.push({
+								this.meetings.push({									// 
 									uuid, meeting_id, participants: [], ...rest,
 									start: {
 										[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
@@ -139,7 +140,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				map(track => {
 					track = track
 						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
-						.sortBy(FIELD.stamp);
+						.orderBy(FIELD.stamp);										// order by 
 
 					(track as IZoom<TEnded>[])									// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
@@ -267,7 +268,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			})
 			),
 			switchMap(_ => of(attends
-				.sortBy(FIELD.date)
+				.orderBy(FIELD.date)
 				.map(list => list.attend)
 			)),
 		)

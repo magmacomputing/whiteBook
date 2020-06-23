@@ -1,5 +1,5 @@
 import { ITimetableState } from '@dbase/state/state.define';
-import { FIELD, BONUS } from '@dbase/data/data.define';
+import { FIELD, BONUS, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IGift, TBonus } from '@dbase/data/data.schema';
 
 import { TDate, getDate, Instant } from '@library/instant.library';
@@ -20,10 +20,10 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const upd: IGift[] = [];																// an array of updates for caller to apply on /member/gift
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
-	const gifts = source.member.gift;												// the active Gifts for this Member
-	const plan = (source.client.plan || [])[0];							// Member's current plan
-	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [], attendClass = [] } = source.attend;
-	const scheme = (source.client.bonus || [])
+	const gifts = source[COLLECTION.member][STORE.gift];								// the active Gifts for this Member
+	const plan = (source[COLLECTION.client][STORE.plan] || [])[0];			// Member's current plan
+	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [], attendClass = [] } = source[COLLECTION.attend];
+	const scheme = (source[COLLECTION.client][STORE.bonus] || [])
 		.groupBy<BONUS>(FIELD.key);														// get the <rules> for each Bonus
 
 	switch (true) {
