@@ -17,7 +17,7 @@ import { toLower } from '@library/string.library';
  * ~~~~
  * [
  *  { fieldPath: 'store', opStr: '==', value: 'price' },  
- *  { fieldPath: 'type', opStr: '==' value: ['full','half'] }
+ *  { fieldPath: 'type',  opStr: 'in', value: ['full','half'] }
  * ]
  * ~~~~ 
  * returns only rows with store= 'price', and with type= 'full' or 'half'
@@ -81,7 +81,7 @@ export const asAt = <T>(table: T[], cond: TWhere = [], date?: TDate) => {
 	const stamp = getStamp(date);
 
 	return filterTable(table as (T & IMeta)[], cond)		// return the rows where date is between _effect and _expire
-		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => stamp <  (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 		.filter(row => !row[FIELD.hidden])								// discard rows that should not be visible
 		.map(row => row as T)
