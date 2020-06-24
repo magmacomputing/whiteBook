@@ -17,6 +17,7 @@ import { isUndefined, nullToZero } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { memoize } from '@library/utility.library';
 import { dbg } from '@library/logger.library';
+import { getStateDiffChanges } from '@ngxs/store/src/internal/internals';
 
 @Component({
 	selector: 'wb-zoom',
@@ -106,10 +107,18 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					})
 				),
 
-				mergeMap(track => {														// merge all documents per meeting.started event
-					track
+				mergeMap(track =>															// merge all documents per meeting.started event
+					this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
+						where: addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
+					})
+				),
+
+				map(track => {
+					track = track
 						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
-						.sort((a, b) => a[FIELD.stamp] - b[FIELD.stamp])
+						.orderBy(FIELD.stamp);										// order by 
+
+					(track as IZoom<TStarted>[])
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
@@ -130,17 +139,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							} else {																// change to existing meeting
 								this.meetings[idx].start = { ...this.meetings[idx].start, white: doc.white, color };
 							}
-						})
-
-					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
-						where: addWhere('body.payload.object.uuid', this.meetings.map(meeting => meeting.uuid), 'in'),
-					})
-				}),
-
-				map(track => {
-					track = track
-						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
-						.orderBy(FIELD.stamp);										// order by 
+						});
 
 					(track as IZoom<TEnded>[])									// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
