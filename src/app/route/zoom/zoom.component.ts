@@ -17,7 +17,6 @@ import { isUndefined, nullToZero } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { memoize } from '@library/utility.library';
 import { dbg } from '@library/logger.library';
-import { getStateDiffChanges } from '@ngxs/store/src/internal/internals';
 
 @Component({
 	selector: 'wb-zoom',
@@ -116,7 +115,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				map(track => {
 					track = track
 						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
-						.orderBy(FIELD.stamp);										// order by 
+						.orderBy(FIELD.stamp);										// order by timestamp
 
 					(track as IZoom<TStarted>[])
 						.forEach(doc => {
@@ -126,7 +125,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {
-								this.meetings.push({									// 
+								this.meetings.push({									// a new meeting started
 									uuid, meeting_id, participants: [], ...rest,
 									start: {
 										[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
@@ -134,7 +133,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 									},
 								})
 
-								if (!this.dateChange)									// a new meeting.started today
+								if (!this.dateChange)									// flag date change if new meeting detected on current day
 									this.dateChange = this.date.format(Instant.FORMAT.yearMonthDay) === new Instant().format(Instant.FORMAT.yearMonthDay);
 							} else {																// change to existing meeting
 								this.meetings[idx].start = { ...this.meetings[idx].start, white: doc.white, color };
