@@ -11,6 +11,7 @@ export const setTimer = (stop: Subject<any>) => {
 	const midnight = new Instant().add(1, 'day').startOf('day');
 	const addOneDay = 86_400_000;					// number of milliseconds in a day
 
+	console.log('lib.setTimer: (%s) %s', 0, midnight.format(Instant.FORMAT.dayTime));
 	return timer(midnight.toDate(), addOneDay)
 		.pipe(
 			takeUntil(stop),
