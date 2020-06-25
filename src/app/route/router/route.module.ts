@@ -27,7 +27,7 @@ const routes: Routes = [
 	{ path: ROUTE.login, component: LoginComponent, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: toAttend } },
 	{ path: ROUTE.attend, component: AttendComponent, canActivate: [ProfileGuard], data: { authGuardPipe: toLogin } },
 	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
-	{ path: ROUTE.about, loadChildren: () => import('@route/about/about.module').then(m => m.AboutModule)},
+	{ path: ROUTE.about, loadChildren: () => import('@route/about/about.module').then(m => m.AboutModule) },
 
 	{ path: ROUTE.zoom, loadChildren: () => import('@route/zoom/zoom.module').then(m => m.ZoomModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
 	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },

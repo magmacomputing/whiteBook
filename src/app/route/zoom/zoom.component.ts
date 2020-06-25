@@ -118,6 +118,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.orderBy(FIELD.stamp);										// order by timestamp
 
 					(track as IZoom<TStarted>[])
+						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);

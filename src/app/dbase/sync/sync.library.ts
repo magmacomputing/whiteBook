@@ -1,6 +1,7 @@
 import { firestore } from 'firebase/app';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
+import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { IListen, StoreStorage } from '@dbase/sync/sync.define';
@@ -47,14 +48,14 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback at this time)
-export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire?: any) => {//FireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: FireService) => {//FireService) => {
 	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
-		[FIELD.id]: snap.payload.doc.id,
+		...snap.payload.doc.data(),
+		[FIELD.id]: meta[FIELD.id],
 		[FIELD.create]: meta[FIELD.create],
 		[FIELD.update]: meta[FIELD.update],
 		[FIELD.access]: meta[FIELD.access],
-		...snap.payload.doc.data()
 	} as TStoreBase
 }
 
@@ -64,7 +65,7 @@ const remMeta = (doc: IStoreMeta) => {
 	return rest;
 }
 export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
-	({ [FIELD.id]: snap.payload.doc.id, ...snap.payload.doc.data() } as IStoreMeta)
+	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as IStoreMeta)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: COLLECTION) => {
