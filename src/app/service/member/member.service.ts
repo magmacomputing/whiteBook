@@ -129,6 +129,7 @@ export class MemberService {
 	updAccount = async (data?: IAccountState) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
+
 		await this.setAccount(creates, updates, data);
 		return this.data.batch(creates, updates);
 	}

@@ -211,7 +211,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account) {
-		const sum: ISummary = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 }
+		const sum: ISummary = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 };
 
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment

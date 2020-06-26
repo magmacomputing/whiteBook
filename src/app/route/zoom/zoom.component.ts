@@ -117,7 +117,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.orderBy(FIELD.stamp);										// order by timestamp
 
-					(track as IZoom<TStarted>[])
+					(track as IZoom<TStarted>[])								// look for Meeting.Started
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
@@ -220,9 +220,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * Popup an attend-this-week summary
+	 * Popup a attend-this-week summary.  
+	 * Note this shows only attends recorded through Zoom (not direct to WhiteBook)
 	 */
-	async showWeek(white: IWhite) {
+	async showWeek(white?: IWhite) {
 		if (isUndefined(white))
 			return;
 		if (!white.alias)
