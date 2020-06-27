@@ -40,7 +40,7 @@ const routes: Routes = [
 @NgModule({
 	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes),],
 	exports: [RouterModule],
-	declarations: [LoginComponent, AttendComponent, OAuthComponent, EMailComponent],
+	declarations: [LoginComponent, AttendComponent, OAuthComponent],
 	providers: [AngularFireAuthGuard, DeactivateGuard, OAuthGuard],
 })
 export class RoutingModule { }

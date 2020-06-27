@@ -47,7 +47,13 @@
               "./node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.css"
             ],
-            "scripts": []
+						"scripts": [],
+						"allowedCommonJsDependencies": [
+							"util",
+							"firebase",
+							"@firebase",
+							"@angular/firebase"
+						]
           },
           "configurations": {
             "production": {

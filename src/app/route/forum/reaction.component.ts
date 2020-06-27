@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
-import { ReactionService } from '@service/forum/reaction.service';
+
 import { REACT } from '@dbase/data/data.define';
+import { ReactionService } from '@service/forum/reaction.service';
 
 @Component({
 	selector: 'reaction',

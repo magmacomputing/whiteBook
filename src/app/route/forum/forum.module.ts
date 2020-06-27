@@ -4,7 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { MaterialModule } from '@service/material/material.module';
 import { ForumComponent } from './forum.component';
-import { ReactionComponent } from '@service/forum/reaction.component';
+import { ReactionComponent } from '@route/forum/reaction.component';
 
 const routes: Routes = [
 	{ path: 'forum', component: ForumComponent },
