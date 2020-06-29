@@ -30,6 +30,7 @@ interface IDateFmt extends Record<string, string | number> {	// pre-configured f
 	readonly "dd-mmm": string;
 	readonly "HH:MI": string;
 	readonly "hh:mi": string;
+	readonly "HH:MI:SS": string;
 	readonly "yyyyww": number;
 	readonly "yyyymm": number;
 	readonly "yyyymmdd": number;
@@ -465,6 +466,7 @@ export namespace Instant {
 		dayMonth = 'dd-mmm',
 		HHMI = 'HH:MI',														// 24-hour format
 		hhmi = 'hh:mi', 													// 12-hour format
+		time = 'HH:MI:SS',												// time-format
 		yearWeek = 'yyyyww',
 		yearMonth = 'yyyymm',
 		yearMonthDay = 'yyyymmdd',

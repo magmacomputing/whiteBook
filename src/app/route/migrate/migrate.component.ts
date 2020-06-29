@@ -64,8 +64,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		Promise.all([																						// fetch required Stores
 			this.data.getStore<ISchedule>(STORE.schedule),
-			this.data.getStore<ICalendar>(STORE.calendar),
-			this.data.getStore<IEvent>(STORE.event),
+			this.data.getStore<ICalendar>(STORE.calendar, addWhere(FIELD.type, 'Closed', '!=')),
+			this.data.getStore<IEvent>(STORE.event, addWhere(FIELD.type, 'special')),
 		]).then(([schedule, calendar, events]) => {
 			this.schedule = schedule;
 			this.calendar = calendar;
@@ -472,9 +472,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 			case (!isUndefined(caldr) && !row.elect):			// special event match by <date>, so we already know the 'class'
 				event = this.events[caldr[FIELD.type]];
-
 				if (what === CLASS.MultiStep && !event.agenda.includes(what))
 					what = CLASS.SingleStep;
+
 				if (!event.agenda.includes(what)) {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
