@@ -121,7 +121,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
-							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const label = fmtDate(Instant.FORMAT.HHMI, start_time);
 							const color = this.colorCache(doc.white);
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
@@ -145,7 +145,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
-							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const label = fmtDate(Instant.FORMAT.HHMI, end_time);
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx !== -1)
@@ -158,7 +158,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { class: event, price, credit, status = {} as IWhite["status"] } = doc.white || {};
 							const weekTrack = (status?._week || '0.0.0').split('.').map(Number);
-							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const label = fmtDate(Instant.FORMAT.HHMI, join_time);
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							const fgcolor = { alias: this.color[event as CLASS]?.color };
@@ -194,7 +194,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
-							const label = fmtDate(Instant.FORMAT.HHMI, doc.stamp);
+							const label = fmtDate(Instant.FORMAT.HHMI, leave_time);
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							if (idx !== -1) {
