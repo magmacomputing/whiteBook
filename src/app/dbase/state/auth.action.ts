@@ -1,5 +1,3 @@
-import * as firebase from 'firebase/app';
-
 import { ICredential } from '@service/auth/auth.interface';
 import { Auth } from '@dbase/data/data.define';
 import { TUser } from '@dbase/data/data.schema';

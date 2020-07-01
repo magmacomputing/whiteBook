@@ -1,4 +1,3 @@
-import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 

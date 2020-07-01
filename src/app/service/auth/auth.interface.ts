@@ -1,5 +1,3 @@
-import * as firebase from 'firebase/app';
-
 import { ICustomClaims } from '@dbase/data/data.schema';
 
 export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;

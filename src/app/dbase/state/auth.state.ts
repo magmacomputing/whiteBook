@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
+import { auth } from 'firebase/app';
 import { AngularFireAuth } from '@angular/fire/auth';
 
-import * as firebase from 'firebase/app';
 import { State, StateContext, Action, Store } from '@ngxs/store';
 import { BehaviorSubject } from 'rxjs';
 import { map, take } from 'rxjs/operators';
@@ -99,12 +99,12 @@ export class AuthState {
 		const methods = await this.afAuth.fetchSignInMethodsForEmail(link.email);
 
 		switch (methods[0]) {														// check the first-method
-			case firebase.auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
+			case auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD:
 				let password = prompt('Please enter the password') || '';
 				ctx.dispatch(new Login.Email(link.email, password, 'signIn', link.credential))
 				break;
 
-			case firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
+			case auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD:
 				ctx.dispatch(new Login.Link(link.emailLink!));
 				break;
 

@@ -1,5 +1,3 @@
-import * as firebase from 'firebase/app';
-
 import { IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
