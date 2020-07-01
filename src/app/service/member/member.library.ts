@@ -55,7 +55,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	return birthDays.length ? Math.min(...birthDays) : undefined;
 }
 
-export const getMemberAge = (info: IProfileInfo[] = [], dt: TDate) =>
+export const getMemberAge = (info: IProfileInfo[] = [], dt?: TDate) =>
 	getDate(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**
