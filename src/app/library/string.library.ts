@@ -1,5 +1,19 @@
 import { format } from 'util';
-import { isString, isObject, getType } from '@library/type.library';
+import { isString, isObject } from '@library/type.library';
+
+// Prototype <string> extensions
+
+declare global {
+	interface String {
+		// remove redundant spaces from a string
+		trimAll(): string;
+	}
+}
+if (!String.prototype.hasOwnProperty('trimAll')) {
+	String.prototype.trimAll = function () {
+		return this.replace(/\s+/g, ' ').trim();
+	}
+}
 
 // General <string> functions
 
