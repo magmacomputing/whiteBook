@@ -22,19 +22,19 @@
 		"strict": true,
 		"paths": {
 			"@env/*": [
-				"src/environments/*"
+				"src/environments/*",
 			],
 			"@dbase/*": [
 				"src/app/dbase/*",
 			],
 			"@library/*": [
-				"src/app/library/*"
+				"src/app/library/*",
 			],
 			"@route/*": [
-				"src/app/route/*"
+				"src/app/route/*",
 			],
 			"@service/*": [
-				"src/app/service/*"
+				"src/app/service/*",
 			],
 		}
 	},
