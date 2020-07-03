@@ -12,8 +12,8 @@ import { TStateSlice, SLICE } from '@dbase/state/state.define';
 import { SnackService } from '@service/material/snack.service';
 import { getAuthProvider, getProviderId } from '@service/auth/auth.library';
 
-import { ROUTE } from '@route/route.define';
-import { NavigateService } from '@route/navigate.service';
+import { ROUTE } from '@route/router/route.define';
+import { NavigateService } from '@route/router/navigate.service';
 
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';

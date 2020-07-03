@@ -9,6 +9,7 @@ declare global {
 		trimAll(): string;
 	}
 }
+
 if (!String.prototype.hasOwnProperty('trimAll')) {
 	String.prototype.trimAll = function () {
 		return this.replace(/\s+/g, ' ').trim();

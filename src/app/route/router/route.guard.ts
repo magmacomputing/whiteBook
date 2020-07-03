@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { CanActivate, CanDeactivate } from '@angular/router';
 import { Observable } from 'rxjs';
 
-import { ROUTE } from '@route/route.define';
-import { NavigateService } from '@route/navigate.service';
+import { ROUTE } from '@route/router/route.define';
+import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
 import { AuthModule } from '@service/auth/auth.module';

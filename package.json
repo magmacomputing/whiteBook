@@ -24,7 +24,7 @@
     "@ngxs/storage-plugin": "^3.6.2",
     "@ngxs/store": "^3.6.2",
     "firebase": "^7.15.5",
-    "rxjs": "^6.5.5",
+    "rxjs": "^6.6.0",
     "zone.js": "^0.10.3"
   },
   "devDependencies": {

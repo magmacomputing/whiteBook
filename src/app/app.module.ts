@@ -3,7 +3,7 @@ import { BrowserModule, HammerModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ServiceWorkerModule } from '@angular/service-worker';
 
-import { RoutingModule } from '@route/route.module';
+import { RoutingModule } from '@route/router/route.module';
 import { DBaseModule } from '@dbase/dbase.module';
 import { AuthModule } from '@service/auth/auth.module';
 import { MaterialModule } from '@service/material/material.module';

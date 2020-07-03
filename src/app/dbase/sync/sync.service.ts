@@ -6,7 +6,7 @@ import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { ROUTE } from '@route/router/route.define';
-import { NavigateService } from '@route/navigate.service';
+import { NavigateService } from '@route/router/navigate.service';
 
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 import { IListenKey, IListen } from '@dbase/sync/sync.define';
