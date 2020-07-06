@@ -45,55 +45,109 @@ declare global {
 }
 
 if (!Array.prototype.hasOwnProperty('groupBy')) {
-	Array.prototype.groupBy = function (key = 'key' as any) {
-		return this.reduce((acc, row) => { acc[row[key]] = row; return acc; }, {});
-	}
+	Object.defineProperty(Array.prototype, 'groupBy', {
+		configurable: false,
+		enumerable: false,
+		writable: false,
+		value: function (key = 'key') {
+			return this.reduce((acc: Record<string, any>, row: Record<string, any>) => { acc[row[key]] = row; return acc; }, {});
+		}
+	})
+	// 	Array.prototype.groupBy = function (key = 'key' as any) {
+	// 		return this.reduce((acc, row) => { acc[row[key]] = row; return acc; }, {});
+	// 	}
 }
 
 if (!Array.prototype.hasOwnProperty('orderBy')) {
-	Array.prototype.orderBy = function (keys) {
-		return this.sort((a, b) => {
-			let result = 0;
+	Object.defineProperty(Array.prototype, 'orderBy', {
+		configurable: false,
+		enumerable: false,
+		writable: false,
+		value: function (keys: string | string[]) {
+			return this.sort((a: Record<string, any>, b: Record<string, any>) => {
+				let result = 0;
 
-			asArray(keys).forEach(key => {
-				const dir = key.startsWith('-') ? -1 : 1;
-				if (dir === -1) key = key.substring(1);
+				asArray(keys).forEach(key => {
+					const dir = key.startsWith('-') ? -1 : 1;
+					if (dir === -1) key = key.substring(1);
 
-				if (result === 0) {
-					result = isNumber(a[key]) && isNumber(b[key])
-						? dir * (a[key] - b[key])
-						: dir * asString(a[key]).localeCompare(asString(b[key]));
-				}
+					if (result === 0) {
+						result = isNumber(a[key]) && isNumber(b[key])
+							? dir * (a[key] - b[key])
+							: dir * asString(a[key]).localeCompare(asString(b[key]));
+					}
+				})
+
+				return result;
 			})
+		}
+	})
+	// Array.prototype.orderBy = function (keys) {
+	// 	return this.sort((a, b) => {
+	// 		let result = 0;
 
-			return result;
-		})
-	}
+	// 		asArray(keys).forEach(key => {
+	// 			const dir = key.startsWith('-') ? -1 : 1;
+	// 			if (dir === -1) key = key.substring(1);
+
+	// 			if (result === 0) {
+	// 				result = isNumber(a[key]) && isNumber(b[key])
+	// 					? dir * (a[key] - b[key])
+	// 					: dir * asString(a[key]).localeCompare(asString(b[key]));
+	// 			}
+	// 		})
+
+	// 		return result;
+	// 	})
+	// }
 	Array.prototype.sortBy = Array.prototype.orderBy;
 }
 
 if (!Array.prototype.hasOwnProperty('truncate')) {
-	Array.prototype.truncate = function (base = 0) {
-		this.length === base;
-		return this;
-	}
+	Object.defineProperty(Array.prototype, 'truncate', {
+		configurable: false,
+		enumerable: false,
+		writable: false,
+		value: function (base = 0) {
+			this.length = base;
+			return this;
+		}
+	})
 }
 
 if (!Array.prototype.hasOwnProperty('distinct')) {
-	Array.prototype.distinct = function (selector?: (value: any, index: number, array: any[]) => []) {
-		return selector
-			? this.map(selector).distinct()
-			: asArray(new Set(this))
-	}
+	Object.defineProperty(Array.prototype, 'distinct', {
+		configurable: false,
+		enumerable: false,
+		writable: false,
+		value: function (selector: (value: any, index: number, array: any[]) => []) {
+			return selector
+				? this.map(selector).distinct()
+				: asArray(new Set(this))
+		}
+	})
 }
 
 if (!Array.prototype.hasOwnProperty('cartesian')) {
-	Array.prototype.cartesian = function (...args: any[]) {
-		const [a, b = [], ...c] = args.length === 0 ? this : args;
-		const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
+	Object.defineProperty(Array.prototype, 'cartesian', {
+		configurable: false,
+		enumerable: false,
+		writable: false,
+		value: function (...args: any[]) {
+			const [a, b = [], ...c] = args.length === 0 ? this : args;
+			const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
 
-		return b.length
-			? this.cartesian(cartFn(a, b), ...c)
-			: asArray(a || [])
-	}
+			return b.length
+				? this.cartesian(cartFn(a, b), ...c)
+				: asArray(a || [])
+		}
+	})
+	// Array.prototype.cartesian = function (...args: any[]) {
+	// 	const [a, b = [], ...c] = args.length === 0 ? this : args;
+	// 	const cartFn = (a: any[], b: any[]) => (<any[]>[]).concat(...a.map(d => b.map(e => (<any[]>[]).concat(d, e))));
+
+	// 	return b.length
+	// 		? this.cartesian(cartFn(a, b), ...c)
+	// 		: asArray(a || [])
+	// }
 }
