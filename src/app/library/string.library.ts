@@ -11,9 +11,14 @@ declare global {
 }
 
 if (!String.prototype.hasOwnProperty('trimAll')) {
-	String.prototype.trimAll = function () {
-		return this.replace(/\s+/g, ' ').trim();
-	}
+	Object.defineProperty(String.prototype, 'trimAll', {
+		enumerable: false,
+		configurable: false,
+		writable: false,
+		value: function () {
+			return this.replace(/\s+/g, ' ').trim();
+		}
+	})
 }
 
 // General <string> functions

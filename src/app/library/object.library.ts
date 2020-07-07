@@ -5,7 +5,6 @@ import { isNumeric } from '@library/string.library';
  * Get nested value,  
  * allow for array-references in <path>
  */
-const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | number): T | undefined => {
 	if (!isObject(obj) && !isArray(obj))
 		return dflt || undefined;
@@ -16,6 +15,7 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 		? path.replace(' ', '').split('.')							// remove readability-spaces
 		: path
 
+	const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 	const match = regex.exec(word);										// eg. does the 'word' end in "*[0]"?
 	const { matchWord, matchIdx } = !isNull(match) && match.groups || { matchWord: word, matchIdx: '*' };
 

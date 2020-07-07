@@ -419,7 +419,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			])
 			const obj = prices
 				.filter(row => row[FIELD.key] === plan[0].plan)
-				.groupBy(FIELD.type as unknown as PRICE)
+				.groupBy<PRICE>(FIELD.type)
 			const sunday = bonus.find(row => row[FIELD.key] === BONUS.sunday);
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
