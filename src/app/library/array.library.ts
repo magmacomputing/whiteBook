@@ -69,7 +69,7 @@ if (!Array.prototype.hasOwnProperty('orderBy')) {
 		configurable: false,
 		enumerable: false,
 		writable: false,
-		value: function (keys: string | string[], flat: boolean = false) {
+		value: function (keys: string | string[]) {
 			return this.sort((a: Record<string, any>, b: Record<string, any>) => {
 				let result = 0;
 
