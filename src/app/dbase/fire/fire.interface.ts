@@ -30,7 +30,7 @@ export interface IDocMeta {
 	[FIELD.create]?: number;
 	[FIELD.update]?: number;
 	[FIELD.access]?: number;
-	subcollections: string[];
+	subcollections?: string[];
 	exists: boolean;
 	path: string;
 }

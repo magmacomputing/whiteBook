@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
-import { merge, concat, Observable, combineLatest, defer } from 'rxjs';
+import { Observable, combineLatest, merge, concat } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
@@ -28,11 +28,11 @@ type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChange
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
-		this.dbg('new');
+		this.#dbg('new');
 	}
 
 	/**
