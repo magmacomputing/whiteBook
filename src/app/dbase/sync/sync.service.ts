@@ -19,7 +19,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { setPromise, TPromiseStatus } from '@library/utility.library';
+import { Pledge, TPledge } from '@library/utility.library';
 import { isFunction, isUndefined } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
@@ -38,7 +38,7 @@ export class SyncService {
 	 * Additional collections can be defined, and merged into the same slice
 	 */
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
-		const ready = setPromise<boolean>();
+		const ready = new Pledge<boolean>();
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
 		const key: IListenKey = { collection, query };
 
@@ -69,7 +69,7 @@ export class SyncService {
 	}
 
 	public status(collection?: COLLECTION) {
-		const result: Partial<{ collection: string, query: IQuery, promise: TPromiseStatus }>[] = [];
+		const result: Partial<{ collection: string, query: IQuery, promise: TPledge }>[] = [];
 
 		for (const [key, listen] of this.listener.entries())
 			if (isUndefined(collection) || collection === key.collection)

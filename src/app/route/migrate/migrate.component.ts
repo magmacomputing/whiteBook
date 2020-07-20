@@ -27,7 +27,7 @@ import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';
 import { sortKeys, cloneObj, getPath } from '@library/object.library';
 import { isUndefined, isNull, isBoolean, TString } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
-import { IPromise, setPromise } from '@library/utility.library';
+import { Pledge } from '@library/utility.library';
 import { setLocalStore, getLocalStore } from '@library/browser.library';
 import { asAt } from '@library/app.library';
 import { asArray } from '@library/array.library';
@@ -46,12 +46,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public admin: IAdminStore = {};
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
-	private history: IPromise<MHistory[]>;
+	private check!: Pledge<boolean>;
+	private history: Pledge<MHistory[]>;
 	private status!: Record<string, any>;
 	private migrate!: IMigrate[];
 	private current: IRegister | null = null;
 	private dflt!: CLASS;
-	private check!: IPromise<boolean>;
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
@@ -59,7 +59,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
-		this.history = setPromise<MHistory[]>();
+		this.history = new Pledge();
 		this.filter();																					// restore the previous filter state
 
 		Promise.all([																						// fetch required Stores
@@ -169,7 +169,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	async signOut() {																					// signOut of 'on-behalf' mode
 		this.current = null;
 		this.import_ = null;
-		this.history = setPromise<MHistory[]>();
+		this.history = new Pledge();
 		this.hide = '';
 
 		this.store.dispatch(new Login.Other());
@@ -370,7 +370,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			table.splice(0, offset);
 		}
 		if (table.length) {
-			this.check = setPromise();
+			this.check = new Pledge();
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
 			this.check.promise														// wait for pre-process to complete
 				.then(_ready => this.dbg('ready: %j', _ready))
@@ -535,7 +535,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		const p = setPromise<boolean>();
+		const p = new Pledge<boolean>();
 
 		if (flag) {
 			let comment: TString | undefined;

@@ -4,7 +4,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { COLLECTION } from '@dbase/data/data.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
-import { IPromise } from '@library/utility.library';
+import { Pledge } from '@library/utility.library';
 
 export interface IListenKey {
 	collection: COLLECTION;
@@ -15,7 +15,7 @@ export interface IListen {
 	key: IListenKey;											// the key to this listener
 	cnt: number;													// count of snapshots received
 	uid: string | null;										// authenticated User
-	ready: IPromise<boolean>;							// indicate when snap0 is received
+	ready: Pledge<boolean>;								// indicate when snap0 is received
 	subscribe: Subscription;							// used for turning off Subscription
 	method: {
 		setStore: typeof Client.Set | typeof Member.Set | typeof Attend.Set | typeof Device.Set | typeof Admin.Set;
