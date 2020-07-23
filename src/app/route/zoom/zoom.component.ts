@@ -102,19 +102,23 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						where: [
 							addWhere(FIELD.type, Zoom.EVENT.started),
 							addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
+							addWhere('hook', 0),
 						]
 					})
 				),
 
 				mergeMap(track =>															// merge all documents per meeting.started event
 					this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
-						where: addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
+						where: [
+							addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
+							addWhere('hook', 0),
+						],
 					})
 				),
 
 				map(track => {
 					track = track
-						.filter(doc => !nullToZero(doc.hook))			// only 1st webhook
+						// .filter(doc => !nullToZero(doc.hook))			// only 1st webhook
 						.orderBy(FIELD.stamp);										// order by timestamp
 
 					(track as IZoom<TStarted>[])								// look for Meeting.Started
