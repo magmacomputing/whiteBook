@@ -52,6 +52,7 @@ export const fnQuery = (query: IQuery = {}) => {
  * This allows us to set separate Queries for each split clause
  */
 const splitQuery = (query: IQuery = {}) => {
+	// if (isArray(query.where)) debugger;
 	const wheres = asArray(query.where)						// for each 'where' clause
 		.map(where => {
 			if (isArray(where.value)) {
@@ -61,7 +62,7 @@ const splitQuery = (query: IQuery = {}) => {
 			}
 
 			return where.opStr === 'in'
-				? where
+				? asArray(where)
 				: asArray(where.value)									// for each 'value'
 					.distinct()														// remove duplicates
 					.map(value => addWhere(where.fieldPath, value, where.opStr))

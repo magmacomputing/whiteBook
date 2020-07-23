@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
@@ -13,7 +13,7 @@ import { DialogService } from '@service/material/dialog.service';
 import { Instant, fmtDate } from '@library/instant.library';
 import { setTimer } from '@library/observable.library';
 import { asCurrency } from '@library/number.library';
-import { isUndefined, nullToZero } from '@library/type.library';
+import { isUndefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { memoize } from '@library/utility.library';
 import { dbg } from '@library/logger.library';
@@ -107,20 +107,18 @@ export class ZoomComponent implements OnInit, OnDestroy {
 					})
 				),
 
-				mergeMap(track =>															// merge all documents per meeting.started event
-					this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
+				mergeMap(track => {														// merge all documents per meeting.started event
+					return this.data.getLive<IZoom<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
 						where: [
 							addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
 							addWhere('hook', 0),
 						],
+						orderBy: addOrder(FIELD.stamp),						// order by timestamp
 					})
+				}
 				),
 
 				map(track => {
-					track = track
-						// .filter(doc => !nullToZero(doc.hook))			// only 1st webhook
-						.orderBy(FIELD.stamp);										// order by timestamp
-
 					(track as IZoom<TStarted>[])								// look for Meeting.Started
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
 						.forEach(doc => {
