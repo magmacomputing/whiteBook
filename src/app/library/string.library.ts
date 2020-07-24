@@ -30,7 +30,7 @@ export const toProperCase = (...str: string[]): string =>
 		.join(' ')
 
 export const randomString = (len = 36) =>
-	Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15);
+	strlen(Math.random().toString(len).substring(2, 15) + Math.random().toString(len).substring(2, 15), 30);
 
 /**
  * use sprintf-style formatting on a string.  
@@ -86,4 +86,19 @@ export const toCamel = (str: string) => {
 	return words === null
 		? null
 		: words[0].toLowerCase() + words.slice(1).map(toTitle).join('');
+}
+
+type StrLen<Min, Max = Min> = string & { __value__: never };
+const isStrLen = <Min extends number, Max extends number>(str: string, min: Min, max?: Max): str is StrLen<Min, Max> =>
+	str.length >= min && str.length <= (max ?? min);
+
+// type constructor function
+export const strlen = <Min extends number, Max extends number>(str: unknown, min: Min, max?: Max): StrLen<Min, Max> => {
+	if (!isString(str))
+		throw new Error('invalid string length');
+
+	if (!isStrLen(str, min, max))
+		throw new Error('string length is not between specified min and max');
+
+	return str;
 }
