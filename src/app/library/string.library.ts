@@ -1,5 +1,5 @@
 import { format } from 'util';
-import { isString, isObject } from '@library/type.library';
+import { isString, isObject, assert } from '@library/type.library';
 
 // Prototype <string> extensions
 
@@ -89,16 +89,9 @@ export const toCamel = (str: string) => {
 }
 
 type StrLen<Min, Max = Min> = string & { __value__: never };
-const isStrLen = <Min extends number, Max extends number>(str: string, min: Min, max?: Max): str is StrLen<Min, Max> =>
-	str.length >= min && str.length <= (max ?? min);
+export const strlen = <Min extends number, Max extends number>(str: unknown, min: Min, max?: Max) => {
+	assert(isString(str), 'invalid string');
+	assert(str.length >= min && str.length <= (max ?? min), 'string length is not between specified min and max')
 
-// type constructor function
-export const strlen = <Min extends number, Max extends number>(str: unknown, min: Min, max?: Max): StrLen<Min, Max> => {
-	if (!isString(str))
-		throw new Error('invalid string length');
-
-	if (!isStrLen(str, min, max))
-		throw new Error('string length is not between specified min and max');
-
-	return str;
+	return str as StrLen<Min, Max>;
 }

@@ -1,3 +1,5 @@
+import { AssertionError } from 'assert';
+
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
@@ -55,6 +57,12 @@ export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 export const nullToZero = (obj: number | null | undefined = null) => obj ?? 0;
 export const nullToEmpty = <T>(obj: T | null | undefined = null) => obj ?? '';
 export const nullToValue = <T>(obj: T | null | undefined = null, value: T) => obj ?? value;
+
+export function assert(condition: any, message?: string): asserts condition {
+	if (!condition) {
+		throw new AssertionError({ message })
+	}
+}
 
 export type TString = string | string[];
 export type TNumber = number | number[];
