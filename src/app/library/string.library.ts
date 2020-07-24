@@ -1,5 +1,5 @@
 import { format } from 'util';
-import { isString, isObject, assert } from '@library/type.library';
+import { isString, isObject, assertCondition, assertString } from '@library/type.library';
 
 // Prototype <string> extensions
 
@@ -23,7 +23,7 @@ if (!String.prototype.hasOwnProperty('trimAll')) {
 
 // General <string> functions
 
-export const toProperCase = (...str: string[]): string =>
+export const toProperCase = (...str: string[]) =>
 	str
 		.map(text => text.replace(/\w\S*/g,
 			word => word.charAt(0).toUpperCase() + word.substr(1).toLowerCase()))
@@ -90,8 +90,8 @@ export const toCamel = (str: string) => {
 
 type StrLen<Min, Max = Min> = string & { __value__: never };
 export const strlen = <Min extends number, Max extends number>(str: unknown, min: Min, max?: Max) => {
-	assert(isString(str), 'invalid string');
-	assert(str.length >= min && str.length <= (max ?? min), 'string length is not between specified min and max')
+	assertString(str);
+	assertCondition(str.length >= min && str.length <= (max ?? min), 'string length is not between specified min and max')
 
 	return str as StrLen<Min, Max>;
 }

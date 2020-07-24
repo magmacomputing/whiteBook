@@ -58,11 +58,11 @@ export const nullToZero = (obj: number | null | undefined = null) => obj ?? 0;
 export const nullToEmpty = <T>(obj: T | null | undefined = null) => obj ?? '';
 export const nullToValue = <T>(obj: T | null | undefined = null, value: T) => obj ?? value;
 
-export function assert(condition: any, message?: string): asserts condition {
-	if (!condition) {
+export function assertCondition(condition: any, message?: string): asserts condition {
+	if (!condition)
 		throw new AssertionError({ message })
-	}
 }
+export function assertString(str: unknown): asserts str is string { assertCondition(isString(str), `$[str}: invalid string`) };
 
 export type TString = string | string[];
 export type TNumber = number | number[];
