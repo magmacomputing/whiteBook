@@ -51,8 +51,7 @@
 						"allowedCommonJsDependencies": [
 							"util",
 							"firebase",
-							"@firebase",
-							"@angular/firebase"
+							"@firebase"
 						]
           },
           "configurations": {
@@ -65,9 +64,9 @@
               ],
               "optimization": true,
               "outputHashing": "all",
-              "sourceMap": false,
+              "sourceMap": true,
               "extractCss": true,
-              "namedChunks": false,
+              "namedChunks": true,
               "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
