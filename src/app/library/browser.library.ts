@@ -29,7 +29,7 @@ export const prompt = (msg: any, dflt?: any) =>
 const setStorage = (key: string, obj: any, target: Storage) => {
 	target.setItem(key, (isObject(obj)
 		? JSON.stringify(obj)
-		: obj))
+		: obj));
 }
 
 const getStorage = <T>(key: string, target: Storage, dflt?: T) =>

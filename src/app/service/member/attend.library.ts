@@ -1,6 +1,6 @@
 import { ITimetableState } from '@dbase/state/state.define';
 import { FIELD, BONUS, COLLECTION, STORE } from '@dbase/data/data.define';
-import { IGift, TBonus } from '@dbase/data/data.schema';
+import { IGift, TBonus, IAttend, ISchedule } from '@dbase/data/data.schema';
 
 import { TDate, getDate, Instant } from '@library/instant.library';
 import { TString, isUndefined } from '@library/type.library';
@@ -22,7 +22,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 
 	const gifts = source[COLLECTION.member][STORE.gift];								// the active Gifts for this Member
 	const plan = (source[COLLECTION.client][STORE.plan] || [])[0];			// Member's current plan
-	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [], attendClass = [] } = source[COLLECTION.attend];
+	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.attend];
 	const scheme = (source[COLLECTION.client][STORE.bonus] || [])
 		.groupBy<BONUS>(FIELD.key);														// get the <rules> for each Bonus
 
@@ -170,9 +170,14 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		 * The Home scheme qualifies as a Bonus if the Member has already attended an '@Home' class earlier today
 		 */
 		case scheme.home
-			&& attendToday.length >= scheme.home.level					// required number of Attends today
+			&& attendToday
+				.map(attend => attend.timetable[FIELD.id])				// get ID of the schedule attended
+				.map(id => source.client.schedule?.find(sched => sched[FIELD.id] === id) as ISchedule)
+				.filter(sched => sched && sched.location === BONUS.home)
+				.length >= scheme.home.level											// required number of Attends today
 			&& (isUndefined(elect) || elect !== BONUS.none):		// Member elected to not take Bonus
 
+			console.log('attendToday: ', attendToday);
 			bonus = {
 				[FIELD.id]: scheme.home[FIELD.id],
 				[FIELD.type]: BONUS.home,
