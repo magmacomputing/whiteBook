@@ -104,7 +104,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 		 */
 		case scheme.class
 			&& attendWeek
-				.filter(row => isUndefined(row.bonus))						// only non-Bonus attends
+				.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)	// only non-Bonus attends
 				.length >= scheme.class.level											// must attend the 'level' number
 			&& attendWeek																				// sum the 'week' bonus claimed
 				.filter(row => row.bonus?.[FIELD.type] === BONUS.class)
