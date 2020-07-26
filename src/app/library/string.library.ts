@@ -53,7 +53,7 @@ export const plural = (val: string | number | Record<string, string>, word: stri
 		[1, -1].includes(Number(num)) ? word : plural;
 
 	return isObject(val)
-		? (num: string, word: string) => _plural(num, word, val[word])
+		? (num: string, word: string) => _plural(num, word, (val as Record<string, string>)[word])
 		: _plural(val, word, plural)
 }
 
