@@ -186,18 +186,19 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.hide = reg[FIELD.hidden]
 			? 'Un'
 			: ''
-		this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
+		return this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
 	}
 
 	/**
-	 * calculate new summary, and batch into /admin/account
+	 * calculate new summary, and batch into /member/status/account
 	 */
 	async setAccount() {
 		const creates: IStoreMeta[] = [],
 			updates: IStoreMeta[] = [];
+
 		await this.member.setAccount(creates, updates);
 
-		this.data.batch(creates, updates);
+		return this.data.batch(creates, updates);
 	}
 
 	get credit() {

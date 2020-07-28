@@ -62,7 +62,7 @@ export function assertCondition(condition: any, message?: string): asserts condi
 	if (!condition)
 		throw new AssertionError({ message })
 }
-export function assertString(str: unknown): asserts str is string { assertCondition(isString(str), `$[str}: invalid string`) };
+export function assertString(str: unknown): asserts str is string { assertCondition(isString(str), `Invalid string: ${str}`) };
 export function assertNever(val: never): asserts val is never { throw new Error(`Unexpected object: ${val}`) };
 
 export type TString = string | string[];

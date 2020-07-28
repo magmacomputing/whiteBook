@@ -35,7 +35,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 						? key.toLowerCase()												// string to lowercase to aid matching
 						: isArray(key) && key.every(isString)
 							? key.map(toLower)											// string[] to lowercase
-							: key;
+							: key
 
 					return (isUndefined(clause.value) ? [undefined] : asArray(clause.value))
 						.map(value => {														// each value logically OR-ed to see if at-least one match

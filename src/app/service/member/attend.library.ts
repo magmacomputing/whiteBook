@@ -177,7 +177,6 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 				.length >= scheme.home.level											// required number of Attends today
 			&& (isUndefined(elect) || elect !== BONUS.none):		// Member elected to not take Bonus
 
-			console.log('attendToday: ', attendToday);
 			bonus = {
 				[FIELD.id]: scheme.home[FIELD.id],
 				[FIELD.type]: BONUS.home,
