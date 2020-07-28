@@ -3,7 +3,7 @@ import { AssertionError } from 'assert';
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
-	if (type === 'Window') debugger;
+	// if (type === 'Window') debugger;
 	switch (true) {
 		case type === 'Object':
 			return obj.constructor.name;							// return Class name

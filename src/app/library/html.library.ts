@@ -37,6 +37,5 @@ export const swipe = (thisIndex: number, lastIndex: number, event: any) => {
 
 // allow for UI to drag/drop elements
 // TODO: persist item sorting
-export const drag = (event: CdkDragDrop<any[]>) => {
+export const drag = (event: CdkDragDrop<any[]>) =>
 	moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
-}

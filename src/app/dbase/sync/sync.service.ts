@@ -83,7 +83,7 @@ export class SyncService {
 	 * and optionally provide a callback function to process after the event
 	 */
 	public wait<T>(event: any, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
-		const timeOut = 10000;															// wait up-to 10 seconds
+		const timeOut = 10_000;															// wait up-to 10 seconds
 
 		return new Promise<T>((resolve, reject) => {
 			this.actions.pipe(
