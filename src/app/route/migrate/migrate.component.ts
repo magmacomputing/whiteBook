@@ -230,7 +230,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				return !isUndefined(row.approved);
 			})
 			.map(row => {
-				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
+				const approve = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
@@ -265,7 +265,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					expiry: this.getExpiry(row, profile, plans, prices),
 					note: row.note,
 				} as IPayment
-			});
+			})
 
 		// parse the Attends to look for 'Gift' notes, and build a Gift document
 		let giftCnt = 0;
