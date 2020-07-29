@@ -19,7 +19,7 @@ import { DataService } from '@dbase/data/data.service';
 
 import { getDate, Instant, TDate } from '@library/instant.library';
 import { isUndefined, isNumber, isEmpty } from '@library/type.library';
-import { getPath, sortKeys } from '@library/object.library';
+import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -293,7 +293,7 @@ export class AttendService {
 
 		// build a link-link of Payments
 		payments
-			.sort(sortKeys(`-${FIELD.stamp}`, FIELD.type))
+			.orderBy(`-${FIELD.stamp}`, FIELD.type)
 			.forEach((payment, idx, arr) => {
 				payment.link = {
 					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,

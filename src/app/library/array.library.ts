@@ -29,8 +29,8 @@ declare global {
 		groupBy<K extends string>(key: TString, flat: false): Record<K, T[]>;
 
 		/** return sorted Array-of-objects */
-		orderBy(keys: string | string[]): T[];
-		sortBy(keys: string | string[]): T[];
+		orderBy(...keys: string[]): T[];
+		sortBy(...keys: string[]): T[];
 
 		/** return new Array with no repeated elements */
 		distinct(): T[];
@@ -69,11 +69,11 @@ if (!Array.prototype.hasOwnProperty('orderBy')) {
 		configurable: false,
 		enumerable: false,
 		writable: false,
-		value: function (keys: string | string[]) {
+		value: function (...keys: string[]) {
 			return this.sort((a: Record<string, any>, b: Record<string, any>) => {
 				let result = 0;
 
-				asArray(keys).forEach(key => {
+				keys.flat().forEach(key => {
 					const dir = key.startsWith('-') ? -1 : 1;
 					if (dir === -1) key = key.substring(1);
 
