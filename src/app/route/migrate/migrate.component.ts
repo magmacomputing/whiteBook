@@ -24,7 +24,7 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';
-import { sortKeys, cloneObj, getPath } from '@library/object.library';
+import { cloneObj, getPath } from '@library/object.library';
 import { isUndefined, isNull, isBoolean, TString } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
@@ -150,7 +150,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
-						return (resp.history || []).sort(sortKeys(FIELD.stamp));
+						return (resp.history || []).orderBy(FIELD.stamp);
 					})
 					.then(history => this.history.resolve(history))
 				this.history.promise
@@ -318,7 +318,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const offset = topUp.amount
 				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
 				: desc.expiry;
-			expiry = getDate(row.approved || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
+			expiry = getDate(row.approved || row.stamp).add(offset, 'month').add(row.hold ?? 0, 'days').startOf('day').ts;
 			if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
 		}
 
@@ -357,7 +357,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		])
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-		const start = attend.sort(sortKeys('-track.date'));
+		const start = attend.orderBy('-track.date');
 		const preprocess = cloneObj(table);
 
 		// const endAt = table.filter(row => row.date >= getDate('2017-Dec-31').format(Instant.FORMAT.yearMonthDay)).length;
@@ -627,7 +627,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const closed = active[0] && active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
-		active.sort(sortKeys('-' + FIELD.stamp));
+		active.orderBy('-' + FIELD.stamp);
 		if (active[0][FIELD.type] === PAYMENT.debit && active[0].approve && !active[0][FIELD.expire]) {
 			const test1 = active[0].expiry && active[0].expiry < getStamp();
 			const test2 = summary.pend < 0;			// closed account
