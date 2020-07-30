@@ -1,3 +1,4 @@
+import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { Device } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
@@ -16,6 +17,7 @@ import { dbg } from '@library/logger.library';
  * Currently this is _config_ with placeholders evaluated, and  
  * UI preferences for _login_ (which are needed prior to authentication)
  */
+@Injectable()
 @State<TStateSlice<IStoreMeta>>({
 	name: COLLECTION.device,
 	defaults: {}
