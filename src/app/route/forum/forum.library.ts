@@ -1,7 +1,7 @@
-import { COMMENT } from '@library/config.define';
+import { COMMENT } from '@dbase/state/config.define';
 
-import { TString } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
+import { TString } from '@library/type.library';
+import { asArray } from '@library/array.library';
 
 /**
  * Remove unnecessary text-strings from Note field.  
@@ -13,7 +13,7 @@ export const cleanNote = (note?: TString) => {
 	let result: TString | undefined;
 	let clean: TString | undefined = undefined;
 
-	if (note) {
+	if (note && !note.toString().replace(' ', '').includes('xZS')) {
 		clean = asArray(note)
 			.map(note => {														// first, clean the Note of noise-words
 				COMMENT.patterns
@@ -42,6 +42,7 @@ export const cleanNote = (note?: TString) => {
 		if (clean.length === 0)
 			clean = undefined;												// unused note
 	}
+	else clean = note;
 
 	if (comment.length > 1)
 		result = comment;														// Comment string[]

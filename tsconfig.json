@@ -1,44 +1,46 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
-    "sourceMap": true,
-    "declaration": false,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "importHelpers": true,
-    "target": "esnext",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "esnext",
-      "dom"
-    ],
-    "strict": true,
-    "paths": {
-      "@env/*": [
-        "src/environments/*"
-      ],
-      "@lib/*": [
-        "lib/*"
-      ],
-      "@dbase/*": [
-        "src/app/dbase/*"
-      ],
-      "@library/*": [
-        "src/app/library/*"
-      ],
-      "@service/*": [
-        "src/app/service/*"
-      ],
-      "@route/*": [
-        "src/app/route/*",
-        "src/app/route/router/*"
-      ]
-    }
-  }
+	"compileOnSave": false,
+	"compilerOptions": {
+		"baseUrl": "./",
+		"outDir": "./dist/out-tsc",
+		"sourceMap": true,
+		"declaration": false,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"importHelpers": true,
+		"incremental": true,
+		"target": "es2019",
+		"typeRoots": [
+			"node_modules/@types"
+		],
+		"lib": [
+			"esnext",
+			"dom"
+		],
+		"strict": true,
+		"paths": {
+			"@env/*": [
+				"src/environments/*",
+			],
+			"@dbase/*": [
+				"src/app/dbase/*",
+			],
+			"@library/*": [
+				"src/app/library/*",
+			],
+			"@route/*": [
+				"src/app/route/*",
+			],
+			"@service/*": [
+				"src/app/service/*",
+			],
+		}
+	},
+	"exclude": [
+		"doc/**/*.ts",
+		"node_modules",
+		"dist"
+	]
 }

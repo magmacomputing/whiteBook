@@ -1,6 +1,9 @@
 <div *ngIf="app$ | async as app">
 	<mat-toolbar color="primary">
-		<span>The WhiteBook</span>
+		<button mat-icon-button>
+			<img src="../favicon.ico" />
+		</button>
+		<span>&nbsp;&nbsp;&nbsp;Dance & Fitness Republic</span>
 		<span class="spacer"></span>
 
 		<div *ngIf="app.auth.user; else noLogin">
@@ -8,10 +11,7 @@
 				<button mat-menu-item [matMenuTriggerFor]="acctMenu">
 					<mat-icon>face</mat-icon>Account
 				</button>
-				<div [hidden]="!app.auth.token ||
-				!app.auth.token.claims.claims ||
-				!app.auth.token.claims.claims.roles || 
-				!app.auth.token.claims.claims.roles.includes('admin')">
+				<div [hidden]="!app.auth.token?.claims.claims?.roles?.includes(ROLE.admin)">
 					<button mat-menu-item [matMenuTriggerFor]="adminMenu">
 						<mat-icon>supervisor_account</mat-icon>Admin
 					</button>
@@ -19,12 +19,16 @@
 				<button mat-menu-item>
 					<mat-icon>settings</mat-icon>Settings
 				</button>
+				<button mat-menu-item (click)="this.navigate.route('about')">
+					<mat-icon>help_outline</mat-icon>About
+				</button>
 				<button mat-menu-item (click)="data.auth.signOut()">
 					<mat-icon>highlight_off</mat-icon>Logout
 				</button>
 			</mat-menu>
 
 			<mat-menu #acctMenu="matMenu">
+				<button mat-menu-item (click)="this.navigate.route('attend')">Attend</button>
 				<button mat-menu-item (click)="this.navigate.route('profile/plan')">Plan</button>
 				<button mat-menu-item (click)="this.navigate.route('profile/account')">Status</button>
 				<button mat-menu-item (click)="this.navigate.route('profile/history')">History</button>
@@ -32,18 +36,19 @@
 
 			<mat-menu #adminMenu="matMenu">
 				<button mat-menu-item (click)="this.navigate.route('migrate')">Migrate User</button>
+				<button mat-menu-item (click)="this.navigate.route('zoom')">Zoom Meetings</button>
 			</mat-menu>
 
 			<div matRipple>
 				<button [matMenuTriggerFor]="appMenu" mat-icon-button
-					[style.background-image]=" app.auth.user.photoURL | safe: 'style' ">
+					[style.background-image]=" app.auth.user?.photoURL | safe: 'style' ">
 				</button>
 			</div>
 		</div>
 	</mat-toolbar>
 
 	<div *ngFor="let message of app.member.message">
-		<div *ngIf="message.type == 'alert'">
+		<div *ngIf="message.type == MESSAGE.alert">
 			<p>{{ message.note }}</p>
 		</div>
 	</div>

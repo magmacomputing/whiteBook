@@ -1,16 +1,20 @@
 import { FireService } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { FIELD } from '@dbase/data/data.define';
-import { FILTER } from '@library/config.define';
-import { TStoreBase, isClientDocument, IStoreMeta, FType, FNumber } from '@dbase/data/data.schema';
+import { FILTER } from '@dbase/state/config.define';
+import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
+import { TStoreBase, IStoreMeta, FType, FNumber, IClientBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
-
-import { isObject, TString } from '@lib/type.library';
-import { equalObj, getPath } from '@lib/object.library';
-import { asString } from '@lib/string.library';
-import { asArray } from '@lib/array.library';
 import { addWhere } from '@dbase/fire/fire.library';
+
+import { isObject, TString, isString } from '@library/type.library';
+import { isEqual, getPath } from '@library/object.library';
+import { asString } from '@library/string.library';
+import { asArray } from '@library/array.library';
+
+// client documents have a '<key>' field, user documents have a '<uid>' field
+export const isClientDocument = (document: TStoreBase): document is IClientBase =>
+	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: IStoreMeta, filter: TWhere = []) => {
@@ -84,8 +88,12 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param discards: string[]      array of field-names to use in the compare
  * @param nextDoc:  IStoreMeta    document about to be Created
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
+ * @returns boolean:							true indicates at least one currDoc matches nextDoc, so no Insert needed
  */
 export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: IStoreMeta[]) => {
+	console.log('discard.discards: ', discards);
+	console.log('discard.nextDoc: ', nextDoc);
+	console.log('discard.currDocs: ', currDocs);
 	const discardFields = asArray(discards);				// list of fields to use in comparison
 	if (discardFields.length === 0)
 		return true;																	// nothing to compare
@@ -94,11 +102,20 @@ export const checkDiscard = (discards: TString, nextDoc: IStoreMeta, currDocs: I
 		.map(currDoc => 															// for each current document
 			discardFields																// against each of the field-names to match...
 				.map(field => {
-					const bool = isObject(nextDoc[field])		// compare field-by-field
-						? equalObj(nextDoc[field], currDoc[field])
-						: asString(nextDoc[field]) == asString(currDoc[field])
-					if (!bool)
-						console.log('change ', field, ': ', currDoc[field], ' => ', nextDoc[field]);
+					const val1 = nextDoc[field];
+					const val2 = currDoc[field];
+					const url1 = isString(val1) && (val1.startsWith('http://') || val1.startsWith('https://'));
+					const url2 = isString(val2) && (val2.startsWith('http://') || val2.startsWith('https://'));
+					const fld1 = url1 ? new URL(val1).pathname : val1;
+					const fld2 = url2 ? new URL(val2).pathname : val2;
+
+					const bool = isObject(fld1)
+						? isEqual(fld1, fld2)									// compare field-by-field
+						: asString(fld1) == asString(fld2)		// compare string-value
+					if (!bool) {
+						console.log('change ', field, 'from : ', currDoc[field]);
+						console.log('change ', field, 'into : ', nextDoc[field]);
+					}
 					return bool;														// <true> if fields are equal
 				})
 				.every(bool => bool === true)							// is a match if *all* fields are equal

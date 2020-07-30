@@ -8,90 +8,78 @@ import { Store } from '@ngxs/store';
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { MHistory, ILocalStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL } from '@route/migrate/migrate.define';
+import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
+import { LOOKUP, PACK, SPECIAL, CREDIT, SHEET_URL, SHEET_PREFIX, INSTRUCTOR } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
+
 import { DataService } from '@dbase/data/data.service';
-
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment } from '@dbase/data/data.schema';
-import { asAt } from '@library/app.library';
-import { AuthOther } from '@dbase/state/auth.action';
+import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, IImport, IForum } from '@dbase/data/data.schema';
+import { Login } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
-import { SetMember } from '@dbase/state/state.action';
+import { Member } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
-import { SyncService } from '@dbase/sync/sync.service';
+import { AdminStorage } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
-import { IQuery, TWhere } from '@dbase/fire/fire.interface';
+import { TWhere } from '@dbase/fire/fire.interface';
 
-import { Instant, getDate, getStamp, fmtDate } from '@lib/instant.library';
-import { sortKeys, cloneObj, getPath } from '@lib/object.library';
-import { isUndefined, isNull, isBoolean, TString } from '@lib/type.library';
-import { asString, asNumber } from '@lib/string.library';
-import { IPromise, createPromise } from '@lib/utility.library';
-import { setLocalStore, getLocalStore } from '@lib/browser.library';
-import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
+import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';
+import { cloneObj, getPath } from '@library/object.library';
+import { isUndefined, isNull, isBoolean, TString } from '@library/type.library';
+import { asString, asNumber } from '@library/string.library';
+import { Pledge } from '@library/utility.library';
+import { setLocalStore, getLocalStore } from '@library/browser.library';
+import { asAt } from '@library/app.library';
+import { asArray } from '@library/array.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-migrate',
 	templateUrl: './migrate.component.html',
 })
 export class MigrateComponent implements OnInit, OnDestroy {
-	private dbg = dbg(this);
-	private url = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
-	private prefix = 'alert';
-	public hidden = false;
-	public creditIdx = 0;
-	public credit = ['value', 'zero', 'all'];
+	private dbg = dbg(this, 'MigrateComponent');
 
 	public dash$!: Observable<IAdminState["dash"]>;
-	private account$!: Observable<IAccountState>;
-	private history: IPromise<MHistory[]>;
-	private status!: { [key: string]: any };
+	public account$!: Observable<IAccountState>;
+	public import_: IImport | null = null;
+	public admin: IAdminStore = {};
+	public hide = 'Un';																				// prefix for the <hide> UI button
+
+	private check!: Pledge<boolean>;
+	private history: Pledge<MHistory[]>;
+	private status!: Record<string, any>;
 	private migrate!: IMigrate[];
 	private current: IRegister | null = null;
-	private user!: firebase.UserInfo | null;
 	private dflt!: CLASS;
-	private check!: IPromise<boolean>;
-	public hide = 'Un';
 
 	private schedule!: ISchedule[];
 	private calendar!: ICalendar[];
 	private events!: Record<string, IEvent>;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
-		private sync: SyncService, private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
-		this.history = createPromise<MHistory[]>();
+		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
+		this.history = new Pledge();
+		this.filter();																					// restore the previous filter state
 
-		const local = getLocalStore('admin.migrate.filter') as ILocalStore || { hidden: false, idx: 2 };
-		this.creditIdx = local.idx;
-		this.hidden = local.hidden;
-		this.filter();
-
-		Promise.all([
-			this.state.getAuthData().pipe(take(1)).toPromise(),
+		Promise.all([																						// fetch required Stores
 			this.data.getStore<ISchedule>(STORE.schedule),
-			this.data.getStore<ICalendar>(STORE.calendar),
-			this.data.getStore<IEvent>(STORE.event),
-		]).then(([auth, schedule, calendar, events]) => {
-			this.user = auth.auth.user;														// stash the Auth'd user
+			this.data.getStore<ICalendar>(STORE.calendar, addWhere(FIELD.type, 'Closed', '!=')),
+			this.data.getStore<IEvent>(STORE.event, addWhere(FIELD.type, 'special')),
+		]).then(([schedule, calendar, events]) => {
 			this.schedule = schedule;
 			this.calendar = calendar;
-			this.events = events.reduce((acc, row) => { acc[row.key] = row; return acc; }, {} as Record<string, IEvent>)
+			this.events = events.groupBy(FIELD.key);
 		})
 	}
 
 	ngOnInit() { }
 
-	ngOnDestroy() {
-		if (this.current)
-			this.signOut();
-	}
+	ngOnDestroy() { }
 
 	/**
 	 * Very drastic:  remove all references to a Member  
-	 * use getFire() to delete direct from Firestore (and not from NGXS)
+	 * uses getFire() to delete directly from Firestore (and not from State)
 	 */
 	async delUser() {
 		const where: TWhere = addWhere(FIELD.uid, this.current!.uid);
@@ -99,7 +87,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
 			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
 			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
+			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
 		return this.data.batch(undefined, undefined, deletes.flat());
@@ -112,12 +100,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle showing Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
+		this.admin = getLocalStore(AdminStorage) || {};
+		const migrateFilter = this.admin.migrateFilter || { hidden: false, idx: 2 };
+
 		this.dash$ = this.state.getAdminData().pipe(
+			// tap(data => console.log(data)),
 			map(data => data.dash
-				.filter(row => row.register.migrate)
-				.filter(row => !!row.register[FIELD.hidden] === this.hidden)
+				.filter(row => row[STORE.import])
+				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
 				.filter(row => {
-					switch (this.credit[this.creditIdx]) {
+					switch (CREDIT[migrateFilter.idx]) {
 						case 'all':
 							return true;
 						case 'value':
@@ -126,42 +118,39 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
-			))
+			),
+			// tap(data => console.log(data)),
+		)
 
 		switch (key) {
 			case 'hide':
-				this.hidden = !this.hidden;
+				migrateFilter.hidden = !migrateFilter.hidden;
 				break;
 			case 'credit':
-				this.creditIdx += 1;
-				if (!this.credit.hasOwnProperty(this.creditIdx))
-					this.creditIdx = 0;
+				migrateFilter.idx += 1;
+				if (migrateFilter.idx >= CREDIT.length)
+					migrateFilter.idx = 0;
 				break;
 		}
 
-		setLocalStore('admin.migrate.filter', { hidden: this.hidden, idx: this.creditIdx });
+		setLocalStore(AdminStorage, { ...this.admin, migrateFilter });				// persist settings
 	}
 
-	async signIn(register: IRegister) {
+	async signIn(register: IRegister, import_: IImport) {
 		if (this.current && this.current!.user.customClaims!.alias === register.user.customClaims!.alias)
-			return this.signOut();																// <click> on picture will signIn / signOut
-		this.current = register;																// stash current Member
+			return this.signOut();																		// <click> on picture will signIn / signOut
+		this.current = register;																		// stash current Member
+		this.import_ = import_;																			// stash Members Import sheet
 
-		this.store.dispatch(new AuthOther(register.uid))
+		this.store.dispatch(new Login.Other(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
-				const query: IQuery = { where: addWhere(FIELD.uid, [this.user!.uid, register.user.uid].distinct()) };
-				await Promise.all([																	// initial sync complete
-					this.sync.on(COLLECTION.member, query),
-					this.sync.on(COLLECTION.attend, query),
-				]);
-
 				const action = 'history,status';
-				const { id, provider } = register.migrate!.providers[0];
+				const { id, provider } = import_.providers![0];
 				this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
 						this.status = resp.status;
-						return (resp.history || []).sort(sortKeys(FIELD.stamp));
+						return (resp.history || []).orderBy(FIELD.stamp);
 					})
 					.then(history => this.history.resolve(history))
 				this.history.promise
@@ -177,19 +166,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			});
 	}
 
-	async	signOut() {																					// signOut of 'on-behalf' mode
+	async signOut() {																					// signOut of 'on-behalf' mode
 		this.current = null;
-		this.history = createPromise<MHistory[]>();
+		this.import_ = null;
+		this.history = new Pledge();
 		this.hide = '';
 
-		this.store.dispatch(new AuthOther(this.user!.uid))
-			.pipe(take(1))
-			.subscribe(_other => {
-				const query: IQuery = { where: addWhere(FIELD.uid, this.user!.uid) };
-
-				this.sync.on(COLLECTION.member, query);
-				this.sync.on(COLLECTION.attend, query);							// restore Auth User's state
-			})
+		this.store.dispatch(new Login.Other());
 	}
 
 	/**
@@ -203,18 +186,23 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.hide = reg[FIELD.hidden]
 			? 'Un'
 			: ''
-		this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
+		return this.data.updDoc(STORE.register, reg[FIELD.id], { ...reg });
 	}
 
 	/**
-	 * calculate new summary, and batch into /admin/account
+	 * calculate new summary, and batch into /member/status/account
 	 */
 	async setAccount() {
 		const creates: IStoreMeta[] = [],
 			updates: IStoreMeta[] = [];
+
 		await this.member.setAccount(creates, updates);
 
-		this.data.batch(creates, updates);
+		return this.data.batch(creates, updates);
+	}
+
+	get credit() {
+		return CREDIT;
 	}
 
 	/** get the data needed to migrate a Member */
@@ -230,6 +218,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		])
 	}
 
+	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
 		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
 		const creates: IStoreMeta[] = hist
@@ -241,12 +230,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				return !isUndefined(row.approved);
 			})
 			.map(row => {
-				const approve: { stamp: number; uid: string; } = { stamp: 0, uid: '' };
+				const approve = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					approve.stamp = row.approved!;
-					approve.uid = 'JorgeEC';
+					approve.uid = INSTRUCTOR;
 				}
 
 				if (payType === PRICE.topUp) {
@@ -276,8 +265,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					expiry: this.getExpiry(row, profile, plans, prices),
 					note: row.note,
 				} as IPayment
-			});
+			})
 
+		// parse the Attends to look for 'Gift' notes, and build a Gift document
 		let giftCnt = 0;
 		let start = 0;
 		let rest: string | undefined = undefined;
@@ -285,10 +275,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const search = (row.note && row.note.search('Gift #') + 6) || 0;
-				const match = search && row.note!.substring(search).match(/\d+/g);
+				const search = (row.note && row.note.search('Gift #') + 6) || 0;		// find the start of the pattern
+				const match = search && row.note!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
 				if (match) {
-					const nbr = parseInt(match[0]);
+					const nbr = parseInt(match[0]);																		// TODO: this should be the last element?
 					if (nbr === 1) {
 						if (giftCnt && start && !gifts.find(row => row[FIELD.stamp] === start)) {
 							creates.push(this.setGift(giftCnt, start, rest));
@@ -298,7 +288,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							.substring(search + match[0].length)
 							// .replace(/[^\x20-\x7E]/g, '')
 							.trim();
-						if (rest && rest.startsWith(':'))
+						if (rest && (rest.startsWith(':') || rest.startsWith(',')))
 							rest = rest.substring(1).trim();
 						start = row.stamp;
 					}
@@ -310,7 +300,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
 			creates.push(this.setGift(giftCnt, start, rest));
 
-		this.data.batch(creates, undefined, undefined, SetMember)
+		this.data.batch(creates, undefined, undefined, Member.Set)
 			.then(_ => this.member.updAccount())
 			.then(_ => this.dbg('payment: %s', creates.length))
 	}
@@ -328,13 +318,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const offset = topUp.amount
 				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
 				: desc.expiry;
-			expiry = getDate(row.approved || row.stamp).add(offset, 'months').add(row.hold || 0, 'days').startOf('day').ts;
+			expiry = getDate(row.approved || row.stamp).add(offset, 'month').add(row.hold ?? 0, 'days').startOf('day').ts;
 			if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
 		}
 
 		return expiry;
 	}
 
+	// a Gift is effective from the start of day, unless there is a 'start <HH:MM>' note
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getDate(start).startOf('day').ts;
 		if (note && note.includes('start: ')) {
@@ -366,11 +357,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		])
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-		const start = attend.sort(sortKeys('-track.date'));
+		const start = attend.orderBy('-track.date');
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2019-Apr-23').format(Instant.FORMAT.yearMonthDay)).length;
-		// table.splice(table.length - endAt);
+		// const endAt = table.filter(row => row.date >= getDate('2017-Dec-31').format(Instant.FORMAT.yearMonthDay)).length;
+		// table.splice(table.length - endAt);							// up-to, but not includng endAt
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
@@ -380,7 +371,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			table.splice(0, offset);
 		}
 		if (table.length) {
-			this.check = createPromise();
+			this.check = new Pledge();
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
 			this.check.promise														// wait for pre-process to complete
 				.then(_ready => this.dbg('ready: %j', _ready))
@@ -396,8 +387,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 		if (flag) this.dbg('hist: %j', row);
 
-		let what: CLASS = LOOKUP[row.type] || row.type;
+		let what: CLASS = LOOKUP[row.type] ?? row.type;
 		const now = getDate(row.date);
+		const hhmi = this.asTime(getDate(row.stamp).format(Instant.FORMAT.HHMI));
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
@@ -428,10 +420,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			])
 			const obj = prices
 				.filter(row => row[FIELD.key] === plan[0].plan)
-				.reduce((accum, row) => {
-					accum[row[FIELD.type]] = row;
-					return accum;
-				}, {} as Record<PRICE, IPrice>)
+				.groupBy<PRICE>(FIELD.type)
 			const sunday = bonus.find(row => row[FIELD.key] === BONUS.sunday);
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
@@ -452,11 +441,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
-			price = obj.full.amount;									// set this row's price to MultiStep
+			price = obj.full.amount;											// set this row's price to MultiStep
 		}
 
 		switch (true) {
-			case SPECIAL.includes(prefix):						// special event match by <colour>, so we need to prompt for the 'class'
+			case SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -465,7 +454,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				if (!migrate.attend[sfx]) {
 					for (idx = 0; idx < event.agenda.length; idx++) {
-						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+						if (window.prompt(`This ${sfx} class on ${calDate.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
 							break;
 					}
 					if (idx === event.agenda.length)
@@ -478,20 +467,21 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
-					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,// note: caldr.name,
+					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: row.note,
 				}
 				break;
 
 			case (!isUndefined(caldr) && !row.elect):			// special event match by <date>, so we already know the 'class'
 				event = this.events[caldr[FIELD.type]];
-
 				if (what === CLASS.MultiStep && !event.agenda.includes(what))
 					what = CLASS.SingleStep;
+
 				if (!event.agenda.includes(what)) {
 					migrate = this.lookupMigrate(caldr[FIELD.key]);
 					if (!migrate.attend[what]) {
 						for (idx = 0; idx < event.agenda.length; idx++) {
-							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)}, ${caldr.name}?`, event.agenda[idx]) === event.agenda[idx])
+							if (window.prompt(`This ${what} event on ${calDate.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}, ${caldr.name}? (${event.agenda.map(itm => itm)})`,
+								event.agenda[idx]) === event.agenda[idx])
 								break;
 						}
 						if (idx === event.agenda.length)
@@ -506,16 +496,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
 					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					note: row.note ? [row.note, caldr.name] : caldr.name, amount: price,
+					note: row.note, amount: price,
 				}
 				break;
 
-			case prefix === FIELD.unknown:									// no color on the cell, so guess the 'class'
+			case prefix === 'unknown':									// no color on the cell, so guess the 'class'
 				migrate = this.lookupMigrate(now.format(Instant.FORMAT.yearMonthDay));
 				let className = migrate.attend.class || null;
 
 				if (isNull(className)) {
-					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)}?`, this.dflt) as CLASS;
+					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}?`, this.dflt) as CLASS;
 					if (isNull(className))
 						throw new Error('Cannot determine class');
 					this.dflt = className;
@@ -524,7 +514,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					await this.writeMigrate(migrate);
 				}
 
-				sched = asAt(this.schedule, addWhere(FIELD.key, className), row.date)[0];
+				sched = asAt(this.schedule, addWhere(FIELD.key, className), row.stamp)
+					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near);
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;											// to allow AttendService to check what was charged
@@ -532,8 +523,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 
 			default:
-				const where = [addWhere(FIELD.key, what), addWhere('day', now.dow)];
-				sched = asAt(this.schedule, where, row.date)[0];
+				const where = [addWhere(FIELD.key, what), addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in')];
+				sched = asAt(this.schedule, where, row.stamp)
+					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near);
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
@@ -541,22 +533,45 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.note = row.note;
 				sched.elect = row.elect;
+				break;
 		}
 
-		const p = createPromise<boolean>();
+		const p = new Pledge<boolean>();
 
 		if (flag) {
-			if (row.note && row.note.includes('elect false'))
+			let comment: TString | undefined;
+			if (row.note?.includes('elect false')) {
 				sched.elect = BONUS.none;									// Member elected to not receive a Bonus
-			const { comment, note } = cleanNote(sched.note);						// split the row.note into sched.note and forum.comment
-			sched.note = note;													// replace note with cleaned note
+				sched.note = (row.note.length > 'elect false'.length)
+					? row.note.substring('elect false'.length).trim()
+					: undefined;
+			} else {
+				const obj = cleanNote(sched.note);				// split the row.note into sched.note and forum.comment
+				comment = obj.comment;
+				sched.note = obj.note;										// replace note with cleaned note
+			}
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
 						throw new Error('stopping');
 					return res;
 				})
-				.then(_ => { if (comment) this.forum.setComment({ key: sched[FIELD.id], type: STORE.schedule, date: row.stamp, track: { class: sched[FIELD.key] }, comment }) })
+				.then(_ => new Promise((resolve, reject) => {
+					if (comment) {
+						const where: TWhere = [
+							addWhere(FIELD.uid, this.current!.uid),
+							addWhere('track.class', sched[FIELD.key]),
+							addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
+						]
+						this.data.getFire<IForum>(COLLECTION.forum, { where })
+							.then(list => {
+								if (!list.length)
+									this.forum.setComment({ key: sched[FIELD.id], type: sched[FIELD.store], date: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
+								resolve(true);
+							})
+					}
+					else resolve(false);
+				}))
 				.then(_ => p.resolve(flag))
 		} else {
 			p.resolve(flag)
@@ -566,6 +581,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		p.promise
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
+	}
+
+	private asTime(hhmm: string) {
+		return Number(hhmm.replace(':', ''));
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {
@@ -608,7 +627,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const closed = active[0] && active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
-		active.sort(sortKeys('-' + FIELD.stamp));
+		active.orderBy('-' + FIELD.stamp);
 		if (active[0][FIELD.type] === PAYMENT.debit && active[0].approve && !active[0][FIELD.expire]) {
 			const test1 = active[0].expiry && active[0].expiry < getStamp();
 			const test2 = summary.pend < 0;			// closed account
@@ -628,7 +647,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			}
 		}
 
-		this.data.batch(creates, updates, undefined, SetMember)
+		this.data.batch(creates, updates, undefined, Member.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
@@ -647,22 +666,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (full)
 			deletes.push(...await this.data.getStore<IMigrate>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		return this.data.batch(creates, updates, deletes, SetMember)
+		return this.data.batch(creates, updates, deletes, Member.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
 
-	async revPayment(full: boolean) {
-		const dt = window.prompt('From which date');
-		if (dt) {
-			const now = getDate(dt);
-			if (!now.isValid()) {
-				window.alert(`'${dt}': Not a valid date`);
-				return;
-			}
-			if (window.confirm(`${now.format(Instant.FORMAT.display)}: are you sure you want to delete from this date?`))
-				this.attend.delPayment(addWhere(FIELD.stamp, now.ts, '>='));
-		}
+	async revPayment() {
+		this.dbg('revPayment:  not implemented');
+		return;
 	}
 
 	async revAttend() {
@@ -707,17 +718,17 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.dbg('attends: Nothing to do');
 
 		await this.member.setAccount(creates, updates);
-		return this.data.batch(creates, updates, deletes, SetMember)
+		return this.data.batch(creates, updates, deletes, Member.Set)
 	}
 
 	private async fetch(action: string, query: string) {
-		const urlParams = `${this.url}?${query}&action=${action}&prefix=${this.prefix}`;
+		const urlParams = `${SHEET_URL}?${query}&action=${action}&prefix=${SHEET_PREFIX}`;
 		try {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
 				.pipe(retry(2))
 				.toPromise();
-			const json = res.substring(0, res.length - 1).substring(this.prefix.length + 1, res.length);
+			const json = res.substring(0, res.length - 1).substring(SHEET_PREFIX.length + 1, res.length);
 			this.dbg('fetch: %j', urlParams);
 			try {
 				const obj = JSON.parse(json);
@@ -735,12 +746,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	public async migrateComment() {
-		const uid = 'BronwynH';
+	private async migrateComment() {
+		const uid = 'LucyC';
 		const filter = [
 			addWhere(FIELD.uid, uid),
 			// addWhere(FIELD.note, '', '>'),
-			addWhere('track.date', 20191007),
+			addWhere('track.date', 20200127),
 		]
 		const list = await this.data.getFire<IAttend>(COLLECTION.attend, { where: filter });
 

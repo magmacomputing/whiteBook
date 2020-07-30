@@ -1,41 +1,44 @@
 import { Injectable } from '@angular/core';
-import { take, first } from 'rxjs/operators';
+import { take, first, delay } from 'rxjs/operators';
 
-import { asAt } from '@library/app.library';
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/material/snack.service';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
+import { asAt } from '@library/app.library';
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@lib/instant.library';
-import { isUndefined, isNull } from '@lib/type.library';
+import { getStamp, TDate } from '@library/instant.library';
+import { isNull } from '@library/type.library';
 import { IAccountState } from '@dbase/state/state.define';
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
 	private dbg = dbg(this);
 
-	constructor(private readonly data: DataService, private readonly auth: AuthState, private state: StateService, private snack: SnackService) {
+	constructor(private readonly data: DataService, private auth: AuthState, private state: StateService, private snack: SnackService) {
 		this.dbg('new');
 		this.listenInfo(true);
 	}
 
-	public async listenInfo(init: boolean = false) {
+	public async listenInfo(init = false) {
 		if (init) {
-			const user = await this.auth.auth;
-			if (!user) return;														// dont listen if not logged-in on constructor()
+			if (!await this.data.auth.user)
+				return;																			// dont listen from constructor if not signed-In
 		}
 
 		this.dbg('listen');
 		this.auth.memberSubject													// this.auth will call complete() after first emit
-			.pipe(first(info => !isNull(info)))						// subscribe until the first non-null response
+			.pipe(
+				first(info => !isNull(info)),								// subscribe until the first non-null response
+				delay(5000),																// or if no response in 5 seconds.
+			)
 			.subscribe(info => this.getAuthProfile(info))
 	}
 
@@ -44,7 +47,7 @@ export class MemberService {
 			[FIELD.effect]: getStamp(dt),
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.plan,
-			plan
+			[STORE.plan]: plan
 		} as IProfilePlan;
 		this.dbg('plan: %j', doc);
 
@@ -70,8 +73,8 @@ export class MemberService {
 			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.store]: STORE.payment,
 			[FIELD.type]: PAYMENT.topUp,
-			amount: isUndefined(amount) ? topUp : amount,
-			stamp: getStamp(stamp),
+			[FIELD.stamp]: getStamp(stamp),
+			amount: amount ?? topUp,
 		} as IPayment
 	}
 
@@ -111,10 +114,10 @@ export class MemberService {
 				[FIELD.store]: STORE.status,
 				[FIELD.type]: STATUS.account,
 				[FIELD.uid]: uid,
-				stamp: getStamp(),
+				[FIELD.stamp]: getStamp(),
 				summary,
 			}
-			: { ...doc[0], stamp: getStamp(), summary }
+			: { ...doc[0], [FIELD.stamp]: getStamp(), summary }
 
 		if (!accountDoc[FIELD.id])
 			creates.push(accountDoc as IStoreMeta)
@@ -126,6 +129,7 @@ export class MemberService {
 	updAccount = async (data?: IAccountState) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
+
 		await this.setAccount(creates, updates, data);
 		return this.data.batch(creates, updates);
 	}
@@ -144,7 +148,7 @@ export class MemberService {
 			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
 
-	/** Determine theS member's topUp amount */
+	/** Determine this member's topUp amount */
 	getPayPrice = async (data?: IAccountState) => {
 		data = data || await this.getAccount();
 
@@ -154,21 +158,21 @@ export class MemberService {
 
 	/** check for change of User.additionalInfo */
 	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
-		if (isNull(info) || isUndefined(info))
+		if (!info)
 			return;																				// No AdditionalUserInfo available
 		this.dbg('info: %s', info.providerId);
 
-		// const user = this.state.asPromise(this.state.getAuthData());
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<IProfileInfo> = {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.info,
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
-			[FIELD.uid]: uid || (await this.data.getUID()),
-			[PROFILE.info]: { ...memberInfo },								// spread the conformed member info
+			[FIELD.uid]: uid || (await this.data.getActiveID()),
+			[PROFILE.info]: { ...memberInfo },						// spread the conformed member info
 		}
+		const where = addWhere(`${PROFILE.info}.providerId`, info.providerId);
 
-		this.data.insDoc(profileInfo as IProfileInfo, addWhere(`${PROFILE.info}.providerId`, info.providerId), PROFILE.info);
+		this.data.insDoc(profileInfo as IProfileInfo, where, PROFILE.info);
 	}
 
 }

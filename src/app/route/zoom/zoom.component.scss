@@ -1,0 +1,30 @@
+.center {
+  margin: auto;
+  width: 60%;
+  // border: 2px solid green;
+  // padding: 10px;
+}
+
+.wrapper {
+  position: relative;
+  padding: 20px;
+  img {
+    width: 70px;
+    cursor: pointer;
+    transition: transform 250ms ease;
+
+    &:hover {
+      transform: scale(2);
+      transition: transform 250ms ease;
+    }
+  }
+}
+
+.blink {
+	border-color: "c1e0ff";
+	animation: "blinking .5s 4";
+}
+
+th, td {
+  padding: 3px;
+}

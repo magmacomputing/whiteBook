@@ -1,24 +1,24 @@
 import { Injectable, NgZone } from '@angular/core';
 import { firestore } from 'firebase/app';
-import { merge, concat, Observable, combineLatest } from 'rxjs';
+import { Observable, combineLatest, merge, concat } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { IUserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
-import { DBaseModule } from '@dbase/dbase.module';
 
+import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
 import { IStoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isUndefined } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
-import { cloneObj } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { isUndefined } from '@library/type.library';
+import { asArray } from '@library/array.library';
+import { cloneObj } from '@library/object.library';
+import { dbg } from '@library/logger.library';
 
 type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
@@ -63,11 +63,19 @@ export class FireService {
 	}
 
 	listen<T>(collection: COLLECTION, query?: IQuery, changes: TChanges = 'stateChanges') {
-		return this.combine(changes, this.colRef<T>(collection, query))
+		return this.combine<T, TChanges>(changes, this.colRef<T>(collection, query))
 			.pipe(
-				map(obs => obs.flat()),															// flatten the array-of-values results
+				map(obs => obs.flat()),									// flatten the array-of-values results
 				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() } as T)))
 			)
+	}
+
+	get<T>(collection: COLLECTION, query?: IQuery) {
+		return this.afs
+			.collection(collection, fnQuery(query)[0])
+			.get({ source: 'server' })								// get the server-data, rather than cache
+			.toPromise()
+			.then(snap => snap.docs.map(doc => ({ [FIELD.id]: doc.id, ...doc.data() } as unknown as T)))
 	}
 
 	/** Document Reference, for existing or new */

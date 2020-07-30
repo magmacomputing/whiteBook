@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Observable, Subscription, of } from 'rxjs';
-import { map, delay } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 
 import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
@@ -9,14 +9,15 @@ import { DialogService } from '@service/material/dialog.service';
 import { ITimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, REACT } from '@dbase/data/data.define';
+import { ISchedule, IForum } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
-import { isUndefined, TString } from '@lib/type.library';
-import { Instant } from '@lib/instant.library';
-import { suffix } from '@lib/number.library';
-import { swipe } from '@lib/html.library';
-import { dbg } from '@lib/logger.library';
-import { ISchedule, IForumBase } from '@dbase/data/data.schema';
+import { isUndefined, TString } from '@library/type.library';
+import { setTimer } from '@library/observable.library';
+import { Instant } from '@library/instant.library';
+import { suffix } from '@library/number.library';
+import { swipe } from '@library/html.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-attend',
@@ -32,13 +33,22 @@ export class AttendComponent implements OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
-	private timerSubscription!: Subscription;						// watch for midnight, then reset this.date
+	private stop$ = new Subject<any>();									// notify Subscriptions to complete
 
-	constructor(private readonly attend: AttendService, public readonly state: StateService,
+	constructor(public readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
+	ngOnInit() {
+		setTimer(this.stop$)															// watch for midnight
+			.subscribe(_emit => {
+				this.dbg('alarm');
+				this.setDate(0);															// force refresh of UI
+			});
+	}
+
 	ngOnDestroy() {
-		this.timerSubscription && this.timerSubscription.unsubscribe();
+		this.stop$.next();
+		this.stop$.unsubscribe();
 	}
 
 	// Build info to show in a Dialog
@@ -73,7 +83,8 @@ export class AttendComponent implements OnDestroy {
 		this.dialog.open({ content, title, subtitle, image, actions });
 	}
 
-	swipe(idx: number, event: any) {
+	onSwipe(idx: number, event: Event) {
+		// alert(JSON.stringify(event.target));
 		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, this.locations, event);
 	}
@@ -97,41 +108,22 @@ export class AttendComponent implements OnDestroy {
 			: new Instant(this.date).add(dir, 'days')
 		this.offset = today.diff('days', offset);
 
-		this.date = this.offset > 6			// only allow up-to 6 days in the past
-			? today												// else reset to today
+		this.date = this.offset > 6												// only allow up-to 6 days in the past
+			? today																					// else reset to today
 			: offset
 
-		this.getSchedule();							// get day's Schedule
-
-		if (!this.timerSubscription)
-			this.setTimer();							// set a Schedule-view timeout
+		this.getSchedule();																// get day's Schedule
 	}
 
 	private getSchedule() {
-		this.timetable$ = this.state.getScheduleData(this.date).pipe(
-			map(data => {
-				this.selectedIndex = 0;                       // start on the first-page
-				return data;
-			})
-		)
-	}
-
-	/** If the Member is still sitting on this page at midnight, move this.date to next day */
-	private setTimer() {
-		const defer = new Instant().add(1, 'day').startOf('day');
-		this.dbg('timeOut: %s', defer.format('ddd, yyyy-mmm-dd HH:MI'));
-
-		this.timerSubscription && this.timerSubscription.unsubscribe();
-		this.timerSubscription = of(0)										// a single-emit Observable
-			.pipe(delay(defer.toDate()))
-			.subscribe(() => {
-				this.timerSubscription.unsubscribe();					// stop watching for midnight
-				this.setDate(0);															// onNext, show new day's timetable
-			})
+		this.timetable$ = this.state.getScheduleData(this.date)
+			.pipe(
+				tap(_ => this.selectedIndex = 0),								// start on the first-location
+			)
 	}
 
 	public getForum() {
-		this.forum.getForum<IForumBase>()
+		return this.forum.getForum<IForum>()
 			.then(forum => this.dbg('forum: %j', forum))
 	}
 	public setReact(item: ISchedule, react: REACT) {

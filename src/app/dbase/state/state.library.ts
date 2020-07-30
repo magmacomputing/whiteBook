@@ -6,25 +6,23 @@ import { addWhere } from '@dbase/fire/fire.library';
 import { IFireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
-import { SLICES, SORTBY } from '@library/config.define';
-import { asAt, firstRow, filterTable } from '@library/app.library';
+import { SLICES, SORTBY } from '@dbase/state/config.define';
 
-import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, ISummary, IProviderState } from '@dbase/state/state.define';
-import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon } from '@dbase/data/data.schema';
+import { IState, IAccountState, ITimetableState, IPlanState, SLICE, TStateSlice, IApplicationState, IProviderState } from '@dbase/state/state.define';
+import { IDefault, IStoreMeta, IClass, IPrice, IEvent, ISchedule, ISpan, IProfilePlan, TStoreBase, IIcon, ICalendar, ISummary } from '@dbase/data/data.schema';
+import { asAt, firstRow, filterTable } from '@library/app.library';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
-import { asArray } from '@lib/array.library';
-import { getDate, TDate, Instant } from '@lib/instant.library';
-import { getPath, sortKeys, cloneObj, isEmpty } from '@lib/object.library';
-import { isString, isArray, isFunction, isUndefined } from '@lib/type.library';
+import { asArray } from '@library/array.library';
+import { getDate, TDate, Instant } from '@library/instant.library';
+import { getPath, sortKeys, cloneObj } from '@library/object.library';
+import { isString, isArray, isFunction, isUndefined, isEmpty } from '@library/type.library';
 
 /**
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
 export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
-	if (store === STORE.comment)
-	debugger;
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 	const sortBy = SORTBY[store];
@@ -38,7 +36,10 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
 	)
 }
 
-/** Get all documents by filter, do not exclude _expire unless <date> specified */
+/**
+ * Get all documents by filter,  
+ * do not exclude _expire unless <date> specified
+ */
 export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
 	const slice = getSlice(store);
 	if (store === slice.toString())													// top-level slice (eg. Attend)
@@ -111,7 +112,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 
 		return source.pipe(
 			switchMap(data => {
-				const filters = decodeFilter(data, cloneObj(filter)); // loop through filters
+				const filters = decodeFilter(cloneObj(data), cloneObj(filter)); // loop through filters
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(store === STORE.attend
@@ -121,14 +122,21 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 			}),
 
 			map(res => {
-				const nodes = node && node.split('.') || [];
-				let joins: { [key: string]: TStoreBase[] } = nodes[0] && parent[nodes[0]] || {};
+				if (store === STORE.calendar && !isUndefined(date)) {	// special logic to filter Calendar
+					const now = getDate(date).ts;												// because it does not generally track _effect/_expire
+					res[0] = (res[0] as ICalendar[])
+						.filter(row => now < (row[FIELD.expire] || getDate(row[FIELD.key]).endOf('day').ts))
+						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).ts))
+				}
+
+				const nodes = node && node.split('.') || [];					// specific branch on node
+				let joins: Record<string, TStoreBase[]> = nodes[0] && parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
 							const type = (getSlice(store) === COLLECTION.client)
-								? row[FIELD.store]
+								? (nodes[1] || row[FIELD.store])
 								: (nodes[1] || row[FIELD.type] || row[FIELD.store])
 
 							joins[type] = joins[type] || [];
@@ -165,7 +173,6 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
  */
 const decodeFilter = (parent: any, filter: TWhere = []) => {
 	return asArray(filter).map(cond => {                      // loop through each filter
-
 		cond.value = asArray(cond.value)
 			.flatMap(value => {    																// loop through filter's <value>
 				const isPath = isString(value) && value.startsWith('{{');
@@ -186,7 +193,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 			.distinct()																						// remove duplicates
 
 		if (cond.value.length === 1)
-			cond.value = cond.value[0];                           // an array of only one value, return as string
+			cond.value = cond.value[0];                           // an array of only one value; return as string
 
 		return cond;                                            // rebuild each filter
 	})
@@ -204,7 +211,7 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
  */
 export const sumPayment = (source: IAccountState) => {
 	if (source.account) {
-		const sum: ISummary = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 }
+		const sum: ISummary = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 };
 
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
@@ -287,7 +294,7 @@ export const buildPlan = (source: IPlanState) => {
 		if (plan[FIELD.key] === PLAN.intro)										// Special: Intro is only available to new Members
 			plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
 
-		if (plan[FIELD.key] === PLAN.pension) {								// Special: Pension is only available to senior Member
+		if (plan[FIELD.key] === PLAN.senior) {								// Special: Senior is only available to >=60 Member
 			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
 			plan[FIELD.hidden] = notAllow;
 			plan[FIELD.disable] = notAllow;
@@ -372,6 +379,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	// override plan-price if entitled to bonus
 	source.client.schedule = times
 		.map(time => {
+			// const time = cloneObj(table);
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
 			time.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
@@ -388,7 +396,6 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists
-
 			return time;
 		})
 

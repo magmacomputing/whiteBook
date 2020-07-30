@@ -4,11 +4,11 @@ import { HttpClient } from '@angular/common/http';
 
 import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
-import { getConfig } from '@library/config.library';
+import { getConfig } from '@dbase/state/config.library';
 
 import { STORE } from '@dbase/data/data.define';
 import { IConfig } from '@dbase/data/data.schema';
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-oauth',
@@ -24,7 +24,7 @@ export class OAuthComponent implements OnInit {
 
 		if (code) {
 			this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
-				.then(config => getConfig(config, 'oauth'))
+				.then(config => getConfig(config, STORE.provider, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.dbg('oauth: %s', url);

@@ -1,42 +1,41 @@
-import * as firebase from 'firebase/app';
-
 import { IPlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
 import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 
-import { isString, isObject, isNumber, isUndefined } from '@lib/type.library';
-import { asArray } from '@lib/array.library';
-import { cloneObj } from '@lib/object.library';
-import { getStamp, getDate } from '@lib/instant.library';
+import { isString, isNumber, isUndefined } from '@library/type.library';
+import { asArray } from '@library/array.library';
+import { cloneObj } from '@library/object.library';
+import { getStamp, getDate, TDate } from '@library/instant.library';
 
 // Library of member-related functions
 
 // assemble a standard Member Info object
 export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
-	const profile: { [key: string]: any; } = provider.profile || {};
+	const profile: Record<string, any> = provider.profile ?? {};
 
 	const profileInfo: IMemberInfo = {
 		providerId: provider.providerId,
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
 		lastName: profile.family_name || profile.last_name || profile.lastName,
-		displayName: profile.formattedName || profile.displayName || profile.name || profile.login
-			|| (profile.given_name || profile.first_name || profile.firstName) + ' ' + (profile.family_name || profile.last_name || profile.lastName),
-		email: profile.email || profile.emailAddress,
+		displayName: profile.formattedName || profile.displayName || profile.name || profile.login,
+		email: profile.email ?? profile.emailAddress,
 		gender: profile.gender,
 		photoURL: profile.photoURL
 			|| profile.pictureUrl
 			|| profile.thumbnail															// linkedin
 			|| profile.profile_image_url_https								// twitter
 			|| profile.avatar_url															// github
-			|| isString(profile.picture) && profile.picture 	// google
-			|| isObject(profile.picture) && isObject(profile.picture.data) && profile.picture.data.url // facebook
-			|| undefined,
-		birthDay: profile.birthDay || profile.birthday,
+			|| (isString(profile.picture) && profile.picture)	// google
+			|| profile.picture?.data?.url,										// facebook
+		birthDay: profile.birthDay ?? profile.birthday,
 	}
 
-	if (!profileInfo.firstName && !profileInfo.lastName && profileInfo.displayName && profileInfo.displayName.includes(' ')) {
-		const name = profileInfo.displayName.split(' ');
+	if (!profileInfo.displayName && profileInfo.firstName && profileInfo.lastName)
+		profileInfo.displayName = (profileInfo.firstName + ' ' + profileInfo.lastName).trimAll();
+
+	if (!profileInfo.firstName && !profileInfo.lastName && profileInfo.displayName?.includes(' ')) {
+		const name = profileInfo.displayName.trimAll().split(' ');
 		profileInfo.lastName = name.pop();
 		profileInfo.firstName = name.join(' ');
 	}
@@ -56,8 +55,8 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	return birthDays.length ? Math.min(...birthDays) : undefined;
 }
 
-export const getMemberAge = (info: IProfileInfo[] = []) =>
-	getDate(getMemberBirthDay(info)).diff('years');				// diff from today
+export const getMemberAge = (info: IProfileInfo[] = [], dt?: TDate) =>
+	getDate(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**
  * A Member's payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months.  

@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router, UrlTree } from '@angular/router';
 
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: 'root' })
 export class NavigateService {

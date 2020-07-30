@@ -2,11 +2,11 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@lib/instant.library';
-import { isString, isUndefined, isArray } from '@lib/type.library';
-import { cloneObj, getPath } from '@lib/object.library';
-import { asArray } from '@lib/array.library';
-import { toLower } from '@lib/string.library';
+import { getStamp, TDate } from '@library/instant.library';
+import { isString, isUndefined, isArray } from '@library/type.library';
+import { getPath, cloneObj } from '@library/object.library';
+import { asArray } from '@library/array.library';
+import { toLower } from '@library/string.library';
 
 /**
  * apply filters to an array (table) of objects (rows).  
@@ -17,15 +17,15 @@ import { toLower } from '@lib/string.library';
  * ~~~~
  * [
  *  { fieldPath: 'store', opStr: '==', value: 'price' },  
- *  { fieldPath: 'type', opStr: '==' value: ['full','half'] }
+ *  { fieldPath: 'type',  opStr: 'in', value: ['full','half'] }
  * ]
  * ~~~~ 
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
 export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
-	const clone = cloneObj(table);											// clone to avoid mutating original array
+	const clone = cloneObj(table);												// clone to avoid mutating original array
 
-	return clone 																				// clone to avoid mutating original array
+	return clone
 		.filter((row: Record<string, any>) => {						// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
@@ -35,7 +35,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 						? key.toLowerCase()												// string to lowercase to aid matching
 						: isArray(key) && key.every(isString)
 							? key.map(toLower)											// string[] to lowercase
-							: key;
+							: key
 
 					return (isUndefined(clause.value) ? [undefined] : asArray(clause.value))
 						.map(value => {														// each value logically OR-ed to see if at-least one match
@@ -43,6 +43,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 
 							switch (operand) {											// standard firestore query-operators, and '!='
 								case '==':
+								case 'in':
 									return isUndefined(field)
 										? !compare												// if field not present, compare to 'false-y'
 										: field == compare;								// use '==' to allow for string/number match, instead of '==='
@@ -80,8 +81,8 @@ export const asAt = <T>(table: T[], cond: TWhere = [], date?: TDate) => {
 	const stamp = getStamp(date);
 
 	return filterTable(table as (T & IMeta)[], cond)		// return the rows where date is between _effect and _expire
-		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => stamp <  (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
-		.filter(row => !row[FIELD.hidden])								// discard rows that are not visible
+		.filter(row => !row[FIELD.hidden])								// discard rows that should not be visible
 		.map(row => row as T)
 }

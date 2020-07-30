@@ -5,7 +5,7 @@ import { MemberService } from '@service/member/member.service';
 import { IAccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 
-import { dbg } from '@lib/logger.library';
+import { dbg } from '@library/logger.library';
 
 @Component({
 	selector: 'wb-account',

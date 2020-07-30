@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
 import { firestore } from 'firebase/app';
+import { Injectable } from '@angular/core';
 import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { take, delay, first } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
@@ -11,26 +11,27 @@ import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { TStoreBase, IMeta, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
-import { DBaseModule } from '@dbase/dbase.module';
 import { AuthService } from '@service/auth/auth.service';
 import { IUserInfo } from '@service/auth/auth.interface';
-import { StateService } from '@dbase/state/state.service';
+
+import { DBaseModule } from '@dbase/dbase.module';
+import { asAt } from '@library/app.library';
 import { getSlice } from '@dbase/state/state.library';
+import { StateService } from '@dbase/state/state.service';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
-import { asAt } from '@library/app.library';
 
-import { TString } from '@lib/type.library';
-import { getStamp, TDate } from '@lib/instant.library';
-import { asArray } from '@lib/array.library';
-import { dbg } from '@lib/logger.library';
+import { TString } from '@library/type.library';
+import { getStamp, TDate } from '@library/instant.library';
+import { asArray } from '@library/array.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * The DataService is a go-between for the local State (ngxs 'Store')
- * and the remote Database (Firebase 'Cloud Firestore').  
- * The intention is that all 'reads' are from State, and all 'writes' are to a persisted
- * local cache of the Database (which FireStore will sync back to the server).
+ * 	and the remote Database (Firebase 'Cloud Firestore').  
+ * The intention is that all 'reads' are from State, and all 'writes' are to a persisted,
+ * 	local cache of the Database (which FireStore will sync back to the server).
  */
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
@@ -43,8 +44,11 @@ export class DataService {
 	}
 
 	/** Make Store data available in a Promise */
-	private snap<T>(store: STORE) {
+	private snap<T>(store: STORE, query?: IQuery) {
 		const slice = getSlice(store);
+
+		if (query)
+			return this.getFire<T>(slice, query);
 
 		return this.store
 			.selectOnce<T[]>(state => state[slice][store])
@@ -79,13 +83,20 @@ export class DataService {
 
 	getUID() {
 		return this.auth.current
-			.then(current => current!.uid);
+			.then(current => current!.uid);												// get the impersonate UserID
+	}
+
+	getActiveID() {
+		return this.auth.user
+			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
 
 	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
-		return this.fire.listen<T>(collection, query)
-			.pipe(take(1))
-			.toPromise()
+		return this.fire.get<T>(collection, query)
+	}
+
+	getLive<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection as observable
+		return this.fire.listen<T>(collection, query);
 	}
 
 	asPromise<T>(obs: Observable<T[]>) {
@@ -103,13 +114,13 @@ export class DataService {
 		return this.fire.setDoc(store, doc);
 	}
 
-	updDoc(store: STORE, docId: string, data: TStoreBase) {
-		return this.fire.updDoc(store, docId, data);
-	}
-
 	/** mark a field for deletion */
 	get del() {
 		return firestore.FieldValue.delete();
+	}
+
+	updDoc(store: STORE, docId: string, data: TStoreBase) {
+		return this.fire.updDoc(store, docId, data);
 	}
 
 	/** Expire any current matching docs, and Create new doc */
@@ -122,6 +133,7 @@ export class DataService {
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.effect] as FType<FNumber> || stamp;
 			let where: TWhere;
+			const collection = getSlice(nextDoc[FIELD.store]);
 
 			try {
 				nextDoc = docPrep(nextDoc, uid);										// make sure we have a <key/uid>
@@ -131,7 +143,7 @@ export class DataService {
 				return;                                             // abort the Create/Update
 			}
 
-			const currDocs = await this.snap<any>(nextDoc[FIELD.store])// read the store
+			const currDocs = await this.getFire<any>(collection, { where })
 				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
@@ -176,8 +188,6 @@ export class DataService {
 
 	connect(onOff: boolean) {
 		this.dbg('server: %s', onOff ? 'online' : 'offline');
-		return onOff
-			? this.fire.connect(true)
-			: this.fire.connect(false)
+		return this.fire.connect(onOff);
 	}
 }

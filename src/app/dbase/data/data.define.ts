@@ -1,7 +1,3 @@
-/** The global whiteBook namespace */
-export declare namespace whiteBook {
-
-}
 
 export enum COLLECTION {
 	log = 'log',						// App actions
@@ -11,44 +7,56 @@ export enum COLLECTION {
 	admin = 'admin',				// Administrator records
 	device = 'device',			// Connected Devices (per Member)
 	forum = 'forum',				// Comments / Reactions / Feedback
+	zoom = 'zoom',					// Zoom Meeting integration
 }
 
 export enum STORE {
 	// Client
-	provider = 'provider',
 	alert = 'alert',
+	bonus = 'bonus',
+	calendar = 'calendar',
 	class = 'class',
 	event = 'event',
-	price = 'price',
-	plan = 'plan',
 	icon = 'icon',
-	schedule = 'schedule',
-	calendar = 'calendar',
-	location = 'location',
 	instructor = 'instructor',
-	bonus = 'bonus',
+	location = 'location',
+	plan = 'plan',
+	price = 'price',
+	provider = 'provider',
+	schedule = 'schedule',
 	span = 'span',
-	// Member
-	profile = 'profile',
-	payment = 'payment',
-	setting = 'setting',
-	migrate = 'migrate',
-	message = 'message',
-	status = 'status',
-	gift = 'gift',
-	// Admin
 	default = '_default_',
 	config = '_config_',
 	schema = '_schema_',
-	register = 'register',
+	// Member
+	gift = 'gift',
+	diary = 'diary',
+	payment = 'payment',
+	message = 'message',
+	migrate = 'migrate',
+	profile = 'profile',
+	setting = 'setting',
+	status = 'status',
+	// Admin
+	account = 'account',						// summary of Member's current account balance
+	connect = 'connect',						// Member's connection status
+	import = 'import',							// imported details from Google Apps Sheets
+	register = 'register',					// copy of Firestore Authentication object
 	// Forum
 	comment = 'comment',
 	react = 'react',
 	// Attend
 	attend = 'attend',
 	// misc
-	log = 'log',
 	local = '@config@',
+	log = 'log',
+	zoom = 'zoom',
+}
+
+export enum TYPE {								// standard <type> field names
+	claim = 'claim',
+	info = 'info',
+	token = 'token',
 }
 
 export enum FIELD {								// common Field names
@@ -59,17 +67,16 @@ export enum FIELD {								// common Field names
 	access = '_access',							// date-time accessed
 	hidden = '_hidden',							// valid, but not displayed to User
 	disable = '_disable',						// displayed, but greyed to User
-	unknown = 'unknown',
+	id = '_id',
+	key = 'key',
+	type = 'type',
+	store = 'store',
 	stamp = 'stamp',
+	uid = 'uid',
 	note = 'note',
 	date = 'date',
-	id = '_id',
-	uid = 'uid',
-	store = 'store',
 	sort = 'sort',
-	type = 'type',
 	image = 'image',
-	key = 'key',
 };
 
 export enum CLASS {
@@ -82,9 +89,10 @@ export enum CLASS {
 	StepDown = 'StepDown',
 	StepIn = 'StepIn',
 	Zumba = 'Zumba',
-	ZumbaStep = 'ZumbaStep'
+	ZumbaStep = 'ZumbaStep',
+	"Step@Home" = 'Step@Home',
+	"Rumba@Home" = 'Rumbe@Home',
 }
-
 export enum MESSAGE {
 	diary = 'diary',
 	alert = 'alert',
@@ -111,6 +119,7 @@ export enum PROFILE {
 	claim = 'claim',
 	info = 'info',
 	pref = 'pref',
+	token = 'token',
 }
 
 export enum PLAN {
@@ -118,7 +127,7 @@ export enum PLAN {
 	casual = 'casual',
 	gratis = 'gratis',
 	student = 'student',
-	pension = 'pension',
+	senior = 'senior',
 	core = 'core',
 	intro = 'intro',
 }
@@ -128,6 +137,7 @@ export enum PRICE {
 	half = 'half',
 	topUp = 'topUp',
 	hold = 'hold',
+	home = 'home',
 }
 
 export enum PAYMENT {
@@ -145,6 +155,57 @@ export enum CALENDAR {
 export enum SPAN {
 	full = 'full',
 	half = 'half',
+	home = 'home',
+}
+
+export enum COLOR {
+	MultiStep = '#0000ff',
+	SingleStep = '#00afff',
+	StepBasic = '#bf9000',
+	SmartStep = '#0897a6',
+	StepDown = '#cc0000',
+	AeroStep = '#ff8c00',
+	StepIn = '#222222',
+	HiLo = '#35c42c',
+	Zumba = '#ff00ff',
+	ZumbaStep = '#7700ee',
+	'3Pack' = '#9ba602',							// old way of recording multiple Sunday Bonus attends
+	'Step@Home' = '#77aaff',
+	// 'Rumba@Home' = '#bf9000',
+	'Rumba@Home' = '#ac716e',
+	collection = '#4a86e8',
+	store = '#980000',
+	admin = '#38761d',
+
+	black = '#ffffff',
+	yellow = '#fff2cc',
+	green = '#d9ead3',
+	red = '#e6b8af',
+}
+
+export namespace Zoom {
+	export enum EVENT {
+		type = 'body.event',
+		joined = 'meeting.participant_joined',
+		left = 'meeting.participant_left',
+		started = 'meeting.started',
+		ended = 'meeting.ended',
+		status = 'user.presence_status_updated',
+	}
+
+	export enum TYPE {
+		instant = 1,
+		scheduled,
+		recurring,
+		personal,
+		recurringScheduled = 8,
+	}
+
+	export enum PRESENCE {
+		available = 'Available',
+		away = 'Away',
+		disturb = 'Do Not Disturb',
+	}
 }
 
 export namespace Auth {
@@ -155,9 +216,10 @@ export namespace Auth {
 		li = 'li',										// LinkedIn
 		tw = 'tw',										// Twitter
 		as = 'as',										// Google Apps Script
+		em = '@',											// Email/Password
 		jwt = 'jwt',									// JSON Web Token 
 	}
-	
+
 	export enum METHOD {
 		identity = 'identity',
 		oauth = 'oauth',
@@ -194,9 +256,11 @@ export enum CONNECT {
 export enum BONUS {
 	none = 'none',
 	gift = 'gift',
+	class = 'class',
 	week = 'week',
 	month = 'month',
 	sunday = 'sunday',
+	home = 'home',
 }
 
 export enum REACT {

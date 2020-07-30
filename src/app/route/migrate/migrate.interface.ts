@@ -27,7 +27,9 @@ export interface MHistory {
 	elect?: BONUS;
 }
 
-export interface ILocalStore {
-	hidden: false;
-	idx: number;
+export interface IAdminStore {
+	migrateFilter?: {
+		hidden: boolean;
+		idx: number;
+	}
 }

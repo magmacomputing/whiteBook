@@ -1,33 +1,35 @@
-<button color="accent" (click)="filter('hide')">Hidden</button> {{ hidden }}
-<button color="accent" (click)="filter('credit')">Credit </button> {{ credit[creditIdx] }}
-<button color="accent" (click)="migrateComment()">Forum</button>
+<button color="accent" (click)="filter('hide')">Hidden</button> {{ admin?.migrateFilter?.hidden }}
+<button color="accent" (click)="filter('credit')">Credit </button> {{ credit[admin?.migrateFilter?.idx] }}
+
 <div *ngIf="(dash$ | async); let dash$">
 	<div *ngIf="dash$.length; else noDash"></div>
 	<hr>
 	<div *ngFor="let dash of dash$">
 		<p>
-			<img (click)="signIn(dash.register)" [src]="dash.register.user.photoURL || ''" width="50" height="50" alt=" "
-				onError="" title="{{dash.register | json}}">
-			{{ dash.register.migrate.sheetName }}
-			${{ !dash.account?.summary && ' none' || dash.account.summary.credit | json}}
+			<img (click)="signIn(dash.register, dash.import)" [src]="dash.register.user.photoURL || ''" width="50" height="50"
+				alt=" " onError="" title="{{dash.register | json}}">
+			{{ dash.import.sheetName }}
+			${{ !dash.account?.summary && ' none' || dash.account.summary.credit }}
 
-			<div *ngIf="current?.migrate.sheetName == dash.register.migrate.sheetName">
-				<div *ngIf="account$ | async as data">
-					<button (click)="addPayment()" [disabled]="1 == 0 && !!data.account.payment?.length">Add Payments</button>
-					<button (click)="addAttend()" [disabled]="1 === 0 && !data.account.payment?.length">Add Attends</button>
-					<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
-					<br>
-					<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
-					<button (click)="revPayment()" [disabled]="!data.account.payment?.length">Rev Payments</button>
-					<button (click)="delAttend()"  [disabled]="!data.account.attend?.length">Del Attends</button>
-					<button (click)="revAttend()" [disabled]="!data.account.attend?.length">Rev Attend</button>
-					<br>
-					<button (click)="delPayment(true)">Reset Account</button>
-					<button (click)="delUser()">Delete User</button>
-					<button (click)="hideUser()">{{hide}}Hide User</button>
-					<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
-				</div>
+		<div *ngIf="import_?.sheetName == dash.import.sheetName">
+			<div *ngIf="account$ | async as data">
+				<button (click)="addPayment()" [disabled]="1 == 0 && !!data.account.payment?.length">Add Payments</button>
+				<button (click)="addAttend()" [disabled]="1 === 0 && !data.account.payment?.length">Add Attends</button>
+				<br>
+				<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
+				<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
+				<br>
+				<button (click)="revPayment()" [disabled]="!data.account.payment?.length">Rev Payments</button>
+				<button (click)="revAttend()" [disabled]="!data.account.attend?.length">Rev Attend</button>
+				<br>
+				<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
+				<button (click)="delPayment(true)">Reset Account</button>
+				<br>
+				<button (click)="delUser()">Delete User</button>
+				<button (click)="hideUser()">{{hide}}Hide User</button>
+				<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
 			</div>
+		</div>
 	</div>
 </div>
 

@@ -6,12 +6,12 @@ import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { ROUTE } from '@route/router/route.define';
-import { NavigateService } from '@route/navigate.service';
+import { NavigateService } from '@route/router/navigate.service';
 
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { IListen } from '@dbase/sync/sync.define';
+import { IListenKey, IListen } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
-import { AuthToken, IAuthState } from '@dbase/state/auth.action';
+import { Event, IAuthState } from '@dbase/state/auth.action';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta } from '@dbase/data/data.schema';
@@ -19,14 +19,17 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { createPromise } from '@lib/utility.library';
-import { isFunction } from '@lib/type.library';
-import { dbg } from '@lib/logger.library';
+import { Pledge, TPledge } from '@library/utility.library';
+import { isFunction, isUndefined } from '@library/type.library';
+import { dbg } from '@library/logger.library';
 
+/**
+ * Establish a new SyncService per remote Cloud Firestore instance
+ */
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: Record<string, IListen> = {};
+	private listener: Map<IListenKey, IListen> = new Map();
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
@@ -35,25 +38,26 @@ export class SyncService {
 	 * Additional collections can be defined, and merged into the same slice
 	 */
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
-		const ready = createPromise<boolean>();
+		const ready = new Pledge<boolean>();
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
+		const key: IListenKey = { collection, query };
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
 			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
 		const stream = this.fire.merge('stateChanges', refs);
-		const sync = this.sync.bind(this, collection);
+		const sync = this.sync.bind(this, key);
 
-		this.off(collection);                             // detach any prior Subscription
-		this.listener[collection] = {
-			collection,
+		this.off(collection, query);											// detach any prior Subscription of the same signature
+		this.listener.set(key, {
+			key,																						// save a reference to the key
 			ready,
+			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
 			uid: await this.getAuthUID(),
-			cnt: -1,																				// '-1' is not-yet-snapped, '0' is first snapshot
 			method: getMethod(collection),
 			subscribe: stream.subscribe(sync)
-		}
+		});
 
-		this.dbg('on: %s' + (query ? ', %j' : ''), collection, query || '');
+		this.dbg('on: %s %j', collection, query || {});
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 
@@ -64,9 +68,14 @@ export class SyncService {
 			.toPromise()
 	}
 
-	public status(collection: COLLECTION) {
-		const { cnt, ready: { promise: ready } } = this.listener[collection];
-		return { collection, cnt, ready };
+	public status(collection?: COLLECTION) {
+		const result: Partial<{ collection: string, query: IQuery, promise: TPledge }>[] = [];
+
+		for (const [key, listen] of this.listener.entries())
+			if (isUndefined(collection) || collection === key.collection)
+				result.push({ collection: key.collection, query: key.query, promise: listen.ready.status })
+
+		return result;
 	}
 
 	/**
@@ -74,14 +83,14 @@ export class SyncService {
 	 * and optionally provide a callback function to process after the event
 	 */
 	public wait<T>(event: any, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
-		const timeOut = 10000;															// wait up-to 10 seconds
+		const timeOut = 10_000;															// wait up-to 10 seconds
 
 		return new Promise<T>((resolve, reject) => {
 			this.actions.pipe(
 				ofActionDispatched(event), 											// listen for an NGXS event
 				debounce(_ => timer(500)), 											// let State settle
 				take(1), 																				// unsubscribe after first occurence
-				timeout(timeOut)
+				timeout(timeOut)																// but wait on max <timeOut> ms
 			)
 				.subscribe(
 					payload => {
@@ -98,27 +107,24 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection: COLLECTION, trunc?: boolean) {
-		const listen = this.listener[collection];
+	public off(collection?: COLLECTION, query?: IQuery, trunc?: boolean) {
+		for (const [key, listen] of this.listener.entries()) {
+			if ((collection || key.collection) === key.collection
+				&& JSON.stringify((query || key.query)) === JSON.stringify(key.query)) {
+				this.dbg('off: %s %j', key.collection, key.query || {});
 
-		if (listen) {																			// are we listening?
-			if (isFunction(listen.subscribe.unsubscribe)) {
 				listen.subscribe.unsubscribe();
-				this.dbg('off: %s', collection);
+				trunc && this.store.dispatch(new listen.method.truncStore());
+
+				this.listener.delete(key);
 			}
-
-			if (trunc && listen.method)
-				this.store.dispatch(new listen.method.truncStore());
 		}
-
-		delete this.listener[collection];
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(collection: COLLECTION, snaps: DocumentChangeAction<IStoreMeta>[]) {
-		const listen = this.listener[collection];
+	private async sync(key: IListenKey, snaps: DocumentChangeAction<IStoreMeta>[]) {
+		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
-		const isAdmin = listen.collection === COLLECTION.admin;
 
 		const source = getSource(snaps);
 		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
@@ -130,10 +136,10 @@ export class SyncService {
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s #%s detected from %s (add:%s, upd:%s, del:%s)',
-			collection, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
+		this.dbg('sync: %s %j #%s detected from %s (add:%s, upd:%s, del:%s)',
+			key.collection, key.query || {}, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-		if (listen.cnt === 0 && !isAdmin) {               // initial snapshot, but Admin will arrive in multiple snapshots
+		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps))
 				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
@@ -148,14 +154,14 @@ export class SyncService {
 		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'deletes'
 
 		if (listen.cnt !== 0) {
-			snaps.forEach(async snap => {										// look for special actions to fire
+			snaps.forEach(async snap => {										// look for special actions to emit
 				const data = addMeta(snap);
 				if (data[FIELD.uid] === listen.uid) {					// but only for authenticated User
 					switch (snap.type) {
 						case 'added':
 						case 'modified':
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-								this.store.dispatch(new AuthToken());   // special: access-level has changed
+								this.store.dispatch(new Event.Token());   // special: access-level has changed
 
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 								this.navigate.route(ROUTE.attend);			// special: initial Plan is set

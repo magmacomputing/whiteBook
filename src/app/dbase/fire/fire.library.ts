@@ -1,10 +1,9 @@
-import * as firebase from 'firebase/app';
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
 import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 
-import { asArray } from '@lib/array.library';
-import { isNumeric } from '@lib/string.library';
-import { isUndefined } from '@lib/type.library';
+import { asArray } from '@library/array.library';
+import { isNumeric } from '@library/string.library';
+import { isUndefined, isArray } from '@library/type.library';
 
 /**
  * Array of Query functions with any limit / order criteria.  
@@ -15,7 +14,7 @@ import { isUndefined } from '@lib/type.library';
 export const fnQuery = (query: IQuery = {}) => {
 	return splitQuery(query)
 		.map<QueryFn>(split =>
-			(colRef: Query) => {													// map a Query-function
+			(colRef: Query) => {															// map a Query-function
 				if (split.where)
 					asArray(split.where)
 						.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value, not supported
@@ -53,24 +52,35 @@ export const fnQuery = (query: IQuery = {}) => {
  * This allows us to set separate Queries for each split clause
  */
 const splitQuery = (query: IQuery = {}) => {
+	// if (isArray(query.where)) debugger;
 	const wheres = asArray(query.where)						// for each 'where' clause
-		.map(where => asArray(where.value)					// for each 'value'
-			.distinct()																// remove duplicates
-			.map(value => addWhere(where.fieldPath, value, where.opStr))
-		)
+		.map(where => {
+			if (isArray(where.value)) {
+				where.value = where.value.distinct();
+				if (where.opStr === 'in' && where.value.length === 0)
+					where.value = ['<null>'];
+			}
+
+			return where.opStr === 'in'
+				? asArray(where)
+				: asArray(where.value)									// for each 'value'
+					.distinct()														// remove duplicates
+					.map(value => addWhere(where.fieldPath, value, where.opStr))
+		})
 		.cartesian();																// cartesian product of IWhere array
 
-	const split: IQuery[] = wheres.map(where =>		// for each split IWhere,
-		({																					// build an array of IQuery
-			orderBy: query.orderBy,
-			limitTo: query.limit,
-			startAt: query.startAt,
-			startAfter: query.startAfter,
-			endAt: query.endAt,
-			endBefore: query.endBefore,
-			where: where,
-		})
-	)
+	const split: IQuery[] = asArray(wheres)
+		.map(where =>																// for each split IWhere,
+			({																				// build an array of IQuery
+				orderBy: query.orderBy,
+				limitTo: query.limit,
+				startAt: query.startAt,
+				startAfter: query.startAfter,
+				endAt: query.endAt,
+				endBefore: query.endBefore,
+				where: where,
+			})
+		)
 
 	return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query
 }

@@ -7,7 +7,7 @@ import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
 import { addWhere } from '@dbase/fire/fire.library';
 
-import { Instant, getDate } from '@lib/instant.library';
+import { Instant, getDate } from '@library/instant.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
@@ -43,7 +43,6 @@ export class ForumService {
 		return this.data.batch(creates, updates, deletes);
 	}
 
-	// TODO: clean-up any comments (by cloud-function)?
 	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: ICommentArgs) {
 		return comment === ''
 			? undefined

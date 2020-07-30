@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { CanActivate, CanDeactivate } from '@angular/router';
 import { Observable } from 'rxjs';
 
-import { ROUTE } from '@route/route.define';
-import { NavigateService } from '@route/navigate.service';
+import { ROUTE } from '@route/router/route.define';
+import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
 import { AuthModule } from '@service/auth/auth.module';
@@ -14,9 +14,9 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
-import { getLocalStore } from '@lib/browser.library';
-import { getPath } from '@lib/object.library';
-import { dbg } from '@lib/logger.library';
+import { getLocalStore } from '@library/browser.library';
+import { getPath } from '@library/object.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * TODO: The ROUTE.oauth should not be accessible by the Member.
