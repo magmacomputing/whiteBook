@@ -21,7 +21,7 @@ export enum TPledge {
 export class Pledge<T> {
 	#tag: any;
 	#status: TPledge;
-	#promise: Promise<T>;														// TODO: is this needed?
+	#promise: Promise<T>;
 	#resolve!: (value?: T | PromiseLike<T>) => void;
 	#reject!: (reason?: any) => void;
 
@@ -30,8 +30,8 @@ export class Pledge<T> {
 		this.#status = TPledge.pending;
 
 		this.#promise = new Promise<T>((resolve, reject) => {
-			this.#resolve = resolve;
-			this.#reject = reject;
+			this.#resolve = resolve;										// stash resolve()
+			this.#reject = reject;											// stash reject()
 		})
 	}
 

@@ -25,7 +25,7 @@ export const setSchema = (schemas: ISchema[] = []) => {
 			SORTBY[key] = schema.sort;
 
 		if (schema.filter && schema[FIELD.type].toString() === schema[FIELD.key].toString())
-			FILTER[type] = schema.filter;					// Collection filter
+			FILTER[type] = schema.filter;									// Collection filter
 	})
 }
 
@@ -45,10 +45,11 @@ export const getConfig = (config: IConfig[], type: string, key: string) => {
 		.filter(row => row[FIELD.type] === type)				// requested Type
 		.map(row => {
 			const subst: typeof placeholder = {}
-			Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
-				const tpl = makeTemplate(item[1]);					// turn it into a template literal
-				subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
-			})
+			Object.entries<string>(row.value)
+				.forEach(([key, val]) => {									// for each item in the 'value' field
+					const tpl = makeTemplate(val);						// turn it into a template literal
+					subst[key] = tpl(placeholder);						// evaluate the template literal against the placeholders
+				})
 			return { ...row, value: subst }               // override with substitute value
 		})
 
@@ -57,13 +58,14 @@ export const getConfig = (config: IConfig[], type: string, key: string) => {
 
 /** Rebuild global COMMENT variable */
 export const setConfig = (config: IConfig[] = []) => {
+	type TComment = keyof typeof COMMENT;							// restrict to known Comment-types
 	Object.keys(COMMENT)
-		.forEach(key => delete COMMENT[key as keyof typeof COMMENT]);
+		.forEach(key => delete COMMENT[key as TComment]);
 
 	config
 		.filter(row => row[FIELD.type] === STORE.comment)
 		.forEach(row => {
-			switch (row[FIELD.key]) {
+			switch (row[FIELD.key] as TComment) {
 				case 'words':
 					COMMENT.words = row.value;
 					break;

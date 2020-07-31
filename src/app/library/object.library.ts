@@ -5,6 +5,29 @@ import { isNumeric } from '@library/string.library';
  * Get nested value,  
  * allow for array-references in <path>
  */
+const getPath1 = <T>(obj: any, str: string, dflt?: any) => {
+	if (!isObject(obj) && !isArray(obj))
+		return dflt;
+	if (isUndefined(obj))
+		return dflt;
+
+	let clone = JSON.parse(JSON.stringify(obj));
+	const a = str
+		.replace(/\[(\w+)\]/g, '.$1')										// convert indexes to properties
+		.replace(/^\./, '')															// strip a leading dot
+		.split('.');
+
+	for (var i = 0, n = a.length; i < n; ++i) {
+		var k = a[i];
+		if (k in clone) {
+			clone = clone[k];
+		} else {
+			return;
+		}
+	}
+	return clone;
+}
+
 export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | number): T | undefined => {
 	if (!isObject(obj) && !isArray(obj))
 		return dflt || undefined;
