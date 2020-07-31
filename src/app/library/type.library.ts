@@ -3,16 +3,14 @@ import { AssertionError } from 'assert';
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
-	// if (type === 'Window') debugger;
+
 	switch (true) {
 		case type === 'Object':
-			return obj.constructor.name;							// return Class name
-		// case type === 'Window' && obj === undefined:
-		// 	return 'Undefined';												// after Angular8
-		// case type === 'Window' && obj === null:
-		// 	return 'Null';														// after Angular8
+			return obj.constructor.name;							// return Object name
+
 		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 			return 'Class';
+
 		default:
 			return type;
 	}
@@ -73,11 +71,7 @@ const getType = (obj) => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
 	switch (true) {
 			case type === 'Object':
-					return obj.constructor.name; // return Class name
-			case type === 'Window' && obj === undefined:
-					return 'Undefined'; // after Angular8
-			case type === 'Window' && obj === null:
-					return 'Null'; // after Angular8
+					return obj.constructor.name; // return Object name
 			case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 					return 'Class';
 			default:
