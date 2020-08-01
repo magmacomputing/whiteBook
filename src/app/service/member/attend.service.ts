@@ -51,7 +51,7 @@ export class AttendService {
 			this.state.getScheduleData(date, schedule.elect),// get Schedule for this date
 		)
 			.pipe(take(1))																	// unsubscribe on first-emit
-			.toPromise()																		// emit observables as Promise
+			.toPromise()																		// emit Observable as Promise
 
 		// <schedule> might be from Schedule or Calender store
 		const field = schedule[FIELD.store] === STORE.schedule
@@ -71,7 +71,7 @@ export class AttendService {
 			addWhere('note', schedule[FIELD.note]),
 		]);
 
-		if (bookAttend.length) {															// disallow same Class, same Note
+		if (bookAttend.length) {													// disallow same Class, same Note
 			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
 			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
 			if (noNote || isNote)
@@ -80,11 +80,16 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
+		if (isUndefined(timetable.price)) {
+			this.dbg(`price: No pricing information for this Plan: ${source.member.plan[0].plan}`);
+			return this.snack.error(`price: No pricing information for this Plan: ${source.member.plan[0].plan}`);
+		}
+
 		if (!isEmpty(timetable.bonus) && timetable.bonus) {
 			if (timetable.bonus.gift) {
-				updates.push(...timetable.bonus.gift);						// batch any Gift updates
-				delete timetable.bonus.gift;											// not needed
-				delete timetable.bonus.desc;											// not needed
+				updates.push(...timetable.bonus.gift);				// batch any Gift updates
+				delete timetable.bonus.gift;									// not needed
+				delete timetable.bonus.desc;									// not needed
 			}
 			if (timetable.bonus[FIELD.id])
 				timetable.price!.amount = timetable.bonus.amount ?? 0;	// override Plan price
@@ -92,11 +97,11 @@ export class AttendService {
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
 		// this is useful for the bulk Migration of attends
-		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price!.amount) {// calculation mis-match
+		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price.amount) {// calculation mis-match
 			this.dbg('bonus: %j', timetable.bonus);
-			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
+			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price.amount}`);
 		}
-		schedule.amount = timetable.price!.amount;				// the price to use for this class
+		schedule.amount = timetable.price.amount;					// the price to use for this class
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which should be <active>
