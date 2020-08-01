@@ -107,7 +107,8 @@ export class StateService {
 				[STORE.connect]: source[STORE.connect] as IStatusConnect[],
 				[STORE.import]: source[STORE.import] as IImport[],
 				dash: [...(source[STORE.register] || [])]
-					.sort(sortKeys(...asArray(SORTBY[STORE.register])))
+					// .sort(sortKeys(...asArray(SORTBY[STORE.register])))
+					.orderBy(FIELD.uid)
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
 						[STORE.account]: (source[STORE.account] || [])
@@ -115,7 +116,7 @@ export class StateService {
 						[STORE.connect]: (source[STORE.connect] || [])
 							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as IStatusConnect,
 						[STORE.import]: (source[STORE.import] || [])
-							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as IImport,
+							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as IImport
 					}))
 			}))
 		)

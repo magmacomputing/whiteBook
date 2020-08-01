@@ -27,6 +27,10 @@ export const isEmpty = <T>(obj: T | Iterable<T>) => {
 		case 'Map':
 			return Array.from(obj as Iterable<T>).length === 0;
 
+		case 'Null':
+		case 'Undefined':
+			return true;
+
 		default:
 			return false;
 	}

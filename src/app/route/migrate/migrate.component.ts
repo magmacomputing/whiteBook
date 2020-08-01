@@ -25,7 +25,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';
 import { cloneObj, getPath } from '@library/object.library';
-import { isUndefined, isNull, isBoolean, TString } from '@library/type.library';
+import { isUndefined, isNull, isBoolean, TString, isEmpty } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
 import { setLocalStore, getLocalStore } from '@library/browser.library';
@@ -104,7 +104,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const migrateFilter = this.admin.migrateFilter || { hidden: false, idx: 2 };
 
 		this.dash$ = this.state.getAdminData().pipe(
-			// tap(data => console.log(data)),
 			map(data => data.dash
 				.filter(row => row[STORE.import])
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
@@ -119,7 +118,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					}
 				})
 			),
-			// tap(data => console.log(data)),
 		)
 
 		switch (key) {
@@ -524,9 +522,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 			default:
 				const where = [addWhere(FIELD.key, what), addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in')];
+
 				sched = asAt(this.schedule, where, row.stamp)
-					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near);
-				if (!sched)
+					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near, { start: '00:00' } as ISchedule);
+				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (row.note && row.note.includes('Bonus: Week Level reached'))
 					row.elect = BONUS.week;
@@ -550,6 +549,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				comment = obj.comment;
 				sched.note = obj.note;										// replace note with cleaned note
 			}
+
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
