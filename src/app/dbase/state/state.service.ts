@@ -10,7 +10,6 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
-import { SORTBY } from '@dbase/state/config.define';
 import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForum, IComment, IReact, IImport } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
@@ -18,7 +17,7 @@ import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 
 import { Instant, TDate, getDate } from '@library/instant.library';
-import { cloneObj, sortKeys } from '@library/object.library';
+import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -107,8 +106,7 @@ export class StateService {
 				[STORE.connect]: source[STORE.connect] as IStatusConnect[],
 				[STORE.import]: source[STORE.import] as IImport[],
 				dash: [...(source[STORE.register] || [])]
-					// .sort(sortKeys(...asArray(SORTBY[STORE.register])))
-					.orderBy(FIELD.uid)
+					.orderBy(FIELD.uid)													// TODO: we really should sort by alias, not uid
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
 						[STORE.account]: (source[STORE.account] || [])
