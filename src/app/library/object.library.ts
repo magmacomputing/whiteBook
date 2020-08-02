@@ -1,12 +1,8 @@
 import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero } from '@library/type.library';
 import { isNumeric } from '@library/string.library';
 
-/**
- * Get nested value,  
- * allow for array-references in <path>
- */
 const getPath1 = <T>(obj: any, str: string, dflt?: any) => {
-	if (!isObject(obj) && !isArray(obj))
+	if (!isObject<T>(obj) && !isArray<T>(obj))
 		return dflt;
 	if (isUndefined(obj))
 		return dflt;
@@ -28,6 +24,10 @@ const getPath1 = <T>(obj: any, str: string, dflt?: any) => {
 	return clone;
 }
 
+/**
+ * Get nested value,  
+ * allow for array-references in <path>
+ */
 export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | number): T | undefined => {
 	if (!isObject(obj) && !isArray(obj))
 		return dflt || undefined;
@@ -42,7 +42,7 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 	const match = regex.exec(word);										// eg. does the 'word' end in "*[0]"?
 	const { matchWord, matchIdx } = !isNull(match) && match.groups || { matchWord: word, matchIdx: '*' };
 
-	obj = isArray(obj)
+	obj = isArray<Record<string, any>>(obj)
 		? obj
 			.map(itm => { if (isUndefined(itm[matchWord])) itm[matchWord] = dflt; return itm; })
 			.map(itm => itm[matchWord])

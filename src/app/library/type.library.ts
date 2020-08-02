@@ -36,8 +36,10 @@ export const isEmpty = <T>(obj: T | Iterable<T>) => {
 	}
 }
 
-/** Type-Guards: return a boolean to test <obj> is of <type> */
+export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, })
 export const isType = (obj: unknown, type: string = 'Object'): boolean => getType(obj).toLowerCase() === type.toLowerCase();
+
+/** Type-Guards: return a boolean to test <obj> is of <type> */
 export const isIterable = <T>(obj: T | Iterable<T>): obj is Iterable<T> => Symbol.iterator in Object(obj) && !isString(obj);
 export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
 
@@ -45,8 +47,8 @@ export const isString = (obj?: unknown): obj is string => isType(obj, 'String');
 export const isNumber = (obj?: unknown): obj is number => isType(obj, 'Number');
 export const isInteger = (obj?: unknown): obj is bigint => isType(obj, 'BigInt');
 export const isBoolean = (obj?: unknown): obj is boolean => isType(obj, 'Boolean');
-export const isArray = (obj?: unknown): obj is any[] => isType(obj, 'Array');
-export const isObject = <T>(obj?: T): obj is T => isType(obj, 'Object');
+export const isArray = <T>(obj: T[] | any): obj is T[] => isType(obj, 'Array');
+export const isObject = <T>(obj?: T): obj is NonNullable<typeof obj> => isType(obj, 'Object');
 export const isNull = (obj?: unknown): obj is null => isType(obj, 'Null');
 export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
 
