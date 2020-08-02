@@ -329,7 +329,6 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
 	const attendToday = source.attend.attendToday;
-
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
@@ -379,7 +378,6 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	// override plan-price if entitled to bonus
 	source.client.schedule = times
 		.map(time => {
-			// const time = cloneObj(table);
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
 			time.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
@@ -398,12 +396,18 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				time.location = locn[FIELD.key];					// ensure a default location exists
 			return time;
 		})
+		/** remove Schedule items that have no price */
+		.filter(time => !isUndefined(time.amount))
 
 		/**
 		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
 		.filter(row => row[FIELD.type] === SCHEDULE.event || !eventLocations.includes(row.location!))
+
+	/** remove Locations that have no Schedules */
+	source.client.location = source.client.location
+		?.filter(locn => source.client.schedule?.distinct(time => time.location).includes(locn[FIELD.key]))
 
 	return { ...source }
 }
