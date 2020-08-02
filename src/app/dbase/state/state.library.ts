@@ -383,11 +383,11 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
 			time.amount = isUndefined(time.bonus[FIELD.id])	// no Bonus for this class
 				? time.price.amount
-				: (time.bonus.amount || 0)							// a specific-amount, else $0
+				: (time.bonus.amount || 0)								// a specific-amount, else $0
 
 			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
 
-			if (!time[FIELD.image])												// if no schedule-specific icon, use class icon, else default icon
+			if (!time[FIELD.image])											// if no schedule-specific icon, use class icon, else default icon
 				time[FIELD.image] =
 					firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image ||
 					firstRow<IIcon>(icons, addWhere(FIELD.key, icon[FIELD.key])).image
@@ -396,8 +396,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				time.location = locn[FIELD.key];					// ensure a default location exists
 			return time;
 		})
-		/** remove Schedule items that have no price */
-		.filter(time => !isUndefined(time.amount))
+
+		.filter(time => !isUndefined(time.amount))		// remove Schedules that are not available on this Member's Plan
 
 		/**
 		 * Special Events take priority over scheduled Classes.  
