@@ -349,7 +349,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 export interface IPayment extends IUserBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: PAYMENT;
-	link?: {													// used during AttendService to determine Payment hierarchy
+	chain?: {													// used during AttendService to determine Payment hierarchy
 		child?: string;									// the child Payment
 		parent?: string;								// the parent Payment
 		index?: number;									// the Payment position

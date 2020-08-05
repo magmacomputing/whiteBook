@@ -252,7 +252,7 @@ export class AttendService {
 		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
-			filter.push(memberUid);											// ensure UID is present in where-clause
+			filter.push(memberUid);																// ensure UID is present in where-clause
 
 		const updates: IStoreMeta[] = [];
 		const deletes: IStoreMeta[] = await this.data.getStore<IAttend>(STORE.attend, filter);
@@ -262,22 +262,22 @@ export class AttendService {
 			return;
 		}
 
-		const payIds = deletes												// the Payment IDs related to this reversal
+		const payIds = (deletes as IAttend[])										// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.id])
 			.distinct();
-		const giftIds = deletes												// the Gift IDs related to this reversal
-			.filter(attend => attend.bonus && attend.bonus[FIELD.type] === BONUS.gift)
-			.map(row => row.bonus[FIELD.id])
+		const giftIds = (deletes as IAttend[])									// the Gift IDs related to this reversal
+			.filter(attend => attend.bonus?.[FIELD.type] === BONUS.gift)
+			.map(row => row.bonus![FIELD.id])
 			.distinct();
-		const scheduleIds = deletes										// the Schedule IDs that may have Forum content
+		const scheduleIds = (deletes as IAttend[])							// the Schedule IDs that may have Forum content
 			.map(attend => attend.timetable[FIELD.id])
 			.distinct();
-		const dates = deletes													// the Dates these Attends have Forum content
+		const dates = (deletes as IAttend[])										// the Dates these Attends have Forum content
 			.map(attend => attend.track.date)
 			.distinct();
 
 		/**
-		 * attends:		all the Attends that relate to the payIDs (even those about to be deleted)
+		 * attends:	a	ll the Attends that relate to the payIDs (even those about to be deleted)
 		 * payments:	all the Payments related to this Member
 		 * gifts:			all the Gifts related to this reversal
 		 * forum:			all the Forum content related to this reversal
@@ -290,74 +290,73 @@ export class AttendService {
 				where: [
 					memberUid,
 					addWhere(FIELD.type, STORE.schedule),
-					addWhere(FIELD.key, scheduleIds),
-					addWhere('track.date', dates),
+					addWhere(FIELD.key, scheduleIds, '=='),						// TODO: this workaround for FireStore limit
+					addWhere('track.date', dates, '=='),							// on number of 'in' clauses in a Query
 				]
 			}),
 		])
 
-		// build a link-link of Payments
+		// build a linked-list of Payments
 		payments
 			.orderBy(`-${FIELD.stamp}`, FIELD.type)
 			.forEach((payment, idx, arr) => {
-				payment.link = {
+				payment.chain = {
 					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,
 					child: idx !== 0 && arr[idx - 1][FIELD.id] || undefined,
 					index: idx,
 				}
 			})
 
-		let pays = attends														// count the number of Attends per Payment
+		let pays = attends																			// count the number of Attends per Payment
 			.map(row => row.payment[FIELD.id])
 			.reduce((acc, itm) => {
-				if (isUndefined(acc[itm]))
-					acc[itm] = 0;
-				acc[itm] += 1;
+				acc[itm] = (acc[itm] ?? 0) + 1;
 				return acc;
-			}, {} as Record<string, number>);
+			}, {} as Record<any, number>)
 
 		const chg = new Set<string>();
 		deletes.forEach(attend => {
 			let idx: number;
+
 			if (attend.bonus && attend.bonus[FIELD.type] === BONUS.gift) {
 				idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]);
 				const gift = gifts[idx];
 				if (gift) {
 					if (isNumber(gift.count))
-						gift.count! -= 1;											// decrement running-total
+						gift.count! -= 1;																// decrement running-total
 					if (gift.count === 0)
-						gift.count = undefined;								// discard running-total
+						gift.count = undefined;													// discard running-total
 					if (isNumber(gift[FIELD.expire]))
-						gift[FIELD.expire] = undefined;				// re-open a Gift
+						gift[FIELD.expire] = undefined;									// re-open a Gift
 				}
 			}
 
-			const payId = attend.payment[FIELD.id];			// get the Payment id
+			const payId = attend.payment[FIELD.id];								// get the Payment id
 			idx = payments.findIndex(row => row[FIELD.id] === payId);
 			const payment = payments[idx];
 			if (payment) {
 				if (isNumber(payment[FIELD.expire]))
-					payment[FIELD.expire] = undefined;			// re-open a Payment
-				pays[payId] -= 1;													// reduce the number of Attends for this Payment
-				if (pays[payId] === 0) {									// no other Attend booked against this Payment
-					payment[FIELD.effect] = undefined;
-					payment.bank = undefined;								// TODO: dont clear down Payment, if parent had $0 funds
+					payment[FIELD.expire] = undefined;								// re-open a Payment
+				pays[payId] -= 1;																		// reduce the number of Attends for this Payment
+				if (pays[payId] === 0) {														// no other Attend booked against this Payment
+					payment[FIELD.effect] = undefined;								// so, mark the Payment as not-yet-effective
+					payment.bank = undefined;													// TODO: dont clear down Payment, if parent had $0 funds
 
-					chg.add(payId);													// mark this Payment as 'changed
-					const parent = payment.link!.parent;
+					chg.add(payId);																		// mark this Payment as 'changed
+					const parent = payment.chain!.parent;
 					if (parent) {
-						payments[idx + 1][FIELD.expire] = undefined;
-						chg.add(payments[idx + 1][FIELD.id]);	// mark the parent as 'changed'
+						payments[idx + 1][FIELD.expire] = undefined;		// un-expire the parent
+						chg.add(payments[idx + 1][FIELD.id]);						// mark the parent as 'changed'
 					}
 				}
 			}
 		})
 
-		deletes.push(...forum);												// delete Forum content as well
-		updates.push(...gifts);												// batch the updates to Gifts
+		deletes.push(...forum);																	// delete Forum content as well
+		updates.push(...gifts);																	// batch the updates to Gifts
 		updates.push(...payments
-			.filter(row => chg.has(row[FIELD.id]))			// only those that have changed
-			.map(row => ({ ...row, link: undefined }))	// drop the calculated link
+			.filter(row => chg.has(row[FIELD.id]))								// only those that have changed
+			.map(row => ({ ...row, chain: undefined }))						// drop the calculated chain
 		);
 
 		return this.data.batch(undefined, updates, deletes)
