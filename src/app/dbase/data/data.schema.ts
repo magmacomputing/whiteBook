@@ -6,7 +6,7 @@ import { Instant } from '@library/instant.library';
 
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
-type TStoreUser = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status | STORE.import;
+type TStoreMember = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.register | STORE.status | STORE.migrate;
 type TStoreForum = STORE.comment | STORE.react;
 
 export type FBoolean = boolean | undefined | firestore.FieldValue;
@@ -35,14 +35,13 @@ export interface IMeta {
  * a) one for 'client' & 'local' (keyed by 'store/type?/key'),
  * b) the other for 'admin', 'member', 'forum' & 'attend' (keyed by 'store/type?/uid')
  */
-export type TStoreBase = IClientBase | IUserBase | IForum | IMigrate;
 export interface IClientBase extends IMeta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
 	[FIELD.image]?: string;									// an optional icon for the UI
 }
-interface IUserBase extends IMeta {				// this is the base for Member-related documents
-	[FIELD.store]: TStoreUser;
+interface IMemberBase extends IMeta {				// this is the base for Member-related documents
+	[FIELD.store]: TStoreMember;
 	[FIELD.uid]: string;
 	[FIELD.stamp]: number;
 }
@@ -56,9 +55,10 @@ export interface IForum extends IMeta {
 		date: number;													// yearMonthDay
 	} & Record<string, string | number>,		// additional info to assist tracking
 }
+export type TStoreBase = IClientBase | IMemberBase | IForum | IMigrate;
 
-export interface IImport extends IUserBase {
-	[FIELD.store]: STORE.import;						// record of Google Sheet on migrate
+export interface IImport extends IMeta {
+	[FIELD.store]: STORE.import;						// record of Google Sheet on migrated member
 	[FIELD.uid]: string;
 	credit: number;
 	email: string;
@@ -296,13 +296,13 @@ export interface IProvider extends IClientBase {
 }
 
 //	/member/message
-export interface IMessage extends IUserBase {
+export interface IMessage extends IMemberBase {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: MESSAGE;
 }
 
 //	/member/profile
-export interface IProfile extends IUserBase {
+export interface IProfile extends IMemberBase {
 	[FIELD.store]: STORE.profile;
 	[FIELD.type]: PROFILE;
 }
@@ -346,14 +346,9 @@ export interface IMemberInfo {				// Conformed Info across Providers
 }
 
 //	/member/payment
-export interface IPayment extends IUserBase {
+export interface IPayment extends IMemberBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: PAYMENT;
-	chain?: {													// used during AttendService to determine Payment hierarchy
-		child?: string;									// the child Payment
-		parent?: string;								// the parent Payment
-		index?: number;									// the Payment position
-	}
 	amount?: number;									// how much actually paid (may be different from plan.topUp.amount)
 	adjust?: number;									// a manual adjustment to a topUp
 	bank?: number;										// un-used funds from previous payment
@@ -363,21 +358,26 @@ export interface IPayment extends IUserBase {
 		[FIELD.uid]: string;
 		[FIELD.stamp]: number;
 		[FIELD.note]?: TString;
-	},
+	};
+	chain?: {													// used during AttendService to determine Payment hierarchy
+		child?: string;									// the child Payment
+		parent?: string;								// the parent Payment
+		index?: number;									// the Payment position
+	};
 }
 
 //	/member/gift
-export interface IGift extends IUserBase {
+export interface IGift extends IMemberBase {
 	[FIELD.store]: STORE.gift,
 	[FIELD.type]?: string;
-	limit: number;
+	limit: number;										// number of free Attends for this Gift
 	desc?: TString;
-	expiry?: number;
+	expiry?: number;									// optional use-by date for Gift
 	count?: number;										// number of Attends so-far for this Gift
 }
 
 // /attend
-export interface IAttend extends IUserBase {
+export interface IAttend extends IMemberBase {
 	[FIELD.store]: STORE.attend;
 	payment: {
 		[FIELD.id]: string;							// the /member/payment _id
@@ -442,7 +442,7 @@ type TProviderInfo = {
 	isAdmin?: true;
 	birthDay?: number;
 }
-export interface IRegister extends IUserBase {
+export interface IRegister extends IMemberBase {
 	[FIELD.store]: STORE.register;
 	user: TUser;
 }
@@ -459,7 +459,7 @@ export interface ISummary {
 }
 
 //	/member/status
-export interface IStatus extends IUserBase {
+export interface IStatus extends IMemberBase {
 	[FIELD.store]: STORE.status;
 	[FIELD.type]: STATUS;
 }
