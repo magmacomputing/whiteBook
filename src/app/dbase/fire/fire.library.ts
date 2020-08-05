@@ -3,7 +3,7 @@ import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
-import { isUndefined, isArray, isNullish } from '@library/type.library';
+import { isUndefined, isArray } from '@library/type.library';
 
 /**
  * Array of Query functions with any limit / order criteria.  
@@ -86,7 +86,7 @@ const splitQuery = (query: IQuery = {}) => {
 
 /** Make a 'where' clause */
 export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: IWhere["opStr"]) =>
-	({ fieldPath, opStr: opStr ?? isArray(value) ? 'in' : '==', value } as IWhere);
+	({ fieldPath, opStr: opStr ?? (isArray(value) ? 'in' : '=='), value } as IWhere);
 
 /** Make an 'orderBy' clause */
 export const addOrder = (fieldPath: string | FieldPath, order: IOrderBy["directionStr"] = 'asc') =>

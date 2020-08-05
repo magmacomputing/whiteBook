@@ -1,5 +1,3 @@
-import { AssertionError } from 'assert';
-
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
@@ -65,7 +63,7 @@ export const nullToValue = <T>(obj: T | null | undefined = null, value: T) => ob
 
 export function assertCondition(condition: any, message?: string): asserts condition {
 	if (!condition)
-		throw new AssertionError({ message })
+		throw new Error(message);
 }
 export function assertString(str: unknown): asserts str is string { assertCondition(isString(str), `Invalid string: ${str}`) };
 export function assertNever(val: never): asserts val is never { throw new Error(`Unexpected object: ${val}`) };
