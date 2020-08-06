@@ -14,7 +14,7 @@
 					"destination": "/index.html"
 				}
 			],
-			"predeploy": "git log -n 1 > dist/whiteBook/git.log"
+			"predeploy": "mkdir -p dist/whiteBook; git log -n 1 > dist/whiteBook/git.log"
 		}
 	]
 }
