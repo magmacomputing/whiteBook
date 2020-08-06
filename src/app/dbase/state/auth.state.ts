@@ -81,17 +81,17 @@ export class AuthState {
 			this.navigate.route(ROUTE.login);						// redirect to LoginComponent
 
 		if (isNull(user) && !isNull(this.user))				// TODO: does this affect OAuth logins
-			ctx.dispatch(new Login.Out());									// User logged-out
+			ctx.dispatch(new Login.Out());							// User logged-out
 
 		if (!isNull(user) && isNull(this.user)) {
-			this.user = user;
-			ctx.dispatch(new Event.Success(user));				// User logged-in
+			this.user = user;														// stash the Auth User
+			ctx.dispatch(new Event.Success(user));			// User logged-in
 		}
 	}
 
 	/**
 	 * We allow Users to signIn using multiple authentication providers by linking auth provider credentials to an existing user account.  
-	 * Users are identifiable by the same Firebase user ID regardless of the authentication provider they used to signIn.  
+	 * Users are identifiable by the same Firebase User ID regardless of the authentication provider they used to signIn.  
 	 * For example, a user who signed-in with a password can link a Google account and signIn with either method in the future.  
 	 */
 	@Action(Login.Credential)													// attempt to link multiple providers
@@ -202,7 +202,7 @@ export class AuthState {
 
 	@Action(Login.Out)																// process signOut()
 	private logout(ctx: StateContext<IAuthState>) {
-		this.user = null;
+		this.user = null;																// reset state
 		this.afAuth.signOut()
 			.then(_ => ctx.dispatch(new Login.Off()))
 		return;
@@ -304,21 +304,12 @@ export class AuthState {
 			if (roles.includes(Auth.ROLE.admin)) {
 				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one Observable
 					[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
-				this.navigate.route(ROUTE.zoom);
+				// this.dbg('tokenRoute: ', this.navigate.url);
+				// this.navigate.route(ROUTE.zoom);
 			} else {
 				this.sync.off(COLLECTION.admin);
 				this.navigate.route(ROUTE.attend);
 			}
-
-			// this.afAuth.currentUser
-			// 	.then(user => user?.getIdTokenResult(true))
-			// 	.then(result => token = result)
-			// 	.then(_ => ctx.patchState({ token }))
-			// 	.then(_ => this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims))
-			// 	.then(_ => {
-			// 		if (roles.includes(Auth.ROLE.admin)) {
-			// 		} else {
-			// 		})
 		}
 	}
 

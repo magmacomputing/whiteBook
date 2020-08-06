@@ -109,12 +109,13 @@ export class SyncService {
 	/** detach an existing snapshot listener */
 	public off(collection?: COLLECTION, query?: IQuery, trunc?: boolean) {
 		for (const [key, listen] of this.listener.entries()) {
-			if ((collection || key.collection) === key.collection
-				&& JSON.stringify((query || key.query)) === JSON.stringify(key.query)) {
+			if ((collection ?? key.collection) === key.collection
+				&& JSON.stringify((query ?? key.query)) === JSON.stringify(key.query)) {
 				this.dbg('off: %s %j', key.collection, key.query || {});
 
 				listen.subscribe.unsubscribe();
-				trunc && this.store.dispatch(new listen.method.truncStore());
+				if (trunc)
+					this.store.dispatch(new listen.method.truncStore());
 
 				this.listener.delete(key);
 			}
@@ -136,7 +137,7 @@ export class SyncService {
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s %j #%s detected from %s (add:%s, upd:%s, del:%s)',
+		this.dbg('sync: %s %j #%s detected from %s (ins:%s, upd:%s, del:%s)',
 			key.collection, key.query || {}, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
@@ -161,7 +162,7 @@ export class SyncService {
 						case 'added':
 						case 'modified':
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-								this.store.dispatch(new Event.Token());   // special: access-level has changed
+								this.store.dispatch(new Event.Token()); // special: access-level has changed
 
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 								this.navigate.route(ROUTE.attend);			// special: initial Plan is set
