@@ -106,7 +106,9 @@ export class StateService {
 				[STORE.connect]: source[STORE.connect] as IStatusConnect[],
 				[STORE.import]: source[STORE.import] as IImport[],
 				dash: [...(source[STORE.register] || [])]
-					.orderBy(FIELD.uid)													// TODO: we really should sort by alias, not uid
+					// .map((reg, idx) => { this.dbg('pre: ', idx, reg[FIELD.uid]); return reg; })
+					.orderBy('user.customClaims.alias', FIELD.uid)
+					// .map((reg, idx) => { this.dbg('post: ', idx, reg[FIELD.uid]); return reg; })
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
 						[STORE.account]: (source[STORE.account] || [])
