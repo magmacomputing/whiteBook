@@ -135,7 +135,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async signIn(register: IRegister, import_: IImport) {
-		if (this.current && this.current!.user.customClaims!.alias === register.user.customClaims!.alias)
+		if (this.current?.user.customClaims!.alias === register.user.customClaims!.alias)
 			return this.signOut();																		// <click> on picture will signIn / signOut
 		this.current = register;																		// stash current Member
 		this.import_ = import_;																			// stash Members Import sheet
@@ -229,14 +229,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			})
 			.map(row => {
 				const approve = { stamp: 0, uid: '' };
-				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? 'debit' : 'topUp';
+				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.debit : PAYMENT.topUp;
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					approve.stamp = row.approved!;
 					approve.uid = INSTRUCTOR;
 				}
 
-				if (payType === PRICE.topUp) {
+				if (payType === PAYMENT.topUp) {
 					row.debit = undefined;
 				} else {
 					row.debit = row.credit;
@@ -257,7 +257,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.type]: payType,
 					stamp: row.stamp,
 					hold: row.hold,
-					amount: payType === PRICE.topUp ? parseFloat(row.credit!) : undefined,
+					amount: payType === PAYMENT.topUp ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
 					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
@@ -316,7 +316,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const offset = topUp.amount
 				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
 				: desc.expiry;
-			expiry = getDate(row.approved || row.stamp).add(offset, 'month').add(row.hold ?? 0, 'days').startOf('day').ts;
+			expiry = getDate(row.approved || row.stamp)
+				.add(offset, 'months')
+				.add(row.hold ?? 0, 'days')
+				.startOf('day')
+				.ts
 			if (row.debit && parseFloat(row.debit) < 0) expiry = undefined;
 		}
 
@@ -326,7 +330,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	// a Gift is effective from the start of day, unless there is a 'start <HH:MM>' note
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getDate(start).startOf('day').ts;
-		if (note && note.includes('start: ')) {
+		if (note?.includes('start: ')) {
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
 			if (!isNull(time)) {
 				let hhmm = time[0].split(':');
@@ -424,11 +428,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
 
-			if (row.note && (row.note.includes('Bonus: Week Level reached'))) {
+			if (row.note?.includes('Bonus: Week Level reached')) {
 				obj.full.amount = 0;
 				price = 0;
 				row.elect = BONUS.week;											// Week bonus takes precedence
-			} else if (row.note && row.note.includes('Gift #')) {
+			} else if (row.note?.includes('Bonus: Class Level reached')) {
+				obj.full.amount = 0;
+				price = 0;
+				row.elect = BONUS.class;
+			} else if (row.note?.includes('Gift #')) {
 				obj.full.amount = 0;
 				price = 0;
 				row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
@@ -521,13 +529,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 
 			default:
-				const where = [addWhere(FIELD.key, what), addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in')];
+				const where = [
+					addWhere(FIELD.key, what),
+					addWhere('day', [Instant.WEEKDAY.All, now.dow]),
+				];
 
 				sched = asAt(this.schedule, where, row.stamp)
 					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near, { start: '00:00' } as ISchedule);
 				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
-				if (row.note && row.note.includes('Bonus: Week Level reached'))
+				if (row.note?.includes('Bonus: Week Level reached'))
 					row.elect = BONUS.week;
 				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.note = row.note;
@@ -703,7 +714,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				[FIELD.effect]: firestore.FieldValue.delete(),
 				[FIELD.expire]: firestore.FieldValue.delete(),
 				bank: firestore.FieldValue.delete(),
-				expiry: this.getExpiry({ stamp: row[FIELD.stamp], credit: row.amount && row.amount.toString(), debit: row.adjust && row.adjust.toString(), hold: row.hold, title: '', date: 0, type: 'topUp' } as MHistory,
+				expiry: this.getExpiry({ stamp: row[FIELD.stamp], [PAYMENT.credit]: row.amount?.toString(), [PAYMENT.debit]: row.adjust?.toString(), hold: row.hold, title: '', [FIELD.date]: 0, [FIELD.type]: PAYMENT.topUp } as MHistory,
 					profile, plans, prices),
 			}));
 
