@@ -663,7 +663,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.finally(() => this.dbg('done'))
 	}
 
-	async delPayment(full: boolean) {
+	async delPayment(full = false) {
+		if (!window.confirm(`Are you sure you want to delete all Payments / Attends ?`))
+			return;
+
 		const where = addWhere(FIELD.uid, this.current!.uid);
 		const [attends, payments, gifts] = await Promise.all([
 			this.data.getStore<IAttend>(STORE.attend, where),
@@ -674,7 +677,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const updates: IStoreMeta[] = [];
 		const deletes: IStoreMeta[] = [...attends, ...payments, ...gifts];
 
-		if (full)
+		if (full)																						// full-delete of Migrate documents as well
 			deletes.push(...await this.data.getStore<IMigrate>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
 		return this.data.batch(creates, updates, deletes, Member.Set)
@@ -700,36 +703,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	async delAttend() {											// no longer used... see AttendService.delAttend()
+	async delAttend() {											// see AttendService.delAttend()
+		if (!window.confirm(`Are you sure you want to delete all Attends ?`))
+			return;
+
 		const where = addWhere(FIELD.uid, this.current!.uid);
-		const [deletes, [payments, gifts, profile, plans, prices, comments, hist = []]] = await Promise.all([
-			this.data.getStore<IAttend>(STORE.attend, where),
-			this.getMember(),
-		])
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = payments
-			.filter(row => row[FIELD.effect])		// only select those that are in-effect
-			.map(row => ({											// reset the calculated-fields
-				...row,
-				[FIELD.effect]: firestore.FieldValue.delete(),
-				[FIELD.expire]: firestore.FieldValue.delete(),
-				bank: firestore.FieldValue.delete(),
-				expiry: this.getExpiry({ stamp: row[FIELD.stamp], [PAYMENT.credit]: row.amount?.toString(), [PAYMENT.debit]: row.adjust?.toString(), hold: row.hold, title: '', [FIELD.date]: 0, [FIELD.type]: PAYMENT.topUp } as MHistory,
-					profile, plans, prices),
-			}));
-
-		updates.push(...gifts
-			.filter(row => row[FIELD.expire])
-			.map(row => ({
-				...row,														// un-expire any Gifts
-				[FIELD.expire]: firestore.FieldValue.delete(),
-			}))
-		);
-		if (!deletes.length && !updates.length)
-			this.dbg('attends: Nothing to do');
-
-		await this.member.setAccount(creates, updates);
-		return this.data.batch(creates, updates, deletes, Member.Set)
+		return this.attend.delAttend(where);
 	}
 
 	private async fetch(action: string, query: string) {
