@@ -3,7 +3,7 @@ import { FILTER, SLICES, SORTBY, COMMENT } from '@dbase/state/config.define';
 import { ISchema, IConfig } from '@dbase/data/data.schema';
 
 import { isString } from '@library/type.library';
-import { sortInsert } from '@library/array.library';
+import { sortInsert, asArray } from '@library/array.library';
 import { makeTemplate } from '@library/string.library';
 
 /** rebuild values for SLICES, SORTBY, FILTER variables */
@@ -21,8 +21,8 @@ export const setSchema = (schemas: ISchema[] = []) => {
 		if (!hidden)
 			SLICES[type] = sortInsert(SLICES[type] || [], schema[FIELD.key]);
 
-		if (schema.sort)
-			SORTBY[key] = schema.sort;
+		if (schema.sort)																// always use Effective Date as final sort-field
+			SORTBY[key] = asArray(schema.sort).concat(FIELD.effect);
 
 		if (schema.filter && schema[FIELD.type].toString() === schema[FIELD.key].toString())
 			FILTER[type] = schema.filter;									// Collection filter
