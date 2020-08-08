@@ -13,6 +13,7 @@ export interface IListenKey {
 
 export interface IListen {
 	key: IListenKey;											// the key to this listener
+	label: string;												// Label to display for this listener
 	cnt: number;													// count of snapshots received
 	uid: string | null;										// authenticated User
 	ready: Pledge<boolean>;								// indicate when snap0 is received

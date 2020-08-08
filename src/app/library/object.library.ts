@@ -92,6 +92,12 @@ export const cloneObj = <T>(obj: T) => {
 	return clone ?? obj;														// return original object, if cannot parse
 }
 
+export const quoteObj = (obj: any) => {
+	return JSON.stringify(obj)
+		?.replace(/"([^"]+)":/g, '$1: ')
+		?.replace(/,/g, ', ')
+}
+
 /** lowerCase Object keys */
 export const lowerObj = (obj: any) => {
 	let newObj: Record<string, any>;

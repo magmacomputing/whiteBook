@@ -21,6 +21,7 @@ import { IQuery } from '@dbase/fire/fire.interface';
 
 import { Pledge, TPledge } from '@library/utility.library';
 import { isFunction, isUndefined } from '@library/type.library';
+import { quoteObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 /**
@@ -35,7 +36,7 @@ export class SyncService {
 
 	/**
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
-	 * Additional collections can be defined, and merged into the same slice
+	 * Additional collections can be defined, and merged into the same stream
 	 */
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
 		const ready = new Pledge<boolean>();
@@ -46,18 +47,20 @@ export class SyncService {
 			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, key);
+		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
 
 		this.off(collection, query);											// detach any prior Subscription of the same signature
 		this.listener.set(key, {
-			key,																						// save a reference to the key
+			key,																						// stash reference to the key
+			label,																					// stash IListen references			
 			ready,
 			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
 			uid: await this.getAuthUID(),
 			method: getMethod(collection),
 			subscribe: stream.subscribe(sync)
-		});
+		})
 
-		this.dbg('on: %s %j', collection, query || {});
+		this.dbg('on: %s', label);
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 
@@ -137,8 +140,8 @@ export class SyncService {
 			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s %j #%s detected from %s (ins:%s, upd:%s, del:%s)',
-			key.collection, key.query || {}, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
+		this.dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
+			listen.label, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
