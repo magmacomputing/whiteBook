@@ -80,7 +80,7 @@ export const getCaller = () => {
 		?.filter(itm => !itm.startsWith('Error'))
 		?? []
 
-	console.log('getCaller: ', stackTrace);
+	// console.log('getCaller: ', stackTrace);
 	const callerName = stackTrace[2].split(' ')
 
 	// ?.replace(/^Error\s+/, '') // Sanitize Chrome
