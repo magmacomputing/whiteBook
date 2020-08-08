@@ -112,13 +112,14 @@ export interface IPrice extends IClientBase {
 //	/client/bonus
 export interface IBonus extends IClientBase {
 	[FIELD.store]: STORE.bonus;
-	[FIELD.key]: Exclude<BONUS, BONUS.gift>;	// all Except 'gift'
+	// [FIELD.key]: Exclude<BONUS, BONUS.gift>;	// all Except 'gift'
+	[FIELD.key]: BONUS;
 	free: number | TString;							// number of free classes available, or string[] of classes available
 	level: number;											// number of classes required to attend previously, before this Bonus
 	rule: TString;
 	desc: TString;
 	sort: number;												// sequence of processing
-	count?: number;
+	count?: number;											// how many times claimed
 	amount?: number;										// an optional amount to apply
 }
 

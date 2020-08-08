@@ -326,9 +326,11 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		location: locations = [],										// the locations of the classes / events
 		alert: alerts = [],													// any alert notes for this date
 		price: prices = [],													// the prices as per member's plan
+		plan: plans = [],														// the plans for the Member
+		bonus = [],																	// the bonus' for the Member
 		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
-	const attendToday = source.attend.attendToday;
+	const attendToday = source[COLLECTION.attend].attendToday;
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
@@ -406,8 +408,15 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		.filter(row => row[FIELD.type] === SCHEDULE.event || !eventLocations.includes(row.location!))
 
 	/** remove Locations that have no Schedules */
-	source.client.location = source.client.location
-		?.filter(locn => source.client.schedule?.distinct(time => time.location).includes(locn[FIELD.key]))
+	source[COLLECTION.client][STORE.location] = source[COLLECTION.client][STORE.location]
+		?.filter(locn => source[COLLECTION.client][STORE.schedule]?.distinct(time => time.location).includes(locn[FIELD.key]))
+
+	/** remove Bonus, if not entitled */
+	if (!plans[0].bonus) {
+		source[COLLECTION.client][STORE.bonus] = source.client.bonus?.filter(bonus => [BONUS.gift, BONUS.none].includes(bonus[FIELD.key]));
+	} else {
+		source[COLLECTION.client][STORE.bonus] = source.client.bonus?.filter(bonus => bonus[FIELD.key] !== BONUS.none);
+	}
 
 	return { ...source }
 }

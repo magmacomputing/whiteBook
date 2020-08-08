@@ -73,15 +73,14 @@ export const memoize = (fn: Function) => {
 }
 
 export const getCaller = () => {
-	const stackTrace = (new Error())
-		.stack																	// Only tested in latest FF and Chrome
+	const stackTrace = (new Error()).stack											// Only tested in latest FF and Chrome
 		?.split('\n')
 		?.map(itm => itm.trim())
 		?.filter(itm => !itm.startsWith('Error'))
 		?? []
 
 	// console.log('getCaller: ', stackTrace);
-	const callerName = stackTrace[2].split(' ')
+	const callerName = stackTrace[2].split(' ');
 
 	// ?.replace(/^Error\s+/, '') // Sanitize Chrome
 	// ?.split('\n')[2]
