@@ -1,6 +1,6 @@
 import { ITimetableState } from '@dbase/state/state.define';
 import { FIELD, BONUS, COLLECTION, STORE } from '@dbase/data/data.define';
-import type { IGift, TBonus, ISchedule, IAttend, IBonus } from '@dbase/data/data.schema';
+import type { IGift, TBonus, IAttend, IBonus } from '@dbase/data/data.schema';
 
 import { TDate, getDate, Instant } from '@library/instant.library';
 import { TString, isUndefined, isEmpty } from '@library/type.library';
@@ -19,8 +19,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const upd: IGift[] = [];																// an array of updates for caller to apply on /member/gift
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
-	const gifts = source[COLLECTION.member][STORE.gift];								// the active Gifts for this Member
-	const plan = (source[COLLECTION.client][STORE.plan] || [])[0];			// Member's current plan
+	const gifts = source[COLLECTION.member][STORE.gift];		// the active Gifts for this Member
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.attend];
 
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes
@@ -66,7 +65,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 }
 
 /**
- * Admin adds 'Gift' records to a Member's account which will detail the start-date
+ * Admin adds 'Gift' records to a Member's account, which will detail the start-date
  * and limit of free classes (and an optional expiry-date for the Gift).  
  * 
  * Even though the Member may have an active Gift, we check if any of them are useable.  
@@ -75,7 +74,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
  * If ok to use, we pass back an array of count-tracking updates for the caller to apply.
  */
 const bonusGift = (bonus: TBonus, upd: IGift[], attendGift: IAttend[], now: Instant, gifts: IGift[]) => {
-	let curr = -1;																			// the Gift to use in determining eligibility
+	let curr = -1;		// the Gift to use in determining eligibility
 	gifts.forEach((gift, idx) => {
 		gift.count = attendGift														// attendGift might relate to multiple-Gifts
 			.filter(attd => attd.bonus?.[FIELD.id] === gift[FIELD.id])
