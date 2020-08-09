@@ -39,11 +39,8 @@ export class AttendComponent implements OnDestroy {
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnInit() {
-		setTimer( this.stop$)															// watch for midnight
-			.subscribe(_emit => {
-				this.dbg('alarm');
-				this.setDate(0);															// force refresh of UI
-			});
+		setTimer(this.stop$)
+			.subscribe(_ => this.setDate(0));								// watch for midnight, then update UI to new date
 	}
 
 	ngOnDestroy() {

@@ -412,11 +412,8 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		?.filter(locn => source[COLLECTION.client][STORE.schedule]?.distinct(time => time.location).includes(locn[FIELD.key]))
 
 	/** remove Bonus, if not entitled */
-	if (!plans[0].bonus) {
-		source[COLLECTION.client][STORE.bonus] = source.client.bonus?.filter(bonus => [BONUS.gift, BONUS.none].includes(bonus[FIELD.key]));
-	} else {
-		source[COLLECTION.client][STORE.bonus] = source.client.bonus?.filter(bonus => bonus[FIELD.key] !== BONUS.none);
-	}
+	if (!plans[0].bonus)
+		source[COLLECTION.client][STORE.bonus] = source.client.bonus?.filter(bonus => bonus[FIELD.key] === BONUS.gift);
 
 	return { ...source }
 }

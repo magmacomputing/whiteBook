@@ -23,7 +23,6 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.attend];
 
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes
-		.orderBy(FIELD.sort, FIELD.effect)										// order by Bonus.sort, Bonus._effect
 		.forEach(scheme => {																	// loop over each Bonus by sort-order
 			if (!isEmpty(bonus))
 				return;																						// already found a Bonus

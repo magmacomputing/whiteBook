@@ -1,5 +1,5 @@
 import { Subject, timer } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { takeUntil, tap, count } from 'rxjs/operators';
 
 import { Instant } from '@library/instant.library';
 import { getCaller } from '@library/utility.library';
@@ -11,12 +11,14 @@ import { getCaller } from '@library/utility.library';
 export const setTimer = (stop: Subject<any>) => {
 	const midnight = new Instant().add(1, 'day').startOf('day');
 	const addOneDay = 86_400_000;					// number of milliseconds in a day
+	const caller = getCaller();
 
-	console.log('%s.initTimer: %s', getCaller(), midnight.format(Instant.FORMAT.dayTime));
+	console.log('%s.newTimer: %s', caller, midnight.format(Instant.FORMAT.dayTime));
 	return timer(midnight.toDate(), addOneDay)
 		.pipe(
+			tap(nbr => console.log('%s.setTimer: (%s) %s', caller, nbr, new Instant().format(Instant.FORMAT.dayTime))),
 			takeUntil(stop),
-			tap(nbr => console.log('lib.setTimer: (%s) %s', nbr, new Instant().format(Instant.FORMAT.dayTime)),
-			)
+			count(cnt => true),
+			tap(nbr => console.log('%s.endTimer: ', caller)),
 		);
 }
