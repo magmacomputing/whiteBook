@@ -18,7 +18,7 @@ export const setTimer = (stop: Subject<any>) => {
 		.pipe(
 			tap(nbr => console.log('%s.setTimer: (%s) %s', caller, nbr, new Instant().format(Instant.FORMAT.dayTime))),
 			takeUntil(stop),
-			count(cnt => true),
-			tap(nbr => console.log('%s.endTimer: ', caller)),
+			count(),													// this will fire when the <stop> is detected
+			tap(_nbr => console.log('%s.endTimer: ', caller)),
 		);
 }

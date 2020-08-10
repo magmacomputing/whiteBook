@@ -21,8 +21,9 @@ export const setSchema = (schemas: ISchema[] = []) => {
 		if (!hidden)
 			SLICES[type] = sortInsert(SLICES[type] || [], schema[FIELD.key]);
 
-		if (schema.sort)																// always use Effective Date as final sort-field
-			SORTBY[key] = asArray(schema.sort).concat(FIELD.effect);
+		SORTBY[key] = schema[FIELD.sort]									// always use Effective Date as final sort-field
+			? asArray(schema[FIELD.sort]).concat(FIELD.effect)
+			: [FIELD.sort, FIELD.key, FIELD.effect];				// special: assume sort order
 
 		if (schema.filter && schema[FIELD.type].toString() === schema[FIELD.key].toString())
 			FILTER[type] = schema.filter;									// Collection filter

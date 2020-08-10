@@ -25,14 +25,13 @@ import { isString, isArray, isFunction, isUndefined, isEmpty } from '@library/ty
 export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
-	const sortBy = SORTBY[store];
 
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
 		map(state => asAt<T>(state[segment || store], filter, date)),
-		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
+		map(table => table.sortBy(...asArray(SORTBY[store])))
 	)
 }
 
@@ -54,7 +53,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		map(obs => isUndefined(date)
 			? filterTable<T>(obs[store], filter)
 			: asAt<T>(obs[store], filter, date)),
-		map(table => table.sort(sortKeys(...asArray(SORTBY[store])))),
+		map(table => table.sortBy(...asArray(SORTBY[store]))),
 	)
 }
 export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
@@ -67,7 +66,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
 		map(table => isUndefined(date) ? filterTable<T>(table, filter) : asAt<T>(table, filter, date)),
-		map(table => table.sort(sortKeys(...asArray(SORTBY[store])))),
+		map(table => table.sortBy(...asArray(SORTBY[store]))),
 	)
 }
 
@@ -99,7 +98,7 @@ export const getUser = (token: IFireClaims) =>
 	({ displayName: token.name, email: token.email, photoURL: token.picture, providerId: token.firebase.sign_in_provider, uid: token.user_id });
 
 /**
- * Join a document to other documents referenced a supplied string of key fields  
+ * Join a document to other documents referenced by a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
  * node:   	the name of the node (eg. 'member') under which we place the documents on the Observable Object  
  * store:   the parent documents in the State with the supplied <store> field  
@@ -112,7 +111,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 
 		return source.pipe(
 			switchMap(data => {
-				const filters = decodeFilter(cloneObj(data), cloneObj(filter)); // loop through filters
+				const filters = decodeFilter(data, filter);						// loop through filters
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(store === STORE.attend
@@ -152,8 +151,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
 					if (isArray(joins[table]) && joins[table].length) {
 						const store = joins[table][0][FIELD.store];
-						const sortBy = SORTBY[store];
-						joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
+						joins[table] = joins[table].sortBy(...asArray(SORTBY[store]));
 					}
 				})
 
@@ -215,16 +213,16 @@ export const sumPayment = (source: IAccountState) => {
 
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
-			.reduce((sum, payment, indx) => {
-				if (indx === 0) {																		// only 1st Payment
+			.reduce((sum, payment, idx) => {
+				if (idx === 0) {																		// only 1st Payment
 					sum.bank += payment.bank || 0;
 					sum.adjust += payment.adjust || 0;
 					sum.paid += payment.amount || 0;
 				} else
 					sum.pend += (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
 
-				sum.credit = sum.bank + sum.paid + sum.adjust + sum.pend;
 				sum.funds = sum.bank + sum.paid + sum.adjust;
+				sum.credit = sum.funds + sum.pend;
 
 				return sum;
 			}, sum)
@@ -378,6 +376,11 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 
 	// for each item on the schedule, poke in 'price' and 'icon',
 	// override plan-price if entitled to bonus
+
+	/** remove Bonus, if not entitled */
+	if (!plans[0].bonus)
+		source[COLLECTION.client][STORE.bonus] = source[COLLECTION.client][STORE.bonus]?.filter(bonus => bonus[FIELD.key] === BONUS.gift);
+
 	source.client.schedule = times
 		.map(time => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
@@ -410,10 +413,6 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	/** remove Locations that have no Schedules */
 	source[COLLECTION.client][STORE.location] = source[COLLECTION.client][STORE.location]
 		?.filter(locn => source[COLLECTION.client][STORE.schedule]?.distinct(time => time.location).includes(locn[FIELD.key]))
-
-	/** remove Bonus, if not entitled */
-	if (!plans[0].bonus)
-		source[COLLECTION.client][STORE.bonus] = source.client.bonus?.filter(bonus => bonus[FIELD.key] === BONUS.gift);
 
 	return { ...source }
 }

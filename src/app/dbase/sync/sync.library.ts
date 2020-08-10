@@ -31,8 +31,8 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 	const snapList = snaps.map(addMeta);
 
 	Object.entries(localSlice).forEach(([_key, value]) => localList.push(...value.map(remMeta)));
-	const localSort = localList.sort(sortKeys(FIELD.store, FIELD.id));
-	const snapSort = snapList.sort(sortKeys(FIELD.store, FIELD.id));
+	const localSort = localList.sortBy(FIELD.store, FIELD.id);
+	const snapSort = snapList.sortBy(FIELD.store, FIELD.id);
 	const [localHash, storeHash] = await Promise.all([
 		cryptoHash(localSort),
 		cryptoHash(snapSort),
