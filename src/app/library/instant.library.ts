@@ -345,7 +345,7 @@ export class Instant {
 	#composeDate = (date: IInstant) =>
 		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms)
 
-	/** combine Instant components to apply some standard / free-format rules */
+	/** combine Instant components to apply some standard & free-format rules */
 	#formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
 		const date = { ...this.#date };													// clone current Instant
 

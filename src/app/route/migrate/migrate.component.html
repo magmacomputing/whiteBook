@@ -20,7 +20,7 @@
 				<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
 				<br>
 				<button (click)="revPayment()" [disabled]="!data.account.payment?.length">Rev Payments</button>
-				<button (click)="revAttend()" [disabled]="!data.account.attend?.length">Rev Attend</button>
+				<button (click)="revAttend()" [disabled]="!!data.account.attend?.length">Rev Attend</button>
 				<br>
 				<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
 				<button (click)="delPayment(true)">Reset Account</button>

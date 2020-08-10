@@ -16,7 +16,6 @@ import { plural } from '@library/string.library';
  */
 export const calcBonus = (source: ITimetableState, event: string, date?: TDate, elect?: BONUS) => {
 	const now = getDate(date);
-	const upd: IGift[] = [];																// an array of updates for caller to apply on /member/gift
 	let bonus = {} as TBonus;																// calculated Bonus entitlement
 
 	const gifts = source[COLLECTION.member][STORE.gift];		// the active Gifts for this Member
@@ -24,38 +23,36 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes
 		.forEach(scheme => {																	// loop over each Bonus by sort-order
-			if (!isEmpty(bonus))
-				return;																						// already found a Bonus
+			if (bonus[FIELD.id])																// if a prior forEach determined a Bonus...
+				return;																						// skip checking the rest
 
 			switch (scheme[FIELD.key]) {
 				case BONUS.gift:
 					if (gifts.length > 0 && (isUndefined(elect) || elect === BONUS.gift))
-						bonusGift(bonus, upd, attendGift, now, gifts);
-					if (upd.length)																	// whether or not we found an applicable Bonus
-						bonus.gift = upd;															// let caller know about any pending Gift updates
+						bonus = bonusGift(attendGift, now, gifts);
 					break;
 
 				case BONUS.none:																	// not entitled to attend-related Bonus
 					break;
 
 				case BONUS.week:
-					bonusWeek(bonus, scheme, attendWeek, now, elect);
+					bonus = bonusWeek(scheme, attendWeek, now, elect);
 					break;
 
 				case BONUS.class:
-					bonusClass(bonus, scheme, attendWeek, now, elect);
+					bonus = bonusClass(scheme, attendWeek, now, elect);
 					break;
 
 				case BONUS.sunday:
-					bonusSunday(bonus, scheme, attendWeek, now, elect, event);
+					bonus = bonusSunday(scheme, attendWeek, now, elect, event);
 					break;
 
 				case BONUS.month:
-					bonusMonth(bonus, scheme, attendMonth, now, elect);
+					bonus = bonusMonth(scheme, attendMonth, now, elect);
 					break;
 
 				case BONUS.home:
-					bonusHome(bonus, scheme, attendToday, now, elect, event);
+					bonus = bonusHome(scheme, attendToday, now, elect, event);
 					break;
 			}
 		})
@@ -72,8 +69,11 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
  * 
  * If ok to use, we pass back an array of count-tracking updates for the caller to apply.
  */
-const bonusGift = (bonus: TBonus, upd: IGift[], attendGift: IAttend[], now: Instant, gifts: IGift[]) => {
-	let curr = -1;		// the Gift to use in determining eligibility
+const bonusGift = (attendGift: IAttend[], now: Instant, gifts: IGift[]) => {
+	const upd: IGift[] = [];														// an array of updates for caller to apply on /member/gift
+	let bonus = {} as TBonus;
+	let curr = -1;																			// the Gift to use in determining eligibility
+
 	gifts.forEach((gift, idx) => {
 		gift.count = attendGift														// attendGift might relate to multiple-Gifts
 			.filter(attd => attd.bonus?.[FIELD.id] === gift[FIELD.id])
@@ -98,13 +98,19 @@ const bonusGift = (bonus: TBonus, upd: IGift[], attendGift: IAttend[], now: Inst
 			}
 		}
 	})
+
+	if (upd.length)																			// whether or not we found an applicable Bonus
+		bonus.gift = upd;																	// let caller know about any pending Gift updates
+
+	return bonus;
 }
 /**
  * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus days in a week (scheme.level).  
  * (note: even 'Gift Attends' count towards a Bonus)
  * The Member must also have claimed less than the free limit (scheme.free) to enable this bonus
  */
-const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS | undefined) => {
+const bonusWeek = (scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS | undefined) => {
+	let bonus = {} as TBonus;
 	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const okLevel = attendWeek																	// sum the non-Bonus -or- Gift Attends
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
@@ -124,7 +130,7 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
 			desc: scheme.desc,
 		}
 
-	return;
+	return bonus;
 }
 
 /**
@@ -132,7 +138,8 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
  * (note: 'Gift' attends do not count towards a Bonus)
  * THe Member must also have claimed less than the free limit (scheme.free) to enable this bonus
  */
-const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS | undefined) => {
+const bonusClass = (scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS | undefined) => {
+	let bonus = {} as TBonus;
 	const okLevel = attendWeek																	// sum the non-Bonus -or- Gift Attends
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 		.length >= scheme.level																		// must attend the 'level' number
@@ -150,7 +157,7 @@ const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: I
 		}
 	}
 
-	return;
+	return bonus;
 }
 
 /**
@@ -158,7 +165,8 @@ const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: I
  * Note: the Week scheme takes precendence (if qualifies on Sunday, and not claimed on Saturday)
  * The class must be in the free list (scheme.week.free) to qualify for this bonus
  */
-const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS | undefined, event: string) => {
+const bonusSunday = (scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS | undefined, event: string) => {
+	let bonus = {} as TBonus;
 	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const okLevel = attendWeek																	// count Attends this week either Gift or non-Bonus
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
@@ -177,14 +185,15 @@ const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: 
 		}
 	}
 
-	return;
+	return bonus;
 }
 
 /**
  * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
  * The Member must also have attended less than the free limit (scheme.month.free) to qualify for this bonus
  */
-const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: Instant, elect: BONUS | undefined) => {
+const bonusMonth = (scheme: IBonus, attendMonth: IAttend[], now: Instant, elect: BONUS | undefined) => {
+	let bonus = {} as TBonus;
 	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const okLevel = attendMonth
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
@@ -205,13 +214,14 @@ const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: 
 		}
 	}
 
-	return;
+	return bonus;
 }
 
 /**
  * The Home scheme qualifies as a Bonus if the Member has already attended an '@Home' class earlier today
  */
-const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], now: Instant, elect: BONUS | undefined, event: string) => {
+const bonusHome = (scheme: IBonus, attendToday: IAttend[], now: Instant, elect: BONUS | undefined, event: string) => {
+	let bonus = {} as TBonus;
 	const okLevel = attendToday
 		.filter(attend => attend.timetable[FIELD.key] === event)
 		.length >= scheme.level																				// required number of Attends today
@@ -226,5 +236,5 @@ const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], now: I
 		}
 	}
 
-	return;
+	return bonus;
 }
