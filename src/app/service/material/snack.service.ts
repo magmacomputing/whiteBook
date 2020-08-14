@@ -4,6 +4,7 @@ import { MAT_SNACK_BAR_DATA, MatSnackBar, MatSnackBarConfig, MatSnackBarRef, Sim
 import { MaterialModule } from '@service/material/material.module';
 
 import { lprintf } from '@library/logger.library';
+import { getCaller } from '@library/utility.library';
 
 // TODO: Display an Info icon
 @Component({
@@ -55,8 +56,8 @@ export class SnackService {
 		this.fromComponent<WarnSnackBar>(WarnSnackBar, config, msg);
 	}
 
-	public error(msg: string, log?: string, config: MatSnackBarConfig = {}) {
-		log && lprintf(log, msg);
+	public error(msg: string, config: MatSnackBarConfig = {}) {
+		lprintf(getCaller(), msg);
 		this.fromComponent<ErrorSnackBar>(ErrorSnackBar, config, msg);
 		throw new Error(msg);
 	}

@@ -22,7 +22,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.attend];
 
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes to which the Member is entitled
-		.forEach(scheme => {																	// loop over each Bonus by sort-order
+		.forEach(scheme => {																	// loop over each Bonus in its sort-order
 			if (bonus[FIELD.id])																// if a prior forEach determined a Bonus...
 				return;																						// skip checking the rest
 
@@ -63,10 +63,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
  * Admin adds 'Gift' records to a Member's account, which will detail the start-date
  * and limit of free classes (and an optional expiry-date for the Gift).  
  * 
- * Even though the Member may have an active Gift, we check if any of them are useable.  
+ * Even though the Member may have an active Gift, we check all of them if they are useable.  
  * Any Gifts that have passed their expiry-date will be marked as closed.
- * 
- * If ok to use, we pass back an array of count-tracking updates for the caller to apply.
  */
 const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: Instant, elect: BONUS = BONUS.gift) => {
 	const upd: IGift[] = [];																		// an array of updates for calling-function to apply on /member/gift
@@ -97,8 +95,8 @@ const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: In
 				Object.assign(bonus, {																// create a Bonus object
 					[FIELD.id]: gift[FIELD.id],
 					[FIELD.type]: BONUS.gift,
-					count: gift.count,
 					desc: `${giftLeft} ${plural(giftLeft, 'gift')}`,
+					count: gift.count,
 				})
 				break;
 		}
@@ -130,8 +128,8 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
 		Object.assign(bonus, {
 			[FIELD.id]: scheme[FIELD.id],
 			[FIELD.type]: BONUS.week,
-			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.week).length + 1,
 			desc: scheme.desc,
+			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.week).length + 1,
 			amount: scheme.amount,
 		})
 
@@ -156,8 +154,8 @@ const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: I
 		Object.assign(bonus, {
 			[FIELD.id]: scheme[FIELD.id],
 			[FIELD.type]: BONUS.class,
-			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.class).length + 1,
 			desc: scheme.desc,
+			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.class).length + 1,
 			amount: scheme.amount,
 		})
 	}
@@ -184,8 +182,8 @@ const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: 
 		Object.assign(bonus, {
 			[FIELD.id]: scheme[FIELD.id],
 			[FIELD.type]: BONUS.sunday,
-			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.sunday).length + 1,
 			desc: scheme.desc,
+			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.sunday).length + 1,
 			amount: scheme.amount,
 		})
 	}
@@ -213,8 +211,8 @@ const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: 
 		Object.assign(bonus, {
 			[FIELD.id]: scheme[FIELD.id],
 			[FIELD.type]: BONUS.month,
-			count: attendMonth.filter(row => row.bonus?.[FIELD.type] === BONUS.month).length + 1,
 			desc: scheme.desc,
+			count: attendMonth.filter(row => row.bonus?.[FIELD.type] === BONUS.month).length + 1,
 			amount: scheme.amount,
 		})
 	}
@@ -235,8 +233,8 @@ const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], now: I
 		Object.assign(bonus, {
 			[FIELD.id]: scheme[FIELD.id],
 			[FIELD.type]: BONUS.home,
-			count: attendToday.length + 1,
 			desc: scheme.desc,
+			count: attendToday.length + 1,
 			amount: scheme.amount,
 		})
 	}

@@ -18,7 +18,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 
 import { getDate, Instant, TDate } from '@library/instant.library';
-import { isUndefined, isNumber, isEmpty } from '@library/type.library';
+import { isUndefined, isNumber, isEmpty, nullToZero } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -59,7 +59,7 @@ export class AttendService {
 			: FIELD.key																			// compare requested event to class's Key
 		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
 		if (!timetable)																		// this schedule is not actually offered on this date!
-			return this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`, this.self);
+			return this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
@@ -75,25 +75,23 @@ export class AttendService {
 			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
 			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
 			if (noNote || isNote)
-				return this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`, this.self);
+				return this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
-		if (isUndefined(timetable.price)) {
-			this.dbg(`price: No pricing information for this Plan: ${source.member.plan[0].plan}`);
+		if (isUndefined(timetable.price))
 			return this.snack.error(`price: No pricing information for this Plan: ${source.member.plan[0].plan}`);
-		}
 
-		if (!isEmpty(timetable.bonus) && timetable.bonus) {
-			if (timetable.bonus.gift) {
-				updates.push(...timetable.bonus.gift);				// batch any Gift updates
-				delete timetable.bonus.gift;									// not needed
-				delete timetable.bonus.desc;									// not needed
-			}
-			if (timetable.bonus[FIELD.id])
-				timetable.price!.amount = timetable.bonus.amount ?? 0;	// override Plan price
+		if (timetable.bonus?.gift) {
+			updates.push(...timetable.bonus.gift);					// batch any Gift updates
+			delete timetable.bonus.gift;										// not needed
+			delete timetable.bonus.desc;										// not needed
+			if (isEmpty(timetable.bonus))
+				delete timetable.bonus;												// not needed
 		}
+		if (timetable.bonus?.[FIELD.id])
+			timetable.price!.amount = nullToZero(timetable.bonus.amount);	// override Plan price
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
 		// this is useful for the bulk Migration of attends
@@ -175,7 +173,7 @@ export class AttendService {
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve && isEmpty(timetable.bonus))	// calc an Expiry for this Payment
+		if (!active.expiry && active.approve && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
 		if (!isEmpty(upd))																// changes to the active Payment
@@ -207,7 +205,7 @@ export class AttendService {
 				week: now.format(Instant.FORMAT.yearWeek),		// week-number of year
 				month: now.format(Instant.FORMAT.yearMonth),	// month-number of year
 			},
-			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
+			bonus: timetable.bonus,													// <id>/<type>/<count> of Bonus
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
@@ -310,7 +308,7 @@ export class AttendService {
 		let pays = attends																			// count the number of Attends per Payment
 			.map(row => row.payment[FIELD.id])
 			.reduce((acc, itm) => {
-				acc[itm] = (acc[itm] ?? 0) + 1;
+				acc[itm] = nullToZero(acc[itm]) + 1;
 				return acc;
 			}, {} as Record<any, number>)
 
