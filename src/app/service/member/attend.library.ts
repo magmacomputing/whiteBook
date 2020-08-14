@@ -3,7 +3,7 @@ import { FIELD, BONUS, COLLECTION, STORE } from '@dbase/data/data.define';
 import type { IGift, TBonus, IAttend, IBonus } from '@dbase/data/data.schema';
 
 import { TDate, getDate, Instant } from '@library/instant.library';
-import { TString, isUndefined, isEmpty } from '@library/type.library';
+import { TString, isUndefined, nullToValue, nullToZero } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { plural } from '@library/string.library';
 
@@ -21,22 +21,25 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 	const gifts = source[COLLECTION.member][STORE.gift];		// the active Gifts for this Member
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.attend];
 
-	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes
+	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes to which the Member is entitled
 		.forEach(scheme => {																	// loop over each Bonus by sort-order
 			if (bonus[FIELD.id])																// if a prior forEach determined a Bonus...
 				return;																						// skip checking the rest
 
 			switch (scheme[FIELD.key]) {
-				case BONUS.gift:
-					if (gifts.length > 0 && (isUndefined(elect) || elect === BONUS.gift))
-						bonus = bonusGift(attendGift, now, gifts);
+				case BONUS.none:																	// not entitled to attend-related Bonus
 					break;
 
-				case BONUS.none:																	// not entitled to attend-related Bonus
+				case BONUS.gift:
+					bonus = bonusGift(gifts, attendGift, now, elect);
 					break;
 
 				case BONUS.week:
 					bonus = bonusWeek(scheme, attendWeek, now, elect);
+					break;
+
+				case BONUS.month:
+					bonus = bonusMonth(scheme, attendMonth, now, elect);
 					break;
 
 				case BONUS.class:
@@ -45,10 +48,6 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
 
 				case BONUS.sunday:
 					bonus = bonusSunday(scheme, attendWeek, now, elect, event);
-					break;
-
-				case BONUS.month:
-					bonus = bonusMonth(scheme, attendMonth, now, elect);
 					break;
 
 				case BONUS.home:
@@ -65,42 +64,49 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TDate, 
  * and limit of free classes (and an optional expiry-date for the Gift).  
  * 
  * Even though the Member may have an active Gift, we check if any of them are useable.  
- * If not, we pass back an array of auto-expire updates for the caller to apply.
+ * Any Gifts that have passed their expiry-date will be marked as closed.
  * 
  * If ok to use, we pass back an array of count-tracking updates for the caller to apply.
  */
-const bonusGift = (attendGift: IAttend[], now: Instant, gifts: IGift[]) => {
-	const upd: IGift[] = [];														// an array of updates for caller to apply on /member/gift
+const bonusGift = (gifts: IGift[], attendGift: IAttend[], now: Instant, elect?: BONUS) => {
+	const upd: IGift[] = [];																		// an array of updates for calling-function to apply on /member/gift
 	let bonus = {} as TBonus;
-	let curr = -1;																			// the Gift to use in determining eligibility
+	let curr = -1;																							// the Gift to use in determining eligibility
 
 	gifts.forEach((gift, idx) => {
-		gift.count = attendGift														// attendGift might relate to multiple-Gifts
+		gift.count = attendGift																		// attendGift might relate to multiple-Gifts
 			.filter(attd => attd.bonus?.[FIELD.id] === gift[FIELD.id])
-			.length + 1;																		// count the Attends per active Gift, plus one for this Gift
+			.length + 1;																						// count the Attends for this Gift, plus one for this one
+		const giftLeft = gift.limit - gift.count;									// how many remain
 
-		const giftLeft = gift.limit - gift.count;					// how many remain
-		if (giftLeft < 0																	// max number of Attends against this gift reached
-			|| (gift.expiry || 0) > now.ts)									// 	or this Gift expiry has passed
-			upd.push({ [FIELD.expire]: now.ts, ...gift })		// auto-expire it
-		else if (curr === -1) {														// found the first useable Gift
-			curr = idx;
-			upd.push({																			// stack the Gift update
-				[FIELD.effect]: now.startOf('day').ts,
-				[FIELD.expire]: giftLeft <= 0 ? now.ts : undefined,
-				...gift,
-			})
-			bonus = {																				// create a Bonus object
-				[FIELD.id]: gift[FIELD.id],
-				[FIELD.type]: BONUS.gift,
-				count: gift.count,
-				desc: `${giftLeft} ${plural(giftLeft, 'gift')}`,
-			}
+		switch (true) {
+			case giftLeft < 0:																			// max number of Attends against this Gift reached
+			case nullToZero(gift.expiry) > now.ts:									// or this Gift has expired
+				upd.push({ [FIELD.expire]: now.ts, ...gift });				// auto-expire it
+				break;
+
+			case nullToValue(elect, BONUS.gift) !== BONUS.gift:			// Member elected to not use a Gift
+				break;																								// (e.g. BONUS.none, BONUS.class, ...)
+
+			case curr === -1:																				// found the first useable Gift
+				curr = idx;																						// to stop further checking
+				upd.push({																						// stack a Gift update
+					[FIELD.effect]: now.ts,															// if first usage of this Gift
+					[FIELD.expire]: giftLeft === 0 ? now.ts : undefined,// if last usage of this Gift
+					...gift,																						// spread Gift (note: ok to override FIELD.effect with its prior value)
+				})
+				bonus = {																							// create a Bonus object
+					[FIELD.id]: gift[FIELD.id],
+					[FIELD.type]: BONUS.gift,
+					count: gift.count,
+					desc: `${giftLeft} ${plural(giftLeft, 'gift')}`,
+				}
+				break;
 		}
 	})
 
-	if (upd.length)																			// whether or not we found an applicable Bonus
-		bonus.gift = upd;																	// let caller know about any pending Gift updates
+	if (upd.length)																							// whether or not we found an applicable Bonus,
+		bonus.gift = upd;																					// let calling-function know about any Gift updates to be applied
 
 	return bonus;
 }
