@@ -29,7 +29,11 @@ export const LOOKUP: Record<string, CLASS> = {
 export const SPECIAL = ['oldEvent', 'Spooky', 'Event', 'Zombie', 'Special', 'Xmas', 'Creepy', 'Holiday', 'Routine', 'Fiesta'];
 export const PACK = ['oldSunday3Pak', 'oldSunday3For2', 'Sunday3For2'];
 
-export const CREDIT = ['value', 'zero', 'all'];
+export enum CREDIT {
+	'value',
+	'zero',
+	'all',
+}
 
 export const SHEET_URL = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 export const SHEET_PREFIX = 'alert';

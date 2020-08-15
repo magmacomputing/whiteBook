@@ -59,7 +59,7 @@ export class AttendService {
 			: FIELD.key																			// compare requested event to class's Key
 		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
 		if (!timetable)																		// this schedule is not actually offered on this date!
-			return this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`);
+			return this.snack.error(`This schedule item not available today: ${schedule[FIELD.id]}`);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
@@ -68,7 +68,7 @@ export class AttendService {
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			addWhere('note', schedule[FIELD.note]),
+			addWhere('note', schedule[FIELD.note]),					// a different 'note' will allow us to re-book same Class
 		]);
 
 		if (bookAttend.length) {													// disallow same Class, same Note

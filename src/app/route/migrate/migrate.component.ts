@@ -94,26 +94,25 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	/**
-	 * Filter the Members to show on Admin panel
-	 * @param key <string>
-	 * 	'hide'		toggle showing 'hidden' Members
-	 *  'credit'	toggle showing Members with $0 credit
+	 * Filter the Members to show on Admin panel  
+	 * 	'hide'		toggle shows 'hidden' Members  
+	 *  'credit'	toggle shows Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
 		this.admin = getLocalStore(AdminStorage) || {};
-		const migrateFilter = this.admin.migrateFilter || { hidden: false, idx: 2 };
+		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: CREDIT.all };
 
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row[STORE.import])
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
 				.filter(row => {
-					switch (CREDIT[migrateFilter.idx]) {
-						case 'all':
+					switch (migrateFilter.credit) {
+						case CREDIT.all:
 							return true;
-						case 'value':
+						case CREDIT.value:
 							return getPath(row.account, 'summary.credit');
-						case 'zero':
+						case CREDIT.zero:
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
@@ -125,9 +124,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				migrateFilter.hidden = !migrateFilter.hidden;
 				break;
 			case 'credit':
-				migrateFilter.idx += 1;
-				if (migrateFilter.idx >= CREDIT.length)
-					migrateFilter.idx = 0;
+				migrateFilter.credit += 1;
+				if (migrateFilter.credit >= Object.keys(CREDIT).length / 2)
+					migrateFilter.credit = 0;
 				break;
 		}
 
@@ -362,7 +361,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const start = attend.orderBy('-track.date');
 		const preprocess = cloneObj(table);
 
-		// const endAt = table.filter(row => row.date >= getDate('2017-Dec-31').format(Instant.FORMAT.yearMonthDay)).length;
+		// const endAt = table.filter(row => row.date >= getDate('2016-Oct-31').format(Instant.FORMAT.yearMonthDay)).length;
 		// table.splice(table.length - endAt);							// up-to, but not includng endAt
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
@@ -427,23 +426,32 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
 			const free = asArray(sunday.free as TString)
-
-			if (row.note?.includes('Bonus: Week Level reached')) {
+			this.getElect(row);														// did the Member elect a Bonus?
+			if (row.elect) {
 				obj.full.amount = 0;
 				price = 0;
-				row.elect = BONUS.week;											// Week bonus takes precedence
-			} else if (row.note?.includes('Bonus: Class Level reached')) {
-				obj.full.amount = 0;
-				price = 0;
-				row.elect = BONUS.class;
-			} else if (row.note?.includes('Gift #')) {
-				obj.full.amount = 0;
-				price = 0;
-				row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
 			} else {
 				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
 				row.elect = BONUS.sunday;										// dont elect to skip Bonus on a Pack
 			}
+			// if (row.note?.includes('Bonus: Week Level reached')) {
+			// 	obj.full.amount = 0;
+			// 	price = 0;
+			// 	row.elect = BONUS.week;											// Week bonus takes precedence
+			// } else if (row.note?.includes('Bonus: Class Level reached')) {
+			// 	obj.full.amount = 0;
+			// 	price = 0;
+			// 	row.elect = BONUS.class;
+			// } else if (row.note?.includes('Bonus: Month Level reached')) {
+			// 	obj.full.amount = 0;
+			// 	price = 0;
+			// 	row.elect = BONUS.month;
+			// } else if (row.note?.includes('Gift #')) {
+			// 	obj.full.amount = 0;
+			// 	price = 0;
+			// 	row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
+			// } else {
+			// }
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
@@ -538,8 +546,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near, { start: '00:00' } as ISchedule);
 				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
-				if (row.note?.includes('Bonus: Week Level reached'))
-					row.elect = BONUS.week;
+				if (isUndefined(row.elect))
+					this.getElect(row);
+				// if (row.note?.includes('Bonus: Week Level reached'))
+				// 	row.elect = BONUS.week;
 				sched.amount = price;											// to allow AttendService to check what was charged
 				sched.note = row.note;
 				sched.elect = row.elect;
@@ -592,6 +602,26 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		p.promise
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
+	}
+
+	private getElect(row: MHistory) {
+		if (row.note?.includes('elect false')) {
+			row.elect = BONUS.none;
+		} else if (row.note?.includes('elect none')) {
+			row.elect = BONUS.none;
+		} else if (row.note?.includes('Gift #')) {
+			row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
+		} else if (row.note?.includes('Bonus: Week Level reached')) {
+			row.elect = BONUS.week;											// Week bonus takes precedence
+		} else if (row.note?.includes('Bonus: Class Level reached')) {
+			row.elect = BONUS.class;
+		} else if (row.note?.includes('Bonus: Month Level reached')) {
+			row.elect = BONUS.month;
+		} else if (row.note?.includes('Bonus: Sunday Level reached')) {
+			row.elect = BONUS.sunday;
+		} else if (row.note?.includes('Multiple @Home classes today')) {
+			row.elect = BONUS.home;
+		}
 	}
 
 	private asTime(hhmm: string) {

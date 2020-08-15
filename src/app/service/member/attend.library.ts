@@ -92,7 +92,7 @@ const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: In
 					[FIELD.expire]: giftLeft === 0 ? now.ts : undefined,// if last usage of this Gift
 					...gift,																						// spread Gift (note: ok to override FIELD.effect with its prior value)
 				})
-				Object.assign(bonus, {																// create a Bonus object
+				Object.assign(bonus, {																// assign Bonus
 					[FIELD.id]: gift[FIELD.id],
 					[FIELD.type]: BONUS.gift,
 					desc: `${giftLeft} ${plural(giftLeft, 'gift')}`,
@@ -109,8 +109,8 @@ const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: In
 }
 /**
  * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus days in a week (scheme.level).  
- * (note: even 'Gift Attends' count towards a Bonus)
  * The Member must also have claimed less than the free limit (scheme.free) to enable this bonus
+ * (note: even 'Gift Attends' count towards a Bonus)
  */
 const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS = BONUS.week) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);
@@ -130,15 +130,15 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
 			[FIELD.type]: BONUS.week,
 			desc: scheme.desc,
 			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.week).length + 1,
-			amount: scheme.amount,
-		})
+		},
+			isUndefined(scheme.amount) ? undefined : { amount: scheme.amount },
+		)
 
 	return;
 }
 
 /**
  * The Class scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.level).  
- * (note: 'Gift' attends do not count towards a Bonus)
  * THe Member must also have claimed less than the free limit (scheme.free) to enable this bonus
  */
 const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS = BONUS.class) => {
@@ -156,17 +156,18 @@ const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: I
 			[FIELD.type]: BONUS.class,
 			desc: scheme.desc,
 			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.class).length + 1,
-			amount: scheme.amount,
-		})
+		},
+			isUndefined(scheme.amount) ? undefined : { amount: scheme.amount },
+		)
 	}
 
 	return;
 }
 
 /**
- * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.sunday.level).  
- * Note: the Week scheme takes precendence (if qualifies on Sunday, and not claimed on Saturday)
- * The class must be in the free list (scheme.week.free) to qualify for this bonus
+ * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.level).  
+ * The class must be in the free list (scheme.free) to qualify for this bonus
+ * Note: the Week scheme should take precendence (if qualifies on Sunday, and not claimed on Saturday)
  */
 const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect: BONUS = BONUS.sunday, event: string) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);
@@ -184,22 +185,23 @@ const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: 
 			[FIELD.type]: BONUS.sunday,
 			desc: scheme.desc,
 			count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.sunday).length + 1,
-			amount: scheme.amount,
-		})
+		},
+			isUndefined(scheme.amount) ? undefined : { amount: scheme.amount },
+		)
 	}
 
 	return;
 }
 
 /**
- * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.month.level).  
- * The Member must also have attended less than the free limit (scheme.month.free) to qualify for this bonus
+ * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.level).  
+ * The Member must also have attended less than the free limit (scheme.free) to qualify for this bonus
  */
 const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: Instant, elect: BONUS = BONUS.month) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const okLevel = attendMonth
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
-		.filter(row => row.track[FIELD.date] !== today)		// dont count today's attend
+		.filter(row => row.track[FIELD.date] !== today)								// dont count today's attend
 		.distinct(row => row.track[FIELD.date])
 		.length >= scheme.level
 	const okFree = attendMonth
@@ -213,8 +215,9 @@ const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: 
 			[FIELD.type]: BONUS.month,
 			desc: scheme.desc,
 			count: attendMonth.filter(row => row.bonus?.[FIELD.type] === BONUS.month).length + 1,
-			amount: scheme.amount,
-		})
+		},
+			isUndefined(scheme.amount) ? undefined : { amount: scheme.amount },
+		)
 	}
 
 	return;
@@ -235,8 +238,9 @@ const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], now: I
 			[FIELD.type]: BONUS.home,
 			desc: scheme.desc,
 			count: attendToday.length + 1,
-			amount: scheme.amount,
-		})
+		},
+			isUndefined(scheme.amount) ? undefined : { amount: scheme.amount },
+		)
 	}
 
 	return;

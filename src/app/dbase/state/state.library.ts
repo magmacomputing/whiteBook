@@ -16,7 +16,7 @@ import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@d
 import { asArray } from '@library/array.library';
 import { getDate, TDate, Instant } from '@library/instant.library';
 import { getPath, sortKeys, cloneObj } from '@library/object.library';
-import { isString, isArray, isFunction, isUndefined, isEmpty } from '@library/type.library';
+import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
 /**
  * Generic Slice Observable  
@@ -384,11 +384,12 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 	source.client.schedule = times
 		.map(time => {
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
-			time.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
+			const bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
+			time.bonus = isEmpty(bonus) ? undefined : bonus;
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
-			time.amount = isUndefined(time.bonus[FIELD.id])	// no Bonus for this class
+			time.amount = isUndefined(time.bonus?.[FIELD.id])	// no Bonus for this class
 				? time.price.amount
-				: (time.bonus.amount || 0)								// a specific-amount, else $0
+				: nullToZero(time.bonus?.amount)								// a specific-amount, else $0
 
 			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
 
