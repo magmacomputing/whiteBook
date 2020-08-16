@@ -213,17 +213,23 @@ export const sumPayment = (source: IAccountState) => {
 
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
-			.reduce((sum, payment, idx) => {
+			.reduce((sum, payment, idx, arr) => {
 				if (idx === 0) {																		// only 1st Payment
-					sum.bank += payment.bank || 0;
-					sum.adjust += payment.adjust || 0;
-					sum.paid += payment.amount || 0;
+					sum.bank += nullToZero(payment.bank);
+					sum.adjust += nullToZero(payment.adjust);
+					if (payment.approve)
+						sum.paid += nullToZero(payment.amount)
+					else sum.pend += nullToZero(payment.amount)
 				} else
-					sum.pend += (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
+					sum.pend += nullToZero(payment.amount) + nullToZero(payment.adjust) + nullToZero(payment.bank);
 
-				sum.funds = sum.bank + sum.paid + sum.adjust;
-				sum.credit = sum.funds + sum.pend;
-
+				if (arr.length === 1) {
+					sum.funds = sum.bank + sum.paid + sum.adjust + sum.pend;
+					sum.credit = sum.funds;
+				} else {
+					sum.funds = sum.bank + sum.paid + sum.adjust;
+					sum.credit = sum.funds + sum.pend;
+				}
 				return sum;
 			}, sum)
 	}
