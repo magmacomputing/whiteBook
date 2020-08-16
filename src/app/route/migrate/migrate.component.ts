@@ -217,13 +217,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
-		let match: IPayment | undefined;
 		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
 		const updates: IStoreMeta[] = [];
 		const creates: IStoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => {
-				match = payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp]);
+				const match = payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp]);
 
 				if (!isUndefined(row.approved)) {
 					if (match && isUndefined(match.approve)) {
