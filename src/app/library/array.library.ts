@@ -78,9 +78,11 @@ if (!Array.prototype.hasOwnProperty('orderBy')) {
 					if (dir === -1) key = key.substring(1);
 
 					if (result === 0) {
-						result = isNumber(a[key]) && isNumber(b[key])
-							? dir * (a[key] - b[key])
-							: dir * asString(a[key]).localeCompare(asString(b[key]));
+						const keyA = getPath(a, key);
+						const keyB = getPath(b, key);
+						result = isNumber(keyA) && isNumber(keyB)
+							? dir * (keyA - keyB)
+							: dir * asString(keyA).localeCompare(asString(keyB));
 					}
 				})
 

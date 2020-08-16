@@ -1,4 +1,5 @@
-import { BONUS, Auth } from '@dbase/data/data.define';
+import type { BONUS, Auth } from '@dbase/data/data.define';
+import type { Migrate } from './migrate.define';
 
 export interface MRegister {
 	id: string;
@@ -30,6 +31,6 @@ export interface MHistory {
 export interface IAdminStore {
 	migrateFilter?: {
 		hidden: boolean;
-		idx: number;
+		credit: Migrate.CREDIT;
 	}
 }

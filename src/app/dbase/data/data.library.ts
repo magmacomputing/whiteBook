@@ -12,8 +12,8 @@ import { isEqual, getPath } from '@library/object.library';
 import { asString } from '@library/string.library';
 import { asArray } from '@library/array.library';
 
-// client documents have a '<key>' field, user documents have a '<uid>' field
-export const isClientDocument = (document: TStoreBase): document is IClientBase =>
+// client documents have a '<key>' field, member documents have a '<uid>' field
+const isClientDocument = (document: TStoreBase): document is IClientBase =>
 	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */

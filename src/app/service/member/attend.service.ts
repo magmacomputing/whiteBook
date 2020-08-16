@@ -17,8 +17,8 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 
-import { getDate, Instant, TDate } from '@library/instant.library';
-import { isUndefined, isNumber, isEmpty } from '@library/type.library';
+import { getDate, Instant, TInstant } from '@library/instant.library';
+import { isUndefined, isNumber, isEmpty, nullToZero } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -32,7 +32,7 @@ export class AttendService {
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, date?: TDate) => {
+	public setAttend = async (schedule: ISchedule, date?: TInstant) => {
 		const creates: IStoreMeta[] = [];
 		const updates: IStoreMeta[] = [];
 
@@ -51,7 +51,7 @@ export class AttendService {
 			this.state.getScheduleData(date, schedule.elect),// get Schedule for this date
 		)
 			.pipe(take(1))																	// unsubscribe on first-emit
-			.toPromise()																		// emit observables as Promise
+			.toPromise()																		// emit Observable as Promise
 
 		// <schedule> might be from Schedule or Calender store
 		const field = schedule[FIELD.store] === STORE.schedule
@@ -59,7 +59,7 @@ export class AttendService {
 			: FIELD.key																			// compare requested event to class's Key
 		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
 		if (!timetable)																		// this schedule is not actually offered on this date!
-			return this.snack.error(`Cannot find this schedule item: ${schedule[FIELD.id]}`, this.self);
+			return this.snack.error(`This schedule item not available today: ${schedule[FIELD.id]}`);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
@@ -68,35 +68,38 @@ export class AttendService {
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
 			addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			addWhere('note', schedule[FIELD.note]),
+			addWhere('note', schedule[FIELD.note]),					// a different 'note' will allow us to re-book same Class
 		]);
 
-		if (bookAttend.length) {															// disallow same Class, same Note
+		if (bookAttend.length) {													// disallow same Class, same Note
 			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
 			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
 			if (noNote || isNote)
-				return this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`, this.self);
+				return this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// work out the actual price to charge
-		if (!isEmpty(timetable.bonus) && timetable.bonus) {
-			if (timetable.bonus.gift) {
-				updates.push(...timetable.bonus.gift);						// batch any Gift updates
-				delete timetable.bonus.gift;											// not needed
-				delete timetable.bonus.desc;											// not needed
-			}
-			if (timetable.bonus[FIELD.id])
-				timetable.price!.amount = timetable.bonus.amount ?? 0;	// override Plan price
+		if (isUndefined(timetable.price))
+			return this.snack.error(`price: No pricing information for this Plan: ${source.member.plan[0].plan}`);
+
+		if (timetable.bonus?.gift) {
+			updates.push(...timetable.bonus.gift);					// batch any Gift updates
+			delete timetable.bonus.gift;										// not needed
+			delete timetable.bonus.desc;										// not needed
+			if (isEmpty(timetable.bonus))
+				delete timetable.bonus;												// not needed
 		}
+		if (timetable.bonus?.[FIELD.id])
+			timetable.price!.amount = nullToZero(timetable.bonus.amount);	// override Plan price
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
 		// this is useful for the bulk Migration of attends
-		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price!.amount) {// calculation mis-match
+		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price.amount) {// calculation mis-match
 			this.dbg('bonus: %j', timetable.bonus);
-			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price!.amount}`);
+			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price.amount}`);
 		}
-		schedule.amount = timetable.price!.amount;				// the price to use for this class
+		schedule.amount = timetable.price.amount;					// the price to use for this class
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which should be <active>
@@ -170,7 +173,7 @@ export class AttendService {
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
 			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve && isEmpty(timetable.bonus))	// calc an Expiry for this Payment
+		if (!active.expiry && active.approve && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
 			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
 
 		if (!isEmpty(upd))																// changes to the active Payment
@@ -202,7 +205,7 @@ export class AttendService {
 				week: now.format(Instant.FORMAT.yearWeek),		// week-number of year
 				month: now.format(Instant.FORMAT.yearMonth),	// month-number of year
 			},
-			bonus: !isEmpty(timetable.bonus) ? timetable.bonus : undefined,			// <id>/<type>/<count> of Bonus
+			bonus: timetable.bonus,													// <id>/<type>/<count> of Bonus
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
@@ -211,7 +214,7 @@ export class AttendService {
 	}
 
 	/** look back up-to seven days to find when className was last scheduled */
-	private lkpDate = async (className: string, location?: string, date?: TDate) => {
+	private lkpDate = async (className: string, location?: string, date?: TInstant) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
 		let now = getDate(date);																// start with date-argument
 		let ctr = 0;
@@ -247,7 +250,7 @@ export class AttendService {
 		const memberUid = addWhere(FIELD.uid, (await this.data.getUID()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
-			filter.push(memberUid);											// ensure UID is present in where-clause
+			filter.push(memberUid);																// ensure UID is present in where-clause
 
 		const updates: IStoreMeta[] = [];
 		const deletes: IStoreMeta[] = await this.data.getStore<IAttend>(STORE.attend, filter);
@@ -257,22 +260,22 @@ export class AttendService {
 			return;
 		}
 
-		const payIds = deletes												// the Payment IDs related to this reversal
+		const payIds = (deletes as IAttend[])										// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.id])
 			.distinct();
-		const giftIds = deletes												// the Gift IDs related to this reversal
-			.filter(attend => attend.bonus && attend.bonus[FIELD.type] === BONUS.gift)
-			.map(row => row.bonus[FIELD.id])
+		const giftIds = (deletes as IAttend[])									// the Gift IDs related to this reversal
+			.filter(attend => attend.bonus?.[FIELD.type] === BONUS.gift)
+			.map(row => row.bonus![FIELD.id])
 			.distinct();
-		const scheduleIds = deletes										// the Schedule IDs that may have Forum content
+		const scheduleIds = (deletes as IAttend[])							// the Schedule IDs that may have Forum content
 			.map(attend => attend.timetable[FIELD.id])
 			.distinct();
-		const dates = deletes													// the Dates these Attends have Forum content
+		const dates = (deletes as IAttend[])										// the Dates these Attends have Forum content
 			.map(attend => attend.track.date)
 			.distinct();
 
 		/**
-		 * attends:		all the Attends that relate to the payIDs (even those about to be deleted)
+		 * attends:	a	ll the Attends that relate to the payIDs (even those about to be deleted)
 		 * payments:	all the Payments related to this Member
 		 * gifts:			all the Gifts related to this reversal
 		 * forum:			all the Forum content related to this reversal
@@ -285,74 +288,73 @@ export class AttendService {
 				where: [
 					memberUid,
 					addWhere(FIELD.type, STORE.schedule),
-					addWhere(FIELD.key, scheduleIds),
-					addWhere('track.date', dates),
+					addWhere(FIELD.key, scheduleIds, '=='),						// TODO: this workaround for FireStore limit
+					addWhere('track.date', dates, '=='),							// on number of 'in' clauses in a Query
 				]
 			}),
 		])
 
-		// build a link-link of Payments
+		// build a linked-list of Payments
 		payments
 			.orderBy(`-${FIELD.stamp}`, FIELD.type)
 			.forEach((payment, idx, arr) => {
-				payment.link = {
+				payment.chain = {
 					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,
 					child: idx !== 0 && arr[idx - 1][FIELD.id] || undefined,
 					index: idx,
 				}
 			})
 
-		let pays = attends														// count the number of Attends per Payment
+		let pays = attends																			// count the number of Attends per Payment
 			.map(row => row.payment[FIELD.id])
 			.reduce((acc, itm) => {
-				if (isUndefined(acc[itm]))
-					acc[itm] = 0;
-				acc[itm] += 1;
+				acc[itm] = nullToZero(acc[itm]) + 1;
 				return acc;
-			}, {} as Record<string, number>);
+			}, {} as Record<any, number>)
 
 		const chg = new Set<string>();
 		deletes.forEach(attend => {
 			let idx: number;
+
 			if (attend.bonus && attend.bonus[FIELD.type] === BONUS.gift) {
 				idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]);
 				const gift = gifts[idx];
 				if (gift) {
 					if (isNumber(gift.count))
-						gift.count! -= 1;											// decrement running-total
+						gift.count! -= 1;																// decrement running-total
 					if (gift.count === 0)
-						gift.count = undefined;								// discard running-total
+						gift.count = undefined;													// discard running-total
 					if (isNumber(gift[FIELD.expire]))
-						gift[FIELD.expire] = undefined;				// re-open a Gift
+						gift[FIELD.expire] = undefined;									// re-open a Gift
 				}
 			}
 
-			const payId = attend.payment[FIELD.id];			// get the Payment id
+			const payId = attend.payment[FIELD.id];								// get the Payment id
 			idx = payments.findIndex(row => row[FIELD.id] === payId);
 			const payment = payments[idx];
 			if (payment) {
 				if (isNumber(payment[FIELD.expire]))
-					payment[FIELD.expire] = undefined;			// re-open a Payment
-				pays[payId] -= 1;													// reduce the number of Attends for this Payment
-				if (pays[payId] === 0) {									// no other Attend booked against this Payment
-					payment[FIELD.effect] = undefined;
-					payment.bank = undefined;								// TODO: dont clear down Payment, if parent had $0 funds
+					payment[FIELD.expire] = undefined;								// re-open a Payment
+				pays[payId] -= 1;																		// reduce the number of Attends for this Payment
+				if (pays[payId] === 0) {														// no other Attend booked against this Payment
+					payment[FIELD.effect] = undefined;								// so, mark the Payment as not-yet-effective
+					payment.bank = undefined;													// TODO: dont clear down Payment, if parent had $0 funds
 
-					chg.add(payId);													// mark this Payment as 'changed
-					const parent = payment.link!.parent;
+					chg.add(payId);																		// mark this Payment as 'changed
+					const parent = payment.chain!.parent;
 					if (parent) {
-						payments[idx + 1][FIELD.expire] = undefined;
-						chg.add(payments[idx + 1][FIELD.id]);	// mark the parent as 'changed'
+						payments[idx + 1][FIELD.expire] = undefined;		// un-expire the parent
+						chg.add(payments[idx + 1][FIELD.id]);						// mark the parent as 'changed'
 					}
 				}
 			}
 		})
 
-		deletes.push(...forum);												// delete Forum content as well
-		updates.push(...gifts);												// batch the updates to Gifts
+		deletes.push(...forum);																	// delete Forum content as well
+		updates.push(...gifts);																	// batch the updates to Gifts
 		updates.push(...payments
-			.filter(row => chg.has(row[FIELD.id]))			// only those that have changed
-			.map(row => ({ ...row, link: undefined }))	// drop the calculated link
+			.filter(row => chg.has(row[FIELD.id]))								// only those that have changed
+			.map(row => ({ ...row, chain: undefined }))						// drop the calculated chain
 		);
 
 		return this.data.batch(undefined, updates, deletes)

@@ -14,25 +14,24 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@library/array.library';
-import { getDate, TDate, Instant } from '@library/instant.library';
-import { getPath, sortKeys, cloneObj } from '@library/object.library';
-import { isString, isArray, isFunction, isUndefined, isEmpty } from '@library/type.library';
+import { getDate, TInstant, Instant } from '@library/instant.library';
+import { getPath } from '@library/object.library';
+import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
 /**
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
-export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant, segment?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
-	const sortBy = SORTBY[store];
 
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
 		map(state => asAt<T>(state[segment || store], filter, date)),
-		map(table => table && table.sort(sortKeys(...asArray(sortBy)))),
+		map(table => table.sortBy(...asArray(SORTBY[store])))
 	)
 }
 
@@ -40,7 +39,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
  * Get all documents by filter,  
  * do not exclude _expire unless <date> specified
  */
-export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
+export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant) => {
 	const slice = getSlice(store);
 	if (store === slice.toString())													// top-level slice (eg. Attend)
 		return getState<T>(states, store, filter, date);
@@ -54,10 +53,10 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		map(obs => isUndefined(date)
 			? filterTable<T>(obs[store], filter)
 			: asAt<T>(obs[store], filter, date)),
-		map(table => table.sort(sortKeys(...asArray(SORTBY[store])))),
+		map(table => table.sortBy(...asArray(SORTBY[store]))),
 	)
 }
-export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
+export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant) => {
 	const state: Observable<TStateSlice<T>> = states[store] as any;
 
 	if (!state)
@@ -67,7 +66,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
 		map(table => isUndefined(date) ? filterTable<T>(table, filter) : asAt<T>(table, filter, date)),
-		map(table => table.sort(sortKeys(...asArray(SORTBY[store])))),
+		map(table => table.sortBy(...asArray(SORTBY[store]))),
 	)
 }
 
@@ -99,20 +98,20 @@ export const getUser = (token: IFireClaims) =>
 	({ displayName: token.name, email: token.email, photoURL: token.picture, providerId: token.firebase.sign_in_provider, uid: token.user_id });
 
 /**
- * Join a document to other documents referenced a supplied string of key fields  
+ * Join a document to other documents referenced by a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
  * node:   	the name of the node (eg. 'member') under which we place the documents on the Observable Object  
  * store:   the parent documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: TWhere = [], date?: TDate, callBack?: CallableFunction) => {
+export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: TWhere = [], date?: TInstant, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
 		return source.pipe(
 			switchMap(data => {
-				const filters = decodeFilter(cloneObj(data), cloneObj(filter)); // loop through filters
+				const filters = decodeFilter(data, filter);						// loop through filters
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(store === STORE.attend
@@ -152,8 +151,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
 					if (isArray(joins[table]) && joins[table].length) {
 						const store = joins[table][0][FIELD.store];
-						const sortBy = SORTBY[store];
-						joins[table] = joins[table].sort(sortKeys(...asArray(sortBy)));
+						joins[table] = joins[table].sortBy(...asArray(SORTBY[store]));
 					}
 				})
 
@@ -200,12 +198,12 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 }
 
 /**
- * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
- * The IPayment array is reverse-sorted by 'stamp', meaning payment[0] is the earliest 'active' value.  
- * paid		: is amount from active payment, if topUp
+ * Use the Observable on open Payment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
+ * The Payment array is reverse-sorted by FIELD.stamp, meaning payment[0] is the earliest 'active' value.  
+ * paid		: is amount from active payment, if topUp and approved  
  * adjust : is amount from active payment, if debit  
  * bank		: is any unspent funds (brought forward from previous payment)  
- * pend 	: is amount from future payments (not yet 'active')  
+ * pend 	: is amount from unapproved payments (not yet 'active')    
  * funds	: is amount remaining on active payment  
  * credit	: is amount remaining overall (i.e. including <pend>)
  */
@@ -217,11 +215,11 @@ export const sumPayment = (source: IAccountState) => {
 		source.account.summary = source.account.payment
 			.reduce((sum, payment, indx) => {
 				if (indx === 0) {																		// only 1st Payment
-					sum.bank += payment.bank || 0;
-					sum.adjust += payment.adjust || 0;
-					sum.paid += payment.amount || 0;
+					sum.bank += nullToZero(payment.bank)
+					sum.adjust += nullToZero(payment.adjust);
+					sum.paid += nullToZero(payment.amount);
 				} else
-					sum.pend += (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
+					sum.pend += nullToZero(payment.amount) + nullToZero(payment.adjust) + nullToZero(payment.bank);
 
 				sum.credit = sum.bank + sum.paid + sum.adjust + sum.pend;
 				sum.funds = sum.bank + sum.paid + sum.adjust;
@@ -233,7 +231,7 @@ export const sumPayment = (source: IAccountState) => {
 	return { ...source };
 }
 
-/** Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment */
+/** Use the Observable on Attend[] to add-up the cost of the Classes on the active Payment */
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
 		source.account.summary = source.account.attend
@@ -280,7 +278,7 @@ export const buildPlan = (source: IPlanState) => {
 	const isAdmin = roles && roles.includes(Auth.ROLE.admin);
 	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, STORE.plan));
 	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, PRICE.topUp));
-	const myAge = getMemberAge(source.member.info);	// use birthDay from provider, if available
+	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<IPrice>(source.client.price, [
@@ -316,7 +314,7 @@ export const buildPlan = (source: IPlanState) => {
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  
  */
-export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BONUS) => {
+export const buildTimetable = (source: ITimetableState, date?: TInstant, elect?: BONUS) => {
 	const {
 		schedule: times = [],												// the schedule for the requested date
 		class: classes = [],    										// the classes offered on that date
@@ -326,10 +324,11 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 		location: locations = [],										// the locations of the classes / events
 		alert: alerts = [],													// any alert notes for this date
 		price: prices = [],													// the prices as per member's plan
+		plan: plans = [],														// the plans for the Member
+		bonus = [],																	// the bonus' for the Member
 		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
-	const attendToday = source.attend.attendToday;
-
+	const attendToday = source[COLLECTION.attend].attendToday;
 	const icon = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon));
 	const locn = firstRow<IDefault>(source.application[STORE.default], addWhere(FIELD.type, STORE.location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
@@ -357,7 +356,7 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 				addWhere(FIELD.key, classDoc[FIELD.type]),// is there a span keyed by the type ('full'/'half') of the Class?
 				addWhere(FIELD.type, STORE.event),
 			])
-			const duration = spanClass.duration || span.duration;
+			const duration = spanClass.duration ?? span.duration;
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
 				[FIELD.type]: SCHEDULE.event,
@@ -377,19 +376,24 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 
 	// for each item on the schedule, poke in 'price' and 'icon',
 	// override plan-price if entitled to bonus
+
+	/** remove Bonus, if not entitled */
+	if (!plans[0].bonus)
+		source[COLLECTION.client][STORE.bonus] = source[COLLECTION.client][STORE.bonus]?.filter(bonus => bonus[FIELD.key] === BONUS.gift);
+
 	source.client.schedule = times
 		.map(time => {
-			// const time = cloneObj(table);
 			const classDoc = firstRow<IClass>(classes, addWhere(FIELD.key, time[FIELD.key]));
-			time.bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
+			const bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
+			time.bonus = isEmpty(bonus) ? undefined : bonus;
 			time.price = firstRow<IPrice>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
-			time.amount = isUndefined(time.bonus[FIELD.id])	// no Bonus for this class
+			time.amount = isUndefined(time.bonus?.[FIELD.id])	// no Bonus for this class
 				? time.price.amount
-				: (time.bonus.amount || 0)							// a specific-amount, else $0
+				: nullToZero(time.bonus?.amount)								// a specific-amount, else $0
 
 			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
 
-			if (!time[FIELD.image])												// if no schedule-specific icon, use class icon, else default icon
+			if (!time[FIELD.image])											// if no schedule-specific icon, use class icon, else default icon
 				time[FIELD.image] =
 					firstRow<IIcon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image ||
 					firstRow<IIcon>(icons, addWhere(FIELD.key, icon[FIELD.key])).image
@@ -399,11 +403,17 @@ export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BO
 			return time;
 		})
 
+		.filter(time => !isUndefined(time.amount))		// remove Schedules that are not available on this Member's Plan
+
 		/**
 		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
 		.filter(row => row[FIELD.type] === SCHEDULE.event || !eventLocations.includes(row.location!))
+
+	/** remove Locations that have no Schedules */
+	source[COLLECTION.client][STORE.location] = source[COLLECTION.client][STORE.location]
+		?.filter(locn => source[COLLECTION.client][STORE.schedule]?.distinct(time => time.location).includes(locn[FIELD.key]))
 
 	return { ...source }
 }

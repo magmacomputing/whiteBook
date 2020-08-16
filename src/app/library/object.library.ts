@@ -1,6 +1,29 @@
 import { getType, isObject, isArray, isString, TString, isNull, isUndefined, nullToZero } from '@library/type.library';
 import { isNumeric } from '@library/string.library';
 
+const getPath1 = <T>(obj: any, str: string, dflt?: any) => {
+	if (!isObject<T>(obj) && !isArray<T>(obj))
+		return dflt;
+	if (isUndefined(obj))
+		return dflt;
+
+	let clone = JSON.parse(JSON.stringify(obj));
+	const a = str
+		.replace(/\[(\w+)\]/g, '.$1')										// convert indexes to properties
+		.replace(/^\./, '')															// strip a leading dot
+		.split('.');
+
+	for (var i = 0, n = a.length; i < n; ++i) {
+		var k = a[i];
+		if (k in clone) {
+			clone = clone[k];
+		} else {
+			return;
+		}
+	}
+	return clone;
+}
+
 /**
  * Get nested value,  
  * allow for array-references in <path>
@@ -10,6 +33,7 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 		return dflt || undefined;
 	if (isUndefined(obj))
 		return dflt || undefined;
+	let clone = cloneObj(obj);
 
 	const [word, ...rest] = isString(path)						// first word in the index-path, and the rest
 		? path.replace(' ', '').split('.')							// remove readability-spaces
@@ -19,18 +43,18 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 	const match = regex.exec(word);										// eg. does the 'word' end in "*[0]"?
 	const { matchWord, matchIdx } = !isNull(match) && match.groups || { matchWord: word, matchIdx: '*' };
 
-	obj = isArray(obj)
-		? obj
+	clone = isArray<Record<string, any>>(clone)
+		? clone
 			.map(itm => { if (isUndefined(itm[matchWord])) itm[matchWord] = dflt; return itm; })
 			.map(itm => itm[matchWord])
 			.filter((_row, idx) => indx === '*' || indx === idx.toString())
-		: obj[matchWord]
-	if (isArray(obj) && matchIdx !== '*')
-		obj = obj[0];																		// limit to the first filtered element
+		: clone[matchWord]
+	if (isArray(clone) && matchIdx !== '*')
+		clone = clone[0];																// limit to the first filtered element
 
 	return rest.length
-		? getPath(obj, rest, dflt, matchIdx)						// recurse into object
-		: obj || dflt
+		? getPath(clone, rest, dflt, matchIdx)					// recurse into object
+		: clone || dflt
 }
 
 /** sort Object by multiple keys */
@@ -67,6 +91,12 @@ export const cloneObj = <T>(obj: T) => {
 	}
 
 	return clone ?? obj;														// return original object, if cannot parse
+}
+
+export const quoteObj = (obj: any) => {
+	return JSON.stringify(obj)
+		?.replace(/"([^"]+)":/g, '$1: ')
+		?.replace(/,/g, ', ')
 }
 
 /** lowerCase Object keys */
@@ -118,8 +148,7 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
 						break;
 
 					case 'Date':
-						col[key] = new Date();
-						// col[key].setTime(obj[key].getTime());
+						col[key] = new Date(obj[key]);
 						break;
 
 					default:

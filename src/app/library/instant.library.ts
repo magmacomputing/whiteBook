@@ -16,7 +16,7 @@ interface IInstant {											// Instant components
 	readonly ddd: keyof typeof Instant.WEEKDAY;// short day-name
 	readonly dow: Instant.WEEKDAY;					// weekday; Mon=1, Sun=7
 	readonly tz: number;										// timezone offset in hours
-	readonly value?: TDate;									// original value passed to constructor
+	readonly value?: TInstant;									// original value passed to constructor
 }
 
 interface ITimestamp {
@@ -41,7 +41,7 @@ type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
-export type TDate = string | number | Date | Instant | IInstant | Timestamp | ITimestamp;
+export type TInstant = string | number | Date | Instant | IInstant | Timestamp | ITimestamp;
 
 /** Mirror the Firestore Timestamp class */
 class Timestamp {
@@ -65,9 +65,9 @@ class Timestamp {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-/** get new Instant */export const getDate = (dt?: TDate, ...args: TArgs) => new Instant(dt, ...args);
-/** get timestamp */	export const getStamp = (dt?: TDate, ...args: TArgs) => getDate(dt, ...args).ts;
-/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TDate, ...args: TArgs) => getDate(dt, ...args).format(fmt);
+/** get new Instant */export const getDate = (dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args);
+/** get timestamp */	export const getStamp = (dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).ts;
+/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).format(fmt);
 
 // NOTE: Instant does not currently handle leap-seconds
 
@@ -82,7 +82,7 @@ export class Instant {
 	static maxStamp = new Date('9999-12-31').valueOf() / 1000;	// static property
 	static minStamp = new Date('1000-01-01').valueOf() / 1000;	// static property
 
-	constructor(dt?: TDate, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
+	constructor(dt?: TInstant, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.#date.yy }
@@ -104,7 +104,7 @@ export class Instant {
 	/** apply formatting*/
 	format = <K extends keyof IDateFmt>(fmt: K) => this.#formatDate(fmt);
 	/** calc diff Dates, default as &lt;years> */
-	diff = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
+	diff = (unit: TUnitDiff = 'years', dt2?: TInstant, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
 	/** add date offset, default as &lt;minutes> */
 	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
 
@@ -121,7 +121,7 @@ export class Instant {
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	#parseDate = (dt?: TDate, args: TArgs = []) => {
+	#parseDate = (dt?: TInstant, args: TArgs = []) => {
 		const pat = {
 			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
@@ -345,7 +345,7 @@ export class Instant {
 	#composeDate = (date: IInstant) =>
 		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms)
 
-	/** combine Instant components to apply some standard / free-format rules */
+	/** combine Instant components to apply some standard & free-format rules */
 	#formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
 		const date = { ...this.#date };													// clone current Instant
 
@@ -444,7 +444,7 @@ export class Instant {
 	}
 
 	/** calculate the difference between dates (past is positive, future is negative) */
-	#diffDate = (unit: TUnitDiff = 'years', dt2?: TDate, ...args: TArgs) => {
+	#diffDate = (unit: TUnitDiff = 'years', dt2?: TInstant, ...args: TArgs) => {
 		const offset = this.#parseDate(dt2, args);
 		const diff = (this.#date.ts * 1000 + this.#date.ms) - (offset.ts * 1000 + offset.ms);
 		return diff < 0

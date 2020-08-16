@@ -5,7 +5,7 @@ import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
 import { isString, isNumber, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
-import { getStamp, getDate, TDate } from '@library/instant.library';
+import { getStamp, getDate, TInstant } from '@library/instant.library';
 
 // Library of member-related functions
 
@@ -55,7 +55,7 @@ export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
 	return birthDays.length ? Math.min(...birthDays) : undefined;
 }
 
-export const getMemberAge = (info: IProfileInfo[] = [], dt?: TDate) =>
+export const getMemberAge = (info: IProfileInfo[] = [], dt?: TInstant) =>
 	getDate(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**

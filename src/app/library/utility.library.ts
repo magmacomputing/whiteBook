@@ -21,7 +21,7 @@ export enum TPledge {
 export class Pledge<T> {
 	#tag: any;
 	#status: TPledge;
-	#promise: Promise<T>;														// TODO: is this needed?
+	#promise: Promise<T>;
 	#resolve!: (value?: T | PromiseLike<T>) => void;
 	#reject!: (reason?: any) => void;
 
@@ -30,8 +30,8 @@ export class Pledge<T> {
 		this.#status = TPledge.pending;
 
 		this.#promise = new Promise<T>((resolve, reject) => {
-			this.#resolve = resolve;
-			this.#reject = reject;
+			this.#resolve = resolve;										// stash resolve()
+			this.#reject = reject;											// stash reject()
 		})
 	}
 
@@ -70,4 +70,27 @@ export const memoize = (fn: Function) => {
 
 		return cache.get(key);
 	}
+}
+
+export const getCaller = () => {
+	const stackTrace = (new Error()).stack											// Only tested in latest FF and Chrome
+		?.split('\n')
+		?.map(itm => itm.trim())
+		?.filter(itm => !itm.startsWith('Error'))
+		?? []
+
+	// console.log('getCaller: ', stackTrace);
+	const callerName = stackTrace[2].split(' ');
+
+	// ?.replace(/^Error\s+/, '') // Sanitize Chrome
+	// ?.split('\n')[2]
+	// ?.split(' ')[3]
+
+
+	// callerName = callerName?.split("\n")[1]; // 1st item is this, 2nd item is caller
+	// callerName = callerName?.replace(/^\s+at Object./, ''); // Sanitize Chrome
+	// callerName = callerName?.replace(/ \(.+\)$/, ''); // Sanitize Chrome
+	// callerName = callerName?.replace(/\@.+/, ''); // Sanitize Firefox
+
+	return (callerName[1] === 'new') ? callerName[2] : callerName[1].split('.')[0];
 }

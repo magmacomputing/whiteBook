@@ -10,7 +10,7 @@ export const SLICES: Partial<Record<COLLECTION, STORE[]>> = {};
 export const FILTER: Partial<Record<COLLECTION, TString>> = {}
 
 // STORE sort criteria
-export const SORTBY: Partial<Record<STORE, TString>> = {};
+export const SORTBY: Partial<Record<STORE, string[]>> = {};
 
 // Comment parse criteria
 interface IPattern {

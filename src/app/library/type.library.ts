@@ -1,18 +1,14 @@
-import { AssertionError } from 'assert';
-
 /** return a ProperCase string of an object's type */
 export const getType = (obj?: any): string => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
-	// if (type === 'Window') debugger;
+
 	switch (true) {
 		case type === 'Object':
-			return obj.constructor.name;							// return Class name
-		// case type === 'Window' && obj === undefined:
-		// 	return 'Undefined';												// after Angular8
-		// case type === 'Window' && obj === null:
-		// 	return 'Null';														// after Angular8
+			return obj.constructor.name;							// return Object name
+
 		case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 			return 'Class';
+
 		default:
 			return type;
 	}
@@ -29,13 +25,19 @@ export const isEmpty = <T>(obj: T | Iterable<T>) => {
 		case 'Map':
 			return Array.from(obj as Iterable<T>).length === 0;
 
+		case 'Null':
+		case 'Undefined':
+			return true;
+
 		default:
 			return false;
 	}
 }
 
-/** Type-Guards: return a boolean to test <obj> is of <type> */
+export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, })
 export const isType = (obj: unknown, type: string = 'Object'): boolean => getType(obj).toLowerCase() === type.toLowerCase();
+
+/** Type-Guards: return a boolean to test <obj> is of <type> */
 export const isIterable = <T>(obj: T | Iterable<T>): obj is Iterable<T> => Symbol.iterator in Object(obj) && !isString(obj);
 export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
 
@@ -43,10 +45,11 @@ export const isString = (obj?: unknown): obj is string => isType(obj, 'String');
 export const isNumber = (obj?: unknown): obj is number => isType(obj, 'Number');
 export const isInteger = (obj?: unknown): obj is bigint => isType(obj, 'BigInt');
 export const isBoolean = (obj?: unknown): obj is boolean => isType(obj, 'Boolean');
-export const isArray = (obj?: unknown): obj is any[] => isType(obj, 'Array');
-export const isObject = <T>(obj?: T): obj is T => isType(obj, 'Object');
+export const isArray = <T>(obj: T[] | any): obj is T[] => isType(obj, 'Array');
+export const isObject = <T>(obj?: T): obj is NonNullable<typeof obj> => isType(obj, 'Object');
 export const isNull = (obj?: unknown): obj is null => isType(obj, 'Null');
 export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
+export const isDefined = <T>(obj: T): obj is T => !isType(obj, 'Undefined');
 
 export const isDate = (obj?: unknown): obj is Date => isType(obj, 'Date');
 export const isFunction = (obj?: unknown): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');
@@ -60,7 +63,7 @@ export const nullToValue = <T>(obj: T | null | undefined = null, value: T) => ob
 
 export function assertCondition(condition: any, message?: string): asserts condition {
 	if (!condition)
-		throw new AssertionError({ message })
+		throw new Error(message);
 }
 export function assertString(str: unknown): asserts str is string { assertCondition(isString(str), `Invalid string: ${str}`) };
 export function assertNever(val: never): asserts val is never { throw new Error(`Unexpected object: ${val}`) };
@@ -73,11 +76,7 @@ const getType = (obj) => {
 	const type = Object.prototype.toString.call(obj).slice(8, -1);
 	switch (true) {
 			case type === 'Object':
-					return obj.constructor.name; // return Class name
-			case type === 'Window' && obj === undefined:
-					return 'Undefined'; // after Angular8
-			case type === 'Window' && obj === null:
-					return 'Null'; // after Angular8
+					return obj.constructor.name; // return Object name
 			case type === 'Function' && obj.valueOf().toString().startsWith('class '):
 					return 'Class';
 			default:

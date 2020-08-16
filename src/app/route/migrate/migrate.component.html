@@ -1,5 +1,5 @@
 <button color="accent" (click)="filter('hide')">Hidden</button> {{ admin?.migrateFilter?.hidden }}
-<button color="accent" (click)="filter('credit')">Credit </button> {{ credit[admin?.migrateFilter?.idx] }}
+<button color="accent" (click)="filter('credit')">Credit </button> {{ credit[admin?.migrateFilter?.credit] }}
 
 <div *ngIf="(dash$ | async); let dash$">
 	<div *ngIf="dash$.length; else noDash"></div>
@@ -20,7 +20,7 @@
 				<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
 				<br>
 				<button (click)="revPayment()" [disabled]="!data.account.payment?.length">Rev Payments</button>
-				<button (click)="revAttend()" [disabled]="!data.account.attend?.length">Rev Attend</button>
+				<button (click)="revAttend()" [disabled]="!!data.account.attend?.length">Rev Attend</button>
 				<br>
 				<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
 				<button (click)="delPayment(true)">Reset Account</button>

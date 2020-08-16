@@ -52,7 +52,6 @@ export const fnQuery = (query: IQuery = {}) => {
  * This allows us to set separate Queries for each split clause
  */
 const splitQuery = (query: IQuery = {}) => {
-	// if (isArray(query.where)) debugger;
 	const wheres = asArray(query.where)						// for each 'where' clause
 		.map(where => {
 			if (isArray(where.value)) {
@@ -86,8 +85,8 @@ const splitQuery = (query: IQuery = {}) => {
 }
 
 /** Make a 'where' clause */
-export const addWhere = (fieldPath: string | FieldPath, value: any, opStr: IWhere["opStr"] = '==') =>
-	({ fieldPath, opStr, value } as IWhere);
+export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: IWhere["opStr"]) =>
+	({ fieldPath, opStr: opStr ?? (isArray(value) ? 'in' : '=='), value } as IWhere);
 
 /** Make an 'orderBy' clause */
 export const addOrder = (fieldPath: string | FieldPath, order: IOrderBy["directionStr"] = 'asc') =>

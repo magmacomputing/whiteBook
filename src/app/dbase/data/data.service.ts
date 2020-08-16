@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { DocumentReference } from '@angular/fire/firestore';
 
 import { Observable } from 'rxjs';
-import { take, delay, first } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
@@ -23,14 +23,14 @@ import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
 import { TString } from '@library/type.library';
-import { getStamp, TDate } from '@library/instant.library';
+import { getStamp, TInstant } from '@library/instant.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
 /**
  * The DataService is a go-between for the local State (ngxs 'Store')
  * 	and the remote Database (Firebase 'Cloud Firestore').  
- * The intention is that all 'reads' are from State, and all 'writes' are to a persisted,
+ * The intention is that it will funnel all 'reads' from State, and all 'writes' to a persisted,
  * 	local cache of the Database (which FireStore will sync back to the server).
  */
 @Injectable({ providedIn: DBaseModule })
@@ -59,7 +59,7 @@ export class DataService {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getStore<T>(store: STORE, where: TWhere = [], date?: TDate) {
+	getStore<T>(store: STORE, where: TWhere = [], date?: TInstant) {
 		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 

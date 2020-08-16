@@ -2,7 +2,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
 import { IMeta } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@library/instant.library';
+import { getStamp, TInstant } from '@library/instant.library';
 import { isString, isUndefined, isArray } from '@library/type.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
@@ -33,7 +33,7 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 					const operand = clause.opStr || '==';				// default to 'equals'
 					const field = isString(key)
 						? key.toLowerCase()												// string to lowercase to aid matching
-						: isArray(key) && key.every(isString)
+						: isArray<any>(key) && key.every(isString)
 							? key.map(toLower)											// string[] to lowercase
 							: key
 
@@ -77,11 +77,11 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
  */
-export const asAt = <T>(table: T[], cond: TWhere = [], date?: TDate) => {
+export const asAt = <T>(table: T[], cond: TWhere = [], date?: TInstant) => {
 	const stamp = getStamp(date);
 
 	return filterTable(table as (T & IMeta)[], cond)		// return the rows where date is between _effect and _expire
-		.filter(row => stamp <  (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 		.filter(row => !row[FIELD.hidden])								// discard rows that should not be visible
 		.map(row => row as T)
