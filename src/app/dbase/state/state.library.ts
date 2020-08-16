@@ -198,12 +198,12 @@ const decodeFilter = (parent: any, filter: TWhere = []) => {
 }
 
 /**
- * Use the Observable on open IPayment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
- * The IPayment array is reverse-sorted by 'stamp', meaning payment[0] is the earliest 'active' value.  
- * paid		: is amount from active payment, if topUp
+ * Use the Observable on open Payment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
+ * The Payment array is reverse-sorted by FIELD.stamp, meaning payment[0] is the earliest 'active' value.  
+ * paid		: is amount from active payment, if topUp and approved  
  * adjust : is amount from active payment, if debit  
  * bank		: is any unspent funds (brought forward from previous payment)  
- * pend 	: is amount from future payments (not yet 'active')  
+ * pend 	: is amount from unapproved payments (not yet 'active')    
  * funds	: is amount remaining on active payment  
  * credit	: is amount remaining overall (i.e. including <pend>)
  */
@@ -213,23 +213,17 @@ export const sumPayment = (source: IAccountState) => {
 
 		source.account.payment = asArray(source.account.payment);
 		source.account.summary = source.account.payment
-			.reduce((sum, payment, idx, arr) => {
-				if (idx === 0) {																		// only 1st Payment
-					sum.bank += nullToZero(payment.bank);
+			.reduce((sum, payment, indx) => {
+				if (indx === 0) {																		// only 1st Payment
+					sum.bank += nullToZero(payment.bank)
 					sum.adjust += nullToZero(payment.adjust);
-					if (payment.approve)
-						sum.paid += nullToZero(payment.amount)
-					else sum.pend += nullToZero(payment.amount)
+					sum.paid += nullToZero(payment.amount);
 				} else
 					sum.pend += nullToZero(payment.amount) + nullToZero(payment.adjust) + nullToZero(payment.bank);
 
-				if (arr.length === 1) {
-					sum.funds = sum.bank + sum.paid + sum.adjust + sum.pend;
-					sum.credit = sum.funds;
-				} else {
-					sum.funds = sum.bank + sum.paid + sum.adjust;
-					sum.credit = sum.funds + sum.pend;
-				}
+				sum.credit = sum.bank + sum.paid + sum.adjust + sum.pend;
+				sum.funds = sum.bank + sum.paid + sum.adjust;
+
 				return sum;
 			}, sum)
 	}
@@ -237,7 +231,7 @@ export const sumPayment = (source: IAccountState) => {
 	return { ...source };
 }
 
-/** Use the Observable on IAttend[] to add-up the cost of the Classes on the active IPayment */
+/** Use the Observable on Attend[] to add-up the cost of the Classes on the active Payment */
 export const sumAttend = (source: IAccountState) => {
 	if (source.account && isArray(source.account.attend)) {
 		source.account.summary = source.account.attend
@@ -362,7 +356,7 @@ export const buildTimetable = (source: ITimetableState, date?: TInstant, elect?:
 				addWhere(FIELD.key, classDoc[FIELD.type]),// is there a span keyed by the type ('full'/'half') of the Class?
 				addWhere(FIELD.type, STORE.event),
 			])
-			const duration = spanClass.duration || span.duration;
+			const duration = spanClass.duration ?? span.duration;
 			const time: Partial<ISchedule> = {
 				[FIELD.id]: classDoc[FIELD.id],
 				[FIELD.type]: SCHEDULE.event,
