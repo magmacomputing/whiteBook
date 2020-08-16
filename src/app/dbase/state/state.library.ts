@@ -14,15 +14,15 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@library/array.library';
-import { getDate, TDate, Instant } from '@library/instant.library';
-import { getPath, sortKeys, cloneObj } from '@library/object.library';
+import { getDate, TInstant, Instant } from '@library/instant.library';
+import { getPath } from '@library/object.library';
 import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
 /**
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
-export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate, segment?: string) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant, segment?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<IStoreMeta>;
 
@@ -39,7 +39,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [],
  * Get all documents by filter,  
  * do not exclude _expire unless <date> specified
  */
-export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
+export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant) => {
 	const slice = getSlice(store);
 	if (store === slice.toString())													// top-level slice (eg. Attend)
 		return getState<T>(states, store, filter, date);
@@ -56,7 +56,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		map(table => table.sortBy(...asArray(SORTBY[store]))),
 	)
 }
-export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TDate) => {
+export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant) => {
 	const state: Observable<TStateSlice<T>> = states[store] as any;
 
 	if (!state)
@@ -105,7 +105,7 @@ export const getUser = (token: IFireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: TWhere = [], date?: TDate, callBack?: CallableFunction) => {
+export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: TWhere = [], date?: TInstant, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
@@ -278,7 +278,7 @@ export const buildPlan = (source: IPlanState) => {
 	const isAdmin = roles && roles.includes(Auth.ROLE.admin);
 	const myPlan = firstRow<IProfilePlan>(source.member.plan, addWhere(FIELD.type, STORE.plan));
 	const myTopUp = firstRow<IPrice>(source.client.price, addWhere(FIELD.type, PRICE.topUp));
-	const myAge = getMemberAge(source.member.info);	// use birthDay from provider, if available
+	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<IPrice>(source.client.price, [
@@ -314,7 +314,7 @@ export const buildPlan = (source: IPlanState) => {
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  
  */
-export const buildTimetable = (source: ITimetableState, date?: TDate, elect?: BONUS) => {
+export const buildTimetable = (source: ITimetableState, date?: TInstant, elect?: BONUS) => {
 	const {
 		schedule: times = [],												// the schedule for the requested date
 		class: classes = [],    										// the classes offered on that date

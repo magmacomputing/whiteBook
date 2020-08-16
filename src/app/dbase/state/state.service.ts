@@ -16,7 +16,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
 import { TWhere, IQuery } from '@dbase/fire/fire.interface';
 
-import { Instant, TDate, getDate } from '@library/instant.library';
+import { Instant, TInstant, getDate } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -58,7 +58,7 @@ export class StateService {
 		return getCurrent<T>(this.states, store, filters);
 	}
 
-	getStore<T>(store: STORE, where?: TWhere, date?: TDate) {
+	getStore<T>(store: STORE, where?: TWhere, date?: TInstant) {
 		return getStore<T>(this.states, store, where, date);
 	}
 
@@ -106,9 +106,7 @@ export class StateService {
 				[STORE.connect]: source[STORE.connect] as IStatusConnect[],
 				[STORE.import]: source[STORE.import] as IImport[],
 				dash: [...(source[STORE.register] || [])]
-					// .map((reg, idx) => { this.dbg('pre: ', idx, reg[FIELD.uid]); return reg; })
 					.orderBy('user.customClaims.alias', FIELD.uid)
-					// .map((reg, idx) => { this.dbg('post: ', idx, reg[FIELD.uid]); return reg; })
 					.map(reg => ({
 						[STORE.register]: reg as IRegister,
 						[STORE.account]: (source[STORE.account] || [])
@@ -165,7 +163,7 @@ export class StateService {
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 */
-	getMemberData(date?: TDate): Observable<IMemberState> {
+	getMemberData(date?: TInstant): Observable<IMemberState> {
 		const filterProfile = [
 			addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),  								// and the <uid> is current active User
@@ -187,7 +185,7 @@ export class StateService {
 	 * client.plan  -> has an array of asAt Plan documents  
 	 * client.price -> has an array of asAt Price documents
 	 */
-	getPlanData(date?: TDate): Observable<IPlanState> {
+	getPlanData(date?: TInstant): Observable<IPlanState> {
 		const filterIcon = addWhere(FIELD.type, [STORE.plan, STORE.default]);
 
 		return this.getMemberData(date).pipe(
@@ -203,7 +201,7 @@ export class StateService {
 	 * client.provider	-> has an array of Provider documents
 	 * client.icon			-> has an array of Provider icons
 	 */
-	getProviderData(date?: TDate): Observable<IProviderState> {
+	getProviderData(date?: TInstant): Observable<IProviderState> {
 		const filterProvider = addWhere(FIELD.expire, 0);
 		const filterIcon = addWhere(FIELD.type, [STORE.provider, STORE.default]);
 
@@ -220,7 +218,7 @@ export class StateService {
 	 * account.attend	-> has an array of attendances against the <active> payment  
 	 * account.summary-> has an object summarising the Member's Account value as { paid: $, bank: $, adjust: $, spend: $, credit: $, funds: $ }
 	 */
-	getAccountData(date?: TDate): Observable<IAccountState> {
+	getAccountData(date?: TInstant): Observable<IAccountState> {
 		const filterPayment = [
 			addWhere(FIELD.store, STORE.payment),
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
@@ -243,7 +241,7 @@ export class StateService {
 	 * forum.comment	-> has an array of Comments about this date's schedule
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
-	getForumData(date?: TDate): Observable<IForumState> {
+	getForumData(date?: TInstant): Observable<IForumState> {
 		const query: IQuery = {
 			where: addWhere('track.date', getDate(date).format(Instant.FORMAT.yearMonthDay)),
 			orderBy: addOrder(FIELD.stamp),
@@ -277,7 +275,7 @@ export class StateService {
 	 * gift				-> has an array of active Gifts available to a Member on the date
 	 * forum			-> has an array of Forum data for the date
 	 */
-	getScheduleData(date?: TDate, elect?: BONUS): Observable<ITimetableState> {
+	getScheduleData(date?: TInstant, elect?: BONUS): Observable<ITimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
 
@@ -327,7 +325,7 @@ export class StateService {
 	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
-	getTimetableData(date?: TDate): Observable<ITimetableState> {
+	getTimetableData(date?: TInstant): Observable<ITimetableState> {
 		const now = getDate(date);
 		const filterClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterLocation = addWhere(FIELD.key, '{{client.schedule.location}}');

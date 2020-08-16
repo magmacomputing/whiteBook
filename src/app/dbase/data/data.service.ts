@@ -23,7 +23,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
 import { TString } from '@library/type.library';
-import { getStamp, TDate } from '@library/instant.library';
+import { getStamp, TInstant } from '@library/instant.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -59,7 +59,7 @@ export class DataService {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getStore<T>(store: STORE, where: TWhere = [], date?: TDate) {
+	getStore<T>(store: STORE, where: TWhere = [], date?: TInstant) {
 		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 

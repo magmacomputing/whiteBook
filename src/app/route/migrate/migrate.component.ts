@@ -9,8 +9,8 @@ import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
-import { LOOKUP, PACK, SPECIAL, CREDIT, SHEET_URL, SHEET_PREFIX, INSTRUCTOR } from '@route/migrate/migrate.define';
 import { cleanNote } from '@route/forum/forum.library';
+import { Migrate } from '@route/migrate/migrate.define';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
@@ -100,7 +100,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 */
 	public filter(key?: 'hide' | 'credit') {
 		this.admin = getLocalStore(AdminStorage) || {};
-		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: CREDIT.all };
+		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migrate.CREDIT.all };
 
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
@@ -108,11 +108,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
 				.filter(row => {
 					switch (migrateFilter.credit) {
-						case CREDIT.all:
+						case Migrate.CREDIT.all:
 							return true;
-						case CREDIT.value:
+						case Migrate.CREDIT.value:
 							return getPath(row.account, 'summary.credit');
-						case CREDIT.zero:
+						case Migrate.CREDIT.zero:
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
@@ -125,7 +125,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 			case 'credit':
 				migrateFilter.credit += 1;
-				if (migrateFilter.credit >= Object.keys(CREDIT).length / 2)
+				if (migrateFilter.credit >= Object.keys(Migrate.CREDIT).length / 2)
 					migrateFilter.credit = 0;
 				break;
 		}
@@ -199,7 +199,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	get credit() {
-		return CREDIT;
+		return Migrate.CREDIT;
 	}
 
 	/** get the data needed to migrate a Member */
@@ -217,22 +217,41 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
+		let match: IPayment | undefined;
 		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
+		const updates: IStoreMeta[] = [];
 		const creates: IStoreMeta[] = hist
-			.filter(row => (row.type === 'Debit' && !(row.note && row.note.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
-			.filter(row => isUndefined(payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp])))
+			.filter(row => (row.type === 'Debit' && !(row.note?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => {
-				if (isUndefined(row.approved))
-					this.dbg('warn; unapproved: %j', row);
-				return !isUndefined(row.approved);
+				match = payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp]);
+
+				if (!isUndefined(row.approved)) {
+					if (match && isUndefined(match.approve)) {
+						match.approve = {
+							uid: Migrate.INSTRUCTOR,
+							stamp: row.approved,
+						}
+						updates.push(match);																		// update the now-approved Payment
+						return false;																						// no further checking required on this Payment
+					}
+				} else if (isUndefined(match))
+					this.dbg('warn; unapproved: %j', row);										// warn if first-time migrated
+
+				return isUndefined(match);
 			})
+			// .filter(row => {
+			// 	if (isUndefined(row.approved))
+			// 		this.dbg('warn; unapproved: %j', row);
+			// 	// return !isUndefined(row.approved);
+			// 	return true;
+			// })
 			.map(row => {
 				const approve = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.debit : PAYMENT.topUp;
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					approve.stamp = row.approved!;
-					approve.uid = INSTRUCTOR;
+					approve.uid = Migrate.INSTRUCTOR;
 				}
 
 				if (payType === PAYMENT.topUp) {
@@ -297,9 +316,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
 			creates.push(this.setGift(giftCnt, start, rest));
 
-		this.data.batch(creates, undefined, undefined, Member.Set)
+		this.data.batch(creates, updates, undefined, Member.Set)
 			.then(_ => this.member.updAccount())
-			.then(_ => this.dbg('payment: %s', creates.length))
+			.then(_ => this.dbg('payment: %s, %s', creates.length, updates.length))
 	}
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
@@ -368,7 +387,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
 			this.dbg('startFrom: %s, %j', startFrom, startAttend);
-			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((LOOKUP[row.type] || row.type)))).length;
+			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migrate.LOOKUP[row.type] || row.type)))).length;
 			table.splice(0, offset);
 		}
 		if (table.length) {
@@ -388,7 +407,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 		if (flag) this.dbg('hist: %j', row);
 
-		let what: CLASS = LOOKUP[row.type] ?? row.type;
+		let what: CLASS = Migrate.LOOKUP[row.type] ?? row.type;
 		const now = getDate(row.date);
 		const hhmi = this.asTime(getDate(row.stamp).format(Instant.FORMAT.HHMI));
 
@@ -403,7 +422,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let idx: number = 0;
 		let migrate: IMigrate | undefined;
 
-		if (SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
+		if (Migrate.SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;
@@ -413,7 +432,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			sfx = `-1.${sfx}`;
 		}
 
-		if (PACK.includes(prefix)) {
+		if (Migrate.PACK.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
 				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, STORE.plan), addWhere(FIELD.uid, this.current!.user.uid)], now),
 				this.data.getStore<IPrice>(STORE.price, undefined, now),
@@ -425,8 +444,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const sunday = bonus.find(row => row[FIELD.key] === BONUS.sunday);
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);
-			const free = asArray(sunday.free as TString)
-			this.getElect(row);														// did the Member elect a Bonus?
+			const free = asArray(sunday.free as TString);
+
+			this.getElect(row);														// did the Member elect to use a different Bonus?
 			if (row.elect) {
 				obj.full.amount = 0;
 				price = 0;
@@ -434,24 +454,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				price -= obj.full.amount + 0;								// calc the remaining price, after deduct MultiStep
 				row.elect = BONUS.sunday;										// dont elect to skip Bonus on a Pack
 			}
-			// if (row.note?.includes('Bonus: Week Level reached')) {
-			// 	obj.full.amount = 0;
-			// 	price = 0;
-			// 	row.elect = BONUS.week;											// Week bonus takes precedence
-			// } else if (row.note?.includes('Bonus: Class Level reached')) {
-			// 	obj.full.amount = 0;
-			// 	price = 0;
-			// 	row.elect = BONUS.class;
-			// } else if (row.note?.includes('Bonus: Month Level reached')) {
-			// 	obj.full.amount = 0;
-			// 	price = 0;
-			// 	row.elect = BONUS.month;
-			// } else if (row.note?.includes('Gift #')) {
-			// 	obj.full.amount = 0;
-			// 	price = 0;
-			// 	row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
-			// } else {
-			// }
+
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 2, [FIELD.type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
 			rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + 1, [FIELD.type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
@@ -459,7 +462,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 
 		switch (true) {
-			case SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
+			case Migrate.SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -742,13 +745,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private async fetch(action: string, query: string) {
-		const urlParams = `${SHEET_URL}?${query}&action=${action}&prefix=${SHEET_PREFIX}`;
+		const urlParams = `${Migrate.SHEET_URL}?${query}&action=${action}&prefix=${Migrate.SHEET_PREFIX}`;
 		try {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
 				.pipe(retry(2))
 				.toPromise();
-			const json = res.substring(0, res.length - 1).substring(SHEET_PREFIX.length + 1, res.length);
+			const json = res.substring(0, res.length - 1).substring(Migrate.SHEET_PREFIX.length + 1, res.length);
 			this.dbg('fetch: %j', urlParams);
 			try {
 				const obj = JSON.parse(json);

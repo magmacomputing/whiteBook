@@ -13,7 +13,7 @@ import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
 
-import { getStamp, TDate } from '@library/instant.library';
+import { getStamp, TInstant } from '@library/instant.library';
 import { isNull } from '@library/type.library';
 import { IAccountState } from '@dbase/state/state.define';
 import { dbg } from '@library/logger.library';
@@ -42,7 +42,7 @@ export class MemberService {
 			.subscribe(info => this.getAuthProfile(info))
 	}
 
-	async setPlan(plan: PLAN, dt?: TDate) {
+	async setPlan(plan: PLAN, dt?: TInstant) {
 		const doc = {
 			[FIELD.effect]: getStamp(dt),
 			[FIELD.store]: STORE.profile,
@@ -56,7 +56,7 @@ export class MemberService {
 	}
 
 	/** Create a new TopUp payment  */
-	async setPayment(amount?: number, stamp?: TDate) {
+	async setPayment(amount?: number, stamp?: TInstant) {
 		const data = await this.getAccount();
 		const plan = data.member.plan[0];
 
@@ -78,7 +78,7 @@ export class MemberService {
 		} as IPayment
 	}
 
-	private async upgradePlan(plan: IProfilePlan, stamp?: TDate) {				// auto-bump 'intro' to 'member'
+	private async upgradePlan(plan: IProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<IPrice>(STORE.price, [
 			addWhere(FIELD.type, PRICE.topUp),
 			addWhere(FIELD.key, plan.bump),
@@ -90,7 +90,7 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	getAccount = async (date?: TDate) => {
+	getAccount = async (date?: TInstant) => {
 		return this.state.getAccountData(date)
 			.pipe(take(1))
 			.toPromise()

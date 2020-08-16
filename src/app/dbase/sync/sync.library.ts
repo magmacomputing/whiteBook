@@ -43,7 +43,7 @@ export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<
 		return true;                                  // ok, already sync'd
 	}
 
-	lprintf('SyncLibrary', '%s: %s / %s', listen.key.collection, localHash, storeHash);
+	lprintf('SyncLibrary', '%s: %s / %s', listen.key.collection, localHash.slice(-7), storeHash.slice(-7));
 	return false;
 }
 

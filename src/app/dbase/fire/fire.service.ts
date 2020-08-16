@@ -110,9 +110,6 @@ export class FireService {
 				if (opts.setUndefined)
 					delete rest[key]										// remove the field if 'set'
 				else rest[key] = firestore.FieldValue.delete(); // delete the target field if 'update'
-
-				// if (isObject(rest[key]) && JSON.stringify(rest[key]) === JSON.stringify({ "_methodName": "FieldValue.delete" }))
-				// 	rest[key] = firestore.FieldValue.delete();	// TODO: workaround
 			}
 		})
 

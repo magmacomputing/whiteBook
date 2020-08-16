@@ -1,13 +1,13 @@
 import { STORE, REACT } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
-import { TDate } from '@library/instant.library';
+import { TInstant } from '@library/instant.library';
 
 export interface IForumArgs {
 	key: string,
 	store?: STORE.react | STORE.comment;
 	type?: STORE,
 	track?: Record<string, string | number>;
-	date?: TDate;
+	date?: TInstant;
 	uid?: string;
 }
 
