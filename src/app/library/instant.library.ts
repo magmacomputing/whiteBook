@@ -52,12 +52,12 @@ class Timestamp {
 	constructor(seconds?: number, nanoseconds?: number) {
 		const now = new Date();
 		this.seconds = seconds ?? now.getSeconds();
-		this.nanoseconds = nanoseconds ?? now.getMilliseconds() * 1000000;
+		this.nanoseconds = nanoseconds ?? now.getMilliseconds() * 1_000_000;
 		this.#now = now.setHours(0, 0, this.seconds, this.nanoseconds / 1000);
 	}
 
 	public toDate = () => new Date(this.#now);
-	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1000000);
+	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1_000_000);
 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
 	static now = new Timestamp();
 }
