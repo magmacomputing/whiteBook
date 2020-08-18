@@ -39,5 +39,5 @@ export namespace Migrate {
 	export const SHEET_URL = 'https://script.google.com/a/macros/magmacomputing.com.au/s/AKfycby0mZ1McmmJ2bboz7VTauzZTTw-AiFeJxpLg94mJ4RcSY1nI5AP/exec';
 	export const SHEET_PREFIX = 'alert';
 
-	export const INSTRUCTOR = 'JorgeEC';
+	export const Instructor = 'JorgeEC';
 }

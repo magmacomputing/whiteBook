@@ -227,8 +227,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (!isUndefined(row.approved)) {
 					if (match && isUndefined(match.approve)) {
 						match.approve = {
-							uid: Migrate.INSTRUCTOR,
 							stamp: row.approved,
+							uid: Migrate.Instructor,
 						}
 						updates.push(match);																		// update the now-approved Payment
 						return false;																						// no further checking required on this Payment
@@ -243,8 +243,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.debit : PAYMENT.topUp;
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
-					approve.stamp = row.approved!;
-					approve.uid = Migrate.INSTRUCTOR;
+					Object.assign(approve, {
+						stamp: row.approved!,
+						uid: Migrate.Instructor,
+					})
 				}
 
 				if (payType === PAYMENT.topUp) {
