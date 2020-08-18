@@ -238,12 +238,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				return isUndefined(match);
 			})
-			// .filter(row => {
-			// 	if (isUndefined(row.approved))
-			// 		this.dbg('warn; unapproved: %j', row);
-			// 	// return !isUndefined(row.approved);
-			// 	return true;
-			// })
 			.map(row => {
 				const approve = { stamp: 0, uid: '' };
 				const payType = row.type !== 'Debit' || (row.note && row.note.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.debit : PAYMENT.topUp;
