@@ -9,7 +9,7 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { IListenKey, IListen } from '@dbase/sync/sync.define';
+import { IListenKey, IListen, IListenStatus } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { Event, IAuthState } from '@dbase/state/auth.action';
 
@@ -72,7 +72,7 @@ export class SyncService {
 	}
 
 	public status(collection?: COLLECTION) {
-		const result: Partial<{ collection: string, query: IQuery, promise: TPledge }>[] = [];
+		const result: IListenStatus[] = [];
 
 		for (const [key, listen] of this.listener.entries())
 			if (isUndefined(collection) || collection === key.collection)

@@ -29,7 +29,7 @@ import { isUndefined, isNull, isBoolean, TString, isEmpty } from '@library/type.
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
 import { setLocalStore, getLocalStore } from '@library/browser.library';
-import { asAt } from '@library/app.library';
+import { asAt, nearAt } from '@library/app.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -346,20 +346,34 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (note?.includes('start: ')) {
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
 			if (!isNull(time)) {
-				let hhmm = time[0].split(':');
+				let hhmm = time[0].split(':').map(asNumber);
 				offset = getDate(start)
 					.startOf('day')
-					.add(asNumber(hhmm[0]), 'hours')
-					.add(asNumber(hhmm[1]), 'minutes')
+					.add(hhmm[0], 'hours')
+					.add(hhmm[1], 'minutes')
 					.ts
 			}
 		}
+
+		let expiry = undefined;
+		if (note?.includes('end: ')) {
+			let time = note.substring(note.indexOf('end: ') + 4).match(/\d\d:\d\d+/g);
+			if (!isNull(time)) {
+				let hhmm = time[0].split(':').map(asNumber);
+				expiry = getDate(start)
+					.startOf('day')
+					.add(hhmm[0], 'hours')
+					.add(hhmm[1], 'minutes')
+			}
+		}
+
 		return {
 			[FIELD.effect]: offset,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			limit: gift,
-			note: note || undefined,
+			note,
+			expiry,
 		} as IGift
 	}
 
@@ -404,7 +418,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		let what: CLASS = Migrate.LOOKUP[row.type] ?? row.type;
 		const now = getDate(row.date);
-		const hhmi = this.asTime(getDate(row.stamp).format(Instant.FORMAT.HHMI));
+		const hhmi = getDate(row.stamp).format(Instant.FORMAT.HHMI);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [addWhere(FIELD.key, row.date), addWhere(STORE.location, 'norths', '!=')], row.date)[0];
@@ -526,8 +540,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					await this.writeMigrate(migrate);
 				}
 
-				sched = asAt(this.schedule, addWhere(FIELD.key, className), row.stamp)
-					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near);
+				sched = nearAt(this.schedule, addWhere(FIELD.key, className), row.stamp, { start: hhmi });
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;											// to allow AttendService to check what was charged
@@ -540,8 +553,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					addWhere('day', [Instant.WEEKDAY.All, now.dow]),
 				];
 
-				sched = asAt(this.schedule, where, row.stamp)
-					.reduce((near, itm) => Math.abs(this.asTime(itm.start) - hhmi) < Math.abs(this.asTime(near.start) - hhmi) ? itm : near, { start: '00:00' } as ISchedule);
+				sched = nearAt(this.schedule, where, row.stamp, { start: hhmi })
 				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (isUndefined(row.elect))
@@ -620,10 +632,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		} else if (row.note?.includes('Multiple @Home classes today')) {
 			row.elect = BONUS.home;
 		}
-	}
-
-	private asTime(hhmm: string) {
-		return Number(hhmm.replace(':', ''));
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {

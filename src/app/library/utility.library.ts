@@ -1,23 +1,16 @@
 /** General utility functions */
 
-export type IResolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
-export type IReject = (reason?: any) => void;
-
-export enum TPromiseStatus { pending, fulfilled, rejected };
-export interface IPromise<T> {
-	promise: Promise<T>;														// a Promise() object
-	status: TPromiseStatus;													// the Promise status
-	resolve: IResolve<T>;														// the Promise resolve() function
-	reject: IReject;																// the Promise reject() function
-}
-
-/** Promise status */
+/** Pledge status */
 export enum TPledge {
 	'pending' = 'pending',
 	'fulfilled' = 'fulfilled',
 	'rejected' = 'rejected',
 }
-/** store a Promise, its status and its callbacks, for later fulfilment */
+/**
+ * store a Promise, its status and its callbacks, for later fulfilment  
+ * new Pledge<T>(tag?: any)  
+ * input:  tag, simply to label a Pledge
+ */
 export class Pledge<T> {
 	#tag: any;
 	#status: TPledge;

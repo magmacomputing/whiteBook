@@ -4,11 +4,17 @@ import { IQuery } from '@dbase/fire/fire.interface';
 import { COLLECTION } from '@dbase/data/data.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
-import { Pledge } from '@library/utility.library';
+import { Pledge, TPledge } from '@library/utility.library';
 
 export interface IListenKey {
 	collection: COLLECTION;
 	query?: IQuery;
+}
+
+export interface IListenStatus {
+	collection: COLLECTION;
+	query?: IQuery;
+	promise: TPledge;
 }
 
 export interface IListen {
