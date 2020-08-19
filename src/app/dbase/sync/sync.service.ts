@@ -9,7 +9,7 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { IListenKey, IListen, IListenStatus } from '@dbase/sync/sync.define';
+import { Sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { Event, IAuthState } from '@dbase/state/auth.action';
 
@@ -30,7 +30,7 @@ import { dbg } from '@library/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: Map<IListenKey, IListen> = new Map();
+	private listener: Map<Sync.Key, Sync.Listen> = new Map();
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
@@ -41,7 +41,7 @@ export class SyncService {
 	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
 		const ready = new Pledge<boolean>();
 		const refs = this.fire.colRef<IStoreMeta>(collection, query);
-		const key: IListenKey = { collection, query };
+		const key: Sync.Key = { collection, query };
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
 			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
@@ -72,7 +72,7 @@ export class SyncService {
 	}
 
 	public status(collection?: COLLECTION) {
-		const result: IListenStatus[] = [];
+		const result: Sync.Status[] = [];
 
 		for (const [key, listen] of this.listener.entries())
 			if (isUndefined(collection) || collection === key.collection)
@@ -126,7 +126,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(key: IListenKey, snaps: DocumentChangeAction<IStoreMeta>[]) {
+	private async sync(key: Sync.Key, snaps: DocumentChangeAction<IStoreMeta>[]) {
 		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
 

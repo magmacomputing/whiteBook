@@ -4,13 +4,12 @@ import { DocumentChangeAction } from '@angular/fire/firestore';
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
-import { IListen, StoreStorage } from '@dbase/sync/sync.define';
+import { Sync } from '@dbase/sync/sync.define';
 
 import { LState } from '@dbase/state/state.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@library/crypto.library';
-import { sortKeys } from '@library/object.library';
 import { getLocalStore } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
@@ -24,8 +23,8 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 }
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
-export const checkStorage = async (listen: IListen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	const localState = getLocalStore<LState>(StoreStorage) || {};
+export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
+	const localState = getLocalStore<LState>(Sync.StoreStorage) || {};
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);

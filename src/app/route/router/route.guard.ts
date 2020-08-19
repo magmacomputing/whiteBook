@@ -9,7 +9,7 @@ import { LoginModule } from '@route/login/login.module';
 import { AuthModule } from '@service/auth/auth.module';
 import { addWhere } from '@dbase/fire/fire.library';
 import { LState } from '@dbase/state/state.define';
-import { StoreStorage } from '@dbase/sync/sync.define';
+import { Sync } from '@dbase/sync/sync.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
@@ -43,7 +43,7 @@ export class ProfileGuard implements CanActivate {
 	constructor(private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const localState = getLocalStore<LState>(StoreStorage) || {};
+		const localState = getLocalStore<LState>(Sync.StoreStorage) || {};
 		const profile = getPath<IProfilePlan[]>(localState, 'member.profile') || [];
 		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan))[0];
 		if (getPath<string>(planProfile, STORE.plan))

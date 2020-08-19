@@ -7,7 +7,7 @@ export enum TPledge {
 	'rejected' = 'rejected',
 }
 /**
- * store a Promise, its status and its callbacks, for later fulfilment  
+ * store a Promise, its status and its callbacks for later fulfilment  
  * new Pledge<T>(tag?: any)  
  * input:  tag, simply to label a Pledge
  */

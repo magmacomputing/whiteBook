@@ -19,7 +19,7 @@ import { Login } from '@dbase/state/auth.action';
 import { IAccountState, IAdminState } from '@dbase/state/state.define';
 import { Member } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
-import { AdminStorage } from '@dbase/sync/sync.define';
+import { Sync } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
@@ -99,7 +99,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle shows Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
-		this.admin = getLocalStore(AdminStorage) || {};
+		this.admin = getLocalStore(Sync.AdminStorage) || {};
 		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migrate.CREDIT.all };
 
 		this.dash$ = this.state.getAdminData().pipe(
@@ -130,7 +130,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		setLocalStore(AdminStorage, { ...this.admin, migrateFilter });				// persist settings
+		setLocalStore(Sync.AdminStorage, { ...this.admin, migrateFilter });				// persist settings
 	}
 
 	async signIn(register: IRegister, import_: IImport) {

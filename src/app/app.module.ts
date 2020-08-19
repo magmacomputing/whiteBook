@@ -14,7 +14,7 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
 import { SafePipe } from '@service/material/safe.pipe';
 
-import { StoreStorage } from '@dbase/sync/sync.define';
+import { Sync } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
 
 @NgModule({
@@ -24,7 +24,7 @@ import { environment } from '../environments/environment';
 	],
 	imports: [
 		NgxsModule.forRoot([], { developmentMode: !environment.production }),
-		NgxsStoragePluginModule.forRoot({ key: StoreStorage }),
+		NgxsStoragePluginModule.forRoot({ key: Sync.StoreStorage }),
 		// ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 		BrowserModule,
 		HammerModule,
