@@ -1,6 +1,6 @@
 import { fix } from '@library/number.library';
 import { asString, asNumber, toTitle } from '@library/string.library';
-import { getType, isString, isNumber, isUndefined } from '@library/type.library';
+import { getType, isString, isNumber } from '@library/type.library';
 
 interface IInstant {											// Instant components
 	readonly yy: number;										// year[4]
@@ -126,7 +126,7 @@ export class Instant {
 			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
 			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
-			ddmmyyyyHHMM: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3]):([0-5]\d)/,	// d-m-yyyy {HH:MI}
+			ddmmyyyyHHMI: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3]):([0-5]\d)/,	// d-m-yyyy {HH:MI}
 			isoDate: /^(19\d{2}|20\d{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)Z$/,
 		}
 		let date: Date;
@@ -140,8 +140,8 @@ export class Instant {
 			dt = asString(dt).replace(pat.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
 		if ((isString(dt) || isNumber(dt)) && pat.ddmmyyyy.test(asString(dt)))
 			dt = asString(dt).replace(pat.ddmmyyyy, '$2-$1-$3');		// convert to US format
-		if (isString(dt) && pat.ddmmyyyyHHMM.test(dt))
-			dt = dt.replace(pat.ddmmyyyyHHMM, '$2-$1-$3 $4');				// convert to US format
+		if (isString(dt) && pat.ddmmyyyyHHMI.test(dt))
+			dt = dt.replace(pat.ddmmyyyyHHMI, '$2-$1-$3 $4');				// convert to US format
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Undefined':																				// default to 'now'
@@ -188,14 +188,14 @@ export class Instant {
 				break;
 
 			case 'Object':
-				const ts = dt as ITimestamp;													// shape of Timestamp
-				const obj = dt as IInstant;														// shape of Instant
-				if (isNumber(ts.seconds) && isNumber(ts.nanoseconds)) {
-					date = new Timestamp(ts.seconds, ts.nanoseconds).toDate();
+				const tstamp = dt as ITimestamp;											// shape of Timestamp
+				const inst = dt as IInstant;													// shape of Instant
+				if (isNumber(tstamp.seconds) && isNumber(tstamp.nanoseconds)) {
+					date = new Timestamp(tstamp.seconds, tstamp.nanoseconds).toDate();
 					break;
 				}
-				if (isNumber(obj.yy) && isNumber(obj.mm) && isNumber(obj.dd)) {
-					date = this.#composeDate(obj);
+				if (isNumber(inst.yy) && isNumber(inst.mm) && isNumber(inst.dd)) {
+					date = this.#composeDate(inst);
 					break;
 				}
 
@@ -374,7 +374,6 @@ export class Instant {
 					.replace(/M{2}/g, fix(date.MI))
 					.replace(/MI/g, fix(date.MI))
 					.replace(/h{2}/g, fix(date.HH >= 13 ? date.HH % 12 : date.HH))
-					.replace(/m{2}/g, fix(date.MI) + am)
 					.replace(/mi/g, fix(date.MI) + am)
 					.replace(/S{2}/g, fix(date.SS))
 					.replace(/ts/g, asString(date.ts))
@@ -391,7 +390,7 @@ export class Instant {
 	 * e.g. ('%dd-%mmm', 20, 'May') will return new Date() for 20-May in current year.
 	 */
 	#formatString = (fmt: string, ...args: TArgs) => {
-		const date = new Instant().startOf('day').toJSON()					// date components
+		const date = new Instant().startOf('day').toJSON()	// date components
 		let argCnt = 0;
 
 		fmt.split('%')
@@ -400,6 +399,8 @@ export class Instant {
 					word3 = word.substring(0, 3),
 					word2 = word.substring(0, 2);
 				let param = args[argCnt];
+				const str = asString(param);
+				const num = asNumber(param);
 
 				switch (true) {
 					case word2 === 'yy' && word4 !== 'yyyy':
@@ -407,31 +408,39 @@ export class Instant {
 							? '20' + param							// if less than ten-years, assume this century
 							: '19' + param							// if more than ten-years, assume last century
 					case word4 === 'yyyy':
-						date.yy = asNumber(param);
+						date.yy = num;
 						break;
 
 					case word3 === 'mmm':						// change the month-name into a month-number
 						param = Instant.MONTH[param as Instant.MONTH];
 					case word2 === 'mm':
-						date.mm = asNumber(param);
+						date.mm = num;
 						break;
 
 					case word3 === 'ddd':						// set the day to the last occurrence of %ddd
 						let weekDay = Instant.WEEKDAY[param as Instant.WEEKDAY];
 						param = (date.dd - date.dow + weekDay).toString();
 					case word2 === 'dd':
-						date.dd = asNumber(param);
+						date.dd = num;
 						break;
 
+					case word2 === 'hh' && str.endsWith('pm'):	// special case to coerce am/pm to pm
+					case word2 === 'hh' && str.endsWith('am'):
+						const hour = asNumber(str.substring(0, str.length - 2).trim());
+						date.HH = hour % 12 + (str.endsWith('pm') || hour > 12 ? 1 : 0);
+						break;
+					case word2 === 'hh':
 					case word2 === 'HH':
-						date.HH = asNumber(param);
+						date.HH = num;
 						break;
 					case word2 === 'MM':
 					case word2 === 'MI':
-						date.MI = asNumber(param);
+					case word2 === 'mi':
+						date.MI = num;
 						break;
 					case word2 === 'SS':
-						date.SS = asNumber(param)
+					case word2 === 'ss':
+						date.SS = num;
 						break;
 
 					default:
