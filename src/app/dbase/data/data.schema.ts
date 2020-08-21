@@ -172,7 +172,7 @@ export interface TBonus {							// a sub-type of IBonus
 	[FIELD.type]: BONUS;
 	[STORE.gift]?: IGift[];							// the /member/gift updates for this payment
 	count: number;											// the number of this Gift
-	desc: TString;											// message to Member
+	desc?: TString;											// message to Member
 	amount?: number;										// an optional amount (if other than $0)
 }
 export type TForum = {

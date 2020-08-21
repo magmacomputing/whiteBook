@@ -404,9 +404,10 @@ export class Instant {
 
 				switch (true) {
 					case word2 === 'yy' && word4 !== 'yyyy':
-						param = parseInt('20' + param) < (date.yy + 10)
-							? '20' + param							// if less than ten-years, assume this century
-							: '19' + param							// if more than ten-years, assume last century
+						date.yy = (2000 + num) < (date.yy + 10)
+							? 2000 + num								// if less than ten-years, assume this century
+							: 1900 + num								// if more than ten-years, assume last century
+						break;
 					case word4 === 'yyyy':
 						date.yy = num;
 						break;

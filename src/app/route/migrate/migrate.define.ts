@@ -2,8 +2,8 @@ import { CLASS } from '@dbase/data/data.define';
 
 export namespace Migrate {
 	export const LOOKUP: Record<string, CLASS> = {
-		oldStep: CLASS.MultiStep,
 		Step: CLASS.MultiStep,
+		oldStep: CLASS.MultiStep,
 		oldStepDown: CLASS.StepDown,
 		oldAeroStep: CLASS.AeroStep,
 		oldHiLo: CLASS.HiLo,
