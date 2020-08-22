@@ -83,7 +83,10 @@ export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = n
 	const time = asTime(hhmi as string | number);		// convert HH:MM  to HHMM
 
 	return asAt<T>(table, cond, date)
-		.reduce((prev, curr) => {
+		.reduce((prev, curr, idx, arr) => {
+			if (arr.length <= 1)
+				return curr;															// no 'near' comparison needed
+
 			const fld1 = (curr as T & { [key: string]: string | number })[key];
 			const fld2 = (prev as T & { [key: string]: string | number })[key];
 
