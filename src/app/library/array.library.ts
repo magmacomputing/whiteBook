@@ -58,7 +58,7 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 			let flat = false;
 			if (isBoolean(keys[0])) {
 				flat = keys[0];
-				keys.splice(1);
+				keys.splice(0, 1);
 			}
 
 			return this.reduce(function (acc: Record<string, any>, row: Record<string, any>) {
@@ -66,7 +66,8 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 					.map(key => getPath(row, key)).join(':');
 				if (flat)
 					acc[group] = row;															// only return latest match
-				else (acc[group] = acc[group] || []).push(row);	// return all matches in array
+				// else (acc[group] ??= []).push(row);	// return all matches in array
+				else (acc[group] = acc[group] || []).push(row);							// TODO: until Typescrpit 4.0 supported
 				return acc;
 			}, {});
 		}
