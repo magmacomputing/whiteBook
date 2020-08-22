@@ -125,6 +125,7 @@ export class Instant {
 		const pat = {
 			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
+			ddmmyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(\d{2})$/,							// d-m-yy
 			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
 			ddmmyyyyHHMI: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3]):([0-5]\d)/,	// d-m-yyyy {HH:MI}
 			isoDate: /^(19\d{2}|20\d{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)Z$/,
@@ -140,6 +141,8 @@ export class Instant {
 			dt = asString(dt).replace(pat.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
 		if ((isString(dt) || isNumber(dt)) && pat.ddmmyyyy.test(asString(dt)))
 			dt = asString(dt).replace(pat.ddmmyyyy, '$2-$1-$3');		// convert to US format
+		if (isString(dt) && pat.ddmmyy.test(dt))
+			dt = dt.replace(pat.ddmmyy, '$2-$1-$3');								// convert to US format
 		if (isString(dt) && pat.ddmmyyyyHHMI.test(dt))
 			dt = dt.replace(pat.ddmmyyyyHHMI, '$2-$1-$3 $4');				// convert to US format
 

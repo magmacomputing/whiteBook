@@ -386,11 +386,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		])
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-		const start = attend.orderBy('-track.date');
+		const start = attend.orderBy('-track.date');		// attendance, by descending date
 		const preprocess = cloneObj(table);
-
-		// const endAt = table.filter(row => row.date >= getDate('2016-Oct-31').format(Instant.FORMAT.yearMonthDay)).length;
-		// table.splice(table.length - endAt);							// up-to, but not includng endAt
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
@@ -399,6 +396,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migrate.LOOKUP[row.type] || row.type)))).length;
 			table.splice(0, offset);
 		}
+
+		const endAt = new Instant('2020-Jan-28').format(Instant.FORMAT.yearMonthDay);
+		const endPos = table.filter(row => row.date >= endAt).length;
+		table.splice(table.length - endPos);							// up-to, but not includng endAt
+		this.dbg('endAt: %s, %j', endAt, table.length);
+
 		if (table.length) {
 			this.check = new Pledge();
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));

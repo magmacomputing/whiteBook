@@ -1,11 +1,12 @@
 import { ITimetableState } from '@dbase/state/state.define';
-import { FIELD, BONUS, COLLECTION, STORE } from '@dbase/data/data.define';
-import type { IGift, TBonus, IAttend, IBonus } from '@dbase/data/data.schema';
+import { FIELD, BONUS, COLLECTION, STORE, PLAN } from '@dbase/data/data.define';
+import type { IGift, TBonus, IAttend, IBonus, IProfilePlan } from '@dbase/data/data.schema';
 
 import { TInstant, getDate, Instant } from '@library/instant.library';
 import { TString, isUndefined, nullToZero } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { plural } from '@library/string.library';
+import { Attend } from '@dbase/state/state.action';
 
 /**
  * Determine if provided event is entitled to a Gift or a Bonus  
@@ -19,6 +20,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TInstan
 	const bonus = {} as TBonus;															// calculated Bonus entitlement
 
 	const gifts = source[COLLECTION.member][STORE.gift];		// the active Gifts for this Member
+	const plan = source[COLLECTION.member][STORE.plan][0];	// the current Member plan
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.attend];
 
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes to which the Member is entitled
@@ -51,7 +53,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TInstan
 					break;
 
 				case BONUS.home:
-					bonusHome(bonus, scheme, attendToday, now, elect, event);
+					bonusHome(bonus, scheme, attendToday, plan, elect, event);
 					break;
 			}
 		})
@@ -222,9 +224,16 @@ const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: 
 /**
  * The Home scheme qualifies as a Bonus if the Member has already attended an '@Home' class earlier today
  */
-const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], now: Instant, elect = BONUS.home, event: string) => {
+const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], profile: IProfilePlan, elect = BONUS.home, event: string) => {
+	if (profile.plan === PLAN.sponsor)															// TODO: workaround this hard-coded check
+		event = 'Home';																								// check only the '@Home' suffix
+
 	const okLevel = attendToday
-		.filter(attend => attend.timetable[FIELD.key] === event)
+		.filter(attend => {
+			return profile.plan === PLAN.sponsor
+				? attend.timetable[FIELD.key].split('@')[1] === event			// attended any @Home event today
+				: attend.timetable[FIELD.key] === event										// else same @Home event today
+		})
 		.length >= scheme.level																				// required number of Attends today
 	const okElect = elect === BONUS.home;														// Member elected to take Bonus
 
