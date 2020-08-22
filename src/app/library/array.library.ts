@@ -1,4 +1,4 @@
-import { isIterable, isNullish, isNumber, TString } from '@library/type.library';
+import { isIterable, isNullish, isNumber, isBoolean } from '@library/type.library';
 import { asString } from './string.library';
 import { getPath } from './object.library';
 
@@ -24,9 +24,12 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 declare global {
 	interface Array<T> {
 		/** return reduced object[] as {key: object, ...} */
-		groupBy<K extends string>(key: TString): Record<K, T>;
-		/** return reduced object[] as {key: object[], ...} */
-		groupBy<K extends string>(key: TString, flat: false): Record<K, T[]>;
+		groupBy<K extends string>(key: string): Record<K, T[]>;
+		groupBy(...keys: string[]): Record<string, T[]>;
+		groupBy<K extends string>(flatten: true, key: string): Record<K, T>;
+		groupBy(flatten: true, ...keys: string[]): Record<string, T>;
+		groupBy<K extends string>(flatten: false, key: string): Record<K, T[]>;
+		groupBy(flatten: false, ...keys: string[]): Record<string, T[]>;
 
 		/** return sorted Array-of-objects */
 		orderBy(...keys: string[]): T[];
@@ -51,12 +54,18 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 		configurable: false,
 		enumerable: false,
 		writable: false,
-		value: function (keys = 'key', flat: boolean) {
+		value: function (...keys: string[] | [boolean, ...string[]]) {
+			let flat = false;
+			if (isBoolean(keys[0])) {
+				flat = keys[0];
+				keys.splice(1);
+			}
+
 			return this.reduce(function (acc: Record<string, any>, row: Record<string, any>) {
-				const group = asArray(keys)
+				const group = (keys as string[])
 					.map(key => getPath(row, key)).join(':');
-				if (flat ?? true)
-					acc[group] = row;															// only return last match
+				if (flat)
+					acc[group] = row;															// only return latest match
 				else (acc[group] = acc[group] || []).push(row);	// return all matches in array
 				return acc;
 			}, {});

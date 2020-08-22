@@ -69,7 +69,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		]).then(([schedule, calendar, events]) => {
 			this.schedule = schedule;
 			this.calendar = calendar;
-			this.events = events.groupBy(FIELD.key);
+			this.events = events.groupBy(true, FIELD.key);
 		})
 	}
 
@@ -449,7 +449,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			])
 			const obj = prices
 				.filter(row => row[FIELD.key] === plan[0].plan)
-				.groupBy<PRICE>(FIELD.type)
+				.groupBy<PRICE>(true, FIELD.type)						// only one price will match
 			const sunday = bonus.find(row => row[FIELD.key] === BONUS.sunday);
 			if (isUndefined(sunday))
 				throw new Error(`Cannot find a Sunday bonus: ${now.format('yyyymmdd')}`);

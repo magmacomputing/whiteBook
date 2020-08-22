@@ -51,7 +51,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 	private async getColor() {
 		this.color = await this.data.getStore<IClass>(STORE.class)
-			.then(store => store.groupBy(FIELD.key))
+			.then(store => store.groupBy(true, FIELD.key))
 		this.colorCache = memoize(this.setColor.bind(this));
 	}
 
