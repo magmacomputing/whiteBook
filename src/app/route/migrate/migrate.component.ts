@@ -203,7 +203,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	/** get the data needed to migrate a Member */
-	private async getMember() {
+	private getMember() {
 		return Promise.all([
 			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
@@ -397,10 +397,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			table.splice(0, offset);
 		}
 
-		const endAt = new Instant('2020-Jan-28').format(Instant.FORMAT.yearMonthDay);
-		const endPos = table.filter(row => row.date >= endAt).length;
-		table.splice(table.length - endPos);							// up-to, but not includng endAt
-		this.dbg('endAt: %s, %j', endAt, table.length);
+		// const endAt = new Instant('2019-Dec-31').format(Instant.FORMAT.yearMonthDay);
+		// const endPos = table.filter(row => row.date >= endAt).length;
+		// table.splice(table.length - endPos);							// up-to, but not includng endAt
+		// this.dbg('endAt: %s, %j', endAt, table.length);
 
 		if (table.length) {
 			this.check = new Pledge();
@@ -623,16 +623,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		} else if (row.note?.includes('elect none')) {
 			row.elect = BONUS.none;
 		} else if (row.note?.includes('Gift #')) {
-			row.elect = BONUS.gift;											// special: accidental one-gift claimed against three class
-		} else if (row.note?.includes('Bonus: Week Level reached')) {
+			row.elect = BONUS.gift;
+		} else if (row.note?.toUpperCase().includes('Bonus: Week Level reached'.toUpperCase())) {
 			row.elect = BONUS.week;											// Week bonus takes precedence
-		} else if (row.note?.includes('Bonus: Class Level reached')) {
+		} else if (row.note?.toUpperCase().includes('Bonus: Class Level reached'.toUpperCase())) {
 			row.elect = BONUS.class;
-		} else if (row.note?.includes('Bonus: Month Level reached')) {
+		} else if (row.note?.toUpperCase().includes('Bonus: Month Level reached'.toUpperCase())) {
 			row.elect = BONUS.month;
-		} else if (row.note?.includes('Bonus: Sunday Level reached')) {
+		} else if (row.note?.toUpperCase().includes('Bonus: Sunday Level reached'.toUpperCase())) {
 			row.elect = BONUS.sunday;
-		} else if (row.note?.includes('Multiple @Home classes today')) {
+		} else if (row.note?.toUpperCase().includes('Multiple @Home classes today'.toUpperCase())) {
 			row.elect = BONUS.home;
 		}
 	}
@@ -776,7 +776,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private async migrateComment() {
-		const uid = 'LucyC';
+		const uid = 'BronwynH';
 		const filter = [
 			addWhere(FIELD.uid, uid),
 			// addWhere(FIELD.note, '', '>'),
@@ -796,7 +796,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				this.dbg('comment: %j', comment);
 				doc[FIELD.note] = note;																// replace with cleaned Note
 				await Promise.all([
-					this.data.updDoc(STORE.attend, doc[FIELD.id], doc),	// update Attend with cleaned Note
+					this.data.updDoc(STORE.attend, doc[FIELD.id], doc),	// update Attend with cleansed Note
 					this.forum.setComment({															// add Comment to /forum
 						type: STORE.schedule,
 						key: doc.timetable[FIELD.id],
@@ -808,5 +808,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				])
 			}
 		})
+	}
+
+	public parseNote() {
+		const { comment, note } = cleanNote(window.prompt('Enter a note') ?? '');
+		this.dbg('comment: %s', comment);
+		this.dbg('note: %s', note);
 	}
 }
