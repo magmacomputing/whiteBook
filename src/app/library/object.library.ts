@@ -159,7 +159,7 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
 			else col[key] = obj[key];
 			return col;
 		}, col);
-};
+}
 
 /** deep-compare Objects for equality */
 export const isEqual = (obj1: any, obj2: any): boolean => {
