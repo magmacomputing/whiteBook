@@ -66,8 +66,8 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 					.map(key => getPath(row, key)).join(':');
 				if (flat)
 					acc[group] = row;															// only return latest match
-				// else (acc[group] ??= []).push(row);	// return all matches in array
-				else (acc[group] = acc[group] || []).push(row);							// TODO: until Typescrpit 4.0 supported
+				// else (acc[group] ??= []).push(row);					// return all matches in array
+				else (acc[group] = acc[group] || []).push(row);	// TODO: until Typescript 4.0 supported
 				return acc;
 			}, {});
 		}
