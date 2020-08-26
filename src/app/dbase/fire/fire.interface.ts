@@ -8,11 +8,13 @@ export interface IWhere {
 	opStr?: firebase.firestore.WhereFilterOp | '!=';				// this is a *special* to allow additional local operator (do not use on Cloud Firestore queries!)
 	value: any | any[];
 }
+
 /** Query.orderBy */
 export interface IOrderBy {
 	fieldPath: string | firebase.firestore.FieldPath;
 	directionStr?: firebase.firestore.OrderByDirection;
 }
+
 /** Collection.Query */
 export interface IQuery {
 	where?: IWhere | IWhere[];
@@ -30,7 +32,8 @@ export interface IDocMeta {
 	[FIELD.create]?: number;
 	[FIELD.update]?: number;
 	[FIELD.access]?: number;
-	subcollections?: string[];
 	exists: boolean;
 	path: string;
+	parent: string;
+	subcollections?: string[];
 }

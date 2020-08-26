@@ -11,7 +11,6 @@ export class Storage {
 
 	public get<T>(key: string): T | undefined;
 	public get<T>(key: string, dflt: T): T;
-
 	public get<T>(key: string, dflt?: T) {
 		return isUndefined(dflt)
 			? this.ifObject<T>(this.#storage.getItem(key))

@@ -45,8 +45,8 @@ export class ProfileGuard implements CanActivate {
 	async canActivate() {
 		const localState = new Storage('local').get<LState>(Sync.StoreStorage, {});
 		const profile = getPath<IProfilePlan[]>(localState, 'member.profile') || [];
-		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan))[0];
-		if (getPath<string>(planProfile, STORE.plan))
+		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan));
+		if (getPath<string>(planProfile[0], STORE.plan))
 			return true;															// found a current 'plan' in localStorage
 
 		this.navigate.route(ROUTE.plan);						// redirect to PlanComponent

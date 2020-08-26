@@ -9,7 +9,7 @@ import { isUndefined, isArray } from '@library/type.library';
  * Array of Query functions with any limit / order criteria.  
  * If a Where-clause contains an array of <values>, this indicates a logical-OR,
  * and needs to be split into separate Queries, as Firestore does not currently
- * allow 'or' in a single Query
+ * allow 'or' in a complex Query
  */
 export const fnQuery = (query: IQuery = {}) => {
 	return splitQuery(query)
