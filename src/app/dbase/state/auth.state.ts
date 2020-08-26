@@ -21,7 +21,7 @@ import { IRegister } from '@dbase/data/data.schema';
 import { addWhere } from '@dbase/fire/fire.library';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { getLocalStore, delLocalStore, prompt } from '@library/browser.library';
+import { Storage, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { isNull, isArray } from '@library/type.library';
 import { dbg } from '@library/logger.library';
@@ -186,12 +186,12 @@ export class AuthState {
 		const localItem = 'emailForSignIn';
 
 		if (this.afAuth.isSignInWithEmailLink(link)) {
-			const email = getLocalStore<string>(localItem) ||
+			const email = new Storage('session').get<string>(localItem) ||
 				prompt('Please provide your email for confirmation') ||
 				'';
 
 			const response = await this.afAuth.signInWithEmailLink(email, link);
-			delLocalStore(localItem);
+			// storage.del(localItem);
 
 			if (credential)
 				this.authSuccess(ctx, response.user, response.credential);

@@ -161,11 +161,6 @@ export const sortObj = (obj: any, deep: boolean = true): any => {
 		}, col);
 };
 
-export const ifObject = <T>(str: string | null) =>
-	(isString(str) && str.startsWith('{') && str.endsWith('}'))
-		? JSON.parse(str) as T
-		: str
-
 /** deep-compare Objects for equality */
 export const isEqual = (obj1: any, obj2: any): boolean => {
 	Object.keys(obj1).forEach(field => {

@@ -10,7 +10,7 @@ import { LState } from '@dbase/state/state.define';
 import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@library/crypto.library';
-import { getLocalStore } from '@library/browser.library';
+import { Storage } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
@@ -24,7 +24,8 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
 export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	const localState = getLocalStore<LState>(Sync.StoreStorage) || {};
+	const localStore = new Storage('local');
+	const localState = localStore.get<LState>(Sync.StoreStorage, {})
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);

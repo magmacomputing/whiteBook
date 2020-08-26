@@ -28,7 +28,7 @@ import { cloneObj, getPath } from '@library/object.library';
 import { isUndefined, isNull, isBoolean, TString, isEmpty } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
-import { setLocalStore, getLocalStore } from '@library/browser.library';
+import { Storage } from '@library/browser.library';
 import { asAt, nearAt } from '@library/app.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -99,7 +99,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle shows Members with $0 credit
 	 */
 	public filter(key?: 'hide' | 'credit') {
-		this.admin = getLocalStore(Sync.AdminStorage) || {};
+		const local = new Storage('local');
+		this.admin = local.get(Sync.AdminStorage, {});
 		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migrate.CREDIT.all };
 
 		this.dash$ = this.state.getAdminData().pipe(
@@ -130,7 +131,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		setLocalStore(Sync.AdminStorage, { ...this.admin, migrateFilter });				// persist settings
+		local.set(Sync.AdminStorage, { ...this.admin, migrateFilter });				// persist settings
 	}
 
 	async signIn(register: IRegister, import_: IImport) {

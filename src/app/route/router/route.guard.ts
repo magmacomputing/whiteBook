@@ -14,7 +14,7 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { IProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
-import { getLocalStore } from '@library/browser.library';
+import { Storage } from '@library/browser.library';
 import { getPath } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -43,7 +43,7 @@ export class ProfileGuard implements CanActivate {
 	constructor(private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const localState = getLocalStore<LState>(Sync.StoreStorage) || {};
+		const localState = new Storage('local').get<LState>(Sync.StoreStorage, {});
 		const profile = getPath<IProfilePlan[]>(localState, 'member.profile') || [];
 		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan))[0];
 		if (getPath<string>(planProfile, STORE.plan))

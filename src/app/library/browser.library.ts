@@ -1,39 +1,41 @@
-import { ifObject } from '@library/object.library';
-import { isObject } from '@library/type.library';
+import { isArray, isObject, isString, isUndefined } from '@library/type.library';
 
-export const setLocalStore = (key: string, obj: any) =>
-	setStorage(key, obj, window.localStorage);
+export class Storage {
+	#storage: globalThis.Storage;
 
-export const getLocalStore = <T>(key: string, dflt?: T) =>
-	getStorage<T>(key, window.localStorage) || dflt;
+	constructor(storage: 'local' | 'session') {
+		this.#storage = (storage ?? 'local') === 'local'
+			? globalThis.localStorage
+			: globalThis.sessionStorage
+	}
 
-export const delLocalStore = (key: string) =>
-	window.localStorage.removeItem(key);
+	public get<T>(key: string): T | undefined;
+	public get<T>(key: string, dflt: T): T;
 
-export const setSessionStore = (key: string, obj: any) =>
-	setStorage(key, obj, window.sessionStorage);
+	public get<T>(key: string, dflt?: T) {
+		return isUndefined(dflt)
+			? this.ifObject<T>(this.#storage.getItem(key))
+			: this.ifObject<T>(this.#storage.getItem(key)) ?? dflt;
+	}
 
-export const getSessionStore = <T>(key: string, dflt?: T) =>
-	getStorage<T>(key, window.sessionStorage) || dflt;
+	public set(key: string, obj: unknown) {
+		return this.#storage.setItem(key, (isObject(obj) || isArray(obj)
+			? JSON.stringify(obj)
+			: obj))
+	}
 
-export const delSessionStore = (key: string) =>
-	delStorage(key, window.sessionStorage);
+	public del(key: string) {
+		return this.#storage.removeItem(key);
+	}
+
+	private ifObject = <T>(str: string | null) =>
+		(isString(str) && ((str.startsWith('{') && str.endsWith('}')) || str.startsWith('[') && str.endsWith(']')))
+			? JSON.parse(str) as T
+			: str
+}
 
 export const alert = (msg: any) =>
 	window.alert(msg);
 
 export const prompt = (msg: any, dflt?: any) =>
 	window.prompt(msg, dflt);
-
-/** Private routines to perform actions on window storage */
-const setStorage = (key: string, obj: any, target: Storage) => {
-	target.setItem(key, (isObject(obj)
-		? JSON.stringify(obj)
-		: obj));
-}
-
-const getStorage = <T>(key: string, target: Storage, dflt?: T) =>
-	ifObject<T>(target.getItem(key)) as T || dflt;
-
-const delStorage = (key: string, target: Storage) =>
-	target.removeItem(key);
