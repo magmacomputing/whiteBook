@@ -1,6 +1,6 @@
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
-import { IMeta } from '@dbase/data/data.schema';
+import type { IMeta } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant, Instant } from '@library/instant.library';
 import { isString, isUndefined, isArray } from '@library/type.library';
@@ -8,7 +8,6 @@ import { getPath, cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { toLower } from '@library/string.library';
 import { asTime } from '@library/number.library';
-import { MatHint } from '@angular/material/form-field';
 
 /**
  * apply filters to an array (table) of objects (rows).  

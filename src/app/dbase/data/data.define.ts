@@ -70,6 +70,7 @@ export enum FIELD {								// common Field names
 	id = '_id',
 	key = 'key',
 	type = 'type',
+	name = 'name',
 	store = 'store',
 	stamp = 'stamp',
 	uid = 'uid',

@@ -3,7 +3,7 @@ import { TWhere } from '@dbase/fire/fire.interface';
 
 import { FILTER } from '@dbase/state/config.define';
 import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, IStoreMeta, FType, FNumber, IClientBase } from '@dbase/data/data.schema';
+import { TStoreBase, IStoreMeta, IClientBase } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { addWhere } from '@dbase/fire/fire.library';
 
@@ -54,8 +54,8 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
 		currDocs.map(async currDoc => {             // loop through existing-docs first, to determine currEffect/currExpire range
 			const currStore = currDoc[FIELD.store];
 			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as TStoreBase;
-			const currExpire = currDoc[FIELD.expire] as FType<FNumber>;
-			const currEffect = currDoc[FIELD.effect] as FType<FNumber>
+			const currExpire = currDoc[FIELD.expire];
+			const currEffect = currDoc[FIELD.effect]
 				|| await fire.callMeta(currStore, currDoc[FIELD.id]).then(meta => meta[FIELD.create])
 				|| Number.MIN_SAFE_INTEGER
 

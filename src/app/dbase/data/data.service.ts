@@ -1,4 +1,3 @@
-import { firestore } from 'firebase/app';
 import { Injectable } from '@angular/core';
 import { DocumentReference } from '@angular/fire/firestore';
 
@@ -8,7 +7,7 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, IStoreMeta, FNumber, FType } from '@dbase/data/data.schema';
+import { TStoreBase, IMeta, IStoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { AuthService } from '@service/auth/auth.service';
@@ -114,11 +113,6 @@ export class DataService {
 		return this.fire.setDoc(store, doc);
 	}
 
-	/** mark a field for deletion */
-	get del() {
-		return firestore.FieldValue.delete();
-	}
-
 	updDoc(store: STORE, docId: string, data: TStoreBase) {
 		return this.fire.updDoc(store, docId, data);
 	}
@@ -131,7 +125,7 @@ export class DataService {
 		const uid = await this.getUID();
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
-			let tstamp = nextDoc[FIELD.effect] as FType<FNumber> || stamp;
+			let tstamp = nextDoc[FIELD.effect] || stamp;
 			let where: TWhere;
 			const collection = getSlice(nextDoc[FIELD.store]);
 

@@ -28,7 +28,7 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 			|| profile.avatar_url															// github
 			|| (isString(profile.picture) && profile.picture)	// google
 			|| profile.picture?.data?.url,										// facebook
-		birthDay: profile.birthDay ?? profile.birthday,
+		birthDate: profile.birthDay ?? profile.birthday,
 	}
 
 	if (!profileInfo.displayName && profileInfo.firstName && profileInfo.lastName)
@@ -41,18 +41,18 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 	}
 	if (profileInfo.photoURL)															// strip the queryParams
 		profileInfo.photoURL = profileInfo.photoURL.split('?')[0];
-	if (profileInfo.birthDay)															// as number
-		profileInfo.birthDay = getStamp(profileInfo.birthDay)
+	if (profileInfo.birthDate)															// as number
+		profileInfo.birthDate = getStamp(profileInfo.birthDate)
 
 	return cloneObj(profileInfo);													// removed 'undefined' fields
 }
 
 // each Provider might report a different birthday; take earliest
 export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
-	const birthDays = asArray(info)
-		.map(row => row.info.birthDay)
+	const birthDates = asArray(info)
+		.map(row => row.info.birthDate)
 		.filter(isNumber)
-	return birthDays.length ? Math.min(...birthDays) : undefined;
+	return birthDates.length ? Math.min(...birthDates) : undefined;
 }
 
 export const getMemberAge = (info: IProfileInfo[] = [], dt?: TInstant) =>

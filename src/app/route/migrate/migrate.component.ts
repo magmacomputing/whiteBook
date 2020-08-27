@@ -179,8 +179,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	async hideUser() {
 		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
 		reg[FIELD.hidden] = reg[FIELD.hidden]
-			? firestore.FieldValue.delete()
-			: true;
+			? undefined
+			: true
 		this.hide = reg[FIELD.hidden]
 			? 'Un'
 			: ''
