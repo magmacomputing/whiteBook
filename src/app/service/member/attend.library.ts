@@ -6,7 +6,6 @@ import { TInstant, getDate, Instant } from '@library/instant.library';
 import { TString, isUndefined, nullToZero } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { plural } from '@library/string.library';
-import { Attend } from '@dbase/state/state.action';
 
 /**
  * Determine if provided event is entitled to a Gift or a Bonus  
@@ -26,7 +25,7 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TInstan
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes to which the Member is entitled
 		.forEach(scheme => {																	// loop over each Bonus in its sort-order
 			if (bonus[FIELD.id])																// if a prior forEach determined a Bonus...
-				return;																						// skip checking the rest
+				return;																						// 	skip checking the rest
 
 			switch (scheme[FIELD.key]) {
 				case BONUS.none:																	// not entitled to attend-related Bonus
