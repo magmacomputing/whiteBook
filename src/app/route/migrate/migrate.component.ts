@@ -150,7 +150,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						this.status = resp.status;
 						return (resp.history || []).orderBy(FIELD.stamp);
 					})
-					.then(history => this.history.resolve(history))
+					.then(this.history.resolve)
 				this.history.promise
 					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
 					.catch(err => this.dbg('err: %j', err.message))

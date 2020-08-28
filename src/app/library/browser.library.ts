@@ -17,7 +17,10 @@ export class Storage {
 			: this.ifObject<T>(this.#storage.getItem(key)) ?? dflt;
 	}
 
-	public set(key: string, obj: unknown, opt = { merge: true }) {
+	public set(key?: string, obj?: unknown, opt = { merge: true }) {
+		if (isUndefined(key))
+			return this.clear();																// synonym for 'clear'
+
 		const prev = this.get<string | any[] | {}>(key);			// needed if merge is true
 
 		switch (getType(obj)) {
