@@ -111,7 +111,8 @@ const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: In
 /**
  * The Week scheme qualifies as a Bonus if the Member attends the required number of non-bonus days in a week (scheme.level).  
  * The Member must also have claimed less than the free limit (scheme.free) to enable this bonus
- * (note: even 'Gift Attends' count towards a Bonus)
+ * (note: even 'Gift Attends' count towards a Bonus)  
+ * (note: scheme.free only covers one calendar day)
  */
 const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect = BONUS.week) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);																					// the dow on which the Bonus qualified
@@ -125,9 +126,8 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
 		.filter(row => row.bonus?.[FIELD.type] === BONUS.week)		// how many of those were BONUS.week
 		.map(row => row.track[FIELD.date])												// just the track.date field
 		.sort()																										// should be a single-date, but just in case...
-	const okFree = weekCnt.length === 0 || (										// if first Bonus of the day, or...
-		weekCnt[0] === today && weekCnt.length < scheme.free			// same day, and within scheme.free limit
-	)
+	const okFree = weekCnt.length === 0 ||											// if first Bonus of the day, or...
+		( weekCnt[0] === today && weekCnt.length < scheme.free )	// same day, and within scheme.free limit
 	const okElect = elect === BONUS.week;												// if not skipped, then Bonus will apply
 
 	if (okLevel && okFree && okElect)

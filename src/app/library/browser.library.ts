@@ -1,15 +1,15 @@
-import { isArray, isObject, isString, isUndefined } from '@library/type.library';
+import { getType, isArray, isObject, isString, isUndefined } from '@library/type.library';
 
 export class Storage {
 	#storage: globalThis.Storage;
 
 	constructor(storage: 'local' | 'session') {
-		this.#storage = (storage ?? 'local') === 'local'
+		this.#storage = (storage ?? 'local') === 'local'			// default to localStorage
 			? globalThis.localStorage
 			: globalThis.sessionStorage
 	}
 
-	public get<T>(key: string): T | undefined;
+	public get<T>(key: string): T | null;
 	public get<T>(key: string, dflt: T): T;
 	public get<T>(key: string, dflt?: T) {
 		return isUndefined(dflt)
@@ -17,20 +17,66 @@ export class Storage {
 			: this.ifObject<T>(this.#storage.getItem(key)) ?? dflt;
 	}
 
-	public set(key: string, obj: unknown) {
-		return this.#storage.setItem(key, (isObject(obj) || isArray(obj)
-			? JSON.stringify(obj)
-			: obj))
+	public set(key: string, obj: unknown, opt = { merge: true }) {
+		const prev = this.get<string | any[] | {}>(key);			// needed if merge is true
+
+		switch (getType(obj)) {
+			case 'Undefined':
+				return this.del(key);															// synonym for 'removeItem'
+
+			case 'Object':
+				return this.upd(key, opt.merge
+					? Object.assign(prev ?? {}, obj)								// assume prev is Object
+					: obj)
+
+			case 'Array':
+				return this.upd(key, opt.merge
+					? (prev as unknown[] ?? [])											// assume prev is Array
+						.concat(obj)
+						.distinct()																		// remove duplicates
+					: obj)
+
+			default:
+				return this.upd(key, obj);
+		}
 	}
 
 	public del(key: string) {
 		return this.#storage.removeItem(key);
 	}
 
-	private ifObject = <T>(str: string | null) =>
-		(isString(str) && ((str.startsWith('{') && str.endsWith('}')) || str.startsWith('[') && str.endsWith(']')))
-			? JSON.parse(str) as T
+	public clear() {
+		return this.#storage.clear();
+	}
+
+	public keys() {
+		return Object.keys(this.#storage);
+	}
+
+	public values() {
+		return Object.values(this.#storage)
+			.map(this.ifObject)
+	}
+
+	public entries() {
+		return Object.entries(this.#storage)
+			.map(([key, val]) => [key, this.ifObject(val)])
+	}
+
+	private upd(key: string, obj: unknown) {
+		return this.#storage.setItem(key, (isObject(obj) || isArray(obj)
+			? JSON.stringify(obj)
+			: obj))
+	}
+
+	private ifObject = <T>(str: string | null) => {
+		const isObj = isString(str) && str.startsWith('{') && str.endsWith('}');
+		const isArr = isString(str) && str.startsWith('[') && str.endsWith(']');
+
+		return isObj || isArr
+			? JSON.parse(str as string) as T
 			: str
+	}
 }
 
 export const alert = (msg: any) =>
