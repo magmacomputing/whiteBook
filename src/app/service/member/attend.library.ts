@@ -145,6 +145,8 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
 /**
  * The Class scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.level).  
  * The Member must also have claimed less than the free limit (scheme.free) to enable this bonus
+ * (note: even 'Gift Attends' count towards a Bonus)  
+ * (note: scheme.free can cover multiple calendar days)* 
  */
 const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect = BONUS.class) => {
 	const okLevel = attendWeek																	// sum the non-Bonus -or- Gift Attends
@@ -171,7 +173,8 @@ const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: I
 /**
  * The Sunday scheme qualifies as a Bonus if the Member attends the required number of non-bonus classes in a week (scheme.level).  
  * The class must be in the free list (scheme.free) to qualify for this bonus
- * Note: the Week scheme should take precendence (if qualifies on Sunday, and not claimed on Saturday)
+ * (note: the Week scheme should take precendence, if qualifies on Sunday and not claimed on Saturday)  
+ * (note: even 'Gift Attends' count towards a Bonus)  
  */
 const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect = BONUS.sunday, event: string) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);

@@ -150,7 +150,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						this.status = resp.status;
 						return (resp.history || []).orderBy(FIELD.stamp);
 					})
-					.then(this.history.resolve)
+					.then(history => this.history.resolve(history))
 				this.history.promise
 					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
 					.catch(err => this.dbg('err: %j', err.message))
@@ -287,14 +287,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && parseFloat(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const search = (row.note && row.note.search('Gift #') + 6) || 0;		// find the start of the pattern
+				const search = (row.note && row.note.lastIndexOf('Gift #') + 6) || 0;		// find the start of the pattern
 				const match = search && row.note!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
 				if (match) {
 					const nbr = parseInt(match[0]);																		// TODO: this should be the last element?
 					if (nbr === 1) {
-						if (giftCnt && start && !gifts.find(row => row[FIELD.stamp] === start)) {
+						if (giftCnt && start && !gifts.find(row => row[FIELD.stamp] === start))
 							creates.push(this.setGift(giftCnt, start, rest));
-						}
+
 						giftCnt = 0;
 						rest = row.note!
 							.substring(search + match[0].length)
@@ -400,7 +400,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		// const endAt = new Instant('2019-Dec-31').format(Instant.FORMAT.yearMonthDay);
 		// const endPos = table.filter(row => row.date >= endAt).length;
-		// table.splice(table.length - endPos);							// up-to, but not includng endAt
+		// table.splice(table.length - endPos);							// up-to, but not including endAt
 		// this.dbg('endAt: %s, %j', endAt, table.length);
 
 		if (table.length) {
