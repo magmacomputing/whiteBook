@@ -1,4 +1,4 @@
-import { getType, isArray, isMap, isObject, isSet, isString, isUndefined } from '@library/type.library';
+import { getType, isString, isUndefined } from '@library/type.library';
 
 export class Storage {
 	#storage: globalThis.Storage;
@@ -99,11 +99,12 @@ export class Storage {
 		return this.#storage.setItem(key, val);
 	}
 
+	/** recreate original Object */
 	private ifObject = <T>(str: string | null) => {
 		const isObj = isString(str) && str.startsWith('{') && str.endsWith('}');
 		const isArr = isString(str) && str.startsWith('[') && str.endsWith(']');
-		const isMap = isString(str) && str.startsWith('map:{') && str.endsWith('}');
-		const isSet = isString(str) && str.startsWith('set:[') && str.endsWith(']');
+		const isMap = isString(str) && str.startsWith('Map:{') && str.endsWith('}');
+		const isSet = isString(str) && str.startsWith('Set:[') && str.endsWith(']');
 
 		switch (true) {
 			case isObj:
@@ -122,8 +123,5 @@ export class Storage {
 	}
 }
 
-export const alert = (msg: any) =>
-	window.alert(msg);
-
-export const prompt = (msg: any, dflt?: any) =>
-	window.prompt(msg, dflt);
+export const alert = (msg: any) => window.alert(msg);
+export const prompt = (msg: any, dflt?: any) => window.prompt(msg, dflt);
