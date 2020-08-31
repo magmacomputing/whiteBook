@@ -1,3 +1,4 @@
+import { ɵBrowserPlatformLocation } from '@angular/common';
 import { getType, isArray, isObject, isString, isUndefined } from '@library/type.library';
 
 export class Storage {
@@ -22,8 +23,9 @@ export class Storage {
 			return this.clear();																// synonym for 'clear'
 
 		const prev = this.get<string | any[] | {}>(key);			// needed if merge is true
+		const type = getType(obj);
 
-		switch (getType(obj)) {
+		switch (type) {
 			case 'Undefined':
 				return this.del(key);															// synonym for 'removeItem'
 
@@ -38,6 +40,20 @@ export class Storage {
 						.concat(obj)
 						.distinct()																		// remove duplicates
 					: obj)
+
+			case 'Map':
+				const map = Object.fromEntries((obj as Map<any, any>).entries());
+				return this.upd(key, opt.merge
+					? Object.assign(prev ?? {}, map)
+					: map, type)
+
+			case 'Set':
+				const set = Array.from((obj as Set<any>).values());
+				return this.upd(key, opt.merge
+					? (prev as unknown[] ?? [])
+						.concat(set)
+						.distinct()
+					: set, type)
 
 			default:
 				return this.upd(key, obj);
@@ -66,19 +82,47 @@ export class Storage {
 			.map(([key, val]) => [key, this.ifObject(val)])
 	}
 
-	private upd(key: string, obj: unknown) {
-		return this.#storage.setItem(key, (isObject(obj) || isArray(obj)
-			? JSON.stringify(obj)
-			: obj))
+	private upd(key: string, obj: unknown, type?: 'Map' | 'Set') {
+		let val: string;
+
+		switch (true) {
+			case type === 'Map':
+			case type === 'Set':
+			case isObject(obj):
+			case isArray(obj):
+				val = JSON.stringify(obj);
+				if (type)
+					val = `${type}:${val}`
+				break;
+
+			default:
+				val = obj as string;
+				break;
+		}
+
+		return this.#storage.setItem(key, val);
 	}
 
 	private ifObject = <T>(str: string | null) => {
 		const isObj = isString(str) && str.startsWith('{') && str.endsWith('}');
 		const isArr = isString(str) && str.startsWith('[') && str.endsWith(']');
+		const isMap = isString(str) && str.startsWith('map:{') && str.endsWith('}');
+		const isSet = isString(str) && str.startsWith('set:[') && str.endsWith(']');
 
-		return isObj || isArr
-			? JSON.parse(str as string) as T
-			: str
+		switch (true) {
+			case isObj:
+			case isArr:
+				return JSON.parse(str as string) as T;
+
+			case isMap:
+				return new Map(Object.entries(JSON.parse((str as string)?.substring(4))));
+
+			case isSet:
+				return new Set(JSON.parse((str as string).substring(4)));
+
+			default:
+				return str;
+		}
 	}
 }
 
