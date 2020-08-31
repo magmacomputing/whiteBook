@@ -1,5 +1,4 @@
-import { ɵBrowserPlatformLocation } from '@angular/common';
-import { getType, isArray, isObject, isString, isUndefined } from '@library/type.library';
+import { getType, isArray, isMap, isObject, isSet, isString, isUndefined } from '@library/type.library';
 
 export class Storage {
 	#storage: globalThis.Storage;
@@ -82,14 +81,11 @@ export class Storage {
 			.map(([key, val]) => [key, this.ifObject(val)])
 	}
 
-	private upd(key: string, obj: unknown, type?: 'Map' | 'Set') {
+	private upd(key: string, obj: unknown, type?: ObjectConstructor["name"]) {
 		let val: string;
 
 		switch (true) {
-			case type === 'Map':
-			case type === 'Set':
-			case isObject(obj):
-			case isArray(obj):
+			case ['Object', 'Array', 'Map', 'Set'].includes(getType(obj)):
 				val = JSON.stringify(obj);
 				if (type)
 					val = `${type}:${val}`
