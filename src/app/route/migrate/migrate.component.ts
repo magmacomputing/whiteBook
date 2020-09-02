@@ -2,7 +2,6 @@ import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { take, map, retry } from 'rxjs/operators';
-import { firestore } from 'firebase/app';
 import { Store } from '@ngxs/store';
 
 import { ForumService } from '@service/forum/forum.service';

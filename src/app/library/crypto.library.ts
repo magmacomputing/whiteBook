@@ -14,7 +14,7 @@ export const decodeBase64 = <T>(str: string): T =>
 export const encodeBase64 = (buf: ArrayBuffer) =>
 	window.btoa(new Uint8Array(buf).reduce((s, b) => s + String.fromCharCode(b), ''));
 
-export const cryptoHash = async (source: string | Object, len: number = 64) => {
+export const cryptoHash = async (source: string | object, len: number = 64) => {
 	const buffer = encodeBuffer(asString(source));
 	const hash = await crypto.subtle.digest(CRYPTO.algorithm, buffer);
 
