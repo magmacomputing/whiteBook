@@ -1,24 +1,24 @@
 import { FIELD } from '@dbase/data/data.define';
 
-export type TWhere = IWhere | IWhere[];
+export type TWhere = FireWhere | FireWhere[];
 
 /** Query.where */
-export interface IWhere {
+export interface FireWhere {
 	fieldPath: string | firebase.firestore.FieldPath;
 	opStr?: firebase.firestore.WhereFilterOp | '!=';				// this is a *special* to allow additional local operator (do not use on Cloud Firestore queries!)
 	value: any | any[];
 }
 
 /** Query.orderBy */
-export interface IOrderBy {
+export interface FireOrderBy {
 	fieldPath: string | firebase.firestore.FieldPath;
 	directionStr?: firebase.firestore.OrderByDirection;
 }
 
 /** Collection.Query */
-export interface IQuery {
-	where?: IWhere | IWhere[];
-	orderBy?: IOrderBy | IOrderBy[];
+export interface FireQuery {
+	where?: FireWhere | FireWhere[];
+	orderBy?: FireOrderBy | FireOrderBy[];
 	limit?: number;
 	startAt?: string;
 	startAfter?: string;
@@ -27,7 +27,7 @@ export interface IQuery {
 }
 
 /** FirestoreFunction getMeta() */
-export interface IDocMeta {
+export interface DocMeta {
 	[FIELD.id]: string;
 	[FIELD.create]?: number;
 	[FIELD.update]?: number;

@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
 
-import { IAuthState } from './auth.action';
+import { IAuthState as AuthState } from './auth.action';
 import { STORE, BONUS, COLLECTION } from '@dbase/data/data.define';
 import {
-	IDefault, IProfilePlan, IProfilePref, IPrice, IPlan, IPayment, IAttend, ISchedule, IClass, IEvent, ICalendar,
-	ILocation, IInstructor, IProfileInfo, IStoreMeta, ISpan, IAlert, IMessage, IRegister, ISchema, IConfig, IGift, IBonus,
-	IStatusConnect, IStatusAccount, TBonus, IIcon, IProvider, IReact, IComment, IImport, ISummary,
+	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
+	Location, Instructor, ProfileInfo, StoreMeta, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
+	StatusConnect, StatusAccount, TBonus, Icon, Provider, React, Comment, Import, ISummary,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -37,119 +37,119 @@ export enum SLICE {
  */
 
 export type TStateSlice<T> = { [segment: string]: T[] };
-export interface LState { [slice: string]: TStateSlice<IStoreMeta> };	// localStore State
-export interface IState { [slice: string]: Observable<TStateSlice<IStoreMeta>> };
+export interface LState { [slice: string]: TStateSlice<StoreMeta> };	// localStore State
+export interface IState { [slice: string]: Observable<TStateSlice<StoreMeta>> };
 
-export interface IUserState {
-	auth: IAuthState;
+export interface UserState {
+	auth: AuthState;
 }
 
-export interface IAdminState {
-	[STORE.register]: IRegister[];
-	[STORE.account]: IStatusAccount[];
-	[STORE.connect]: IStatusConnect[];
-	[STORE.import]: IImport[];
+export interface AdminState {
+	[STORE.register]: Register[];
+	[STORE.account]: StatusAccount[];
+	[STORE.connect]: StatusConnect[];
+	[STORE.import]: Import[];
 	dash: {																// align elements of each Admin Array by UID
-		[STORE.register]: IRegister;
-		[STORE.account]?: IStatusAccount;
-		[STORE.connect]?: IStatusConnect;
-		[STORE.import]?: IImport;
+		[STORE.register]: Register;
+		[STORE.account]?: StatusAccount;
+		[STORE.connect]?: StatusConnect;
+		[STORE.import]?: Import;
 	}[]
 }
 
-export interface IApplicationState {		// application-wide settings
+export interface ApplicationState {		// application-wide settings
 	application: {
-		[STORE.default]: IDefault[];        // defaults to apply, if missing from Member data
-		[STORE.schema]?: ISchema[];
-		[STORE.config]?: IConfig[];
+		[STORE.default]: Default[];        // defaults to apply, if missing from Member data
+		[STORE.schema]?: Schema[];
+		[STORE.config]?: Config[];
 	}
 }
 
-export interface IMemberState extends IUserState, IApplicationState {
+export interface MemberState extends UserState, ApplicationState {
 	[COLLECTION.member]: {
-		[STORE.plan]: IProfilePlan[];       // member's effective plan
-		info: IProfileInfo[];             	// array of AdditionalUserInfo documents
-		pref: IProfilePref[];								// member's preferences
-		[STORE.message]: IMessage[];				// array of messages to a Member
-		[STORE.gift]: IGift[];							// array of gifts for a Member
+		[STORE.plan]: ProfilePlan[];       // member's effective plan
+		info: ProfileInfo[];             	// array of AdditionalUserInfo documents
+		pref: ProfilePref[];								// member's preferences
+		[STORE.message]: Message[];				// array of messages to a Member
+		[STORE.gift]: Gift[];							// array of gifts for a Member
 	}
 }
 
-export interface IProviderState {
+export interface ProviderState {
 	[COLLECTION.client]: {
-		[STORE.provider]: IProvider[];			// array of effective Provider documents
-		[STORE.icon]: IIcon[];							// array of Provider icons
+		[STORE.provider]: Provider[];			// array of effective Provider documents
+		[STORE.icon]: Icon[];							// array of Provider icons
 	}
 }
-export interface IPlanState extends IMemberState {
+export interface PlanState extends MemberState {
 	[COLLECTION.client]: {
-		[STORE.plan]: IPlan[];              // array of effective Plan documents
-		[STORE.price]: IPrice[];						// array of effective Price documents
-		[STORE.icon]: IIcon[];							// array of Plan icons
+		[STORE.plan]: Plan[];              // array of effective Plan documents
+		[STORE.price]: Price[];						// array of effective Price documents
+		[STORE.icon]: Icon[];							// array of Plan icons
 	}
 }
 
-export interface IBonusState extends IUserState, IApplicationState {
+export interface BonusState extends UserState, ApplicationState {
 	[COLLECTION.client]: {
-		[STORE.bonus]: IBonus[];						// array of Bonus scheme rules
+		[STORE.bonus]: Bonus[];						// array of Bonus scheme rules
 	}
 	[COLLECTION.member]: {
-		[STORE.gift]: IGift[];							// array of gifts to a Member
+		[STORE.gift]: Gift[];							// array of gifts to a Member
 	}
 	track: {
-		[BONUS.gift]: IAttend[];						// array of Attends against their gifts
-		[BONUS.week]: IAttend[];						// array of Attends against the current week
-		[BONUS.class]: IAttend[];						// array of Attends against the current week
-		[BONUS.month]: IAttend[];						// array of Attends against the current month
+		[BONUS.gift]: Attend[];						// array of Attends against their gifts
+		[BONUS.week]: Attend[];						// array of Attends against the current week
+		[BONUS.class]: Attend[];						// array of Attends against the current week
+		[BONUS.month]: Attend[];						// array of Attends against the current month
 	}
 }
 
-export interface IAccountState extends IMemberState, IPlanState {
+export interface AccountState extends MemberState, PlanState {
 	[STORE.account]: {
-		payment: IPayment[];								// array of open payment documents, sorted by <stamp>
-		attend: IAttend[];
+		payment: Payment[];								// array of open payment documents, sorted by <stamp>
+		attend: Attend[];
 		summary: ISummary;
 	}
 }
 
-export interface IAttendState {
-	[payment: string]: IAttend[];
+export interface AttendState {
+	[payment: string]: Attend[];
 }
 
-export interface IPaymentState {
-	[payment: string]: IPayment[];
+export interface PaymentState {
+	[payment: string]: Payment[];
 }
 
-export interface ITimetableState extends IMemberState, IApplicationState {
+export interface TimetableState extends MemberState, ApplicationState {
 	[COLLECTION.client]: {
-		[STORE.schedule]?: ISchedule[];
-		[STORE.class]?: IClass[];
-		[STORE.event]?: IEvent[];
-		[STORE.calendar]?: ICalendar[];
-		[STORE.diary]?: ICalendar[];
-		[STORE.location]?: ILocation[];
-		[STORE.instructor]?: IInstructor[];
-		[STORE.plan]?: IPlan[];
-		[STORE.price]?: IPrice[];
-		[STORE.span]?: ISpan[];
-		[STORE.alert]?: IAlert[];
-		[STORE.bonus]?: IBonus[];
-		[STORE.icon]?: IIcon[];
+		[STORE.schedule]?: Schedule[];
+		[STORE.class]?: Class[];
+		[STORE.event]?: Event[];
+		[STORE.calendar]?: Calendar[];
+		[STORE.diary]?: Calendar[];
+		[STORE.location]?: Location[];
+		[STORE.instructor]?: Instructor[];
+		[STORE.plan]?: Plan[];
+		[STORE.price]?: Price[];
+		[STORE.span]?: Span[];
+		[STORE.alert]?: Alert[];
+		[STORE.bonus]?: Bonus[];
+		[STORE.icon]?: Icon[];
 	},
 	[COLLECTION.attend]: {
-		attendGift: IAttend[];
-		attendWeek: IAttend[];
-		attendClass: IAttend[];
-		attendMonth: IAttend[];
-		attendToday: IAttend[];
+		attendGift: Attend[];
+		attendWeek: Attend[];
+		attendClass: Attend[];
+		attendMonth: Attend[];
+		attendToday: Attend[];
 	},
 	[STORE.bonus]?: TBonus,
-	[COLLECTION.forum]?: IForumState["forum"];
+	[COLLECTION.forum]?: ForumState["forum"];
 }
 
-export interface IForumState {
+export interface ForumState {
 	[COLLECTION.forum]: {
-		[STORE.comment]?: IComment[];
-		[STORE.react]?: IReact[];
+		[STORE.comment]?: Comment[];
+		[STORE.react]?: React[];
 	}
 }

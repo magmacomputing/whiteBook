@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, IMeta, IStoreMeta } from '@dbase/data/data.schema';
+import { TStoreBase, Meta, StoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { AuthService } from '@service/auth/auth.service';
@@ -17,7 +17,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { asAt } from '@library/app.library';
 import { getSlice } from '@dbase/state/state.library';
 import { StateService } from '@dbase/state/state.service';
-import { TWhere, IQuery } from '@dbase/fire/fire.interface';
+import { TWhere, FireQuery } from '@dbase/fire/fire.interface';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
@@ -43,7 +43,7 @@ export class DataService {
 	}
 
 	/** Make Store data available in a Promise */
-	private snap<T>(store: STORE, query?: IQuery) {
+	private snap<T>(store: STORE, query?: FireQuery) {
 		const slice = getSlice(store);
 
 		if (query)
@@ -90,11 +90,11 @@ export class DataService {
 			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
 
-	getFire<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection, rather than via state
+	getFire<T>(collection: COLLECTION, query?: FireQuery) {			// direct access to collection, rather than via state
 		return this.fire.get<T>(collection, query)
 	}
 
-	getLive<T>(collection: COLLECTION, query?: IQuery) {			// direct access to collection as observable
+	getLive<T>(collection: COLLECTION, query?: FireQuery) {			// direct access to collection as observable
 		return this.fire.listen<T>(collection, query);
 	}
 
@@ -131,7 +131,7 @@ export class DataService {
 
 			try {
 				nextDoc = docPrep(nextDoc, uid);										// make sure we have a <key/uid>
-				where = getWhere(nextDoc as IMeta, filter);
+				where = getWhere(nextDoc as Meta, filter);
 			} catch (error) {
 				this.snack.open(error.message);                     // show the error to the User
 				return;                                             // abort the Create/Update
@@ -158,7 +158,7 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Batch */
-	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], event?: any, callBack?: (evt: any) => any) {
+	batch(creates: StoreMeta[] = [], updates: StoreMeta[] = [], deletes: StoreMeta[] = [], event?: any, callBack?: (evt: any) => any) {
 		const writes = creates.length + updates.length + deletes.length;
 		const sync = (event && writes)													// an Event that this batch will fire
 			? this.sync.wait(event, callBack)											// start a listener for 1st emit of Event
@@ -176,7 +176,7 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Transaction */
-	runTxn(creates?: IStoreMeta[], updates?: IStoreMeta[], deletes?: IStoreMeta[], selects?: DocumentReference[]) {
+	runTxn(creates?: StoreMeta[], updates?: StoreMeta[], deletes?: StoreMeta[], selects?: DocumentReference[]) {
 		return this.fire.runTxn(creates, updates, deletes, selects);
 	}
 

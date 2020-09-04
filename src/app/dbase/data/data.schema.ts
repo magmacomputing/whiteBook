@@ -10,7 +10,7 @@ type TStoreMember = STORE.profile | STORE.payment | STORE.gift | STORE.message |
 type TStoreForum = STORE.comment | STORE.react;
 
 // These are the meta- and common-fields for a standard document
-export interface IMeta {
+export interface Meta {
 	[FIELD.create]?: number;								// the time when originally created
 	[FIELD.update]?: number;								// the time when last updated
 	[FIELD.access]?: number;								// the time when last accessed
@@ -34,17 +34,17 @@ export interface IMeta {
  * a) forum (keyed by 'store/type/uid/key')
  * b) zoom (keyed by 'store/type')
  */
-export interface IClientBase extends IMeta {
+export interface ClientBase extends Meta {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
 	[FIELD.image]?: string;									// an optional icon for the UI
 }
-interface IMemberBase extends IMeta {			// this is the base for Member-related documents
+interface MemberBase extends Meta {			// this is the base for Member-related documents
 	[FIELD.store]: TStoreMember;
 	[FIELD.uid]: string;
 	[FIELD.stamp]: number;
 }
-export interface IForum extends IMeta {
+export interface Forum extends Meta {
 	[FIELD.store]: TStoreForum;
 	[FIELD.type]: STORE;										// allow for Forum on any Store type
 	[FIELD.uid]: string;										// the Member making the feedback
@@ -54,9 +54,9 @@ export interface IForum extends IMeta {
 		date: number;													// yearMonthDay
 	} & Record<string, string | number>,		// additional info to assist tracking
 }
-export type TStoreBase = IClientBase | IMemberBase | IForum | IMigrate;
+export type TStoreBase = ClientBase | MemberBase | Forum | Migrate;
 
-export interface IImport extends IMeta {
+export interface Import extends Meta {
 	[FIELD.store]: STORE.import;						// record of Google Sheet on migrated member
 	[FIELD.uid]: string;
 	credit: number;
@@ -67,7 +67,7 @@ export interface IImport extends IMeta {
 	userName: string;
 	providers: TProviderInfo[]
 }
-export interface IMigrate extends IMeta {	// these allow for reconciliation of migrated event
+export interface Migrate extends Meta {	// these allow for reconciliation of migrated event
 	[FIELD.store]: STORE.migrate;
 	[FIELD.type]: STORE.event | STORE.class;
 	[FIELD.uid]: string;
@@ -76,22 +76,22 @@ export interface IMigrate extends IMeta {	// these allow for reconciliation of m
 		[order: string]: CLASS;
 	}
 }
-export interface IStoreMeta extends IMeta, Record<string, any> { }
+export interface StoreMeta extends Meta, Record<string, any> { }
 
 //	/client/_default_
-export interface IDefault extends IClientBase {
+export interface Default extends ClientBase {
 	[FIELD.store]: STORE.default;
 	[FIELD.type]: TStoreClient;						// Client store to be defaulted
 	[FIELD.key]: string;
 }
 //	/client/_config_
-export interface IConfig extends IClientBase {
+export interface Config extends ClientBase {
 	[FIELD.store]: STORE.config;
 	[FIELD.type]: string;
 	value: any;
 }
 //	/client/_schema_
-export interface ISchema extends IClientBase {
+export interface Schema extends ClientBase {
 	[FIELD.store]: STORE.schema;
 	[FIELD.type]: COLLECTION;
 	[FIELD.key]: STORE;
@@ -102,7 +102,7 @@ export interface ISchema extends IClientBase {
 }
 
 //	/client/price
-export interface IPrice extends IClientBase {
+export interface Price extends ClientBase {
 	[FIELD.store]: STORE.price;
 	[FIELD.type]: PRICE;
 	[FIELD.key]: PLAN;
@@ -110,7 +110,7 @@ export interface IPrice extends IClientBase {
 }
 
 //	/client/bonus
-export interface IBonus extends IClientBase {
+export interface Bonus extends ClientBase {
 	[FIELD.store]: STORE.bonus;
 	[FIELD.key]: BONUS;
 	[FIELD.sort]: number;								// sequence of processing
@@ -123,7 +123,7 @@ export interface IBonus extends IClientBase {
 }
 
 //	/client/plan
-export interface IPlan extends IClientBase {
+export interface Plan extends ClientBase {
 	[FIELD.store]: STORE.price;
 	[FIELD.key]: PLAN;
 	[FIELD.sort]: number;
@@ -134,7 +134,7 @@ export interface IPlan extends IClientBase {
 }
 
 //	/client/class
-export interface IClass extends IClientBase {
+export interface Class extends ClientBase {
 	[FIELD.store]: STORE.class;
 	[FIELD.type]: SPAN;
 	[FIELD.key]: CLASS;
@@ -143,7 +143,7 @@ export interface IClass extends IClientBase {
 }
 
 //	/client/event
-export interface IEvent extends IClientBase {
+export interface Event extends ClientBase {
 	[FIELD.store]: STORE.event;
 	[FIELD.key]: string;
 	[FIELD.name]: string;
@@ -152,7 +152,7 @@ export interface IEvent extends IClientBase {
 }
 
 //	/client/calendar
-export interface ICalendar extends IClientBase {
+export interface Calendar extends ClientBase {
 	[FIELD.store]: STORE.calendar;
 	[FIELD.type]: EVENT;
 	[FIELD.key]: number;
@@ -168,7 +168,7 @@ export interface ICalendar extends IClientBase {
 export interface TBonus {							// a sub-type of IBonus
 	[FIELD.id]: string;
 	[FIELD.type]: BONUS;
-	[STORE.gift]?: IGift[];							// the /member/gift updates for this payment
+	[STORE.gift]?: Gift[];							// the /member/gift updates for this payment
 	count: number;											// the number of this Gift
 	desc?: TString;											// message to Member
 	amount?: number;										// an optional amount (if other than $0)
@@ -177,7 +177,7 @@ export type TForum = {
 	[STORE.comment]?: TString;
 	[STORE.react]?: REACT;
 }
-export interface ISchedule extends IClientBase {
+export interface Schedule extends ClientBase {
 	[FIELD.store]: STORE.schedule | STORE.calendar;
 	[FIELD.type]: SCHEDULE;
 	[FIELD.key]: CLASS;
@@ -186,7 +186,7 @@ export interface ISchedule extends IClientBase {
 	instructor?: string;
 	start: string;
 	span?: string;
-	price?: IPrice;											// the regular price detail for this class
+	price?: Price;											// the regular price detail for this class
 	amount?: number;										// infer the member's price for this class
 	bonus?: TBonus;											// the Bonus tracking which can be applied to this Schedule
 	elect?: BONUS;											// names the Bonus the Member chooses (override calc)
@@ -195,7 +195,7 @@ export interface ISchedule extends IClientBase {
 }
 
 //	/client/location
-export interface ILocation extends IClientBase {
+export interface Location extends ClientBase {
 	[FIELD.store]: STORE.location;
 	[FIELD.key]: string;
 	[FIELD.name]: string;
@@ -218,7 +218,7 @@ export interface ILocation extends IClientBase {
 }
 
 //	/client/instructor
-export interface IInstructor extends IClientBase {
+export interface Instructor extends ClientBase {
 	[FIELD.store]: STORE.instructor;
 	[FIELD.name]: string;
 	link?: {
@@ -228,7 +228,7 @@ export interface IInstructor extends IClientBase {
 }
 
 //	/client/span
-export interface ISpan extends IClientBase {
+export interface Span extends ClientBase {
 	[FIELD.store]: STORE.span;
 	[FIELD.key]: SPAN | CLASS;
 	[FIELD.type]: SCHEDULE;
@@ -236,14 +236,14 @@ export interface ISpan extends IClientBase {
 }
 
 //	/client/alert									// <key> is immaterial
-export interface IAlert extends IClientBase {
+export interface Alert extends ClientBase {
 	[FIELD.store]: STORE.alert;
 	[FIELD.type]: STORE.schedule | STORE.event;
 	[STORE.location]?: string;
 }
 
 //	/client/react									// Member reaction icons
-export interface IIcon extends IClientBase {
+export interface Icon extends ClientBase {
 	[FIELD.store]: STORE.icon;
 	[FIELD.type]: STORE.react | STORE.class | STORE.event | STORE.provider | STORE.bonus;
 	[FIELD.key]: keyof typeof REACT | CLASS | EVENT | Auth.PROVIDER | BONUS;
@@ -252,7 +252,7 @@ export interface IIcon extends IClientBase {
 }
 
 //	/client/schedule
-export interface IProvider extends IClientBase {
+export interface Provider extends ClientBase {
 	[FIELD.store]: STORE.provider;
 	[FIELD.type]: Auth.METHOD;
 	[FIELD.key]: string;
@@ -296,34 +296,34 @@ export interface IProvider extends IClientBase {
 }
 
 //	/member/message
-export interface IMessage extends IMemberBase {
+export interface Message extends MemberBase {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: MESSAGE;
 }
 
 //	/member/profile
-export interface IProfile extends IMemberBase {
+export interface Profile extends MemberBase {
 	[FIELD.store]: STORE.profile;
 	[FIELD.type]: PROFILE;
 }
-export interface IProfilePlan extends IProfile {
+export interface ProfilePlan extends Profile {
 	[FIELD.type]: PROFILE.plan;
 	[PROFILE.plan]: PLAN;
 	bump?: PLAN;												// auto-upgrade Plan on next topUp Payment
 }
-export interface IProfileClaim extends IProfile {
+export interface ProfileClaim extends Profile {
 	[FIELD.type]: PROFILE.claim;
-	[PROFILE.claim]: ICustomClaims;
+	[PROFILE.claim]: CustomClaims;
 }
-export interface IProfileInfo extends IProfile {
+export interface ProfileInfo extends Profile {
 	[FIELD.type]: PROFILE.info;
-	[PROFILE.info]: IMemberInfo;
+	[PROFILE.info]: MemberInfo;
 }
-export interface IProfilePref extends IProfile {
+export interface ProfilePref extends Profile {
 	[FIELD.type]: PROFILE.pref;
 	[PROFILE.pref]: TString;
 }
-export interface IProfileToken extends IProfile {
+export interface ProfileToken extends Profile {
 	[FIELD.type]: PROFILE.token;
 	messaging: {
 		token: string;
@@ -331,9 +331,9 @@ export interface IProfileToken extends IProfile {
 		error?: { code: string; message: string; };
 	}[]
 }
-export type TProfileInfo = IProfileInfo | IProfileInfo[];
+export type TProfileInfo = ProfileInfo | ProfileInfo[];
 
-export interface IMemberInfo {				// Conformed Info across Providers
+export interface MemberInfo {				// Conformed Info across Providers
 	providerId: string;
 	providerUid: string;               	// Provider's UserId
 	firstName?: string;
@@ -346,7 +346,7 @@ export interface IMemberInfo {				// Conformed Info across Providers
 }
 
 //	/member/payment
-export interface IPayment extends IMemberBase {
+export interface Payment extends MemberBase {
 	[FIELD.store]: STORE.payment;
 	[FIELD.type]: PAYMENT;
 	amount?: number;									// how much actually paid (may be different from plan.topUp.amount)
@@ -367,7 +367,7 @@ export interface IPayment extends IMemberBase {
 }
 
 //	/member/gift
-export interface IGift extends IMemberBase {
+export interface Gift extends MemberBase {
 	[FIELD.store]: STORE.gift,
 	[FIELD.type]?: string;
 	limit: number;										// number of free Attends for this Gift
@@ -377,7 +377,7 @@ export interface IGift extends IMemberBase {
 }
 
 // /attend
-export interface IAttend extends IMemberBase {
+export interface Attend extends MemberBase {
 	[FIELD.store]: STORE.attend;
 	payment: {
 		[FIELD.id]: string;							// the /member/payment _id
@@ -403,7 +403,7 @@ export interface IAttend extends IMemberBase {
 }
 
 //	/forum/comment
-export interface IComment extends IForum {
+export interface Comment extends Forum {
 	[FIELD.store]: STORE.comment;
 	[STORE.comment]: TString;
 	response?: {
@@ -414,20 +414,20 @@ export interface IComment extends IForum {
 	}[];
 }
 //	/forum/react
-export interface IReact extends IForum {
+export interface React extends Forum {
 	[FIELD.store]: STORE.react;
 	[STORE.react]: REACT;
 }
 
 //	/admin/register
-export interface ICustomClaims {		// a special sub-set of fields from the User Token
+export interface CustomClaims {		// a special sub-set of fields from the User Token
 	alias?: string;
 	roles?: Auth.ROLE[];							// TODO: does this need to be Array?
 	allow?: string[];
 	deny?: string[];
 }
 export type TUser = UserInfo & {
-	customClaims?: ICustomClaims;
+	customClaims?: CustomClaims;
 	providerData?: (UserInfo | null)[];
 }
 type TProviderInfo = {
@@ -442,7 +442,7 @@ type TProviderInfo = {
 	isAdmin?: true;
 	birthDate?: number;
 }
-export interface IRegister extends IMemberBase {
+export interface Register extends MemberBase {
 	[FIELD.store]: STORE.register;
 	user: TUser;
 }
@@ -459,21 +459,21 @@ export interface ISummary {
 }
 
 //	/member/status
-export interface IStatus extends IMemberBase {
+export interface Status extends MemberBase {
 	[FIELD.store]: STORE.status;
 	[FIELD.type]: STATUS;
 }
-export interface IStatusAccount extends IStatus {
+export interface StatusAccount extends Status {
 	[FIELD.type]: STATUS.account;
 	summary: ISummary;
 }
-export interface IStatusConnect extends IStatus {
+export interface StatusConnect extends Status {
 	[FIELD.type]: STATUS.connect;
 	state: CONNECT;
 	device?: string | null;
 }
 
-export interface IZoom<T extends TStarted | TEnded | TJoined | TLeft | TStatus> {
+export interface ZoomEvent<T extends TStarted | TEnded | TJoined | TLeft | TStatus> {
 	[FIELD.id]: string;
 	[FIELD.create]: string;
 	[FIELD.update]: string;
@@ -490,7 +490,7 @@ export interface IZoom<T extends TStarted | TEnded | TJoined | TLeft | TStatus> 
 		week: number;
 		month: number;
 	},
-	white?: IWhite;
+	white?: ZoomWhite;
 }
 
 export type TLeft = {
@@ -587,7 +587,7 @@ export type TStatus = {
 	}
 }
 
-export interface IMeeting {
+export interface ZoomMeeting {
 	uuid: string;
 	meeting_id: string;
 	topic?: string;
@@ -597,7 +597,7 @@ export interface IMeeting {
 		start_time: Date;
 		label: string;							// to be displayed on an UI tab
 		color?: COLOR;
-		white?: IWhite;
+		white?: ZoomWhite;
 	},
 	end?: {
 		[FIELD.id]: string;
@@ -614,7 +614,7 @@ export interface IMeeting {
 			[FIELD.stamp]: number;
 			join_time: Date;
 			label: string;							// to be displayed on an UI tab
-			white: IWhite;
+			white: ZoomWhite;
 			price?: number;
 			credit?: number;
 			fgcolor?: {
@@ -638,7 +638,7 @@ export interface IMeeting {
 	}[]
 }
 
-export interface IZoomEnv {
+export interface ZoomEnv {
 	id: string;
 	start: string;
 	end: string;
@@ -647,7 +647,7 @@ export interface IZoomEnv {
 	day?: number[];
 }
 
-export interface IWhite {
+export interface ZoomWhite {
 	class?: string;
 	alias?: string;
 	paid?: true;

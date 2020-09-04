@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { Client, filterState } from '@dbase/state/state.action';
+import { ClientAction, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { SLICES, COMMENT } from '@dbase/state/config.define';
 import { setSchema, setConfig } from '@dbase/state/config.library';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta, ISchema, IConfig } from '@dbase/data/data.schema';
+import { StoreMeta, Schema, Config } from '@dbase/data/data.schema';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
@@ -14,7 +14,7 @@ import { isEmpty } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<TStateSlice<IStoreMeta>>({
+@State<TStateSlice<StoreMeta>>({
 	name: COLLECTION.client,
 	defaults: {}
 })
@@ -23,7 +23,7 @@ export class ClientState implements NgxsOnInit {
 
 	constructor(private readonly store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');
@@ -35,11 +35,11 @@ export class ClientState implements NgxsOnInit {
 			})
 	}
 
-	@Action(Client.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Client.Set) {
+	@Action(ClientAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: ClientAction.Set) {
 		const state = cloneObj(getState()) || {};
-		const schema: IStoreMeta[] = [];
-		const config: IStoreMeta[] = [];
+		const schema: StoreMeta[] = [];
+		const config: StoreMeta[] = [];
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
@@ -55,17 +55,17 @@ export class ClientState implements NgxsOnInit {
 		})
 
 		if (schema.length)
-			setSchema(state[STORE.schema] as ISchema[]);	// rebuild the STORES / SORTBY / FILTER
+			setSchema(state[STORE.schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.config] as IConfig[]);
+			setConfig(state[STORE.config] as Config[]);
 		setState({ ...state });
 	}
 
-	@Action(Client.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Client.Del) {
+	@Action(ClientAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: ClientAction.Del) {
 		const state = cloneObj(getState()) || {};
-		const schema: IStoreMeta[] = [];
-		const config: IStoreMeta[] = [];
+		const schema: StoreMeta[] = [];
+		const config: StoreMeta[] = [];
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
@@ -82,14 +82,14 @@ export class ClientState implements NgxsOnInit {
 		})
 
 		if (schema.length)
-			setSchema(state[STORE.schema] as ISchema[]);	// rebuild the STORES / SORTBY / FILTER
+			setSchema(state[STORE.schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.config] as IConfig[]);	// rebuild the COMMENT variable
+			setConfig(state[STORE.config] as Config[]);	// rebuild the COMMENT variable
 		setState({ ...state });
 	}
 
-	@Action(Client.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Client.Trunc) {
+	@Action(ClientAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: ClientAction.Trunc) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}

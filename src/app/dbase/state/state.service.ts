@@ -4,17 +4,17 @@ import { map, take, switchMap, startWith, distinctUntilChanged } from 'rxjs/oper
 import { Select } from '@ngxs/store';
 
 import { IAuthState } from '@dbase/state/auth.action';
-import { TStateSlice, IAttendState, IPaymentState, IApplicationState, IAdminState, IProviderState, IForumState } from '@dbase/state/state.define';
-import { IMemberState, IPlanState, ITimetableState, IState, IAccountState, IUserState } from '@dbase/state/state.define';
+import { TStateSlice, AttendState, PaymentState, ApplicationState, AdminState, ProviderState, ForumState } from '@dbase/state/state.define';
+import { MemberState, PlanState, TimetableState, IState, AccountState, UserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta, IRegister, IStatusConnect, IStatusAccount, IForum, IComment, IReact, IImport } from '@dbase/data/data.schema';
+import { StoreMeta, Register, StatusConnect, StatusAccount, Forum, Comment, React, Import } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { addWhere, addOrder } from '@dbase/fire/fire.library';
-import { TWhere, IQuery } from '@dbase/fire/fire.interface';
+import { TWhere, FireQuery } from '@dbase/fire/fire.interface';
 
 import { Instant, TInstant, getDate } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
@@ -28,12 +28,12 @@ import { dbg } from '@library/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
 	@Select() auth$!: Observable<IAuthState>;
-	@Select() client$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() member$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() attend$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() admin$!: Observable<TStateSlice<IStoreMeta>>;
-	@Select() local$!: Observable<TStateSlice<IStoreMeta>>;
-	private forum$: Observable<TStateSlice<IStoreMeta>> = of({ forum: [] });
+	@Select() client$!: Observable<TStateSlice<StoreMeta>>;
+	@Select() member$!: Observable<TStateSlice<StoreMeta>>;
+	@Select() attend$!: Observable<TStateSlice<StoreMeta>>;
+	@Select() admin$!: Observable<TStateSlice<StoreMeta>>;
+	@Select() local$!: Observable<TStateSlice<StoreMeta>>;
+	private forum$: Observable<TStateSlice<StoreMeta>> = of({ forum: [] });
 
 	private dbg = dbg(this);
 	public states: IState;
@@ -72,7 +72,7 @@ export class StateService {
 	}
 
 	/** lookup the Default store for a given 'type' */
-	getDefault(state: IApplicationState, type: string) {
+	getDefault(state: ApplicationState, type: string) {
 		return getDefault(state, type);
 	}
 
@@ -85,7 +85,7 @@ export class StateService {
 	/**
 	* Assemble a UserState Object describing an authenticated User
 	*/
-	getAuthData(): Observable<IUserState> {
+	getAuthData(): Observable<UserState> {
 		return this.auth$.pipe(
 			map(auth => ({ auth: cloneObj(auth) })),
 		)
@@ -98,23 +98,23 @@ export class StateService {
 	 * dash.connect 	-> has an array of the current connections in /admin/connect
 	 * dash.import		-> has an array of the current state of /admin/import
 	 */
-	getAdminData(): Observable<IAdminState> {
+	getAdminData(): Observable<AdminState> {
 		return this.admin$.pipe(
 			map(source => ({
-				[STORE.register]: source[STORE.register] as IRegister[],
-				[STORE.account]: source[STORE.account] as IStatusAccount[],
-				[STORE.connect]: source[STORE.connect] as IStatusConnect[],
-				[STORE.import]: source[STORE.import] as IImport[],
+				[STORE.register]: source[STORE.register] as Register[],
+				[STORE.account]: source[STORE.account] as StatusAccount[],
+				[STORE.connect]: source[STORE.connect] as StatusConnect[],
+				[STORE.import]: source[STORE.import] as Import[],
 				dash: [...(source[STORE.register] || [])]
 					.orderBy('user.customClaims.alias', FIELD.uid)
 					.map(reg => ({
-						[STORE.register]: reg as IRegister,
+						[STORE.register]: reg as Register,
 						[STORE.account]: (source[STORE.account] || [])
-							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as IStatusAccount,
+							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as StatusAccount,
 						[STORE.connect]: (source[STORE.connect] || [])
-							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as IStatusConnect,
+							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as StatusConnect,
 						[STORE.import]: (source[STORE.import] || [])
-							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as IImport
+							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as Import
 					}))
 			}))
 		)
@@ -123,7 +123,7 @@ export class StateService {
 	/**
 	 * Watch for changes on the Member's Attendance
 	 */
-	getAttendData(payment?: string): Observable<IAttendState> {
+	getAttendData(payment?: string): Observable<AttendState> {
 		const filterAttend = [
 			addWhere(FIELD.store, STORE.attend),
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
@@ -141,7 +141,7 @@ export class StateService {
 	/**
 	 * Watch for changes on the Member's Payments
 	 */
-	getPaymentData(): Observable<IPaymentState> {
+	getPaymentData(): Observable<PaymentState> {
 		const filterPayment = [
 			addWhere(FIELD.store, STORE.payment),
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
@@ -163,7 +163,7 @@ export class StateService {
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 */
-	getMemberData(date?: TInstant): Observable<IMemberState> {
+	getMemberData(date?: TInstant): Observable<MemberState> {
 		const filterProfile = [
 			addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),  								// and the <uid> is current active User
@@ -185,7 +185,7 @@ export class StateService {
 	 * client.plan  -> has an array of asAt Plan documents  
 	 * client.price -> has an array of asAt Price documents
 	 */
-	getPlanData(date?: TInstant): Observable<IPlanState> {
+	getPlanData(date?: TInstant): Observable<PlanState> {
 		const filterIcon = addWhere(FIELD.type, [STORE.plan, STORE.default]);
 
 		return this.getMemberData(date).pipe(
@@ -201,7 +201,7 @@ export class StateService {
 	 * client.provider	-> has an array of Provider documents
 	 * client.icon			-> has an array of Provider icons
 	 */
-	getProviderData(date?: TInstant): Observable<IProviderState> {
+	getProviderData(date?: TInstant): Observable<ProviderState> {
 		const filterProvider = addWhere(FIELD.expire, 0);
 		const filterIcon = addWhere(FIELD.type, [STORE.provider, STORE.default]);
 
@@ -218,7 +218,7 @@ export class StateService {
 	 * account.attend	-> has an array of attendances against the <active> payment  
 	 * account.summary-> has an object summarising the Member's Account value as { paid: $, bank: $, adjust: $, spend: $, credit: $, funds: $ }
 	 */
-	getAccountData(date?: TInstant): Observable<IAccountState> {
+	getAccountData(date?: TInstant): Observable<AccountState> {
 		const filterPayment = [
 			addWhere(FIELD.store, STORE.payment),
 			addWhere(FIELD.uid, '{{auth.current.uid}}'),
@@ -241,19 +241,19 @@ export class StateService {
 	 * forum.comment	-> has an array of Comments about this date's schedule
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
-	getForumData(date?: TInstant): Observable<IForumState> {
-		const query: IQuery = {
+	getForumData(date?: TInstant): Observable<ForumState> {
+		const query: FireQuery = {
 			where: addWhere('track.date', getDate(date).format(Instant.FORMAT.yearMonthDay)),
 			orderBy: addOrder(FIELD.stamp),
 		}
 
-		return this.fire.listen<IForum>(COLLECTION.forum, query, 'snapshotChanges').pipe(
-			startWith([] as IForum[]),													// dont make subcriber wait for 1st emit
+		return this.fire.listen<Forum>(COLLECTION.forum, query, 'snapshotChanges').pipe(
+			startWith([] as Forum[]),													// dont make subcriber wait for 1st emit
 			distinctUntilChanged((curr, prev) => JSON.stringify(curr) === JSON.stringify(prev)),
 			map(source => ({
 				forum: {
-					[STORE.react]: source.filter(row => row[FIELD.store] === STORE.react) as IReact[],
-					[STORE.comment]: source.filter(row => row[FIELD.store] === STORE.comment) as IComment[],
+					[STORE.react]: source.filter(row => row[FIELD.store] === STORE.react) as React[],
+					[STORE.comment]: source.filter(row => row[FIELD.store] === STORE.comment) as Comment[],
 				}
 			})),
 		)
@@ -275,7 +275,7 @@ export class StateService {
 	 * gift				-> has an array of active Gifts available to a Member on the date
 	 * forum			-> has an array of Forum data for the date
 	 */
-	getScheduleData(date?: TInstant, elect?: BONUS): Observable<ITimetableState> {
+	getScheduleData(date?: TInstant, elect?: BONUS): Observable<TimetableState> {
 		const now = getDate(date);
 		const isMine = addWhere(FIELD.uid, `{{auth.current.uid}}`);
 
@@ -318,14 +318,14 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendMonth', STORE.attend, attendMonth),							// get any Attends for this month
 			joinDoc(this.states, 'attend.attendToday', STORE.attend, attendToday),							// get any Attends for this day
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
-		) as Observable<ITimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
+		) as Observable<TimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
 
 	/**
 	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
-	getTimetableData(date?: TInstant): Observable<ITimetableState> {
+	getTimetableData(date?: TInstant): Observable<TimetableState> {
 		const now = getDate(date);
 		const filterClass = addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterLocation = addWhere(FIELD.key, '{{client.schedule.location}}');

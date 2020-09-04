@@ -1,13 +1,13 @@
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
 import { FILTER, SLICES, SORTBY, COMMENT } from '@dbase/state/config.define';
-import { ISchema, IConfig } from '@dbase/data/data.schema';
+import { Schema, Config } from '@dbase/data/data.schema';
 
 import { isString } from '@library/type.library';
 import { sortInsert, asArray } from '@library/array.library';
 import { makeTemplate } from '@library/string.library';
 
 /** rebuild values for SLICES / SORTBY / FILTER objects */
-export const setSchema = (schemas: ISchema[] = []) => {
+export const setSchema = (schemas: Schema[] = []) => {
 	Object.keys(FILTER)
 		.forEach(key => delete FILTER[key as COLLECTION])
 	Object.keys(SLICES)
@@ -32,7 +32,7 @@ export const setSchema = (schemas: ISchema[] = []) => {
 
 // This is called so infrequently, its not worth making it reactive
 /** Resolve some placeholder variables in IConfig[] */
-export const getConfig = (config: IConfig[], type: string, key: string) => {
+export const getConfig = (config: Config[], type: string, key: string) => {
 	const placeholder: Record<string, string> = {};
 
 	config
@@ -54,11 +54,11 @@ export const getConfig = (config: IConfig[], type: string, key: string) => {
 			return { ...row, value: subst }               // override with substitute value
 		})
 
-	return clone[0] || { value: {} } as IConfig;			// first element, else empty value
+	return clone[0] || { value: {} } as Config;			// first element, else empty value
 }
 
 /** Rebuild global COMMENT variable */
-export const setConfig = (config: IConfig[] = []) => {
+export const setConfig = (config: Config[] = []) => {
 	type TComment = keyof typeof COMMENT;							// restrict to known Comment-types
 	Object.keys(COMMENT)
 		.forEach(key => delete COMMENT[key as TComment]);

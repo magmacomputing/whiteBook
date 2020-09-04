@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { DataService } from '@dbase/data/data.service';
-import { IReact, IStoreMeta, IComment, TStoreBase } from '@dbase/data/data.schema';
+import { React, StoreMeta, Comment, TStoreBase } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 
 import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
@@ -16,11 +16,11 @@ export class ForumService {
 
 	async setReact({ key, type = STORE.schedule, track, date, uid, react = REACT.like, }: IReactArgs) {
 		const now = getDate(date);
-		const reactDoc = await this.getForum<IReact>({ store: STORE.react, key, type, date });
+		const reactDoc = await this.getForum<React>({ store: STORE.react, key, type, date });
 
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
-		const deletes: IStoreMeta[] = [];
+		const creates: StoreMeta[] = [];
+		const updates: StoreMeta[] = [];
+		const deletes: StoreMeta[] = [];
 
 		switch (true) {
 			case reactDoc.length && react === REACT.none:					// delete the old React
@@ -36,7 +36,7 @@ export class ForumService {
 				break;
 
 			default:																							// create the React
-				const forum = await this.newForum<IReact>({ store: STORE.react, key, type, track, date, uid });
+				const forum = await this.newForum<React>({ store: STORE.react, key, type, track, date, uid });
 				creates.push({ ...forum, react });
 		}
 
@@ -46,12 +46,12 @@ export class ForumService {
 	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: ICommentArgs) {
 		return comment === ''
 			? undefined
-			: this.newForum<IComment>({ store: STORE.comment, key, type, track, date, uid })
+			: this.newForum<Comment>({ store: STORE.comment, key, type, track, date, uid })
 				.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
 	}
 
 	/** create a Forum base */
-	private async newForum<T extends IComment | IReact>({ store, key, type, track, date, uid }: IForumArgs) {
+	private async newForum<T extends Comment | React>({ store, key, type, track, date, uid }: IForumArgs) {
 		const now = getDate(date);
 
 		const forum = {

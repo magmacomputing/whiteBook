@@ -1,6 +1,6 @@
 import { auth } from 'firebase/app';
 
-import { IUserState } from '@dbase/state/state.define';
+import { UserState } from '@dbase/state/state.define';
 import { Auth } from '@dbase/data/data.define';
 
 import { isNull } from '@library/type.library';
@@ -92,7 +92,7 @@ export const getProviderId = (prefix: Auth.PROVIDER) => {
 	}
 }
 
-export const isActive = (state: IUserState) => {
+export const isActive = (state: UserState) => {
 	switch (true) {
 		case isNull(state.auth.user):
 		case isNull(state.auth.token):

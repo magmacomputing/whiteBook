@@ -1,5 +1,5 @@
 import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
-import { IQuery, IWhere, IOrderBy } from '@dbase/fire/fire.interface';
+import { FireQuery, FireWhere, FireOrderBy } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
@@ -11,7 +11,7 @@ import { isUndefined, isArray } from '@library/type.library';
  * and needs to be split into separate Queries, as Firestore does not currently
  * allow 'or' in a complex Query
  */
-export const fnQuery = (query: IQuery = {}) => {
+export const fnQuery = (query: FireQuery = {}) => {
 	return splitQuery(query)
 		.map<QueryFn>(split =>
 			(colRef: Query) => {															// map a Query-function
@@ -51,7 +51,7 @@ export const fnQuery = (query: IQuery = {}) => {
  * [ {fieldPath:'uid', value:'abc'}, {fieldPath:'uid', value'def'} ]  
  * This allows us to set separate Queries for each split clause
  */
-const splitQuery = (query: IQuery = {}) => {
+const splitQuery = (query: FireQuery = {}) => {
 	const wheres = asArray(query.where)						// for each 'where' clause
 		.map(where => {
 			if (isArray(where.value)) {
@@ -68,7 +68,7 @@ const splitQuery = (query: IQuery = {}) => {
 		})
 		.cartesian();																// cartesian product of IWhere array
 
-	const split: IQuery[] = asArray(wheres)
+	const split: FireQuery[] = asArray(wheres)
 		.map(where =>																// for each split IWhere,
 			({																				// build an array of IQuery
 				orderBy: query.orderBy,
@@ -85,9 +85,9 @@ const splitQuery = (query: IQuery = {}) => {
 }
 
 /** Make a 'where' clause */
-export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: IWhere["opStr"]) =>
-	({ fieldPath, opStr: opStr ?? (isArray(value) ? 'in' : '=='), value } as IWhere);
+export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: FireWhere["opStr"]) =>
+	({ fieldPath, opStr: opStr ?? (isArray(value) ? 'in' : '=='), value } as FireWhere);
 
 /** Make an 'orderBy' clause */
-export const addOrder = (fieldPath: string | FieldPath, order: IOrderBy["directionStr"] = 'asc') =>
-	({ fieldPath, order } as IOrderBy);
+export const addOrder = (fieldPath: string | FieldPath, order: FireOrderBy["directionStr"] = 'asc') =>
+	({ fieldPath, order } as FireOrderBy);

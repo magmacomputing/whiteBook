@@ -1,6 +1,6 @@
-import { IPlanState } from '@dbase/state/state.define';
+import { PlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
-import { IProfileInfo, IMemberInfo, IPayment } from '@dbase/data/data.schema';
+import { ProfileInfo, MemberInfo, Payment } from '@dbase/data/data.schema';
 
 import { isString, isNumber, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
@@ -13,7 +13,7 @@ import { getStamp, getDate, TInstant } from '@library/instant.library';
 export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 	const profile: Record<string, any> = provider.profile ?? {};
 
-	const profileInfo: IMemberInfo = {
+	const profileInfo: MemberInfo = {
 		providerId: provider.providerId,
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,
@@ -48,14 +48,14 @@ export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
 }
 
 // each Provider might report a different birthday; take earliest
-export const getMemberBirthDay = (info: IProfileInfo[] = []) => {
+export const getMemberBirthDay = (info: ProfileInfo[] = []) => {
 	const birthDates = asArray(info)
 		.map(row => row.info.birthDate)
 		.filter(isNumber)
 	return birthDates.length ? Math.min(...birthDates) : undefined;
 }
 
-export const getMemberAge = (info: IProfileInfo[] = [], dt?: TInstant) =>
+export const getMemberAge = (info: ProfileInfo[] = [], dt?: TInstant) =>
 	getDate(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**
@@ -64,7 +64,7 @@ export const getMemberAge = (info: IProfileInfo[] = [], dt?: TInstant) =>
  * 2. When the nightly batch expires a prior Payment, it uses the Payment.stamp as the 'from' date.
  * 3. When the first Attend against a Payment is made, it uses the Attend.stamp to reset the 'from' date.  
  */
-export const calcExpiry = (stamp: number, payment: IPayment, client: IPlanState["client"]) => {
+export const calcExpiry = (stamp: number, payment: Payment, client: PlanState["client"]) => {
 	const plan = client.plan[0] || {};										// description of Member's current Plan
 	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
 	const hold = payment.hold || 0;

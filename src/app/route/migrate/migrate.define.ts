@@ -1,6 +1,6 @@
 import { CLASS } from '@dbase/data/data.define';
 
-export namespace Migrate {
+export namespace Migration {
 	export const LOOKUP: Record<string, CLASS> = {
 		Step: CLASS.MultiStep,
 		oldStep: CLASS.MultiStep,

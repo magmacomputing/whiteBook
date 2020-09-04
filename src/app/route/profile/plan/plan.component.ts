@@ -5,10 +5,10 @@ import { map } from 'rxjs/operators';
 import { MemberService } from '@service/member/member.service';
 import { DialogService } from '@service/material/dialog.service';
 
-import { IPlanState } from '@dbase/state/state.define';
+import { PlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, PRICE } from '@dbase/data/data.define';
-import { IPrice, IPlan } from '@dbase/data/data.schema';
+import { Price, Plan } from '@dbase/data/data.schema';
 
 import { isUndefined } from '@library/type.library';
 import { padString } from '@library/string.library';
@@ -19,7 +19,7 @@ import { dbg } from '@library/logger.library';
 	templateUrl: './plan.component.html',
 })
 export class PlanComponent implements OnInit {
-	public data$!: Observable<IPlanState>;
+	public data$!: Observable<PlanState>;
 	private dbg = dbg(this);
 
 	constructor(public readonly member: MemberService, private readonly state: StateService, public dialog: DialogService) { }
@@ -34,7 +34,7 @@ export class PlanComponent implements OnInit {
 	}
 
 	/** Describe the clicked Plan */
-	showPlan(plan: IPlan, prices: IPrice[]) {
+	showPlan(plan: Plan, prices: Price[]) {
 		const image = plan.image;
 		const title = plan[FIELD.key];
 		const subtitle = `${plan.desc}${isUndefined(plan.rule) ? '' : ', ' + plan.rule}`;

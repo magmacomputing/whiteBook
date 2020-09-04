@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { MemberService } from '@service/member/member.service';
-import { IAccountState } from '@dbase/state/state.define';
+import { AccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 
 import { dbg } from '@library/logger.library';
@@ -12,7 +12,7 @@ import { dbg } from '@library/logger.library';
 	templateUrl: './account.component.html',
 })
 export class AccountComponent implements OnInit {
-	public data$!: Observable<IAccountState>;
+	public data$!: Observable<AccountState>;
 	private dbg = dbg(this);
 
 	constructor(readonly state: StateService, readonly member: MemberService) { 	}

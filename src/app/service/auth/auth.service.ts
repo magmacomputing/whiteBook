@@ -3,7 +3,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
-import { Login, Event } from '@dbase/state/auth.action';
+import { LoginAction, LoginEvent } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
@@ -11,7 +11,7 @@ import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, STORE, Auth } from '@dbase/data/data.define';
-import { IProvider, IConfig } from '@dbase/data/data.schema';
+import { Provider, Config } from '@dbase/data/data.schema';
 
 import { asArray } from '@library/array.library';
 import { getConfig } from '@dbase/state/config.library';
@@ -45,10 +45,10 @@ export class AuthService {
 	}
 
 	public signOut() {
-		this.store.dispatch(new Login.Out());
+		this.store.dispatch(new LoginAction.Out());
 	}
 
-	public async signIn(provider: IProvider, opts: Record<string, any> = {}) {
+	public async signIn(provider: Provider, opts: Record<string, any> = {}) {
 		const { image, ...rest } = provider;								// drop the <image> for debug
 		this.dbg('signIn: %j', rest);
 
@@ -93,7 +93,7 @@ export class AuthService {
 	}
 
 	/** prepare an AuthProvider object before dispatching the SignIn flow */
-	private signInIdentity(provider: IProvider) {
+	private signInIdentity(provider: Provider) {
 		const [, authProvider] = getAuthProvider(provider[FIELD.key]);
 		if (!authProvider) return;                      // unsupported providerId
 
@@ -106,20 +106,20 @@ export class AuthService {
 		if (provider.params)
 			(authProvider as TParams).setCustomParameters(provider.params);
 
-		return this.store.dispatch(new Login.Identity(authProvider))
+		return this.store.dispatch(new LoginAction.Identity(authProvider))
 	}
 
 	/** This runs in the main thread */
-	private async signInOAuth(provider: IProvider) {
+	private async signInOAuth(provider: Provider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const oauth = await this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
+		const oauth = await this.state.asPromise(this.state.getCurrent<Config>(STORE.config))
 			.then(config => getConfig(config, STORE.provider, 'oauth'))
 			.then(oauth => oauth.value)
 
 		const child = this.openChannel('token');// link to the child popup
 		child.onmessage = (msg) => {						// when child sends a message...
 			child.close();												// 	close BroadcastChannel
-			this.store.dispatch(new Event.Info({ info: JSON.parse(msg.data) }));
+			this.store.dispatch(new LoginEvent.Info({ info: JSON.parse(msg.data) }));
 		}
 
 		window.open(`${oauth.request_url}?${urlQuery}`, '_blank', 'height=600,width=400');
@@ -134,7 +134,7 @@ export class AuthService {
 		const parent = this.openChannel('token');// link to the parent of this popup
 		this.dbg('signInToken: %j', response);
 
-		return this.store.dispatch(new Login.Token(response.token, response.prefix, response.user))
+		return this.store.dispatch(new LoginAction.Token(response.token, response.prefix, response.user))
 			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
 				if (state.auth.info) 								// tell the parent to update State
@@ -145,21 +145,21 @@ export class AuthService {
 			})
 	}
 
-	private signInEmail(provider: IProvider, email: string, password: string) {
-		return this.store.dispatch(new Login.Email(email, password))
+	private signInEmail(provider: Provider, email: string, password: string) {
+		return this.store.dispatch(new LoginAction.Email(email, password))
 	}
 
-	private signInAnon(provider: IProvider) {
-		return this.store.dispatch(new Login.Anon())
+	private signInAnon(provider: Provider) {
+		return this.store.dispatch(new LoginAction.Anon())
 	}
 
 	private signInCustom(token: string) {
-		return this.store.dispatch(new Login.Token(token, Auth.PROVIDER.jwt, {}));
+		return this.store.dispatch(new LoginAction.Token(token, Auth.PROVIDER.jwt, {}));
 	}
 
-	private signInOIDC(provider: IProvider) { }
-	private signInPhone(provider: IProvider) { }
-	private signInPlay(provider: IProvider) { }
+	private signInOIDC(provider: Provider) { }
+	private signInPhone(provider: Provider) { }
+	private signInPlay(provider: Provider) { }
 
 
 	/** This allows us to logout current Member, and signOn as another */

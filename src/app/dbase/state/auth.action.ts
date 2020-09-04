@@ -11,7 +11,7 @@ export interface IAuthState {
 }
 
 // Actions
-export namespace Login {
+export namespace LoginAction {
 	export class Check {
 		static readonly type = '[Auth] CheckSession';
 		constructor(public user: firebase.User | null) { }
@@ -57,7 +57,7 @@ export namespace Login {
 	}
 }
 // Events
-export namespace Event {
+export namespace LoginEvent {
 	export class Redirect {
 		static readonly type = '[Auth] LoginRedirect';
 	}

@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
-import { Admin, Client, filterState } from '@dbase/state/state.action';
+import { AdminAction, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { StoreMeta } from '@dbase/data/data.schema';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
@@ -15,7 +15,7 @@ import { dbg } from '@library/logger.library';
  * AdminState is for items that only Admin Users (with roles['admin'] in their customClaims) can see
  */
 @Injectable()
-@State<TStateSlice<IStoreMeta>>({
+@State<TStateSlice<StoreMeta>>({
 	name: COLLECTION.admin,
 	defaults: {}
 })
@@ -24,12 +24,12 @@ export class AdminState implements NgxsOnInit {
 
 	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /**this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /**this.init(); */ }
 
 	private init() { this.dbg('init:'); }
 
-	@Action(Admin.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Admin.Set) {
+	@Action(AdminAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AdminAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -45,8 +45,8 @@ export class AdminState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(Admin.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Admin.Del) {
+	@Action(AdminAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AdminAction.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -63,8 +63,8 @@ export class AdminState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(Admin.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Admin.Trunc) {
+	@Action(AdminAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: AdminAction.Trunc) {
 		if (debug) this.dbg('truncAdmin');
 		setState({});
 	}

@@ -3,17 +3,17 @@ import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta, TStoreBase } from '@dbase/data/data.schema';
+import { StoreMeta, TStoreBase } from '@dbase/data/data.schema';
 import { Sync } from '@dbase/sync/sync.define';
 
 import { LState } from '@dbase/state/state.define';
-import { Client, Member, Attend, Admin, Device } from '@dbase/state/state.action';
+import { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@library/crypto.library';
 import { Storage } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
-export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
+export const getSource = (snaps: DocumentChangeAction<StoreMeta>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firestore.SnapshotMetadata;
 	return meta.fromCache
 		? 'cache'
@@ -23,10 +23,10 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 }
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
-export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
+export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<StoreMeta>[]) => {
 	const localState = new Storage('local').get<LState>(Sync.storeStorage, {})
 	const localSlice = localState[listen.key.collection] || {};
-	const localList: IStoreMeta[] = [];
+	const localList: StoreMeta[] = [];
 	const snapList = snaps.map(addMeta);
 
 	Object.entries(localSlice).forEach(([_key, value]) => localList.push(...value.map(remMeta)));
@@ -47,7 +47,7 @@ export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAct
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback, at this time)
-export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: FireService) => {//FireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<StoreMeta>, fire: FireService) => {//FireService) => {
 	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		...snap.payload.doc.data(),
@@ -59,30 +59,30 @@ export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: Fir
 }
 
 /** These fields do not exist in the snapshot data() */
-const remMeta = (doc: IStoreMeta) => {
+const remMeta = (doc: StoreMeta) => {
 	const { [FIELD.create]: c, [FIELD.update]: u, [FIELD.access]: a, ...rest } = doc;
 	return rest;
 }
-export const addMeta = (snap: DocumentChangeAction<IStoreMeta>) =>
-	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as IStoreMeta)
+export const addMeta = (snap: DocumentChangeAction<StoreMeta>) =>
+	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as StoreMeta)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
 		case COLLECTION.client:
-			return { setStore: Client.Set, delStore: Client.Del, truncStore: Client.Trunc }
+			return { setStore: ClientAction.Set, delStore: ClientAction.Del, truncStore: ClientAction.Trunc }
 
 		case COLLECTION.member:
-			return { setStore: Member.Set, delStore: Member.Del, truncStore: Member.Trunc }
+			return { setStore: MemberAction.Set, delStore: MemberAction.Del, truncStore: MemberAction.Trunc }
 
 		case COLLECTION.attend:
-			return { setStore: Attend.Set, delStore: Attend.Del, truncStore: Attend.Trunc }
+			return { setStore: AttendAction.Set, delStore: AttendAction.Del, truncStore: AttendAction.Trunc }
 
 		case COLLECTION.device:
-			return { setStore: Device.Set, delStore: Device.Del, truncStore: Device.Trunc }
+			return { setStore: DeviceAction.Set, delStore: DeviceAction.Del, truncStore: DeviceAction.Trunc }
 
 		case COLLECTION.admin:
-			return { setStore: Admin.Set, delStore: Admin.Del, truncStore: Admin.Trunc }
+			return { setStore: AdminAction.Set, delStore: AdminAction.Del, truncStore: AdminAction.Trunc }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

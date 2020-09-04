@@ -5,7 +5,7 @@ import { DataService } from '@dbase/data/data.service';
 import { MemberService } from '@service/member/member.service';
 
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { IStoreMeta, IGift } from '@dbase/data/data.schema';
+import { StoreMeta, Gift } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant, getDate } from '@library/instant.library';
 import { TString } from '@library/type.library';
@@ -31,8 +31,8 @@ export class AdminService {
 		const stamp = getStamp();
 		const data = await this.member.getAccount();
 		const active = data.account.payment;
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
+		const creates: StoreMeta[] = [];
+		const updates: StoreMeta[] = [];
 
 		asArray(active).forEach(async (pay, idx) => {
 			if (pay.expiry && pay.expiry < stamp && !pay[FIELD.expire]) {
@@ -58,6 +58,6 @@ export class AdminService {
 			expiry: expiry && getStamp(expiry),
 			limit: limit,
 			note: note,
-		} as IGift)
+		} as Gift)
 	}
 }

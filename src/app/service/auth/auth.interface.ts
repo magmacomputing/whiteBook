@@ -1,4 +1,4 @@
-import { ICustomClaims } from '@dbase/data/data.schema';
+import { CustomClaims } from '@dbase/data/data.schema';
 
 export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
 export type TScopes = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
@@ -45,7 +45,7 @@ export interface IJwtClaims {			// industry-standard json-web-token format
 	aud?: string;						// audience
 	sub?: string;						// subject
 }
-export type TTokenClaims = IFireClaims & ICustomClaims & IJwtClaims;
+export type TTokenClaims = IFireClaims & CustomClaims & IJwtClaims;
 export enum JWT {
 	expires = 'exp',
 	not_before = 'nbf',

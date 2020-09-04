@@ -7,7 +7,7 @@ import { StateService } from '@dbase/state/state.service';
 import { getConfig } from '@dbase/state/config.library';
 
 import { STORE } from '@dbase/data/data.define';
-import { IConfig } from '@dbase/data/data.schema';
+import { Config } from '@dbase/data/data.schema';
 import { dbg } from '@library/logger.library';
 
 @Component({
@@ -23,7 +23,7 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.asPromise(this.state.getCurrent<IConfig>(STORE.config))
+			this.state.asPromise(this.state.getCurrent<Config>(STORE.config))
 				.then(config => getConfig(config, STORE.provider, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;

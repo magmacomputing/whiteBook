@@ -11,11 +11,11 @@ import { asAt } from '@library/app.library';
 import { addWhere } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
-import { IProfilePlan, IPayment, IProfileInfo, IClass, IStoreMeta, IStatusAccount, IPrice } from '@dbase/data/data.schema';
+import { ProfilePlan, Payment, ProfileInfo, Class, StoreMeta, StatusAccount, Price } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant } from '@library/instant.library';
 import { isNull } from '@library/type.library';
-import { IAccountState } from '@dbase/state/state.define';
+import { AccountState } from '@dbase/state/state.define';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -48,7 +48,7 @@ export class MemberService {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.plan,
 			[STORE.plan]: plan
-		} as IProfilePlan;
+		} as ProfilePlan;
 		this.dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
@@ -75,11 +75,11 @@ export class MemberService {
 			[FIELD.type]: PAYMENT.topUp,
 			[FIELD.stamp]: getStamp(stamp),
 			amount: amount ?? topUp,
-		} as IPayment
+		} as Payment
 	}
 
-	private async upgradePlan(plan: IProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
-		const prices = await this.data.getStore<IPrice>(STORE.price, [
+	private async upgradePlan(plan: ProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
+		const prices = await this.data.getStore<Price>(STORE.price, [
 			addWhere(FIELD.type, PRICE.topUp),
 			addWhere(FIELD.key, plan.bump),
 		], getStamp(stamp))
@@ -96,20 +96,20 @@ export class MemberService {
 			.toPromise()
 	}
 
-	getAmount = async (data?: IAccountState) => {
+	getAmount = async (data?: AccountState) => {
 		data = data || await this.getAccount();
 		return data.account.summary;
 	}
 
 	// create / update accountDoc and stash into creates[]/updates[]
-	setAccount = async (creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], data?: IAccountState) => {
+	setAccount = async (creates: StoreMeta[] = [], updates: StoreMeta[] = [], data?: AccountState) => {
 		data = data || await this.getAccount();
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<IStatusAccount>(STORE.status, [addWhere(FIELD.uid, uid), addWhere(FIELD.type, STATUS.account)]),
+			this.data.getStore<StatusAccount>(STORE.status, [addWhere(FIELD.uid, uid), addWhere(FIELD.type, STATUS.account)]),
 		]);
-		const accountDoc: Partial<IStatusAccount> = !doc.length
+		const accountDoc: Partial<StatusAccount> = !doc.length
 			? {																// scaffold a new Account doc
 				[FIELD.store]: STORE.status,
 				[FIELD.type]: STATUS.account,
@@ -120,36 +120,36 @@ export class MemberService {
 			: { ...doc[0], [FIELD.stamp]: getStamp(), summary }
 
 		if (!accountDoc[FIELD.id])
-			creates.push(accountDoc as IStoreMeta)
-		else updates.push(accountDoc as IStoreMeta)
+			creates.push(accountDoc as StoreMeta)
+		else updates.push(accountDoc as StoreMeta)
 
 		return accountDoc;
 	}
 
-	updAccount = async (data?: IAccountState) => {
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
+	updAccount = async (data?: AccountState) => {
+		const creates: StoreMeta[] = [];
+		const updates: StoreMeta[] = [];
 
 		await this.setAccount(creates, updates, data);
 		return this.data.batch(creates, updates);
 	}
 
-	getPlan = async (data?: IAccountState) => {
+	getPlan = async (data?: AccountState) => {
 		data = data || await this.getAccount();
 		return data.member.plan[0];
 	}
 
-	getEventPrice = async (event: string, data?: IAccountState) => {
+	getEventPrice = async (event: string, data?: AccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
-		const classDoc = await this.state.getSingle<IClass>(STORE.class, addWhere(FIELD.key, event));
+		const classDoc = await this.state.getSingle<Class>(STORE.class, addWhere(FIELD.key, event));
 
 		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
 			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
 	}
 
 	/** Determine this member's topUp amount */
-	getPayPrice = async (data?: IAccountState) => {
+	getPayPrice = async (data?: AccountState) => {
 		data = data || await this.getAccount();
 
 		return data.client.price
@@ -163,7 +163,7 @@ export class MemberService {
 		this.dbg('info: %s', info.providerId);
 
 		const memberInfo = getMemberInfo(info);
-		const profileInfo: Partial<IProfileInfo> = {
+		const profileInfo: Partial<ProfileInfo> = {
 			[FIELD.store]: STORE.profile,
 			[FIELD.type]: PROFILE.info,
 			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
@@ -172,7 +172,7 @@ export class MemberService {
 		}
 		const where = addWhere(`${PROFILE.info}.providerId`, info.providerId);
 
-		this.data.insDoc(profileInfo as IProfileInfo, where, PROFILE.info);
+		this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.info);
 	}
 
 }

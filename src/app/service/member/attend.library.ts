@@ -1,6 +1,6 @@
-import { ITimetableState } from '@dbase/state/state.define';
+import { TimetableState } from '@dbase/state/state.define';
 import { FIELD, BONUS, COLLECTION, STORE, PLAN } from '@dbase/data/data.define';
-import type { IGift, TBonus, IAttend, IBonus, IProfilePlan } from '@dbase/data/data.schema';
+import type { Gift, TBonus, Attend, Bonus, ProfilePlan } from '@dbase/data/data.schema';
 
 import { TInstant, getDate, Instant } from '@library/instant.library';
 import { TString, isUndefined, nullToZero } from '@library/type.library';
@@ -14,7 +14,7 @@ import { plural } from '@library/string.library';
  * date:		effective date, else today
  * elect:		Bonus override (e.g. Member may elect to *not* use one of their Gifts)
  */
-export const calcBonus = (source: ITimetableState, event: string, date?: TInstant, elect?: BONUS) => {
+export const calcBonus = (source: TimetableState, event: string, date?: TInstant, elect?: BONUS) => {
 	const now = getDate(date);
 	const bonus = {} as TBonus;															// calculated Bonus entitlement
 
@@ -67,8 +67,8 @@ export const calcBonus = (source: ITimetableState, event: string, date?: TInstan
  * Even though the Member may have an active Gift, we check all of them if they are useable.  
  * Any Gifts that have passed their expiry-date will be marked as closed.
  */
-const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: Instant, elect = BONUS.gift) => {
-	const upd: IGift[] = [];																		// an array of updates for calling-function to apply on /member/gift
+const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Instant, elect = BONUS.gift) => {
+	const upd: Gift[] = [];																		// an array of updates for calling-function to apply on /member/gift
 	let curr = -1;																							// the Gift to use in determining eligibility
 
 	gifts.forEach((gift, idx) => {
@@ -114,7 +114,7 @@ const bonusGift = (bonus: TBonus, gifts: IGift[], attendGift: IAttend[], now: In
  * (note: even 'Gift Attends' count towards a Bonus)  
  * (note: scheme.free only covers one calendar day)
  */
-const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect = BONUS.week) => {
+const bonusWeek = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Instant, elect = BONUS.week) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);																					// the dow on which the Bonus qualified
 
 	const okLevel = attendWeek																	// sum the non-Bonus -or- Gift Attends
@@ -148,7 +148,7 @@ const bonusWeek = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: In
  * (note: even 'Gift Attends' count towards a Bonus)  
  * (note: scheme.free can cover multiple calendar days)* 
  */
-const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect = BONUS.class) => {
+const bonusClass = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Instant, elect = BONUS.class) => {
 	const okLevel = attendWeek																	// sum the non-Bonus -or- Gift Attends
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
 		.length >= scheme.level																		// must attend the 'level' number
@@ -176,7 +176,7 @@ const bonusClass = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: I
  * (note: the Week scheme should take precendence, if qualifies on Sunday and not claimed on Saturday)  
  * (note: even 'Gift Attends' count towards a Bonus)  
  */
-const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: Instant, elect = BONUS.sunday, event: string) => {
+const bonusSunday = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Instant, elect = BONUS.sunday, event: string) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const okLevel = attendWeek																	// count Attends this week either Gift or non-Bonus
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
@@ -203,7 +203,7 @@ const bonusSunday = (bonus: TBonus, scheme: IBonus, attendWeek: IAttend[], now: 
  * The Month scheme qualifies as a Bonus if the Member attends the required number of full-price classes in a month (scheme.level).  
  * The Member must also have attended less than the free limit (scheme.free) to qualify for this bonus
  */
-const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: Instant, elect = BONUS.month) => {
+const bonusMonth = (bonus: TBonus, scheme: Bonus, attendMonth: Attend[], now: Instant, elect = BONUS.month) => {
 	const today = now.format(Instant.FORMAT.yearMonthDay);
 	const okLevel = attendMonth
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
@@ -231,7 +231,7 @@ const bonusMonth = (bonus: TBonus, scheme: IBonus, attendMonth: IAttend[], now: 
 /**
  * The Home scheme qualifies as a Bonus if the Member has already attended an '@Home' class earlier today
  */
-const bonusHome = (bonus: TBonus, scheme: IBonus, attendToday: IAttend[], profile: IProfilePlan, elect = BONUS.home, event: string) => {
+const bonusHome = (bonus: TBonus, scheme: Bonus, attendToday: Attend[], profile: ProfilePlan, elect = BONUS.home, event: string) => {
 	if (profile.plan === PLAN.sponsor)															// TODO: workaround this hard-coded check
 		event = 'Home';																								// check only the '@Home' suffix
 

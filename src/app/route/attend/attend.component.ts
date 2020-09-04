@@ -1,15 +1,15 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 
 import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
 
-import { ITimetableState } from '@dbase/state/state.define';
+import { TimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, REACT } from '@dbase/data/data.define';
-import { ISchedule, IForum } from '@dbase/data/data.schema';
+import { Schedule, Forum } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined, TString } from '@library/type.library';
@@ -32,7 +32,7 @@ export class AttendComponent implements OnDestroy {
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
-	public timetable$!: Observable<ITimetableState>;		// the date's Schedule
+	public timetable$!: Observable<TimetableState>;		// the date's Schedule
 	private stop$ = new Subject<any>();									// notify Subscriptions to complete
 
 	constructor(public readonly attend: AttendService, public readonly state: StateService,
@@ -49,7 +49,7 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	// Build info to show in a Dialog
-	showEvent(client: ITimetableState["client"], idx: number) {
+	showEvent(client: TimetableState["client"], idx: number) {
 		const item = client.schedule![idx];							// the Schedule item clicked
 		const event = client.class!.find(row => row[FIELD.key] === item[FIELD.key]);
 		const locn = client.location!.find(row => row[FIELD.key] === item.location);
@@ -81,7 +81,6 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	onSwipe(idx: number, event: Event) {
-		// alert(JSON.stringify(event.target));
 		this.firstPaint = false;                          // ok to animate
 		this.selectedIndex = swipe(idx, this.locations, event);
 	}
@@ -115,19 +114,19 @@ export class AttendComponent implements OnDestroy {
 	private getSchedule() {
 		this.timetable$ = this.state.getScheduleData(this.date)
 			.pipe(
-				tap(_ => this.selectedIndex = 0),								// start on the first-location
+				tap(_ => this.selectedIndex = 0),							// start on the first-location
 			)
 	}
 
 	public getForum() {
-		return this.forum.getForum<IForum>()
+		return this.forum.getForum<Forum>()
 			.then(forum => this.dbg('forum: %j', forum))
 	}
-	public setReact(item: ISchedule, react: REACT) {
+	public setReact(item: Schedule, react: REACT) {
 		this.forum.setReact({ key: item[FIELD.id], track: { class: item[FIELD.key] }, react })
 			.then(_ => this.getForum())
 	}
-	public setComment(item: ISchedule, comment: TString) {
+	public setComment(item: Schedule, comment: TString) {
 		this.forum.setComment({ key: item[FIELD.id], track: { class: item[FIELD.key] }, comment })
 			.then(_ => this.getForum())
 	}

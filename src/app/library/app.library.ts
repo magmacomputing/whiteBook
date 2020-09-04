@@ -1,6 +1,6 @@
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
-import type { IMeta } from '@dbase/data/data.schema';
+import type { Meta } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant, Instant } from '@library/instant.library';
 import { isString, isUndefined, isArray } from '@library/type.library';
@@ -106,7 +106,7 @@ export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = n
 export const asAt = <T>(table: T[], cond: TWhere = [], date?: TInstant) => {
 	const stamp = getStamp(date);
 
-	return filterTable(table as (T & IMeta)[], cond)		// return the rows where date is between _effect and _expire
+	return filterTable(table as (T & Meta)[], cond)		// return the rows where date is between _effect and _expire
 		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
 		.filter(row => !row[FIELD.hidden])								// discard rows that should not be visible

@@ -10,8 +10,8 @@ import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
-import { IQuery, IDocMeta } from '@dbase/fire/fire.interface';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { FireQuery, DocMeta } from '@dbase/fire/fire.interface';
+import { StoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
@@ -39,7 +39,7 @@ export class FireService {
 	 * return Collection References (limited by an optional query).  
 	 * If a 'logical-or' is detected in the 'value' of any query's Where-clause, multiple Collection References are returned.
 	 */
-	colRef<T>(collection: COLLECTION, query?: IQuery) {
+	colRef<T>(collection: COLLECTION, query?: FireQuery) {
 		return isUndefined(query)
 			? [this.afs.collection<T>(collection)]		// reference against the entire collection
 			: fnQuery(query)													// else register an array of Querys over a collection reference
@@ -62,7 +62,7 @@ export class FireService {
 		return concat(...this.subRef(colRefs, type));
 	}
 
-	listen<T>(collection: COLLECTION, query?: IQuery, changes: TChanges = 'stateChanges') {
+	listen<T>(collection: COLLECTION, query?: FireQuery, changes: TChanges = 'stateChanges') {
 		return this.combine<T, TChanges>(changes, this.colRef<T>(collection, query))
 			.pipe(
 				map(obs => obs.flat()),									// flatten the array-of-values results
@@ -70,7 +70,7 @@ export class FireService {
 			)
 	}
 
-	get<T>(collection: COLLECTION, query?: IQuery) {
+	get<T>(collection: COLLECTION, query?: FireQuery) {
 		return this.afs
 			.collection(collection, fnQuery(query)[0])
 			.get({ source: 'server' })								// get the server-data, rather than cache
@@ -122,7 +122,7 @@ export class FireService {
 	 * If they are Member documents and missing a <uid> field, the current User is inserted  
 	 * Perform all creates first, then all updates, finally all deletes
 	 */
-	batch(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = []) {
+	batch(creates: StoreMeta[] = [], updates: StoreMeta[] = [], deletes: StoreMeta[] = []) {
 		const cloneCreate = [...asArray(creates)];
 		const cloneUpdate = [...asArray(updates)];
 		const cloneDelete = [...asArray(deletes)];
@@ -146,7 +146,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
-	runTxn(creates: IStoreMeta[] = [], updates: IStoreMeta[] = [], deletes: IStoreMeta[] = [], selects: DocumentReference[] = []) {
+	runTxn(creates: StoreMeta[] = [], updates: StoreMeta[] = [], deletes: StoreMeta[] = [], selects: DocumentReference[] = []) {
 		const cloneCreate = asArray(cloneObj(creates));
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));
@@ -187,7 +187,7 @@ export class FireService {
 	}
 
 	/** get all Documents, optionally with a supplied Query */
-	async getAll<T>(collection: COLLECTION, query?: IQuery) {
+	async getAll<T>(collection: COLLECTION, query?: FireQuery) {
 		const snap = await this.colRef<T>(collection, query)[0]	// TODO: allow for logical-or, merge of snapshotChanges
 			.snapshotChanges()
 			.pipe(take(1))
@@ -197,7 +197,7 @@ export class FireService {
 	}
 
 	callMeta(store: STORE, docId: string) {
-		return this.callHttps<IDocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
+		return this.callHttps<DocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
 	/** This helps an Admin impersonate another Member */

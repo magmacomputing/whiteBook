@@ -2,16 +2,16 @@ import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
 import { TStateSlice } from '@dbase/state/state.define';
-import { Attend } from '@dbase/state/state.action';
+import { AttendAction } from '@dbase/state/state.action';
 
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { StoreMeta } from '@dbase/data/data.schema';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<TStateSlice<IStoreMeta>>({
+@State<TStateSlice<StoreMeta>>({
 	name: COLLECTION.attend,
 	defaults: {}
 })
@@ -20,14 +20,14 @@ export class AttendState implements NgxsOnInit {
 
 	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');
 	}
 
-	@Action(Attend.Set)
-	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Attend.Set) {
+	@Action(AttendAction.Set)
+	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AttendAction.Set) {
 		const state = cloneObj(getState()) || {};
 		let empty: { [segment: string]: boolean; } = {};
 
@@ -44,11 +44,11 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new Attend.Sync(payload));								// tell any listener we have sync'd
+		dispatch(new AttendAction.Sync(payload));								// tell any listener we have sync'd
 	}
 
-	@Action(Attend.Del)																	// very rare Event
-	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Attend.Del) {
+	@Action(AttendAction.Del)																	// very rare Event
+	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AttendAction.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -62,17 +62,17 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new Attend.Sync(payload));									// tell any listener we have sync'd
+		dispatch(new AttendAction.Sync(payload));									// tell any listener we have sync'd
 	}
 
-	@Action(Attend.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Attend.Trunc) {
+	@Action(AttendAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: AttendAction.Trunc) {
 		if (debug) this.dbg('truncAttend');
 		setState({});
 	}
 
 	/** remove an item from the Attend Store */
-	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta) {
+	private filterState(state: TStateSlice<StoreMeta>, payload: StoreMeta) {
 		const slice = payload.payment[FIELD.id];
 		const curr = state && slice && state[slice] || [];
 

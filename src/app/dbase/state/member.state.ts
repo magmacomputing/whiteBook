@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
 import { TStateSlice } from '@dbase/state/state.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
-import { Member, filterState } from '@dbase/state/state.action';
+import { StoreMeta } from '@dbase/data/data.schema';
+import { MemberAction, filterState } from '@dbase/state/state.action';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { asArray } from '@library/array.library';
@@ -11,7 +11,7 @@ import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<TStateSlice<IStoreMeta>>({
+@State<TStateSlice<StoreMeta>>({
 	name: COLLECTION.member,
 	defaults: {}
 })
@@ -20,14 +20,14 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');
 	}
 
-	@Action(Member.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Member.Set) {
+	@Action(MemberAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: MemberAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -43,8 +43,8 @@ export class MemberState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(Member.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Member.Del) {
+	@Action(MemberAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: MemberAction.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -60,8 +60,8 @@ export class MemberState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(Member.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Member.Trunc) {
+	@Action(MemberAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: MemberAction.Trunc) {
 		if (debug) this.dbg('truncMember');
 		setState({});
 	}

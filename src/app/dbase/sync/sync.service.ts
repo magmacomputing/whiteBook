@@ -11,13 +11,13 @@ import { NavigateService } from '@route/router/navigate.service';
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 import { Sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
-import { Event, IAuthState } from '@dbase/state/auth.action';
+import { LoginEvent, IAuthState } from '@dbase/state/auth.action';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta } from '@dbase/data/data.schema';
+import { StoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
-import { IQuery } from '@dbase/fire/fire.interface';
+import { FireQuery } from '@dbase/fire/fire.interface';
 
 import { Pledge } from '@library/utility.library';
 import { isFunction, isUndefined } from '@library/type.library';
@@ -38,13 +38,13 @@ export class SyncService {
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
 	 * Additional collections can be defined, and merged into the same stream
 	 */
-	public async on(collection: COLLECTION, query?: IQuery, ...additional: [COLLECTION, IQuery?][]) {
+	public async on(collection: COLLECTION, query?: FireQuery, ...additional: [COLLECTION, FireQuery?][]) {
 		const ready = new Pledge<boolean>();
-		const refs = this.fire.colRef<IStoreMeta>(collection, query);
+		const refs = this.fire.colRef<StoreMeta>(collection, query);
 		const key: Sync.Key = { collection, query };
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
-			refs.push(...this.fire.colRef<IStoreMeta>(collection, query)));
+			refs.push(...this.fire.colRef<StoreMeta>(collection, query)));
 		const stream = this.fire.merge('stateChanges', refs);
 		const sync = this.sync.bind(this, key);
 		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
@@ -110,7 +110,7 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection?: COLLECTION, query?: IQuery, trunc?: boolean) {
+	public off(collection?: COLLECTION, query?: FireQuery, trunc?: boolean) {
 		for (const [key, listen] of this.listener.entries()) {
 			if ((collection ?? key.collection) === key.collection
 				&& JSON.stringify((query ?? key.query)) === JSON.stringify(key.query)) {
@@ -126,7 +126,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(key: Sync.Key, snaps: DocumentChangeAction<IStoreMeta>[]) {
+	private async sync(key: Sync.Key, snaps: DocumentChangeAction<StoreMeta>[]) {
 		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
 
@@ -137,7 +137,7 @@ export class SyncService {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
 				cnts[idx].push(addMeta(snap))
 				return cnts;
-			}, [[] as IStoreMeta[], [] as IStoreMeta[], [] as IStoreMeta[]]);
+			}, [[] as StoreMeta[], [] as StoreMeta[], [] as StoreMeta[]]);
 
 		listen.cnt += 1;
 		this.dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
@@ -165,7 +165,7 @@ export class SyncService {
 						case 'added':
 						case 'modified':
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
-								this.store.dispatch(new Event.Token()); // special: access-level has changed
+								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
 							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
 								this.navigate.route(ROUTE.attend);			// special: initial Plan is set

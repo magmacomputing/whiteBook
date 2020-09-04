@@ -6,12 +6,12 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
-import { Attend } from '@dbase/state/state.action';
+import { AttendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
-import { IAttend, IStoreMeta, TStoreBase, ISchedule, IPayment, IGift, IForum } from '@dbase/data/data.schema';
+import { Attend, StoreMeta, TStoreBase, Schedule, Payment, Gift, Forum } from '@dbase/data/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -33,9 +33,9 @@ export class AttendService {
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
 
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: ISchedule, date?: TInstant) => {
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
+	public setAttend = async (schedule: Schedule, date?: TInstant) => {
+		const creates: StoreMeta[] = [];
+		const updates: StoreMeta[] = [];
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered.  
@@ -64,7 +64,7 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
-		const bookAttend = await this.data.getStore<IAttend>(STORE.attend, [
+		const bookAttend = await this.data.getStore<Attend>(STORE.attend, [
 			addWhere(FIELD.uid, data.auth.current!.uid),
 			addWhere(`track.${FIELD.date}`, when),
 			addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
@@ -104,7 +104,7 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// loop through Payments to determine which should be <active>
-		let active: IPayment | undefined;									// Payment[0] is assumed active, by default
+		let active: Payment | undefined;									// Payment[0] is assumed active, by default
 		let ctr = 0;																			// prevent endless loop
 
 		while (ctr <= ATTEND.maxPayment) {								// only attempt to match limited number of Payments
@@ -169,7 +169,7 @@ export class AttendService {
 		if (isUndefined(active))
 			return this.snack.error('Could not allocate an active Payment');
 
-		const upd: Partial<IPayment> = {};								// updates to the Payment
+		const upd: Partial<Payment> = {};								// updates to the Payment
 		if (!active[FIELD.effect])
 			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
@@ -186,7 +186,7 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
 
-		const attendDoc: Partial<IAttend> = {
+		const attendDoc: Partial<Attend> = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
 			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
@@ -210,7 +210,7 @@ export class AttendService {
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
-		return this.data.batch(creates, updates, undefined, Attend.Sync)
+		return this.data.batch(creates, updates, undefined, AttendAction.Sync)
 			.then(_ => this.member.setAccount(creates, updates, data))
 	}
 
@@ -253,25 +253,25 @@ export class AttendService {
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
 			filter.push(memberUid);																// ensure UID is present in where-clause
 
-		const updates: IStoreMeta[] = [];
-		const deletes: IStoreMeta[] = await this.data.getStore<IAttend>(STORE.attend, filter);
+		const updates: StoreMeta[] = [];
+		const deletes: StoreMeta[] = await this.data.getStore<Attend>(STORE.attend, filter);
 
 		if (deletes.length === 0) {
 			this.dbg('No items to delete');
 			return;
 		}
 
-		const payIds = (deletes as IAttend[])										// the Payment IDs related to this reversal
+		const payIds = (deletes as Attend[])										// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.id])
 			.distinct();
-		const giftIds = (deletes as IAttend[])									// the Gift IDs related to this reversal
+		const giftIds = (deletes as Attend[])									// the Gift IDs related to this reversal
 			.filter(attend => attend.bonus?.[FIELD.type] === BONUS.gift)
 			.map(row => row.bonus![FIELD.id])
 			.distinct();
-		const scheduleIds = (deletes as IAttend[])							// the Schedule IDs that may have Forum content
+		const scheduleIds = (deletes as Attend[])							// the Schedule IDs that may have Forum content
 			.map(attend => attend.timetable[FIELD.id])
 			.distinct();
-		const dates = (deletes as IAttend[])										// the Dates these Attends have Forum content
+		const dates = (deletes as Attend[])										// the Dates these Attends have Forum content
 			.map(attend => attend.track.date)
 			.distinct();
 
@@ -282,10 +282,10 @@ export class AttendService {
 		 * forum:			all the Forum content related to this reversal
 		 */
 		const [attends, payments, gifts, forum] = await Promise.all([
-			this.data.getStore<IAttend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
-			this.data.getStore<IPayment>(STORE.payment, memberUid),
-			this.data.getStore<IGift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
-			this.data.getFire<IForum>(COLLECTION.forum, {
+			this.data.getStore<Attend>(STORE.attend, addWhere(`payment.${FIELD.id}`, payIds)),
+			this.data.getStore<Payment>(STORE.payment, memberUid),
+			this.data.getStore<Gift>(STORE.gift, [memberUid, addWhere(FIELD.id, giftIds)]),
+			this.data.getFire<Forum>(COLLECTION.forum, {
 				where: [
 					memberUid,
 					addWhere(FIELD.type, STORE.schedule),

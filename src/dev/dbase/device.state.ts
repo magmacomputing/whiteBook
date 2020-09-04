@@ -4,7 +4,7 @@ import { Device } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { IStoreMeta, IConfig } from '@dbase/data/data.schema';
+import { StoreMeta, Config } from '@dbase/data/data.schema';
 
 import { makeTemplate } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
@@ -18,7 +18,7 @@ import { dbg } from '@library/logger.library';
  * UI preferences for _login_ (which are needed prior to authentication)
  */
 @Injectable()
-@State<TStateSlice<IStoreMeta>>({
+@State<TStateSlice<StoreMeta>>({
 	name: COLLECTION.device,
 	defaults: {}
 })
@@ -27,14 +27,14 @@ export class DeviceState implements NgxsOnInit {
 
 	constructor(private store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<IStoreMeta>>) { this.init(); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { this.init(); }
 
 	private init() {
 		this.dbg('init:');
 	}
 
 	@Action(Device.Set)
-	setStore({ setState, getState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Device.Set) {
+	setStore({ setState, getState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: Device.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -52,7 +52,7 @@ export class DeviceState implements NgxsOnInit {
 	}
 
 	@Action(Device.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<IStoreMeta>>, { payload, debug }: Device.Del) {
+	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: Device.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -70,13 +70,13 @@ export class DeviceState implements NgxsOnInit {
 
 	// TODO: dont delete local-device store?
 	@Action(Device.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<IStoreMeta>>, { debug }: Device.Trunc) {
+	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: Device.Trunc) {
 		if (debug) this.dbg('truncDevice');
 		setState({});
 	}
 
 	/** remove an item from the Device Store */
-	private filterState(state: TStateSlice<IStoreMeta>, payload: IStoreMeta, segment = FIELD.store) {
+	private filterState(state: TStateSlice<StoreMeta>, payload: StoreMeta, segment = FIELD.store) {
 		const group = '@' + payload[segment].replace(/_/g, '') + '@';
 		const curr = state && state[payload[group]] || [];
 
@@ -87,7 +87,7 @@ export class DeviceState implements NgxsOnInit {
 	private fixConfig = () => {
 		const placeholder: Record<string, string> = {};
 		const state = this.store.selectSnapshot(state => state);	// get existing state
-		const config = (state.client[STORE.config] as IConfig[])
+		const config = (state.client[STORE.config] as Config[])
 			.filter(row => !row[FIELD.expire]);							// slice it to get Config, skip expired
 
 		config

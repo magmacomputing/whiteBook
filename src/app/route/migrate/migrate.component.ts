@@ -9,14 +9,14 @@ import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
 import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
 import { cleanNote } from '@route/forum/forum.library';
-import { Migrate } from '@route/migrate/migrate.define';
+import { Migration } from '@route/migrate/migrate.define';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { IRegister, IPayment, ISchedule, IEvent, ICalendar, IAttend, IMigrate, IStoreMeta, IGift, IPlan, IPrice, IProfilePlan, IBonus, IComment, IImport, IForum } from '@dbase/data/data.schema';
-import { Login } from '@dbase/state/auth.action';
-import { IAccountState, IAdminState } from '@dbase/state/state.define';
-import { Member } from '@dbase/state/state.action';
+import { Register, Payment, Schedule, Event, Calendar, Attend, Migrate, StoreMeta, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Import, Forum } from '@dbase/data/data.schema';
+import { LoginAction } from '@dbase/state/auth.action';
+import { AccountState, AdminState } from '@dbase/state/state.define';
+import { MemberAction } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { Sync } from '@dbase/sync/sync.define';
 import { addWhere } from '@dbase/fire/fire.library';
@@ -39,22 +39,22 @@ import { dbg } from '@library/logger.library';
 export class MigrateComponent implements OnInit, OnDestroy {
 	private dbg = dbg(this, 'MigrateComponent');
 
-	public dash$!: Observable<IAdminState["dash"]>;
-	public account$!: Observable<IAccountState>;
-	public import_: IImport | null = null;
+	public dash$!: Observable<AdminState["dash"]>;
+	public account$!: Observable<AccountState>;
+	public import_: Import | null = null;
 	public admin: IAdminStore = {};
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	private check!: Pledge<boolean>;
 	private history: Pledge<MHistory[]>;
 	private status!: Record<string, any>;
-	private migrate!: IMigrate[];
-	private current: IRegister | null = null;
+	private migrate!: Migrate[];
+	private current: Register | null = null;
 	private dflt!: CLASS;
 
-	private schedule!: ISchedule[];
-	private calendar!: ICalendar[];
-	private events!: Record<string, IEvent>;
+	private schedule!: Schedule[];
+	private calendar!: Calendar[];
+	private events!: Record<string, Event>;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
@@ -62,9 +62,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.filter();																					// restore the previous filter state
 
 		Promise.all([																						// fetch required Stores
-			this.data.getStore<ISchedule>(STORE.schedule),
-			this.data.getStore<ICalendar>(STORE.calendar, addWhere(FIELD.type, 'Closed', '!=')),
-			this.data.getStore<IEvent>(STORE.event, addWhere(FIELD.type, 'special')),
+			this.data.getStore<Schedule>(STORE.schedule),
+			this.data.getStore<Calendar>(STORE.calendar, addWhere(FIELD.type, 'Closed', '!=')),
+			this.data.getStore<Event>(STORE.event, addWhere(FIELD.type, 'special')),
 		]).then(([schedule, calendar, events]) => {
 			this.schedule = schedule;
 			this.calendar = calendar;
@@ -83,9 +83,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	async delUser() {
 		const where: TWhere = addWhere(FIELD.uid, this.current!.uid);
 		const deletes = await Promise.all([
-			this.data.getFire<IStoreMeta>(COLLECTION.member, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.admin, { where }),
-			this.data.getFire<IStoreMeta>(COLLECTION.attend, { where }),
+			this.data.getFire<StoreMeta>(COLLECTION.member, { where }),
+			this.data.getFire<StoreMeta>(COLLECTION.admin, { where }),
+			this.data.getFire<StoreMeta>(COLLECTION.attend, { where }),
 			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
@@ -100,7 +100,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public filter(key?: 'hide' | 'credit') {
 		const local = new Storage('local');
 		this.admin = local.get(Sync.adminStorage, {});
-		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migrate.CREDIT.all };
+		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migration.CREDIT.all };
 
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
@@ -108,11 +108,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
 				.filter(row => {
 					switch (migrateFilter.credit) {
-						case Migrate.CREDIT.all:
+						case Migration.CREDIT.all:
 							return true;
-						case Migrate.CREDIT.value:
+						case Migration.CREDIT.value:
 							return getPath(row.account, 'summary.credit');
-						case Migrate.CREDIT.zero:
+						case Migration.CREDIT.zero:
 							return !getPath(row.account, 'summary.credit');
 					}
 				})
@@ -125,7 +125,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 			case 'credit':
 				migrateFilter.credit += 1;
-				if (migrateFilter.credit >= Object.keys(Migrate.CREDIT).length / 2)
+				if (migrateFilter.credit >= Object.keys(Migration.CREDIT).length / 2)
 					migrateFilter.credit = 0;
 				break;
 		}
@@ -133,13 +133,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		local.set(Sync.adminStorage, { ...this.admin, migrateFilter });				// persist settings
 	}
 
-	async signIn(register: IRegister, import_: IImport) {
+	async signIn(register: Register, import_: Import) {
 		if (this.current?.user.customClaims!.alias === register.user.customClaims!.alias)
 			return this.signOut();																		// <click> on picture will signIn / signOut
 		this.current = register;																		// stash current Member
 		this.import_ = import_;																			// stash Members Import sheet
 
-		this.store.dispatch(new Login.Other(register.uid))
+		this.store.dispatch(new LoginAction.Other(register.uid))
 			.pipe(take(1))
 			.subscribe(async _other => {
 				const action = 'history,status';
@@ -169,14 +169,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.history = new Pledge();
 		this.hide = '';
 
-		this.store.dispatch(new Login.Other());
+		this.store.dispatch(new LoginAction.Other());
 	}
 
 	/**
 	 * toggle the '_hidden' boolean on /admin/register
 	 */
 	async hideUser() {
-		const reg = (await this.data.getStore<IRegister>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
+		const reg = (await this.data.getStore<Register>(STORE.register, addWhere(FIELD.uid, this.current!.uid)))[0];
 		reg[FIELD.hidden] = reg[FIELD.hidden]
 			? undefined
 			: true
@@ -190,8 +190,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 * calculate new summary, and batch into /member/status/account
 	 */
 	async setAccount() {
-		const creates: IStoreMeta[] = [],
-			updates: IStoreMeta[] = [];
+		const creates: StoreMeta[] = [],
+			updates: StoreMeta[] = [];
 
 		await this.member.setAccount(creates, updates);
 
@@ -199,18 +199,18 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	get credit() {
-		return Migrate.CREDIT;
+		return Migration.CREDIT;
 	}
 
 	/** get the data needed to migrate a Member */
 	private getMember() {
 		return Promise.all([
-			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IGift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IProfilePlan>(STORE.profile, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IPlan>(STORE.plan),
-			this.data.getStore<IPrice>(STORE.price),
-			this.data.getStore<IComment>(STORE.comment, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Payment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Gift>(STORE.gift, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<ProfilePlan>(STORE.profile, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Plan>(STORE.plan),
+			this.data.getStore<Price>(STORE.price),
+			this.data.getStore<Comment>(STORE.comment, addWhere(FIELD.uid, this.current!.uid)),
 			this.history.promise,
 		])
 	}
@@ -218,8 +218,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
 		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
-		const updates: IStoreMeta[] = [];
-		const creates: IStoreMeta[] = hist
+		const updates: StoreMeta[] = [];
+		const creates: StoreMeta[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => {
 				const match = payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp]);
@@ -228,7 +228,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					if (match && isUndefined(match.approve)) {
 						match.approve = {
 							stamp: row.approved,
-							uid: Migrate.Instructor,
+							uid: Migration.Instructor,
 						}
 						updates.push(match);																		// update the now-approved Payment
 						return false;																						// no further checking required on this Payment
@@ -245,7 +245,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					Object.assign(approve, {
 						stamp: row.approved!,
-						uid: Migrate.Instructor,
+						uid: Migration.Instructor,
 					})
 				}
 
@@ -275,7 +275,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
 					note: row.note,
-				} as IPayment
+				} as Payment
 			})
 
 		// parse the Attends to look for 'Gift' notes, and build a Gift document
@@ -311,13 +311,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
 			creates.push(this.setGift(giftCnt, start, rest));
 
-		this.data.batch(creates, updates, undefined, Member.Set)
+		this.data.batch(creates, updates, undefined, MemberAction.Set)
 			.then(_ => this.member.updAccount())
 			.then(_ => this.dbg('payment: %s, %s', creates.length, updates.length))
 	}
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
-	private getExpiry(row: MHistory, profile: IProfilePlan[], plans: IPlan[], prices: IPrice[]) {
+	private getExpiry(row: MHistory, profile: ProfilePlan[], plans: Plan[], prices: Price[]) {
 		const plan = asAt(profile, addWhere(FIELD.type, STORE.plan), row.stamp)[0];
 		const desc = asAt(plans, addWhere(FIELD.key, plan.plan), row.stamp)[0];
 		const curr = asAt(prices, addWhere(FIELD.key, plan.plan), row.stamp);
@@ -374,15 +374,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			limit: gift,
 			note,
 			expiry,
-		} as IGift
+		} as Gift
 	}
 
 	/** Add Attendance records for a Member */
 	public async addAttend() {
 		const history = await this.history.promise;
 		const [migrate, attend] = await Promise.all([
-			this.data.getStore<IMigrate>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<IAttend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Migrate>(STORE.migrate, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Attend>(STORE.attend, addWhere(FIELD.uid, this.current!.uid)),
 		])
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
@@ -393,7 +393,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
 			this.dbg('startFrom: %s, %j', startFrom, startAttend);
-			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migrate.LOOKUP[row.type] || row.type)))).length;
+			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migration.LOOKUP[row.type] || row.type)))).length;
 			table.splice(0, offset);
 		}
 
@@ -419,7 +419,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 		if (flag) this.dbg('hist: %j', row);
 
-		let what: CLASS = Migrate.LOOKUP[row.type] ?? row.type;
+		let what: CLASS = Migration.LOOKUP[row.type] ?? row.type;
 		const now = getDate(row.date);
 		const hhmi = getDate(row.stamp).format(Instant.FORMAT.HHMI);
 
@@ -429,12 +429,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const [prefix, suffix] = what.split('*');
 
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
-		let sched: ISchedule;
-		let event: IEvent;
+		let sched: Schedule;
+		let event: Event;
 		let idx: number = 0;
-		let migrate: IMigrate | undefined;
+		let migrate: Migrate | undefined;
 
-		if (Migrate.SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
+		if (Migration.SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;
@@ -444,11 +444,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			sfx = `-1.${sfx}`;
 		}
 
-		if (Migrate.PACK.includes(prefix)) {
+		if (Migration.PACK.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
-				this.data.getStore<IProfilePlan>(STORE.profile, [addWhere(FIELD.type, STORE.plan), addWhere(FIELD.uid, this.current!.user.uid)], now),
-				this.data.getStore<IPrice>(STORE.price, undefined, now),
-				this.data.getStore<IBonus>(STORE.bonus, undefined, now),
+				this.data.getStore<ProfilePlan>(STORE.profile, [addWhere(FIELD.type, STORE.plan), addWhere(FIELD.uid, this.current!.user.uid)], now),
+				this.data.getStore<Price>(STORE.price, undefined, now),
+				this.data.getStore<Bonus>(STORE.bonus, undefined, now),
 			])
 			const obj = prices
 				.filter(row => row[FIELD.key] === plan[0].plan)
@@ -474,7 +474,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 
 		switch (true) {
-			case Migrate.SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
+			case Migration.SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -597,7 +597,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							addWhere('track.class', sched[FIELD.key]),
 							addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
 						]
-						this.data.getFire<IForum>(COLLECTION.forum, { where })
+						this.data.getFire<Forum>(COLLECTION.forum, { where })
 							.then(list => {
 								if (!list.length)
 									this.forum.setComment({ key: sched[FIELD.id], type: sched[FIELD.store], date: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
@@ -646,14 +646,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				[FIELD.key]: asString(key),
 				[FIELD.uid]: this.current!.uid,
 				attend: {}
-			} as IMigrate
+			} as Migrate
 	}
 
-	private writeMigrate(migrate: IMigrate) {
+	private writeMigrate(migrate: Migrate) {
 		const where = addWhere(FIELD.uid, this.current!.uid);
 
 		return this.data.setDoc(STORE.migrate, migrate)
-			.then(_ => this.data.getStore<IMigrate>(STORE.migrate, where))
+			.then(_ => this.data.getStore<Migrate>(STORE.migrate, where))
 			.then(res => this.migrate = res);
 	}
 
@@ -661,7 +661,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const [summary, profile, active, history] = await Promise.all([
 			this.member.getAmount(),								// get closing balance
 			this.member.getPlan(),									// get final Plan
-			this.data.getStore<IPayment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Payment>(STORE.payment, addWhere(FIELD.uid, this.current!.uid)),
 			this.history.promise,
 		]);
 
@@ -672,8 +672,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			return prev;
 		}, { paid: 0, spend: 0 }))
 
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
+		const creates: StoreMeta[] = [];
+		const updates: StoreMeta[] = [];
 		const closed = active[0] && active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
@@ -697,7 +697,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			}
 		}
 
-		this.data.batch(creates, updates, undefined, Member.Set)
+		this.data.batch(creates, updates, undefined, MemberAction.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
@@ -708,18 +708,18 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		const where = addWhere(FIELD.uid, this.current!.uid);
 		const [attends, payments, gifts] = await Promise.all([
-			this.data.getStore<IAttend>(STORE.attend, where),
-			this.data.getStore<IPayment>(STORE.payment, [where, addWhere(FIELD.store, STORE.payment)]),
-			this.data.getStore<IGift>(STORE.gift, [where, addWhere(FIELD.store, STORE.gift)]),
+			this.data.getStore<Attend>(STORE.attend, where),
+			this.data.getStore<Payment>(STORE.payment, [where, addWhere(FIELD.store, STORE.payment)]),
+			this.data.getStore<Gift>(STORE.gift, [where, addWhere(FIELD.store, STORE.gift)]),
 		])
-		const creates: IStoreMeta[] = [];
-		const updates: IStoreMeta[] = [];
-		const deletes: IStoreMeta[] = [...attends, ...payments, ...gifts];
+		const creates: StoreMeta[] = [];
+		const updates: StoreMeta[] = [];
+		const deletes: StoreMeta[] = [...attends, ...payments, ...gifts];
 
 		if (full)																						// full-delete of Migrate documents as well
-			deletes.push(...await this.data.getStore<IMigrate>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
+			deletes.push(...await this.data.getStore<Migrate>(STORE.migrate, [where, addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		return this.data.batch(creates, updates, deletes, Member.Set)
+		return this.data.batch(creates, updates, deletes, MemberAction.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
@@ -751,13 +751,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private async fetch(action: string, query: string) {
-		const urlParams = `${Migrate.SHEET_URL}?${query}&action=${action}&prefix=${Migrate.SHEET_PREFIX}`;
+		const urlParams = `${Migration.SHEET_URL}?${query}&action=${action}&prefix=${Migration.SHEET_PREFIX}`;
 		try {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
 				.pipe(retry(2))
 				.toPromise();
-			const json = res.substring(0, res.length - 1).substring(Migrate.SHEET_PREFIX.length + 1, res.length);
+			const json = res.substring(0, res.length - 1).substring(Migration.SHEET_PREFIX.length + 1, res.length);
 			this.dbg('fetch: %j', urlParams);
 			try {
 				const obj = JSON.parse(json);
@@ -782,7 +782,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			// addWhere(FIELD.note, '', '>'),
 			addWhere('track.date', 20200127),
 		]
-		const list = await this.data.getFire<IAttend>(COLLECTION.attend, { where: filter });
+		const list = await this.data.getFire<Attend>(COLLECTION.attend, { where: filter });
 
 		// const deletes = await this.data.getFire<IComment>(COLLECTION.forum, { where: addWhere(FIELD.uid, uid) });
 		// await this.data.batch(undefined, undefined, deletes);
