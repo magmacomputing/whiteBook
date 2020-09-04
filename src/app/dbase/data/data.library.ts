@@ -1,11 +1,11 @@
 import { FireService } from '@dbase/fire/fire.service';
-import { TWhere } from '@dbase/fire/fire.interface';
-
-import { FILTER } from '@dbase/state/config.define';
-import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
-import { TStoreBase, IStoreMeta, IClientBase } from '@dbase/data/data.schema';
-import { getSlice } from '@dbase/state/state.library';
 import { addWhere } from '@dbase/fire/fire.library';
+import type { TWhere } from '@dbase/fire/fire.interface';
+
+import type { TStoreBase, IStoreMeta, IClientBase } from '@dbase/data/data.schema';
+import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
+import { FILTER } from '@dbase/state/config.define';
+import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString, isString } from '@library/type.library';
 import { isEqual, getPath } from '@library/object.library';

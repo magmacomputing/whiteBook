@@ -6,7 +6,7 @@ import { isString } from '@library/type.library';
 import { sortInsert, asArray } from '@library/array.library';
 import { makeTemplate } from '@library/string.library';
 
-/** rebuild values for SLICES, SORTBY, FILTER variables */
+/** rebuild values for SLICES / SORTBY / FILTER objects */
 export const setSchema = (schemas: ISchema[] = []) => {
 	Object.keys(FILTER)
 		.forEach(key => delete FILTER[key as COLLECTION])
@@ -31,7 +31,7 @@ export const setSchema = (schemas: ISchema[] = []) => {
 }
 
 // This is called so infrequently, its not worth making it reactive
-/** resolve some placeholder variables in IConfig[] */
+/** Resolve some placeholder variables in IConfig[] */
 export const getConfig = (config: IConfig[], type: string, key: string) => {
 	const placeholder: Record<string, string> = {};
 

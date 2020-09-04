@@ -24,7 +24,7 @@ export const getSource = (snaps: DocumentChangeAction<IStoreMeta>[]) => {
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
 export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<IStoreMeta>[]) => {
-	const localState = new Storage('local').get<LState>(Sync.StoreStorage, {})
+	const localState = new Storage('local').get<LState>(Sync.storeStorage, {})
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: IStoreMeta[] = [];
 	const snapList = snaps.map(addMeta);
@@ -46,7 +46,7 @@ export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAct
 	return false;
 }
 
-// TODO: call to meta introduces an unacceptable delay (for payback at this time)
+// TODO: call to meta introduces an unacceptable delay (for payback, at this time)
 export const buildDoc = async (snap: DocumentChangeAction<IStoreMeta>, fire: FireService) => {//FireService) => {
 	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {

@@ -19,7 +19,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { IQuery } from '@dbase/fire/fire.interface';
 
-import { Pledge, TPledge } from '@library/utility.library';
+import { Pledge } from '@library/utility.library';
 import { isFunction, isUndefined } from '@library/type.library';
 import { quoteObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';

@@ -43,7 +43,7 @@ export class ProfileGuard implements CanActivate {
 	constructor(private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const localState = new Storage('local').get<LState>(Sync.StoreStorage, {});
+		const localState = new Storage('local').get<LState>(Sync.storeStorage, {});
 		const profile = getPath<IProfilePlan[]>(localState, 'member.profile') || [];
 		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan));
 		if (getPath<string>(planProfile[0], STORE.plan))

@@ -24,7 +24,7 @@ import { environment } from '../environments/environment';
 	],
 	imports: [
 		NgxsModule.forRoot([], { developmentMode: !environment.production }),
-		NgxsStoragePluginModule.forRoot({ key: Sync.StoreStorage }),
+		NgxsStoragePluginModule.forRoot({ key: Sync.storeStorage }),
 		// ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 		BrowserModule,
 		HammerModule,

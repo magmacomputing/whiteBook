@@ -99,7 +99,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 */
 	public filter(key?: 'hide' | 'credit') {
 		const local = new Storage('local');
-		this.admin = local.get(Sync.AdminStorage, {});
+		this.admin = local.get(Sync.adminStorage, {});
 		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migrate.CREDIT.all };
 
 		this.dash$ = this.state.getAdminData().pipe(
@@ -130,7 +130,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		local.set(Sync.AdminStorage, { ...this.admin, migrateFilter });				// persist settings
+		local.set(Sync.adminStorage, { ...this.admin, migrateFilter });				// persist settings
 	}
 
 	async signIn(register: IRegister, import_: IImport) {

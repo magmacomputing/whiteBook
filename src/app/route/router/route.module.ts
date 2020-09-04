@@ -13,7 +13,6 @@ import { MaterialModule } from '@service/material/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
-import { EMailComponent } from '@route/login/email.component';
 
 import { Auth } from '@dbase/data/data.define';
 import { getPath } from '@library/object.library';
