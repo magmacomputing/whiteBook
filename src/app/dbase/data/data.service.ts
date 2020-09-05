@@ -90,11 +90,11 @@ export class DataService {
 			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
 
-	getFire<T>(collection: COLLECTION, query?: FireQuery) {			// direct access to collection, rather than via state
+	getFire<T>(collection: COLLECTION, query?: FireQuery) {		// direct access to collection, rather than via state
 		return this.fire.get<T>(collection, query)
 	}
 
-	getLive<T>(collection: COLLECTION, query?: FireQuery) {			// direct access to collection as observable
+	getLive<T>(collection: COLLECTION, query?: FireQuery) {		// direct access to collection as observable
 		return this.fire.listen<T>(collection, query);
 	}
 

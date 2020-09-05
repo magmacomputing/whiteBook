@@ -247,7 +247,7 @@ export class StateService {
 			orderBy: addOrder(FIELD.stamp),
 		}
 
-		return this.fire.listen<Forum>(COLLECTION.forum, query, 'snapshotChanges').pipe(
+		return this.fire.listen<Forum>(COLLECTION.forum, query).pipe(
 			startWith([] as Forum[]),													// dont make subcriber wait for 1st emit
 			distinctUntilChanged((curr, prev) => JSON.stringify(curr) === JSON.stringify(prev)),
 			map(source => ({

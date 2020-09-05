@@ -50,24 +50,22 @@ export class FireService {
 		return colRefs.map(colRef => colRef[type]()) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>[];
 	}
 
-	merge<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
+	merge<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
 		return merge(...this.subRef(colRefs, type));
 	}
 
-	combine<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return combineLatest(...this.subRef(colRefs, type));
+	concat<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
+		return concat([...this.subRef(colRefs, type)]);
 	}
 
-	concat<T, U extends TChanges>(type: U, colRefs: AngularFirestoreCollection<T>[]) {
-		return concat(...this.subRef(colRefs, type));
+	combine<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
+		return combineLatest([...this.subRef<T, U>(colRefs, type)])
+			.pipe(map(obs => obs.flat()))								// flatten the array-of-values results
 	}
 
-	listen<T>(collection: COLLECTION, query?: FireQuery, changes: TChanges = 'stateChanges') {
-		return this.combine<T, TChanges>(changes, this.colRef<T>(collection, query))
-			.pipe(
-				map(obs => obs.flat()),									// flatten the array-of-values results
-				map(snap => snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() } as T)))
-			)
+	listen<T>(collection: COLLECTION, query?: FireQuery) {
+		return this.combine<T, 'snapshotChanges'>(this.colRef<T>(collection, query), 'snapshotChanges')
+			.pipe(map(snap => snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id, } as T))))
 	}
 
 	get<T>(collection: COLLECTION, query?: FireQuery) {

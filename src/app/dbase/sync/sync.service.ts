@@ -45,7 +45,7 @@ export class SyncService {
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
 			refs.push(...this.fire.colRef<StoreMeta>(collection, query)));
-		const stream = this.fire.merge('stateChanges', refs);
+		const stream = this.fire.merge(refs, 'stateChanges');
 		const sync = this.sync.bind(this, key);
 		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
 
@@ -145,9 +145,10 @@ export class SyncService {
 
 		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
-			if (await checkStorage(listen, snaps))
-				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
-
+			if (await checkStorage(listen, snaps)) {
+				listen.ready.resolve(true);										// storage already sync'd... skip the initial snapshot
+				return true;
+			}
 			await this.store
 				.dispatch(new truncStore(debug))							// suspected tampering, reset Store
 				.toPromise();
