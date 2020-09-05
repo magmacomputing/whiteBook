@@ -4,8 +4,8 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { AuthService } from '@service/auth/auth.service';
 
-import { STORE, FIELD } from '@dbase/data/data.define';
-import { ETrack, ITrack } from '../track/track.define';
+import { STORE, FIELD, TRACK } from '@dbase/data/data.define';
+import { Track } from '@dbase/data/data.schema';
 
 import { sprintf } from '@library/string.library';
 import { fix } from '@library/number.library';
@@ -14,7 +14,7 @@ import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class TrackService {
-	private logLevel = ETrack.all;
+	private logLevel = TRACK.all;
 	private dbg = dbg(this);
 
 	constructor(private fire: FireService, private auth: AuthService) { }
@@ -32,13 +32,13 @@ export class TrackService {
 			[FIELD.stamp]: now.ts,
 			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
-		} as ITrack
+		} as Track
 
 		this.dbg('track: %j', trackDoc);
 		this.fire.setDoc(trackCol, trackDoc);
 	}
 
-	set level(level: ETrack) {
+	set level(level: TRACK) {
 		this.logLevel = level;
 	}
 

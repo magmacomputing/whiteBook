@@ -3,7 +3,7 @@ import { CustomClaims } from '@dbase/data/data.schema';
 export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
 export type TScopes = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
 
-export interface ICredential {
+export interface Credential {
 	code: string;
 	message: string;
 	email: string;
@@ -14,7 +14,7 @@ export interface ICredential {
 	emailLink?: string;
 }
 
-export interface IUserInfo {			// borrowed from firebase-admin/auth
+export interface UserInfo {			// borrowed from firebase-admin/auth
 	uid: string;
 	displayName: string;
 	email: string;
@@ -23,7 +23,7 @@ export interface IUserInfo {			// borrowed from firebase-admin/auth
 	providerId: string;
 }
 
-export interface IFireClaims {
+export interface FireClaims {
 	user_id: string;
 	name: string;
 	picture: string;
@@ -37,7 +37,7 @@ export interface IFireClaims {
 	}
 	auth_time: number;
 }
-export interface IJwtClaims {			// industry-standard json-web-token format
+export interface JwtClaims {			// industry-standard json-web-token format
 	exp: number;						// expiration time
 	iss: string;						// issuer
 	iat?: number;						// issued time
@@ -45,7 +45,7 @@ export interface IJwtClaims {			// industry-standard json-web-token format
 	aud?: string;						// audience
 	sub?: string;						// subject
 }
-export type TTokenClaims = IFireClaims & CustomClaims & IJwtClaims;
+export type TTokenClaims = FireClaims & CustomClaims & JwtClaims;
 export enum JWT {
 	expires = 'exp',
 	not_before = 'nbf',

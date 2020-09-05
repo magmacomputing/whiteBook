@@ -6,7 +6,7 @@ import { State, StateContext, Action, Store } from '@ngxs/store';
 import { BehaviorSubject } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 
-import { IAuthState, LoginAction, LoginEvent } from '@dbase/state/auth.action';
+import { AuthSlice, LoginAction, LoginEvent } from '@dbase/state/auth.action';
 import { TStateSlice, SLICE } from '@dbase/state/state.define';
 
 import { SnackService } from '@service/material/snack.service';
@@ -27,7 +27,7 @@ import { isNull, isArray } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<IAuthState>({
+@State<AuthSlice>({
 	name: SLICE.auth,
 	defaults: {
 		user: null,																			// firebase.User object
@@ -62,7 +62,7 @@ export class AuthState {
 			.toPromise();
 	}
 
-	private async authSuccess(ctx: StateContext<IAuthState>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
+	private async authSuccess(ctx: StateContext<AuthSlice>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
 		if (user) {
 			if (credential) {														// have we been redirected here, via credential?
 				const response = await user.linkWithCredential(credential);
@@ -74,7 +74,7 @@ export class AuthState {
 
 	/** Commands */
 	@Action(LoginAction.Check)														// check Authentication status
-	private checkSession(ctx: StateContext<IAuthState>, { user }: LoginAction.Check) {
+	private checkSession(ctx: StateContext<AuthSlice>, { user }: LoginAction.Check) {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && isNull(this.user))
@@ -95,7 +95,7 @@ export class AuthState {
 	 * For example, a user who signed-in with a password can link a Google account and signIn with either method in the future.  
 	 */
 	@Action(LoginAction.Credential)													// attempt to link multiple providers
-	private async loginCredential(ctx: StateContext<IAuthState>, { link }: LoginAction.Credential) {
+	private async loginCredential(ctx: StateContext<AuthSlice>, { link }: LoginAction.Credential) {
 		const methods = await this.afAuth.fetchSignInMethodsForEmail(link.email);
 
 		switch (methods[0]) {														// check the first-method
@@ -121,7 +121,7 @@ export class AuthState {
 
 	/** Attempt to signIn User via authentication by a federated identity provider */
 	@Action(LoginAction.Identity)														// process signInWithPopup()
-	private async loginIdentity(ctx: StateContext<IAuthState>, { authProvider, credential }: LoginAction.Identity) {
+	private async loginIdentity(ctx: StateContext<AuthSlice>, { authProvider, credential }: LoginAction.Identity) {
 		try {
 			const response = await this.afAuth.signInWithPopup(authProvider);
 
@@ -136,7 +136,7 @@ export class AuthState {
 
 	/** Attempt to signIn User via authentication with a Custom Token */
 	@Action(LoginAction.Token)
-	private async loginToken(ctx: StateContext<IAuthState>, { token, user, prefix }: LoginAction.Token) {
+	private async loginToken(ctx: StateContext<AuthSlice>, { token, user, prefix }: LoginAction.Token) {
 		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),
@@ -151,7 +151,7 @@ export class AuthState {
 
 	/** Attempt to signIn User via an emailAddress / Password combination. */
 	@Action(LoginAction.Email)															// process signInWithEmailAndPassword
-	private loginEmail(ctx: StateContext<IAuthState>, { email, password, method, credential }: LoginAction.Email) {
+	private loginEmail(ctx: StateContext<AuthSlice>, { email, password, method, credential }: LoginAction.Email) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
 		const thisMethod = `${method}WithEmailAndPassword` as TEmailMethod;
 		this.dbg('loginEmail: %s', method);
@@ -175,14 +175,14 @@ export class AuthState {
 
 	/** Attempt to signIn User anonymously */
 	@Action(LoginAction.Anon)
-	private loginAnon(ctx: StateContext<IAuthState>) {
+	private loginAnon(ctx: StateContext<AuthSlice>) {
 		return this.afAuth.signInAnonymously()
 			.catch(error => ctx.dispatch(new LoginEvent.Failed(error)));
 	}
 
 	/** Attempt to signIn User via a link sent to their emailAddress */
 	@Action(LoginAction.Link)
-	private async loginLink(ctx: StateContext<IAuthState>, { link, credential }: LoginAction.Link) {
+	private async loginLink(ctx: StateContext<AuthSlice>, { link, credential }: LoginAction.Link) {
 		const localItem = 'emailForSignIn';
 
 		if (this.afAuth.isSignInWithEmailLink(link)) {
@@ -201,7 +201,7 @@ export class AuthState {
 	}
 
 	@Action(LoginAction.Out)																// process signOut()
-	private logout(ctx: StateContext<IAuthState>) {
+	private logout(ctx: StateContext<AuthSlice>) {
 		this.user = null;																// reset state
 		this.afAuth.signOut()
 			.then(_ => ctx.dispatch(new LoginAction.Off()))
@@ -210,7 +210,7 @@ export class AuthState {
 
 	/** Events */
 	@Action(LoginEvent.Success)														// on each LoginEvent.Success, fetch /member collection
-	private async onMember(ctx: StateContext<IAuthState>, { user }: LoginEvent.Success) {
+	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
 		const query: FireQuery = { where: addWhere(FIELD.uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;
 
@@ -228,12 +228,12 @@ export class AuthState {
 	}
 
 	@Action(LoginEvent.Info)
-	private async authInfo(ctx: StateContext<IAuthState>, { info }: LoginEvent.Info) {
+	private async authInfo(ctx: StateContext<AuthSlice>, { info }: LoginEvent.Info) {
 		ctx.patchState(info);
 	}
 
 	@Action(LoginAction.Other)															// behalf of another User
-	private(ctx: StateContext<IAuthState>, { alias }: LoginAction.Other) {
+	private(ctx: StateContext<AuthSlice>, { alias }: LoginAction.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
 		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
@@ -278,7 +278,7 @@ export class AuthState {
 	}
 
 	@Action([LoginEvent.Setup, LoginEvent.Success])
-	private setUserStateOnSuccess(ctx: StateContext<IAuthState>, { user }: LoginEvent.Setup) {
+	private setUserStateOnSuccess(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Setup) {
 		if (this.afAuth.currentUser) {
 			const clone = cloneObj(user);								// safe copy of User
 
@@ -292,7 +292,7 @@ export class AuthState {
 	}
 
 	@Action(LoginEvent.Token)															// fetch latest IdToken
-	private async setToken(ctx: StateContext<IAuthState>) {
+	private async setToken(ctx: StateContext<AuthSlice>) {
 		const currUser = await this.afAuth.currentUser;
 
 		if (currUser) {
@@ -322,7 +322,7 @@ export class AuthState {
 	}
 
 	@Action([LoginEvent.Failed, LoginAction.Off])
-	private notLogin(ctx: StateContext<IAuthState>, { error }: LoginEvent.Failed) {
+	private notLogin(ctx: StateContext<AuthSlice>, { error }: LoginEvent.Failed) {
 		this.sync.off();												// disconnect all Listeners
 
 		if (error) {

@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { MHistory, IAdminStore } from '@route/migrate/migrate.interface';
+import { MHistory, AdminStore } from '@route/migrate/migrate.interface';
 import { cleanNote } from '@route/forum/forum.library';
 import { Migration } from '@route/migrate/migrate.define';
 
@@ -42,7 +42,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public dash$!: Observable<AdminState["dash"]>;
 	public account$!: Observable<AccountState>;
 	public import_: Import | null = null;
-	public admin: IAdminStore = {};
+	public admin: AdminStore = {};
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	private check!: Pledge<boolean>;

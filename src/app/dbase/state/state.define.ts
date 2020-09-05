@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 
-import { IAuthState as AuthState } from './auth.action';
+import { AuthSlice } from './auth.action';
 import { STORE, BONUS, COLLECTION } from '@dbase/data/data.define';
 import {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
@@ -36,12 +36,13 @@ export enum SLICE {
  * }  
  */
 
-export type TStateSlice<T> = { [segment: string]: T[] };
-export interface LState { [slice: string]: TStateSlice<StoreMeta> };	// localStore State
-export interface IState { [slice: string]: Observable<TStateSlice<StoreMeta>> };
+export type TStateSlice<T> = Record<string, T[]>;
+export type LState = Record<string, TStateSlice<StoreMeta>>;	// localStorage State
+export type OState = Observable<TStateSlice<StoreMeta>>;
+export type IState = Record<string, OState>;
 
 export interface UserState {
-	auth: AuthState;
+	auth: AuthSlice;
 }
 
 export interface AdminState {

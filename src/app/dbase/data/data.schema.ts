@@ -1,6 +1,6 @@
 import { UserInfo } from 'firebase';
 
-import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom } from '@dbase/data/data.define';
+import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom, TRACK } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
 import { Instant } from '@library/instant.library';
 
@@ -680,5 +680,25 @@ export interface ZoomWhite {
 			amt: number;
 			pre: number;
 		}
+	}
+}
+
+export interface Track {
+	[FIELD.store]: STORE.log;
+	[FIELD.type]: TRACK;
+	[FIELD.uid]?: string;
+	msg: string;
+	level: number;
+	data?: {
+		msg: string;
+		data?: any[];
+	};
+	event?: object;
+	memberId?: string;
+	stamp: number;
+	date: {										// useful for indexing
+		year: number;
+		month: number;
+		day: number;
 	}
 }

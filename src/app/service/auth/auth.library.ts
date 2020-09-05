@@ -5,12 +5,12 @@ import { Auth } from '@dbase/data/data.define';
 
 import { isNull } from '@library/type.library';
 
-interface IEmailToken {
+interface EmailToken {
 	email: string;
 	password: string;
 }
 export const getAuthProvider = (providerId: string,
-	token?: (auth.IdTokenResult & IEmailToken) | null): [Auth.METHOD | undefined, auth.AuthProvider | undefined, auth.AuthCredential | undefined] => {
+	token?: (auth.IdTokenResult & EmailToken) | null): [Auth.METHOD | undefined, auth.AuthProvider | undefined, auth.AuthCredential | undefined] => {
 	let authProvider: auth.AuthProvider | undefined;
 	let authCredential: auth.AuthCredential | undefined;
 	let method: Auth.METHOD | undefined = Auth.METHOD.identity;									// default to 'identity' 

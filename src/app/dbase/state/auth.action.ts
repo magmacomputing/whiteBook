@@ -1,8 +1,8 @@
-import { ICredential } from '@service/auth/auth.interface';
+import { Credential as LoginCredential } from '@service/auth/auth.interface';
 import { Auth } from '@dbase/data/data.define';
 import { TUser } from '@dbase/data/data.schema';
 
-export interface IAuthState {
+export interface AuthSlice {
 	user: firebase.UserInfo | null;
 	token: firebase.auth.IdTokenResult | null;
 	info: firebase.auth.AdditionalUserInfo | null;				// additionalUserInfo from provider
@@ -18,7 +18,7 @@ export namespace LoginAction {
 	}
 	export class Credential {
 		static readonly type = '[Auth] LoginCredential';
-		constructor(public link: ICredential) { }
+		constructor(public link: LoginCredential) { }
 	}
 	export class Identity {
 		static readonly type = '[Auth] LoginIdentity';

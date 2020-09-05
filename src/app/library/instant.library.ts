@@ -2,38 +2,33 @@ import { fix } from '@library/number.library';
 import { asString, asNumber, toTitle } from '@library/string.library';
 import { getType, isString, isNumber } from '@library/type.library';
 
-interface IInstant {											// Instant components
-	readonly yy: number;										// year[4]
-	readonly mm: number;										// month; Jan=1, Dec=12
-	readonly dd: number;										// day; 1-31
-	readonly HH: number;										// hour[24]
-	readonly MI: number;										// minute
-	readonly SS: number;										// second
-	readonly ts: number;										// seconds since epoch
-	readonly ms: number;										// milliseconds
-	readonly ww: number;										// number of weeks
-	readonly mmm: keyof typeof Instant.MONTH;// short month-name
-	readonly ddd: keyof typeof Instant.WEEKDAY;// short day-name
-	readonly dow: Instant.WEEKDAY;					// weekday; Mon=1, Sun=7
-	readonly tz: number;										// timezone offset in hours
-	readonly value?: TInstant;									// original value passed to constructor
+interface InstantVars {							// Instant values
+	yy: number;												// year[4]
+	mm: number;												// month; Jan=1, Dec=12
+	dd: number;												// day; 1-31
+	HH: number;												// hour[24]
+	MI: number;												// minute
+	SS: number;												// second
+	ts: number;												// seconds since epoch
+	ms: number;												// milliseconds
+	ww: number;												// number of weeks
+	mmm: keyof typeof Instant.MONTH;	// short month-name
+	ddd: keyof typeof Instant.WEEKDAY;// short day-name
+	dow: Instant.WEEKDAY;							// weekday; Mon=1, Sun=7
+	tz: number;												// timezone offset in hours
+	value?: TInstant;									// original value passed to constructor
 }
 
-interface ITimestamp {
-	readonly seconds: number;
-	readonly nanoseconds: number;
-}
-
-interface IDateFmt extends Record<string, string | number> {	// pre-configured format strings
-	readonly "ddd, dd mmm yyyy": string;
-	readonly "yyyy-mm-dd HH:MI": string;
-	readonly "dd-mmm": string;
-	readonly "HH:MI": string;
-	readonly "hh:mi": string;
-	readonly "HH:MI:SS": string;
-	readonly "yyyyww": number;
-	readonly "yyyymm": number;
-	readonly "yyyymmdd": number;
+interface DateFmt extends Record<string, string | number> {	// pre-configured format strings
+	"ddd, dd mmm yyyy": string;
+	"yyyy-mm-dd HH:MI": string;
+	"dd-mmm": string;
+	"HH:MI": string;
+	"hh:mi": string;
+	"HH:MI:SS": string;
+	"yyyyww": number;
+	"yyyymm": number;
+	"yyyymmdd": number;
 }
 
 type TArgs = string[] | number[];
@@ -41,7 +36,7 @@ type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
-export type TInstant = string | number | Date | Instant | IInstant | Timestamp | ITimestamp;
+export type TInstant = string | number | Date | Instant | Timestamp;
 
 /** Mirror the Firestore Timestamp class */
 class Timestamp {
@@ -67,7 +62,7 @@ class Timestamp {
 // shortcut functions to common Instant class properties / methods.
 /** get new Instant */export const getDate = (dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args);
 /** get timestamp */	export const getStamp = (dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).ts;
-/** format Instant */	export const fmtDate = <K extends keyof IDateFmt>(fmt: K, dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).format(fmt);
+/** format Instant */	export const fmtDate = <K extends keyof DateFmt>(fmt: K, dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).format(fmt);
 
 // NOTE: Instant does not currently handle leap-seconds
 
@@ -78,7 +73,7 @@ class Timestamp {
  * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
  */
 export class Instant {
-	#date: IInstant;																						// Date parsed into components
+	#date: InstantVars;													// Date parsed into components
 	static maxStamp = new Date('9999-12-31').valueOf() / 1000;	// static property
 	static minStamp = new Date('1000-01-01').valueOf() / 1000;	// static property
 
@@ -102,7 +97,7 @@ export class Instant {
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	/** apply formatting*/
-	format = <K extends keyof IDateFmt>(fmt: K) => this.#formatDate(fmt);
+	format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
 	/** calc diff Dates, default as &lt;years> */
 	diff = (unit: TUnitDiff = 'years', dt2?: TInstant, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
 	/** add date offset, default as &lt;minutes> */
@@ -191,8 +186,8 @@ export class Instant {
 				break;
 
 			case 'Object':
-				const tstamp = dt as ITimestamp;											// shape of Timestamp
-				const inst = dt as IInstant;													// shape of Instant
+				const tstamp = dt as Timestamp;												// shape of Timestamp
+				const inst = dt as Instant;														// shape of Instant
 				if (isNumber(tstamp.seconds) && isNumber(tstamp.nanoseconds)) {
 					date = new Timestamp(tstamp.seconds, tstamp.nanoseconds).toDate();
 					break;
@@ -226,7 +221,7 @@ export class Instant {
 		return {
 			yy, mm, dd, HH, MI, SS, ts, ms, tz, ww, dow,
 			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
-		} as IInstant;
+		} as InstantVars;
 	}
 
 	/** hide some working-variables */
@@ -345,11 +340,11 @@ export class Instant {
 	}
 
 	/** compose a Date() from an Instant() */
-	#composeDate = (date: IInstant) =>
+	#composeDate = (date: InstantVars) =>
 		new Date(date.yy, date.mm - 1, date.dd, date.HH, date.MI, date.SS, date.ms)
 
 	/** combine Instant components to apply some standard & free-format rules */
-	#formatDate = <K extends keyof IDateFmt>(fmt: K): IDateFmt[K] => {
+	#formatDate = <K extends keyof DateFmt>(fmt: K): DateFmt[K] => {
 		const date = { ...this.#date };													// clone current Instant
 
 		switch (fmt) {

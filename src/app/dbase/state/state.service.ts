@@ -3,9 +3,9 @@ import { Observable, of, combineLatest } from 'rxjs';
 import { map, take, switchMap, startWith, distinctUntilChanged } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
-import { IAuthState } from '@dbase/state/auth.action';
+import { AuthSlice } from '@dbase/state/auth.action';
 import { TStateSlice, AttendState, PaymentState, ApplicationState, AdminState, ProviderState, ForumState } from '@dbase/state/state.define';
-import { MemberState, PlanState, TimetableState, IState, AccountState, UserState } from '@dbase/state/state.define';
+import { MemberState, PlanState, TimetableState, IState, OState, AccountState, UserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -27,13 +27,13 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class StateService {
-	@Select() auth$!: Observable<IAuthState>;
-	@Select() client$!: Observable<TStateSlice<StoreMeta>>;
-	@Select() member$!: Observable<TStateSlice<StoreMeta>>;
-	@Select() attend$!: Observable<TStateSlice<StoreMeta>>;
-	@Select() admin$!: Observable<TStateSlice<StoreMeta>>;
+	@Select() auth$!: Observable<AuthSlice>;
+	@Select() client$!: OState;
+	@Select() member$!: OState;
+	@Select() attend$!: OState;
+	@Select() admin$!: OState;
 	@Select() local$!: Observable<TStateSlice<StoreMeta>>;
-	private forum$: Observable<TStateSlice<StoreMeta>> = of({ forum: [] });
+	private forum$: OState = of({ forum: [] });
 
 	private dbg = dbg(this);
 	public states: IState;

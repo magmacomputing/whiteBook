@@ -13,7 +13,7 @@ export const FILTER: Partial<Record<COLLECTION, TString>> = {}
 export const SORTBY: Partial<Record<STORE, string[]>> = {};
 
 // Comment parse criteria
-interface IPattern {
+interface Pattern {
   pat: string;                  // match pattern
   flag?: 'g';                   // optionally global
   repl: string;                 // replacement string
@@ -21,6 +21,6 @@ interface IPattern {
 }
 
 export const COMMENT = {
-  patterns: [] as IPattern[],   // regular-expressesion to aid parsing Notes
+  patterns: [] as Pattern[],   	// regular-expressesion to aid parsing Notes
   words: [] as string[],        // words that indicate Note should be reclassified as Comment
 }

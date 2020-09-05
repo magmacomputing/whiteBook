@@ -5,7 +5,7 @@ import { tap, take, map } from 'rxjs/operators';
 
 import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
-import { IUserInfo } from '@service/auth/auth.interface';
+import { UserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -204,7 +204,7 @@ export class FireService {
 	}
 
 	/** Useful when Member is already authenticated elsewhere (eg. helloJS) */
-	authToken(access_token: string, user: IUserInfo) {
+	authToken(access_token: string, user: UserInfo) {
 		return this.callHttps<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
 	}
 

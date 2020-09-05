@@ -55,16 +55,16 @@ export class ProfileGuard implements CanActivate {
 }
 
 /** check if Component allows navigation away */
-interface IDeactivateComponent {
+interface DeactivateComponent {
 	canDeactivate: () => Observable<boolean> | Promise<boolean> | boolean;
 }
 @Injectable({ providedIn: LoginModule })
-export class DeactivateGuard implements CanDeactivate<IDeactivateComponent> {
+export class DeactivateGuard implements CanDeactivate<DeactivateComponent> {
 	private dbg = dbg(this);
 
 	constructor() { this.dbg('new') }
 
-	canDeactivate(component: IDeactivateComponent) {
+	canDeactivate(component: DeactivateComponent) {
 		return component.canDeactivate ? component.canDeactivate() : true;
 	}
 }

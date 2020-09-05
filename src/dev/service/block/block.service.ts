@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { IBlockPrev, IBlockBase, IBlock } from '../block/block.interface';
+import { BlockPrev, BlockBase, Block } from '../block/block.interface';
 
 import { cryptoHash } from '@library/crypto.library';
 import { dbg } from '@library/logger.library';
@@ -13,7 +13,7 @@ import { dbg } from '@library/logger.library';
 export class BlockService {
   dbg = dbg(this);
   public chain!: Block[];
-  private prev: IBlockPrev;
+  private prev: BlockPrev;
 
   constructor() {
     this.prev = { index: -1, hash: '0' };
@@ -22,7 +22,7 @@ export class BlockService {
   }
 
   private async block(data: any) {
-    const base: IBlockBase = { index: this.prev.index, data, prior: this.prev.hash };
+    const base: BlockBase = { index: this.prev.index, data, prior: this.prev.hash };
     return new Block(base.index, data, await this.hash(base), base.prior);
   }
 
@@ -33,7 +33,7 @@ export class BlockService {
     return block;
   }
 
-  async valid(thisBlock: IBlock, prevBlock: IBlock) {
+  async valid(thisBlock: Block, prevBlock: Block) {
     if (prevBlock.index != thisBlock.index + 1) {
       this.dbg('valid: Invalid Index');
       return false;
@@ -49,21 +49,11 @@ export class BlockService {
     return true;
   }
 
-  private hash(block: IBlockBase) {
+  private hash(block: BlockBase) {
     return cryptoHash(`${block.index}.${block.data}.${block.prior}`);
   }
 
   private last() {
-    return {} as IBlock;
-  }
-}
-
-class Block {
-  constructor(public readonly index: number,
-    public readonly data: any,
-    public readonly hash: string,
-    public readonly prior: string) {
-    this.hash = hash;
-    this.prior = prior.toString();
+    return {} as Block;
   }
 }

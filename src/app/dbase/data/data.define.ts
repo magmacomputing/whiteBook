@@ -185,6 +185,16 @@ export enum COLOR {
 	red = '#e6b8af',
 }
 
+export enum TRACK {
+	all = 'all',
+	debug = 'debug',
+	info = 'info',
+	warn = 'warn',
+	error = 'error',
+	fatal = 'fatal',
+	off = 'off',
+}
+
 export namespace Zoom {
 	export enum EVENT {
 		type = 'body.event',

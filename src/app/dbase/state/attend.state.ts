@@ -29,7 +29,7 @@ export class AttendState implements NgxsOnInit {
 	@Action(AttendAction.Set)
 	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AttendAction.Set) {
 		const state = cloneObj(getState()) || {};
-		let empty: { [segment: string]: boolean; } = {};
+		let empty: Record<string, boolean> = {};
 
 		asArray(payload).forEach(doc => {
 			const payment = doc.payment[FIELD.id];

@@ -2,7 +2,7 @@ import { STORE, REACT } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
 import { TInstant } from '@library/instant.library';
 
-export interface IForumArgs {
+export interface ForumArgs {
 	key: string,
 	store?: STORE.react | STORE.comment;
 	type?: STORE,
@@ -11,10 +11,10 @@ export interface IForumArgs {
 	uid?: string;
 }
 
-export interface ICommentArgs extends IForumArgs {
+export interface CommentArgs extends ForumArgs {
 	comment?: TString;
 }
 
-export interface IReactArgs extends IForumArgs {
+export interface ReactArgs extends ForumArgs {
 	react?: REACT;
 }

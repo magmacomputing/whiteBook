@@ -1,14 +1,14 @@
-export interface IBlockBase {
+export interface BlockBase {
 	index: number;
 	data: any;
 	prior: string;
 }
 
-export interface IBlock extends IBlockBase {
+export interface Block extends BlockBase {
 	hash: string;
 }
 
-export interface IBlockPrev {
+export interface BlockPrev {
 	index: number;
 	hash: string;
 }

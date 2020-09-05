@@ -3,7 +3,7 @@ import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
 import { addWhere } from '@dbase/fire/fire.library';
-import { IFireClaims } from '@service/auth/auth.interface';
+import { FireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@dbase/state/config.define';
@@ -94,7 +94,7 @@ export const getDefault = (state: ApplicationState, type: string) => {
 }
 
 /** extract the required fields from the AuthToken object */
-export const getUser = (token: IFireClaims) =>
+export const getUser = (token: FireClaims) =>
 	({ displayName: token.name, email: token.email, photoURL: token.picture, providerId: token.firebase.sign_in_provider, uid: token.user_id });
 
 /**

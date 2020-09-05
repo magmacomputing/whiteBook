@@ -28,7 +28,7 @@ export interface MHistory {
 	elect?: BONUS;
 }
 
-export interface IAdminStore {
+export interface AdminStore {
 	migrateFilter?: {
 		hidden: boolean;
 		credit: Migration.CREDIT;

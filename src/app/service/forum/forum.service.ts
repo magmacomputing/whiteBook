@@ -4,7 +4,7 @@ import { DataService } from '@dbase/data/data.service';
 import { React, StoreMeta, Comment, TStoreBase } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 
-import { IForumArgs, ICommentArgs, IReactArgs } from '@service/forum/forum.define';
+import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
 import { addWhere } from '@dbase/fire/fire.library';
 
 import { Instant, getDate } from '@library/instant.library';
@@ -14,7 +14,7 @@ export class ForumService {
 
 	constructor(private data: DataService) { }
 
-	async setReact({ key, type = STORE.schedule, track, date, uid, react = REACT.like, }: IReactArgs) {
+	async setReact({ key, type = STORE.schedule, track, date, uid, react = REACT.like, }: ReactArgs) {
 		const now = getDate(date);
 		const reactDoc = await this.getForum<React>({ store: STORE.react, key, type, date });
 
@@ -43,7 +43,7 @@ export class ForumService {
 		return this.data.batch(creates, updates, deletes);
 	}
 
-	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: ICommentArgs) {
+	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: CommentArgs) {
 		return comment === ''
 			? undefined
 			: this.newForum<Comment>({ store: STORE.comment, key, type, track, date, uid })
@@ -51,7 +51,7 @@ export class ForumService {
 	}
 
 	/** create a Forum base */
-	private async newForum<T extends Comment | React>({ store, key, type, track, date, uid }: IForumArgs) {
+	private async newForum<T extends Comment | React>({ store, key, type, track, date, uid }: ForumArgs) {
 		const now = getDate(date);
 
 		const forum = {
@@ -73,7 +73,7 @@ export class ForumService {
 	}
 
 	// get all Forum content for a date, optionally for a named Store-type and named Store-key
-	public async getForum<T>({ store, key, type, date, uid }: Partial<IForumArgs> = {}) {
+	public async getForum<T>({ store, key, type, date, uid }: Partial<ForumArgs> = {}) {
 		const now = getDate(date);
 
 		const forumFilter = [

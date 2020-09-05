@@ -74,8 +74,8 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
 /**
  * Search an array, returning a single row that matches the cond,  
  * and was in-effect on date,  
- * and is nearest in time to near.  
- * e.g. near = {start: '19:30'}   will return the table-row whose 'start' field is nearest to '19:30'
+ * and is nearest in time to \<near>.  
+ * e.g. near = {start: '19:30'}   will return the table-row whose \<start> field is nearest to '19:30'
  */
 export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = new Instant(), near: Partial<T>) => {
 	const [key, hhmi] = Object.entries(near)[0];		// use first key to determine which field we compare
@@ -86,14 +86,14 @@ export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = n
 			if (arr.length <= 1)
 				return curr;															// no 'near' comparison needed
 
-			const fld1 = (curr as T & { [key: string]: string | number })[key];
-			const fld2 = (prev as T & { [key: string]: string | number })[key];
+			const fld1 = (curr as T & Record<string, string | number>)[key];
+			const fld2 = (prev as T & Record<string, string | number>)[key];
 
 			return Math.abs(asTime(fld1) - time) < Math.abs(asTime(fld2) - time)
 				? curr
 				: prev
 		},
-			{ [key]: 0 } as T & { [key: string]: number })
+			{ [key]: 0 } as T & Record<string, number>)
 }
 
 /**

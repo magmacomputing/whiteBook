@@ -11,7 +11,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 import { Sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
-import { LoginEvent, IAuthState } from '@dbase/state/auth.action';
+import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { StoreMeta } from '@dbase/data/data.schema';
@@ -66,8 +66,8 @@ export class SyncService {
 
 	private getAuthUID() {															// Useful for matching sync-events to the Auth'd User
 		return this.store
-			.selectOnce<IAuthState>(state => state[SLICE.auth])
-			.pipe(map(auth => auth.user && auth.user.uid))	// if logged-in, return the UserId
+			.selectOnce<AuthSlice>(state => state[SLICE.auth])
+			.pipe(map(auth => auth.user?.uid ?? null))			// if logged-in, return the UserId
 			.toPromise()
 	}
 

@@ -11,7 +11,7 @@ import { TStoreBase, Meta, StoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 
 import { AuthService } from '@service/auth/auth.service';
-import { IUserInfo } from '@service/auth/auth.interface';
+import { UserInfo } from '@service/auth/auth.interface';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { asAt } from '@library/app.library';
@@ -76,7 +76,7 @@ export class DataService {
 		return this.fire.createToken(uid);
 	}
 
-	authToken(token: string, user: IUserInfo) {
+	authToken(token: string, user: UserInfo) {
 		return this.fire.authToken(token, user);
 	}
 
