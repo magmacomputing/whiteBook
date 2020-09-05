@@ -73,7 +73,7 @@ export class FireService {
 			.collection(collection, fnQuery(query)[0])
 			.get({ source: 'server' })								// get the server-data, rather than cache
 			.toPromise()
-			.then(snap => snap.docs.map(doc => ({ [FIELD.id]: doc.id, ...doc.data() } as unknown as T)))
+			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.id]: doc.id } as unknown as T)))
 	}
 
 	/** Document Reference, for existing or new */
@@ -191,7 +191,7 @@ export class FireService {
 			.pipe(take(1))
 			.toPromise()
 
-		return snap.map(docs => ({ [FIELD.id]: docs.payload.doc.id, ...docs.payload.doc.data() }));
+		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));
 	}
 
 	callMeta(store: STORE, docId: string) {
