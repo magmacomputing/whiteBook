@@ -5,7 +5,7 @@ export type TWhere = FireWhere | FireWhere[];
 /** Query.where */
 export interface FireWhere {
 	fieldPath: string | firebase.firestore.FieldPath;
-	opStr?: firebase.firestore.WhereFilterOp | '!=';				// this is a *special* to allow additional local operator (do not use on Cloud Firestore queries!)
+	opStr?: firebase.firestore.WhereFilterOp;
 	value: any | any[];
 }
 

@@ -3,7 +3,7 @@ import { FIELD } from '@dbase/data/data.define';
 import type { Meta } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant, Instant } from '@library/instant.library';
-import { isString, isUndefined, isArray } from '@library/type.library';
+import { isString, isUndefined, isArray, isNumber } from '@library/type.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { toLower } from '@library/string.library';
@@ -30,19 +30,27 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 		.filter((row: Record<string, any>) => {						// for each row, ...
 			return asArray(filters)													// 	apply each filter...
 				.every(clause => {														//	and return only rows that match every clause
-					const key = getPath(row, clause.fieldPath.toString()) as any;
-					const operand = clause.opStr || '==';				// default to 'equals'
-					const field = isString(key)
-						? key.toLowerCase()												// string to lowercase to aid matching
-						: isArray<any>(key) && key.every(isString)
-							? key.map(toLower)											// string[] to lowercase
-							: key
+					const key = getPath<any>(row, clause.fieldPath.toString());
+					const operand = clause.opStr ?? '==';				// default to 'equals'
+					let field: any;
+
+					switch (true) {
+						case isString(key):
+							field = key.toLowerCase();							// string to lowercase to aid matching
+							break;
+						case isArray(key) && key.every(isString):	// string[] to lowercase
+							field = key.map(toLower);
+							break;
+						default:
+							field = key;
+							break;
+					}
 
 					return (isUndefined(clause.value) ? [undefined] : asArray(clause.value))
 						.map(value => {														// each value logically OR-ed to see if at-least one match
 							const compare = toLower(value);
 
-							switch (operand) {											// standard firestore query-operators, and '!='
+							switch (operand) {											// standard firestore query-operators
 								case '==':
 								case 'in':
 									return isUndefined(field)
@@ -58,7 +66,9 @@ export const filterTable = <T>(table: T[] = [], filters: TWhere = []) => {
 									return field <= compare;
 								case 'array-contains':
 									return field.includes(compare);
-								case '!=':														// non-standard operator
+								case 'not-in':
+									return isUndefined(field) || !field.includes(compare);
+								case '!=':
 									return (isUndefined(field) && !isUndefined(compare)) || field != compare;
 								default:
 									return false;
