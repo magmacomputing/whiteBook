@@ -67,13 +67,13 @@ export const asTemplate = (templateString: string) =>
 	() =>
 		new Function('return `' + templateString + '`;')();
 
-export const asString = (str: any = '') => isString(str) ? str : (str.toString ? str.toString() : JSON.stringify(str)) as string;
-export const asNumber = (str: string | number) => isNumeric(str) ? parseInt(str.toString(), 10) : NaN;
+export const asString = (str: any = '') => isString(str) ? str.trim() : (str.toString ? str.toString() : JSON.stringify(str)) as string;
+export const asNumber = (str: string | number) => parseFloat(str.toString());
 export const padString = (str: string | number | undefined, pad = 6) => (isNumeric(str) ? str.toFixed(2).toString() : str ?? '').padStart(pad, '\u007F');
 
-export const isNumeric = (str: any): str is number => !isNaN(parseFloat(str)) && isFinite(str);
-export const toNumeric = (str: string | number, stripZero: boolean = false) =>
-	isNumeric(str) && (!str.toString().startsWith('0') || stripZero) ? parseInt(str.toString(), 10) : str;
+export const isNumeric = (str?: string | number): str is number => !isNaN(parseFloat(str as string)) && isFinite(str as number);
+export const ifNumeric = (str: string | number, stripZero: boolean = false) =>
+	isNumeric(str) && (!str.toString().startsWith('0') || stripZero) ? parseFloat(str.toString()) : str;
 
 export const toLower = (str: string) => isString(str) ? str.toLowerCase() : str;
 export const toUpper = (str: string) => isString(str) ? str.toUpperCase() : str;
