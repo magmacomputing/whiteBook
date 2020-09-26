@@ -110,6 +110,7 @@ if (!Array.prototype.hasOwnProperty('truncate')) {
 		enumerable: false,
 		writable: false,
 		value: function (base = 0) {
+			this.fill(null);
 			this.length = base;
 			return this;
 		}
