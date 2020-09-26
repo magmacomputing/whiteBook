@@ -40,7 +40,7 @@ declare global {
 		/** return mapped Array with no repeated elements */
 		distinct<S>(mapfn: (value: T, index: number, array: T[]) => S, thisArg?: any): S[];
 
-		/** Clear down an Array (default to 'empty') */
+		/** Clear down an Array (default to length=0) */
 		truncate(base?: number): T[];
 
 		/** return cartesian-product of Array of Arrays */
@@ -110,8 +110,7 @@ if (!Array.prototype.hasOwnProperty('truncate')) {
 		enumerable: false,
 		writable: false,
 		value: function (base = 0) {
-			this.fill(null);
-			this.length = base;
+			this.fill(null).length = base;
 			return this;
 		}
 	})
