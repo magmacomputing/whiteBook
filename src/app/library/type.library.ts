@@ -59,7 +59,7 @@ export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 
 export const nullToZero = (obj: number | null | undefined = null) => obj ?? 0;
 export const nullToEmpty = <T>(obj: T | null | undefined = null) => obj ?? '';
-export const nullToValue = <T>(obj: T | null | undefined = null, value: T) => obj ?? value;
+export const nullToValue = <T, R>(obj: T | null | undefined = null, value: R) => obj ?? value;
 
 export function assertCondition(condition: any, message?: string): asserts condition {
 	if (!condition)
