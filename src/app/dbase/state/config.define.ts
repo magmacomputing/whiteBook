@@ -1,4 +1,5 @@
 import { COLLECTION, STORE } from '@dbase/data/data.define';
+import { ISortOption } from '@library/array.library';
 import { TString } from '@library/type.library';
 
 /** These variables are built in ClientState snapshots */
@@ -10,17 +11,17 @@ export const SLICES: Partial<Record<COLLECTION, STORE[]>> = {};
 export const FILTER: Partial<Record<COLLECTION, TString>> = {}
 
 // STORE sort criteria
-export const SORTBY: Partial<Record<STORE, string[]>> = {};
+export const SORTBY: Partial<Record<STORE, (string | ISortOption)[]>> = {};
 
 // Comment parse criteria
 interface Pattern {
-  pat: string;                  // match pattern
-  flag?: 'g';                   // optionally global
-  repl: string;                 // replacement string
-  sort: 0 | 1;                  // phase1 / phase2
+	pat: string;                  // match pattern
+	flag?: 'g';                   // optionally global
+	repl: string;                 // replacement string
+	sort: 0 | 1;                  // phase1 / phase2
 }
 
 export const COMMENT = {
-  patterns: [] as Pattern[],   	// regular-expressesion to aid parsing Notes
-  words: [] as string[],        // words that indicate Note should be reclassified as Comment
+	patterns: [] as Pattern[],   	// regular-expressesion to aid parsing Notes
+	words: [] as string[],        // words that indicate Note should be reclassified as Comment
 }
