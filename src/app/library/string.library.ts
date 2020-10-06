@@ -81,11 +81,11 @@ export const toTitle = (str: string) => str
 	.toLowerCase()
 	.replace(/(^|\s)(\w)/g, (match, prev, letter) => prev + letter.toUpperCase())
 	.replace(/:\s*(\w)/g, letter => letter.toUpperCase())
-export const toCamel = (str: string) => {
+export const toCamel = <T extends string>(str: T) => {
 	const words = str.match(/[A-Z\xC0-\xD6\xD8-\xDE]?[a-z\xDF-\xF6\xF8-\xFF]+|[A-Z\xC0-\xD6\xD8-\xDE]+(?![a-z\xDF-\xF6\xF8-\xFF])|\d+/g);
 	return words === null
 		? null
-		: words[0].toLowerCase() + words.slice(1).map(toTitle).join('');
+		: words[0].toLowerCase() + words.slice(1).map(toTitle).join('') as T;
 }
 
 type StrLen<Min, Max = Min> = string & { __value__: never };
