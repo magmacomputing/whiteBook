@@ -14,26 +14,6 @@ export const getType = (obj?: any): string => {
 	}
 }
 
-export const isEmpty = <T>(obj: T | Iterable<T>) => {
-	switch (getType(obj)) {
-		case 'Object':
-		case 'String':
-			return Object.keys(obj).length === 0;
-
-		case 'Array':
-		case 'Set':
-		case 'Map':
-			return Array.from(obj as Iterable<T>).length === 0;
-
-		case 'Null':
-		case 'Undefined':
-			return true;
-
-		default:
-			return false;
-	}
-}
-
 export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, })
 export const isType = (obj: unknown, type: string = 'Object'): boolean => getType(obj).toLowerCase() === type.toLowerCase();
 
@@ -57,9 +37,18 @@ export const isClass = (obj?: unknown): obj is Function => isType(obj, 'Class');
 export const isPromise = <T>(obj?: unknown): obj is Promise<T> => isType(obj, 'Promise');
 export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 
-export const nullToZero = (obj: number | null | undefined = null) => obj ?? 0;
-export const nullToEmpty = <T>(obj: T | null | undefined = null) => obj ?? '';
-export const nullToValue = <T, R>(obj: T | null | undefined = null, value: R) => obj ?? value;
+export const nullToZero = (obj: number | undefined | null) => obj ?? 0;
+export const nullToEmpty = <T>(obj: T | undefined | null) => obj ?? '';
+export const nullToValue = <T, R>(obj: T | undefined | null, value: R) => obj ?? value;
+
+export const isEmpty = <T>(obj?: T | Iterable<T>) =>
+	isNull(obj)
+	|| isUndefined(obj)
+	|| (isString(obj) && obj.trim() === '')
+	|| (isObject(obj) && Object.keys(obj).length === 0)
+	|| (isArray(obj) && obj.length === 0)
+	|| (getType(obj) === 'Set' && (obj as Set<T>).size === 0)
+	|| (getType(obj) === 'Map' && (obj as Map<string, T>).size === 0)
 
 export function assertCondition(condition: any, message?: string): asserts condition {
 	if (!condition)

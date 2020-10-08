@@ -87,7 +87,7 @@ if (!Array.prototype.hasOwnProperty('orderBy')) {
 		value: function (...keys: (string | string[] | ISortOption | ISortOption[])[]) {
 			const sortOptions = keys
 				.flat()																										// flatten array-of-array
-				.map(key => isString(key) ? { field: key } : key)					// build array of sort-options
+				.map(key => isString(key) ? { field: key } : key)					// re-write as SortOption object
 
 			return (a: Record<string, any>, b: Record<string, any>) => {
 				let result = 0;
