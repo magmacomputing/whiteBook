@@ -297,7 +297,7 @@ export class AttendService {
 
 		// build a linked-list of Payments
 		payments
-			.orderBy(`-${FIELD.stamp}`, FIELD.type)
+			.orderBy({ field: FIELD.stamp, dir: 'desc' }, FIELD.type)
 			.forEach((payment, idx, arr) => {
 				payment.chain = {
 					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,

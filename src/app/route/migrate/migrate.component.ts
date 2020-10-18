@@ -386,7 +386,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		])
 		this.migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
-		const start = attend.orderBy('-track.date');		// attendance, by descending date
+		const start = attend.orderBy({ field: 'track.date', dir: 'desc' });		// attendance, by descending date
 		const preprocess = cloneObj(table);
 
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
@@ -677,7 +677,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const closed = active[0] && active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
-		active.orderBy('-' + FIELD.stamp);
+		active.orderBy({ field: FIELD.stamp, dir: 'desc' });
 		if (active[0][FIELD.type] === PAYMENT.debit && active[0].approve && !active[0][FIELD.expire]) {
 			const test1 = active[0].expiry && active[0].expiry < getStamp();
 			const test2 = summary.pend < 0;			// closed account

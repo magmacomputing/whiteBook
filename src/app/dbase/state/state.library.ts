@@ -115,8 +115,8 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(store === STORE.attend
-					? getStore<TStoreBase>(states, store, filters, date)
-					: getCurrent<TStoreBase>(states, store, filters, date)
+					? [getStore<TStoreBase>(states, store, filters, date)]
+					: [getCurrent<TStoreBase>(states, store, filters, date)]
 				);
 			}),
 

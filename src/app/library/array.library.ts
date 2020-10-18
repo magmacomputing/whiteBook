@@ -21,11 +21,6 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-export interface ISortOption {
-	field: string;
-	default?: any;
-	dir?: 'asc' | 'desc';
-}
 declare global {
 	interface Array<T> {
 		/** return reduced object[] as {key: object, ...} */
@@ -79,6 +74,11 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 	})
 }
 
+export interface ISortOption {
+	field: string;
+	default?: any;
+	dir?: 'asc' | 'desc';
+}
 if (!Array.prototype.hasOwnProperty('orderBy')) {
 	const obj = {
 		configurable: false,
