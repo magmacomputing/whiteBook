@@ -25,13 +25,12 @@ import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from 
 export const getCurrent = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant, segment?: string) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<StoreMeta>;
-
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
 		map(state => asAt<T>(state[segment || store], filter, date)),
-		map(table => table.sortBy(...asArray(SORTBY[store])))
+		map(table => table.sortBy(asArray(SORTBY[store])))
 	)
 }
 
@@ -45,7 +44,6 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		return getState<T>(states, store, filter, date);
 
 	const state: Observable<TStateSlice<T>> = states[slice] as any;
-
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
@@ -53,12 +51,11 @@ export const getStore = <T>(states: IState, store: STORE, filter: TWhere = [], d
 		map(obs => isUndefined(date)
 			? filterTable<T>(obs[store], filter)
 			: asAt<T>(obs[store], filter, date)),
-		map(table => table.sortBy(...asArray(SORTBY[store]))),
+		map(table => table.sortBy(asArray(SORTBY[store]))),
 	)
 }
 export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], date?: TInstant) => {
 	const state: Observable<TStateSlice<T>> = states[store] as any;
-
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
@@ -66,7 +63,7 @@ export const getState = <T>(states: IState, store: STORE, filter: TWhere = [], d
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
 		map(table => isUndefined(date) ? filterTable<T>(table, filter) : asAt<T>(table, filter, date)),
-		map(table => table.sortBy(...asArray(SORTBY[store]))),
+		map(table => table.sortBy(asArray(SORTBY[store]))),
 	)
 }
 
@@ -151,7 +148,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
 					if (isArray(joins[table]) && joins[table].length) {
 						const store = joins[table][0][FIELD.store];
-						joins[table] = joins[table].sortBy(...asArray(SORTBY[store]));
+						joins[table] = joins[table].sortBy(asArray(SORTBY[store]));
 					}
 				})
 

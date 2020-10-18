@@ -1,7 +1,6 @@
 import { NgModule, Injector } from '@angular/core';
 import { BrowserModule, HammerModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ServiceWorkerModule } from '@angular/service-worker';
 
 import { RoutingModule } from '@route/router/route.module';
 import { DBaseModule } from '@dbase/dbase.module';
@@ -25,7 +24,6 @@ import { environment } from '../environments/environment';
 	imports: [
 		NgxsModule.forRoot([], { developmentMode: !environment.production }),
 		NgxsStoragePluginModule.forRoot({ key: Sync.storeStorage }),
-		// ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production }),
 		BrowserModule,
 		HammerModule,
 		DBaseModule,

@@ -15,7 +15,7 @@ export const environment = {
 			messagingSenderId: "919087826501",
 			vapId: "BPYmYiHe66sCBPntd1hrG1-b7cEDSPqzGr_ULlSD55qhy1eS_Cw7Sm-8Sri7BXYPPDGkoXqhQprathL7k7HQVNQ",
 		},
-		prod: {
+		prodBkp: {
 			apiKey: "AIzaSyCYo4FvLtznrNtM-I73vzBjTSuyVXebqVI",
 			authDomain: "whitefire-51840.firebaseapp.com",
 			databaseURL: "https://whitefire-51840.firebaseio.com",
@@ -24,6 +24,15 @@ export const environment = {
 			messagingSenderId: "241706183908",
 			appId: "1:241706183908:web:2e684f93d2af915e",
 			vapId: "BE6LYLfHnJUJXHXNuNPlNoEntZheAtqcyV-n2GYMCrdrtODf41vlVefVPmltvRfHuvwTE_4l9fLfy8W0baPikZA",
+		},
+		prod: {
+			apiKey: "AIzaSyDI0GQ9iQ8huy_rr7RmCIAzwTb6s2dRa38",
+			authDomain: "whitefire-51840.firebaseapp.com",
+			databaseURL: "https://whitefire-51840.firebaseio.com",
+			projectId: "whitefire-51840",
+			storageBucket: "whitefire-51840.appspot.com",
+			messagingSenderId: "241706183908",
+			appId: "1:241706183908:web:2e684f93d2af915e"
 		},
 
 		config: {

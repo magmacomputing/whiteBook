@@ -2,7 +2,7 @@ import { isIterable, isNullish, isNumber, isBoolean, isString, nullToValue } fro
 import { asString } from './string.library';
 import { getPath } from './object.library';
 
-export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? [...arr] : (isNullish(arr) || (arr as unknown as string) === '' ? [] : [arr]);
+export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? Array.from(arr) : (isNullish(arr) || (arr as unknown as string) === '' ? [] : [arr]);
 
 // insert a value into an array by its sorted position
 export const sortInsert = <T>(arr: T[], val: T) => {
@@ -20,6 +20,32 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 	return clone;
 }
 
+// return a function, which sorts an array by a set of keys
+export function sortKeys(...keys: (string | string[] | ISortOption | ISortOption[])[]) {
+	const sortOptions = keys
+		.flat()																										// flatten array-of-array
+		.map(key => isString(key) ? { field: key } : key)					// build array of sort-options
+
+	return (a: Record<string, any>, b: Record<string, any>) => {
+		let result = 0;
+
+		sortOptions.forEach(key => {
+			if (result === 0) {																			// stop looking if result != 0
+				const dir = key.dir === 'desc' ? -1 : 1;
+				const valueA = getPath(a, key.field, nullToValue(key.default, 0));
+				const valueB = getPath(b, key.field, nullToValue(key.default, 0));
+
+				result = isNumber(valueA) && isNumber(valueB)
+					? dir * (valueA - valueB)
+					: dir * asString(valueA)?.localeCompare(asString(valueB));
+			}
+		})
+
+		return result;
+	}
+}
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 declare global {
 	interface Array<T> {
@@ -32,8 +58,10 @@ declare global {
 		groupBy(flatten: false, ...keys: string[]): Record<string, T[]>;
 
 		/** return sorted Array-of-objects */
-		orderBy(...keys: (string | string[] | ISortOption | ISortOption[])[]): T[];
-		sortBy(...keys: (string | string[] | ISortOption | ISortOption[])[]): T[];
+		orderBy(keys: (string | ISortOption)[]): T[];
+		orderBy(...keys: (string | ISortOption)[]): T[];
+		sortBy(keys: (string | ISortOption)[]): T[];
+		sortBy(...keys: (string | ISortOption)[]): T[];
 
 		/** return new Array with no repeated elements */
 		distinct(): T[];
@@ -84,28 +112,8 @@ if (!Array.prototype.hasOwnProperty('orderBy')) {
 		configurable: false,
 		enumerable: false,
 		writable: false,
-		value: function (...keys: (string | string[] | ISortOption | ISortOption[])[]) {
-			const sortOptions = keys
-				.flat()																										// flatten array-of-array
-				.map(key => isString(key) ? { field: key } : key)					// re-write as SortOption object
-
-			return (a: Record<string, any>, b: Record<string, any>) => {
-				let result = 0;
-
-				sortOptions.forEach(key => {
-					if (result === 0) {																			// stop looking if result != 0
-						const dir = key.dir === 'desc' ? -1 : 1;
-						const valueA = getPath(a, key.field, nullToValue(key.default, 0));
-						const valueB = getPath(b, key.field, nullToValue(key.default, 0));
-
-						result = isNumber(valueA) && isNumber(valueB)
-							? dir * (valueA - valueB)
-							: dir * asString(valueA).localeCompare(asString(valueB));
-					}
-				})
-
-				return result;
-			}
+		value: function (...keys: any[]) {
+			return this.sort(sortKeys(...keys));
 		}
 	} as PropertyDescriptor & ThisType<any[]>
 	Object.defineProperty(Array.prototype, 'orderBy', obj);

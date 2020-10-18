@@ -14,18 +14,18 @@ import { AdminState } from '@dbase/state/admin.state';
 
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
 
-const fb = environment.firebase || {};
+const fire = environment.firebase || {};
 
 @NgModule({
 	imports: [
 		CommonModule,
 		NgxsModule.forFeature([ClientState, MemberState, AttendState, AdminState]),
-		AngularFireModule.initializeApp(fb.prod, fb.config),
+		AngularFireModule.initializeApp(fire.prod, fire.config),
 		AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
 		AngularFireFunctionsModule,
 	],
 	providers: [
-		{ provide: REGION, useValue: fb.config.region },
+		{ provide: REGION, useValue: fire.config.region },
 	],
 	declarations: [InfoSnackBar, WarnSnackBar, ErrorSnackBar],
 })
