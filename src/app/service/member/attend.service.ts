@@ -4,7 +4,7 @@ import { take } from 'rxjs/operators';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { TWhere } from '@dbase/fire/fire.interface';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 import { StateService } from '@dbase/state/state.service';
 import { AttendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';

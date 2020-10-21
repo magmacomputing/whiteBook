@@ -21,7 +21,7 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 }
 
 // return a function, which sorts an array by a set of keys
-export function sortKeys(...keys: (string | string[] | ISortOption | ISortOption[])[]) {
+export function sortBy(...keys: (string | string[] | ISortOption | ISortOption[])[]) {
 	const sortOptions = keys
 		.flat()																										// flatten array-of-array
 		.map(key => isString(key) ? { field: key } : key)					// build array of sort-options
@@ -113,7 +113,7 @@ if (!Array.prototype.hasOwnProperty('orderBy')) {
 		enumerable: false,
 		writable: false,
 		value: function (...keys: any[]) {
-			return this.sort(sortKeys(...keys));
+			return this.sort(sortBy(...keys));
 		}
 	} as PropertyDescriptor & ThisType<any[]>
 	Object.defineProperty(Array.prototype, 'orderBy', obj);

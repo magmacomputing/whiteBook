@@ -1,5 +1,4 @@
-import { FireService } from '@dbase/fire/fire.service';
-import { addWhere } from '@dbase/fire/fire.library';
+import { FireService , addWhere} from '@dbase/fire/fire.service';
 import type { TWhere } from '@dbase/fire/fire.interface';
 
 import type { TStoreBase, StoreMeta, ClientBase } from '@dbase/data/data.schema';

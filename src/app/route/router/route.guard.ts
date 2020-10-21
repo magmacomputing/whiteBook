@@ -7,7 +7,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
 import { AuthModule } from '@service/auth/auth.module';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 import { LState } from '@dbase/state/state.define';
 import { Sync } from '@dbase/sync/sync.define';
 import { FIELD, STORE } from '@dbase/data/data.define';

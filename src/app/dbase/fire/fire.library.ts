@@ -1,5 +1,6 @@
-import { Query, FieldPath, QueryFn } from '@angular/fire/firestore';
-import { FireQuery, FireWhere, FireOrderBy } from '@dbase/fire/fire.interface';
+import { Query, QueryFn } from '@angular/fire/firestore';
+import { FireQuery } from '@dbase/fire/fire.interface';
+import { addWhere } from './fire.service';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
@@ -17,7 +18,7 @@ export const fnQuery = (query: FireQuery = {}) => {
 			(colRef: Query) => {															// map a Query-function
 				if (split.where)
 					asArray(split.where)
-						.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value, not supported
+						.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value; not supported
 						.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || '==') as firebase.firestore.WhereFilterOp, where.value));
 
 				if (split.orderBy)
@@ -83,11 +84,3 @@ const splitQuery = (query: FireQuery = {}) => {
 
 	return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query
 }
-
-/** Make a 'where' clause */
-export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: FireWhere["opStr"]) =>
-	({ fieldPath, opStr: opStr ?? (isArray(value) ? 'in' : '=='), value } as FireWhere);
-
-/** Make an 'orderBy' clause */
-export const addOrder = (fieldPath: string | FieldPath, order: FireOrderBy["directionStr"] = 'asc') =>
-	({ fieldPath, order } as FireOrderBy);

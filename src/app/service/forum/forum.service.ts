@@ -5,7 +5,7 @@ import { React, StoreMeta, Comment, TStoreBase } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 
 import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 
 import { Instant, getDate } from '@library/instant.library';
 

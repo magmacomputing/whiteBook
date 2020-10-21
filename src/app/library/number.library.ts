@@ -1,5 +1,5 @@
-import { asString, isNumeric } from '@library/string.library';
 import { asArray } from '@library/array.library';
+import { asString, isNumeric } from '@library/string.library';
 import { TNumber, isUndefined } from '@library/type.library';
 
 export const toHex = (num: TNumber = [], len: number = 64) => {

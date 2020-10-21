@@ -2,7 +2,7 @@ import { Observable, defer, combineLatest } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 import { FireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';

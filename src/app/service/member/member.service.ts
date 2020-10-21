@@ -8,7 +8,7 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { asAt } from '@library/app.library';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { ProfilePlan, Payment, ProfileInfo, Class, StoreMeta, StatusAccount, Price } from '@dbase/data/data.schema';

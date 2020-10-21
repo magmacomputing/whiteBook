@@ -19,7 +19,7 @@ import { AccountState, AdminState } from '@dbase/state/state.define';
 import { MemberAction } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
 import { Sync } from '@dbase/sync/sync.define';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 import { TWhere } from '@dbase/fire/fire.interface';
 
 import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';

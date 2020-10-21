@@ -18,7 +18,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { Register } from '@dbase/data/data.schema';
-import { addWhere } from '@dbase/fire/fire.library';
+import { addWhere } from '@dbase/fire/fire.service';
 import { FireQuery } from '@dbase/fire/fire.interface';
 
 import { Storage, prompt } from '@library/browser.library';
@@ -220,9 +220,9 @@ export class AuthState {
 				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this._memberSubject.complete())
 				.then(_ => this.isAdmin())
-				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend" or "/zoom"
+				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend" or "/admin"
 					if (['/', `/${ROUTE.login}`].includes(this.navigate.url))
-						this.navigate.route(isAdmin ? ROUTE.zoom : ROUTE.attend)
+						this.navigate.route(isAdmin ? ROUTE.admin : ROUTE.attend)
 				})
 		}
 	}
