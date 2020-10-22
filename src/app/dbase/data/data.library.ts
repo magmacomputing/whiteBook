@@ -1,4 +1,5 @@
-import { FireService , addWhere} from '@dbase/fire/fire.service';
+import { FireService } from '@dbase/fire/fire.service';
+import { fire } from '@dbase/fire/fire.library';
 import type { TWhere } from '@dbase/fire/fire.interface';
 
 import type { TStoreBase, StoreMeta, ClientBase } from '@dbase/data/data.schema';
@@ -23,13 +24,13 @@ export const getWhere = (nextDoc: StoreMeta, filter: TWhere = []) => {
 
 	asArray(filters).forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
-			where.push(addWhere(field, getPath(nextDoc, field)));
+			where.push(fire.addWhere(field, getPath(nextDoc, field)));
 		else throw new Error(`missing required field: ${field}`)
 	})
 
 	asArray(filter).forEach(clause => {           // add any additional match-criteria
 		if (getPath(nextDoc, clause.fieldPath as string))
-			where.push(addWhere(clause.fieldPath, clause.value, clause.opStr))
+			where.push(fire.addWhere(clause.fieldPath, clause.value, clause.opStr))
 	})
 
 	return where;

@@ -59,6 +59,7 @@ export function assertNever(val: never): asserts val is never { throw new Error(
 
 export type TString = string | string[];
 export type TNumber = number | number[];
+export type valueOf<T> = T[keyof T];
 
 /**
 const getType = (obj) => {

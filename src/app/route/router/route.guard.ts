@@ -7,7 +7,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
 import { AuthModule } from '@service/auth/auth.module';
-import { addWhere } from '@dbase/fire/fire.service';
+import { fire } from '@dbase/fire/fire.library';
 import { LState } from '@dbase/state/state.define';
 import { Sync } from '@dbase/sync/sync.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
@@ -45,7 +45,7 @@ export class ProfileGuard implements CanActivate {
 	async canActivate() {
 		const localState = new Storage('local').get<LState>(Sync.storeStorage, {});
 		const profile = getPath<ProfilePlan[]>(localState, 'member.profile') || [];
-		const planProfile = asAt(profile, addWhere(FIELD.type, STORE.plan));
+		const planProfile = asAt(profile, fire.addWhere(FIELD.type, STORE.plan));
 		if (getPath<string>(planProfile[0], STORE.plan))
 			return true;															// found a current 'plan' in localStorage
 

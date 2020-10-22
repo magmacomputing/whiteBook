@@ -18,7 +18,7 @@ import { Auth } from '@dbase/data/data.define';
 import { getPath } from '@library/object.library';
 
 const toLogin = () => redirectUnauthorizedTo([ROUTE.login]);
-const toAttend = () => redirectLoggedInTo([ROUTE.zoom, ROUTE.attend]);
+const toAttend = () => redirectLoggedInTo([ROUTE.attend, ROUTE.zoom]);
 const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)));
 
 const routes: Routes = [
@@ -33,8 +33,8 @@ const routes: Routes = [
 	{ path: ROUTE.forum, loadChildren: () => import('@route/forum/forum.module').then(m => m.ForumModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
 	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
 
-	{ path: '**', redirectTo: ROUTE.zoom, pathMatch: 'full' },
-];
+	{ path: '**', redirectTo: ROUTE.attend, pathMatch: 'full' },
+]
 
 @NgModule({
 	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes),],

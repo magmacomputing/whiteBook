@@ -3,28 +3,24 @@ import { firestore } from 'firebase/app';
 import { Observable, combineLatest, merge, concat } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
-import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction, FieldPath } from '@angular/fire/firestore';
+import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { UserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
-import { FireQuery, DocMeta, FireWhere, FireOrderBy } from '@dbase/fire/fire.interface';
+import { FireQuery, DocMeta } from '@dbase/fire/fire.interface';
 import { StoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 import { fnQuery } from '@dbase/fire/fire.library';
 
-import { isArray, isUndefined } from '@library/type.library';
+import { isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
-
-/** Make an 'orderBy' clause */
-// export const addOrder = (fieldPath: string | FieldPath, order: FireOrderBy["directionStr"] = 'asc') =>
-// 	({ fieldPath, order } as FireOrderBy);
 
 /**
  * This private service will communicate with the FireStore database,
@@ -38,14 +34,6 @@ export class FireService {
 		private zone: NgZone, private snack: SnackService) {
 		this.dbg('new');
 	}
-
-	static addWhere(fieldPath: string | FieldPath, value: any, opStr?: FireWhere["opStr"]): FireWhere {
-		const operator = isArray(value) ? 'in' : '==';
-		return { fieldPath, opStr: opStr ?? operator, value };
-	}
-
-	static addOrder = (fieldPath: string | FieldPath, directionStr: FireOrderBy["directionStr"] = 'asc'): FireOrderBy =>
-		({ fieldPath, directionStr });
 
 	/**
 	 * return Collection References (limited by an optional query).  
@@ -237,7 +225,3 @@ export class FireService {
 			.toPromise<T>()
 	}
 }
-
-/** shortcuts to FireService static properties */
-export const addWhere = FireService.addWhere;
-export const addOrder = FireService.addOrder;

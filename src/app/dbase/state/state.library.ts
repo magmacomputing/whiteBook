@@ -2,7 +2,7 @@ import { Observable, defer, combineLatest } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 import { TWhere } from '@dbase/fire/fire.interface';
-import { addWhere } from '@dbase/fire/fire.service';
+import { fire } from '@dbase/fire/fire.library';
 import { FireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
@@ -253,8 +253,8 @@ export const calendarDay = (source: TimetableState) => {
 }
 
 const lookupIcon = (source: any, key: string) => {
-	const dflt = firstRow<Default>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon))[FIELD.key];
-	return firstRow<Icon>(source.client.icon, addWhere(FIELD.key, [key, dflt])).image
+	const dflt = firstRow<Default>(source.application[STORE.default], fire.addWhere(FIELD.type, STORE.icon))[FIELD.key];
+	return firstRow<Icon>(source.client.icon, fire.addWhere(FIELD.key, [key, dflt])).image
 };
 
 /** Assemble a Provider-view */
@@ -273,14 +273,14 @@ export const buildProvider = (source: ProviderState) => {
 export const buildPlan = (source: PlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
 	const isAdmin = roles && roles.includes(Auth.ROLE.admin);
-	const myPlan = firstRow<ProfilePlan>(source.member.plan, addWhere(FIELD.type, STORE.plan));
-	const myTopUp = firstRow<Price>(source.client.price, addWhere(FIELD.type, PRICE.topUp));
+	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.type, STORE.plan));
+	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.type, PRICE.topUp));
 	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<Price>(source.client.price, [
-			addWhere(FIELD.key, plan[FIELD.key]),
-			addWhere(FIELD.type, PRICE.topUp),
+			fire.addWhere(FIELD.key, plan[FIELD.key]),
+			fire.addWhere(FIELD.type, PRICE.topUp),
 		])
 
 		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
@@ -326,8 +326,8 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
 	const attendToday = source[COLLECTION.attend].attendToday;
-	const icon = firstRow<Default>(source.application[STORE.default], addWhere(FIELD.type, STORE.icon));
-	const locn = firstRow<Default>(source.application[STORE.default], addWhere(FIELD.type, STORE.location));
+	const icon = firstRow<Default>(source.application[STORE.default], fire.addWhere(FIELD.type, STORE.icon));
+	const locn = firstRow<Default>(source.application[STORE.default], fire.addWhere(FIELD.type, STORE.location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
 	/**
@@ -335,7 +335,7 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 	 * assume a Calendar's location overrides the usual Schedule at the location.
 	 */
 	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
-		const eventList = firstRow<Event>(events, addWhere(FIELD.key, calendarDoc[FIELD.type]));
+		const eventList = firstRow<Event>(events, fire.addWhere(FIELD.key, calendarDoc[FIELD.type]));
 		let offset = 0;															// start-time offset
 
 		if (!calendarDoc.location)
@@ -344,14 +344,14 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
 		asArray(eventList.agenda).forEach(className => {
-			const classDoc = firstRow<Class>(classes, addWhere(FIELD.key, className));
+			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.key, className));
 			const spanClass = firstRow<Span>(spans, [
-				addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
-				addWhere(FIELD.type, STORE.event),
+				fire.addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
+				fire.addWhere(FIELD.type, STORE.event),
 			])
 			const span = firstRow<Span>(spans, [
-				addWhere(FIELD.key, classDoc[FIELD.type]),// is there a span keyed by the type ('full'/'half') of the Class?
-				addWhere(FIELD.type, STORE.event),
+				fire.addWhere(FIELD.key, classDoc[FIELD.type]),// is there a span keyed by the type ('full'/'half') of the Class?
+				fire.addWhere(FIELD.type, STORE.event),
 			])
 			const duration = spanClass.duration ?? span.duration;
 			const time: Partial<Schedule> = {
@@ -363,7 +363,7 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 				start: getDate(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
-				image: firstRow<Icon>(icons, addWhere(FIELD.key, className)).image || icon[FIELD.key],
+				image: firstRow<Icon>(icons, fire.addWhere(FIELD.key, className)).image || icon[FIELD.key],
 			}
 
 			offset += duration;												// update offset to next class start-time
@@ -380,10 +380,10 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 
 	source.client.schedule = times
 		.map(time => {
-			const classDoc = firstRow<Class>(classes, addWhere(FIELD.key, time[FIELD.key]));
+			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.key, time[FIELD.key]));
 			const bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
 			time.bonus = isEmpty(bonus) ? undefined : bonus;
-			time.price = firstRow<Price>(prices, addWhere(FIELD.type, classDoc[FIELD.type]));
+			time.price = firstRow<Price>(prices, fire.addWhere(FIELD.type, classDoc[FIELD.type]));
 			time.amount = isUndefined(time.bonus?.[FIELD.id])	// no Bonus for this class
 				? time.price.amount
 				: nullToZero(time.bonus?.amount)								// a specific-amount, else $0
@@ -392,8 +392,8 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 
 			if (!time[FIELD.image])											// if no schedule-specific icon, use class icon, else default icon
 				time[FIELD.image] =
-					firstRow<Icon>(icons, addWhere(FIELD.key, classDoc[FIELD.key])).image ||
-					firstRow<Icon>(icons, addWhere(FIELD.key, icon[FIELD.key])).image
+					firstRow<Icon>(icons, fire.addWhere(FIELD.key, classDoc[FIELD.key])).image ||
+					firstRow<Icon>(icons, fire.addWhere(FIELD.key, icon[FIELD.key])).image
 
 			if (!time.location)
 				time.location = locn[FIELD.key];					// ensure a default location exists

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
-import { addWhere, addOrder } from '@dbase/fire/fire.service';
+import { fire } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
 import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
@@ -100,9 +100,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<ZoomEvent<TStarted>>(COLLECTION.zoom, {
 						where: [
-							addWhere(FIELD.type, Zoom.EVENT.started),
-							addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
-							addWhere('hook', 0),
+							fire.addWhere(FIELD.type, Zoom.EVENT.started),
+							fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
+							fire.addWhere('hook', 0),
 						]
 					})
 				),
@@ -110,10 +110,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				mergeMap(track => {														// merge all documents per meeting.started event
 					return this.data.getLive<ZoomEvent<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
 						where: [
-							addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
-							addWhere('hook', 0),
+							fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
+							fire.addWhere('hook', 0),
 						],
-						orderBy: addOrder(FIELD.stamp),						// order by timestamp
+						orderBy: fire.addOrder(FIELD.stamp),						// order by timestamp
 					})
 				}
 				),
@@ -234,13 +234,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			return;
 
 		const where: TWhere = [
-			addWhere(FIELD.type, Zoom.EVENT.joined),
-			addWhere('white.alias', white.alias),
-			addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
+			fire.addWhere(FIELD.type, Zoom.EVENT.joined),
+			fire.addWhere('white.alias', white.alias),
+			fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
 		const [join, imports] = await Promise.all([
 			this.data.getLive<ZoomEvent<TJoined>>(COLLECTION.zoom, { where }),
-			this.state.getSingle<Import>(STORE.import, addWhere(FIELD.uid, white.alias))
+			this.state.getSingle<Import>(STORE.import, fire.addWhere(FIELD.uid, white.alias))
 		])
 
 		const image = imports.picture;

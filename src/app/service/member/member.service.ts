@@ -8,7 +8,7 @@ import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { asAt } from '@library/app.library';
-import { addWhere } from '@dbase/fire/fire.service';
+import { fire } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
 import { ProfilePlan, Payment, ProfileInfo, Class, StoreMeta, StatusAccount, Price } from '@dbase/data/data.schema';
@@ -80,8 +80,8 @@ export class MemberService {
 
 	private async upgradePlan(plan: ProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<Price>(STORE.price, [
-			addWhere(FIELD.type, PRICE.topUp),
-			addWhere(FIELD.key, plan.bump),
+			fire.addWhere(FIELD.type, PRICE.topUp),
+			fire.addWhere(FIELD.key, plan.bump),
 		], getStamp(stamp))
 		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
 
@@ -107,7 +107,7 @@ export class MemberService {
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<StatusAccount>(STORE.status, [addWhere(FIELD.uid, uid), addWhere(FIELD.type, STATUS.account)]),
+			this.data.getStore<StatusAccount>(STORE.status, [fire.addWhere(FIELD.uid, uid), fire.addWhere(FIELD.type, STATUS.account)]),
 		]);
 		const accountDoc: Partial<StatusAccount> = !doc.length
 			? {																// scaffold a new Account doc
@@ -142,7 +142,7 @@ export class MemberService {
 	getEventPrice = async (event: string, data?: AccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
-		const classDoc = await this.state.getSingle<Class>(STORE.class, addWhere(FIELD.key, event));
+		const classDoc = await this.state.getSingle<Class>(STORE.class, fire.addWhere(FIELD.key, event));
 
 		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
 			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
@@ -170,7 +170,7 @@ export class MemberService {
 			[FIELD.uid]: uid || (await this.data.getActiveID()),
 			[PROFILE.info]: { ...memberInfo },						// spread the conformed member info
 		}
-		const where = addWhere(`${PROFILE.info}.providerId`, info.providerId);
+		const where = fire.addWhere(`${PROFILE.info}.providerId`, info.providerId);
 
 		this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.info);
 	}

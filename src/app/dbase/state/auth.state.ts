@@ -18,7 +18,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { Register } from '@dbase/data/data.schema';
-import { addWhere } from '@dbase/fire/fire.service';
+import { fire } from '@dbase/fire/fire.library';
 import { FireQuery } from '@dbase/fire/fire.interface';
 
 import { Storage, prompt } from '@library/browser.library';
@@ -211,7 +211,7 @@ export class AuthState {
 	/** Events */
 	@Action(LoginEvent.Success)														// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
-		const query: FireQuery = { where: addWhere(FIELD.uid, user.uid) };
+		const query: FireQuery = { where: fire.addWhere(FIELD.uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;
 
 		if (currUser) {
@@ -271,7 +271,7 @@ export class AuthState {
 			this.sync.off(COLLECTION.member);						// unsubscribe from /member
 			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend
 
-			const where = addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
+			const where = fire.addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
 			this.sync.on(COLLECTION.member, { where });	// re-subscribe to /member, with supplied UIDs
 			this.sync.on(COLLECTION.attend, { where });	// re-subscribe to /attend, with supplied UIDs
 		}
@@ -303,7 +303,7 @@ export class AuthState {
 
 			if (roles.includes(Auth.ROLE.admin)) {
 				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one stream
-					[COLLECTION.member, { where: addWhere(FIELD.store, STORE.status) }]);
+					[COLLECTION.member, { where: fire.addWhere(FIELD.store, STORE.status) }]);
 			} else {
 				this.sync.off(COLLECTION.admin);
 				this.navigate.route(ROUTE.attend);

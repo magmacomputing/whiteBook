@@ -1,6 +1,5 @@
-import { Query, QueryFn } from '@angular/fire/firestore';
-import { FireQuery } from '@dbase/fire/fire.interface';
-import { addWhere } from './fire.service';
+import { FieldPath, Query, QueryFn } from '@angular/fire/firestore';
+import { FireOrderBy, FireQuery, FireWhere } from '@dbase/fire/fire.interface';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
@@ -65,7 +64,7 @@ const splitQuery = (query: FireQuery = {}) => {
 				? asArray(where)
 				: asArray(where.value)									// for each 'value'
 					.distinct()														// remove duplicates
-					.map(value => addWhere(where.fieldPath, value, where.opStr))
+					.map(value => fire.addWhere(where.fieldPath, value, where.opStr))
 		})
 		.cartesian();																// cartesian product of IWhere array
 
@@ -83,4 +82,16 @@ const splitQuery = (query: FireQuery = {}) => {
 		)
 
 	return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query
+}
+
+/** shortcuts to FireService static properties */
+export namespace fire {
+
+	export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: FireWhere["opStr"]): FireWhere => {
+		const operator = isArray(value) ? 'in' : '==';
+		return { fieldPath, opStr: opStr ?? operator, value };
+	}
+
+	export const addOrder = (fieldPath: string | FieldPath, directionStr: FireOrderBy["directionStr"] = 'asc'): FireOrderBy =>
+		({ fieldPath, directionStr });
 }
