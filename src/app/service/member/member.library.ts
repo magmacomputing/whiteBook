@@ -5,7 +5,7 @@ import { ProfileInfo, MemberInfo, Payment } from '@dbase/data/data.schema';
 import { isString, isNumber, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
-import { getStamp, getDate, TInstant } from '@library/instant.library';
+import { getStamp, getInstant, TInstant } from '@library/instant.library';
 
 // Library of member-related functions
 
@@ -56,7 +56,7 @@ export const getMemberBirthDay = (info: ProfileInfo[] = []) => {
 }
 
 export const getMemberAge = (info: ProfileInfo[] = [], dt?: TInstant) =>
-	getDate(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
+	getInstant(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**
  * A Member's payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months.  
@@ -74,7 +74,7 @@ export const calcExpiry = (stamp: number, payment: Payment, client: PlanState["c
 		const offset = topUp.amount													// number of months to extend expiry-date
 			? Math.round(paid / (topUp.amount / plan.expiry)) || 1
 			: plan.expiry;																		// allow for gratis account expiry
-		return getDate(stamp)
+		return getInstant(stamp)
 			.add(offset, 'months')														// number of months to extend expiry-date
 			.add(hold, 'days')																// number of days to *hold* off expiry
 			.startOf('day').ts																// set to beginning of day

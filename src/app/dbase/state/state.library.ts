@@ -14,7 +14,7 @@ import { asAt, firstRow, filterTable } from '@library/app.library';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@library/array.library';
-import { getDate, TInstant, Instant } from '@library/instant.library';
+import { getInstant, TInstant, Instant } from '@library/instant.library';
 import { getPath } from '@library/object.library';
 import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
@@ -119,10 +119,10 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 
 			map(res => {
 				if (store === STORE.calendar && !isUndefined(date)) {	// special logic to filter Calendar
-					const now = getDate(date).ts;												// because it does not generally track _effect/_expire
+					const now = getInstant(date).ts;												// because it does not generally track _effect/_expire
 					res[0] = (res[0] as Calendar[])
-						.filter(row => now < (row[FIELD.expire] || getDate(row[FIELD.key]).endOf('day').ts))
-						.filter(row => now >= (row[FIELD.effect] || getDate(row[FIELD.key]).ts))
+						.filter(row => now < (row[FIELD.expire] || getInstant(row[FIELD.key]).endOf('day').ts))
+						.filter(row => now >= (row[FIELD.effect] || getInstant(row[FIELD.key]).ts))
 				}
 
 				const nodes = node && node.split('.') || [];					// specific branch on node
@@ -247,7 +247,7 @@ export const sumAttend = (source: AccountState) => {
 export const calendarDay = (source: TimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => ({ ...row, day: getDate(row[FIELD.key]).dow }))
+			.map(row => ({ ...row, day: getInstant(row[FIELD.key]).dow }))
 	}
 	return { ...source }
 }
@@ -360,7 +360,7 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 				[FIELD.key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
-				start: getDate(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
+				start: getInstant(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.type],
 				image: firstRow<Icon>(icons, fire.addWhere(FIELD.key, className)).image || icon[FIELD.key],

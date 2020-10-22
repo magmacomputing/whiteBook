@@ -9,7 +9,7 @@ import { Track } from '@dbase/data/data.schema';
 
 import { sprintf } from '@library/string.library';
 import { fix } from '@library/number.library';
-import { getDate } from '@library/instant.library';
+import { getInstant } from '@library/instant.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -20,7 +20,7 @@ export class TrackService {
 	constructor(private fire: FireService, private auth: AuthService) { }
 
 	async write(fmt?: any, ...data: any[]) {
-		const now = getDate();
+		const now = getInstant();
 		const uid = await this.auth.current
 			.then(user => user && user.uid)
 

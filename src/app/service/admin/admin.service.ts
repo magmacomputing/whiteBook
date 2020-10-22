@@ -7,7 +7,7 @@ import { MemberService } from '@service/member/member.service';
 import { FIELD, STORE } from '@dbase/data/data.define';
 import { StoreMeta, Gift } from '@dbase/data/data.schema';
 
-import { getStamp, TInstant, getDate } from '@library/instant.library';
+import { getStamp, TInstant, getInstant } from '@library/instant.library';
 import { TString } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -50,7 +50,7 @@ export class AdminService {
 	/** Create a Gift for a Member to use in future check-ins */
 	addGift = async (uid: string, limit: number, type?: string, start?: TInstant, note?: TString, expiry?: TInstant) => {
 		return this.data.setDoc(STORE.gift, {
-			[FIELD.effect]: getDate(start).startOf('day').ts,
+			[FIELD.effect]: getInstant(start).startOf('day').ts,
 			[FIELD.store]: STORE.gift,
 			[FIELD.type]: type,
 			[FIELD.uid]: uid,

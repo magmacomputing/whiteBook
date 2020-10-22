@@ -1,4 +1,5 @@
-import { getType, isString, isUndefined } from '@library/type.library';
+import { getType, isUndefined } from './type.library';
+import { stringify, objectify } from './string.library';
 
 export class Storage {
 	#storage: globalThis.Storage;
@@ -13,15 +14,15 @@ export class Storage {
 	public get<T>(key: string, dflt: T): T;
 	public get<T>(key: string, dflt?: T) {
 		return isUndefined(dflt)
-			? this.ifObject<T>(this.#storage.getItem(key))
-			: this.ifObject<T>(this.#storage.getItem(key)) ?? dflt;
+			? objectify(this.#storage.getItem(key))
+			: objectify(this.#storage.getItem(key)) ?? dflt;
 	}
 
 	public set(key?: string, obj?: unknown, opt = { merge: true }) {
 		if (isUndefined(key))
 			return this.clear();																// synonym for 'clear'
 
-		const prev = this.get<string | any[] | {}>(key);			// needed if merge is true
+		let prev = this.get<string | any[] | {}>(key);			// needed if merge is true
 		const type = getType(obj);
 
 		switch (type) {
@@ -29,30 +30,36 @@ export class Storage {
 				return this.del(key);															// synonym for 'removeItem'
 
 			case 'Object':
+				prev = prev ?? {};
 				return this.upd(key, opt.merge
-					? Object.assign(prev ?? {}, obj)								// assume prev is Object
+					? Object.assign(prev, obj)											// assume prev is Object
 					: obj)
 
 			case 'Array':
+				prev = prev ?? [];
 				return this.upd(key, opt.merge
-					? (prev as unknown[] ?? [])											// assume prev is Array
+					? (prev as unknown[])														// assume prev is Array
 						.concat(obj)
 						.distinct()																		// remove duplicates
 					: obj)
 
 			case 'Map':
-				const map = Object.fromEntries((obj as Map<any, any>).entries());
-				return this.upd(key, opt.merge
-					? Object.assign(prev ?? {}, map)
-					: map, type)
+				prev = prev ?? new Map();
+				if (opt.merge) {
+					(obj as Map<any, any>)													// merge into prev Map
+						.forEach(([key, val]) => (prev as Map<any, any>).set(key, val));
+					return this.upd(key, prev);
+				}
+				return this.upd(key, obj);												// else overwrite new Map
 
 			case 'Set':
-				const set = Array.from((obj as Set<any>).values());
-				return this.upd(key, opt.merge
-					? (prev as unknown[] ?? [])
-						.concat(set)
-						.distinct()
-					: set, type)
+				prev = prev ?? new Set();
+				if (opt.merge) {
+					(obj as Set<any>).
+						forEach(itm => (prev as Set<any>).add(itm));	// merge into prev Set
+					return this.upd(key, prev);
+				}
+				return this.upd(key, obj);												// else overwrite new Set
 
 			default:
 				return this.upd(key, obj);
@@ -73,53 +80,16 @@ export class Storage {
 
 	public values() {
 		return Object.values(this.#storage)
-			.map(this.ifObject)
+			.map(objectify)
 	}
 
 	public entries() {
 		return Object.entries(this.#storage)
-			.map(([key, val]) => [key, this.ifObject(val)])
+			.map(([key, val]) => [key, objectify(val)])
 	}
 
-	private upd(key: string, obj: unknown, type?: ObjectConstructor["name"]) {
-		let val: string;
-
-		switch (true) {
-			case ['Object', 'Array', 'Map', 'Set'].includes(getType(obj)):
-				val = JSON.stringify(obj);
-				if (type)
-					val = `${type}:${val}`
-				break;
-
-			default:
-				val = obj as string;
-				break;
-		}
-
-		return this.#storage.setItem(key, val);
-	}
-
-	/** recreate original Object */
-	private ifObject = <T>(str: string | null) => {
-		const isObj = isString(str) && str.startsWith('{') && str.endsWith('}');
-		const isArr = isString(str) && str.startsWith('[') && str.endsWith(']');
-		const isMap = isString(str) && str.startsWith('Map:{') && str.endsWith('}');
-		const isSet = isString(str) && str.startsWith('Set:[') && str.endsWith(']');
-
-		switch (true) {
-			case isObj:
-			case isArr:
-				return JSON.parse(str as string) as T;
-
-			case isMap:
-				return new Map(Object.entries(JSON.parse((str as string)?.substring(4))));
-
-			case isSet:
-				return new Set(JSON.parse((str as string).substring(4)));
-
-			default:
-				return str;
-		}
+	private upd(key: string, obj: unknown) {
+		return this.#storage.setItem(key, stringify(obj));
 	}
 }
 

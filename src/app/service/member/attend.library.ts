@@ -2,7 +2,7 @@ import { TimetableState } from '@dbase/state/state.define';
 import { FIELD, BONUS, COLLECTION, STORE, PLAN } from '@dbase/data/data.define';
 import type { Gift, TBonus, Attend, Bonus, ProfilePlan } from '@dbase/data/data.schema';
 
-import { TInstant, getDate, Instant } from '@library/instant.library';
+import { TInstant, getInstant, Instant } from '@library/instant.library';
 import { TString, isUndefined, nullToZero } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { plural } from '@library/string.library';
@@ -15,7 +15,7 @@ import { plural } from '@library/string.library';
  * elect:		Bonus override (e.g. Member may elect to *not* use one of their Gifts)
  */
 export const calcBonus = (source: TimetableState, event: string, date?: TInstant, elect?: BONUS) => {
-	const now = getDate(date);
+	const now = getInstant(date);
 	const bonus = {} as TBonus;															// calculated Bonus entitlement
 
 	const gifts = source[COLLECTION.member][STORE.gift];		// the active Gifts for this Member

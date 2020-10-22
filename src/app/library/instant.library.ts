@@ -60,9 +60,9 @@ class Timestamp {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-/** get new Instant */export const getDate = (dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args);
-/** get timestamp */	export const getStamp = (dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).ts;
-/** format Instant */	export const fmtDate = <K extends keyof DateFmt>(fmt: K, dt?: TInstant, ...args: TArgs) => getDate(dt, ...args).format(fmt);
+/** get new Instant */export const getInstant = (dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args);
+/** format Instant */	export const fmtInstant = <K extends keyof DateFmt>(fmt: K, dt?: TInstant, ...args: TArgs) => getInstant(dt, ...args).format(fmt);
+/** get timestamp */	export const getStamp = (dt?: TInstant, ...args: TArgs) => getInstant(dt, ...args).ts;
 
 // NOTE: Instant does not currently handle leap-seconds
 

@@ -7,7 +7,7 @@ import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
 import { fire } from '@dbase/fire/fire.library';
 
-import { Instant, getDate } from '@library/instant.library';
+import { Instant, getInstant } from '@library/instant.library';
 
 @Injectable({ providedIn: 'root' })
 export class ForumService {
@@ -15,7 +15,7 @@ export class ForumService {
 	constructor(private data: DataService) { }
 
 	async setReact({ key, type = STORE.schedule, track, date, uid, react = REACT.like, }: ReactArgs) {
-		const now = getDate(date);
+		const now = getInstant(date);
 		const reactDoc = await this.getForum<React>({ store: STORE.react, key, type, date });
 
 		const creates: StoreMeta[] = [];
@@ -52,7 +52,7 @@ export class ForumService {
 
 	/** create a Forum base */
 	private async newForum<T extends Comment | React>({ store, key, type, track, date, uid }: ForumArgs) {
-		const now = getDate(date);
+		const now = getInstant(date);
 
 		const forum = {
 			[FIELD.store]: store,
@@ -74,7 +74,7 @@ export class ForumService {
 
 	// get all Forum content for a date, optionally for a named Store-type and named Store-key
 	public async getForum<T>({ store, key, type, date, uid }: Partial<ForumArgs> = {}) {
-		const now = getDate(date);
+		const now = getInstant(date);
 
 		const forumFilter = [
 			fire.addWhere(FIELD.uid, uid || await this.getUid()),

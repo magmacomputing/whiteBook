@@ -1,5 +1,6 @@
 import { format } from 'util';
-import { isString, isObject, assertCondition, assertString } from '@library/type.library';
+import { isString, isObject, assertCondition, assertString, isDate, getType } from '@library/type.library';
+import { fmtInstant, Instant } from './instant.library';
 
 // Prototype <string> extensions
 
@@ -94,4 +95,55 @@ export const strlen = <Min extends number, Max extends number>(str: unknown, min
 	assertCondition(str.length >= min && str.length <= (max ?? min), 'string length is not between specified min and max')
 
 	return str as StrLen<Min, Max>;
+}
+
+export const stringify = (obj: any) => {
+	let val = `${getType(obj)}:`;
+
+	switch (getType(obj)) {
+		case 'Object':
+		case 'Array':
+			return JSON.stringify(obj);
+
+		case 'Map':													// special treatment
+			return val += JSON.stringify(Array.from((obj as any).entries()));
+
+		case 'Set':
+			return val += JSON.stringify(Array.from((obj as any).keys()));
+
+		default:
+			return obj as string;
+	}
+}
+
+export const objectify = <T>(str: T | null) => {
+	const asString = isString(str);
+	const val = (str as unknown as string).trim();								// easier to work with trimmed string
+
+	switch (true) {
+		case asString && val.startsWith('{"') && val.endsWith('}'):
+		case asString && val.startsWith('[') && val.endsWith(']'):
+		case asString && val === '{}':
+			return JSON.parse(val) as T;
+
+		case asString && val.startsWith('Object:{"') && val.endsWith('}'):
+		case asString && val.startsWith('Array:[') && val.endsWith(']'):
+			const pos = val.indexOf(':') + 1;
+			return JSON.parse(val.substring(pos)) as T;
+
+		case asString && val.startsWith('Map:[[') && val.endsWith(']]'):
+			return new Map(JSON.parse(val?.substring(4))) as Map<any, T>;
+
+		case asString && val.startsWith('Set:["') && val.endsWith('"]'):
+			return new Set(JSON.parse(val.substring(4))) as Set<T>;
+
+		case asString:
+			return str as T;
+
+		case isDate(str):
+			return fmtInstant(Instant.FORMAT.dayTime, val) as unknown as T;
+
+		default:
+			return ifNumeric(val) as unknown as T;
+	}
 }

@@ -18,7 +18,7 @@ import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
 
-import { getDate, Instant, TInstant } from '@library/instant.library';
+import { getInstant, Instant, TInstant } from '@library/instant.library';
 import { isUndefined, isNumber, isEmpty, nullToZero } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
@@ -42,7 +42,7 @@ export class AttendService {
 		// This presumes that the <key> is from Schedule store, and not Calendar
 		if (isUndefined(date))
 			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
-		const now = getDate(date);
+		const now = getInstant(date);
 		const stamp = now.ts;
 		const when = now.format(Instant.FORMAT.yearMonthDay);
 
@@ -217,7 +217,7 @@ export class AttendService {
 	/** look back up-to seven days to find when className was last scheduled */
 	private lkpDate = async (className: string, location?: string, date?: TInstant) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
-		let now = getDate(date);																// start with date-argument
+		let now = getInstant(date);																// start with date-argument
 		let ctr = 0;
 
 		if (!location)
@@ -236,7 +236,7 @@ export class AttendService {
 		}
 
 		if (ctr >= 7)																						// cannot find className on timetable
-			now = getDate(date);																	// so default back to today's date	
+			now = getInstant(date);																	// so default back to today's date	
 
 		return now.ts;																					// timestamp
 	}

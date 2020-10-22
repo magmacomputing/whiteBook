@@ -16,7 +16,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 import { TWhere, FireQuery } from '@dbase/fire/fire.interface';
 
-import { Instant, TInstant, getDate } from '@library/instant.library';
+import { Instant, TInstant, getInstant } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -243,8 +243,8 @@ export class StateService {
 	 */
 	getForumData(date?: TInstant): Observable<ForumState> {
 		const query: FireQuery = {
-			where: fire.addWhere('track.date', getDate(date).format(Instant.FORMAT.yearMonthDay)),
-			orderBy: addOrder(FIELD.stamp),
+			where: fire.addWhere('track.date', getInstant(date).format(Instant.FORMAT.yearMonthDay)),
+			orderBy: fire.addOrder(FIELD.stamp),
 		}
 
 		return this.fire.listen<Forum>(COLLECTION.forum, query).pipe(
@@ -276,7 +276,7 @@ export class StateService {
 	 * forum			-> has an array of Forum data for the date
 	 */
 	getScheduleData(date?: TInstant, elect?: BONUS): Observable<TimetableState> {
-		const now = getDate(date);
+		const now = getInstant(date);
 		const isMine = fire.addWhere(FIELD.uid, `{{auth.current.uid}}`);
 
 		const filterSchedule = fire.addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in');
@@ -326,7 +326,7 @@ export class StateService {
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
 	getTimetableData(date?: TInstant): Observable<TimetableState> {
-		const now = getDate(date);
+		const now = getInstant(date);
 		const filterClass = fire.addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
 		const filterLocation = fire.addWhere(FIELD.key, '{{client.schedule.location}}');
 		const filterCalendar = [

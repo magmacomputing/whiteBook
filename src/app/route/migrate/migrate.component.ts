@@ -22,7 +22,7 @@ import { Sync } from '@dbase/sync/sync.define';
 import { fire } from '@dbase/fire/fire.library';
 import { TWhere } from '@dbase/fire/fire.interface';
 
-import { Instant, getDate, getStamp, fmtDate } from '@library/instant.library';
+import { Instant, getInstant, getStamp, fmtInstant } from '@library/instant.library';
 import { cloneObj, getPath } from '@library/object.library';
 import { isUndefined, isNull, isBoolean, TString, isEmpty } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
@@ -329,7 +329,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const offset = topUp.amount
 				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
 				: desc.expiry;
-			expiry = getDate(row.approved || row.stamp)
+			expiry = getInstant(row.approved || row.stamp)
 				.add(offset, 'months')
 				.add(row.hold ?? 0, 'days')
 				.startOf('day')
@@ -342,12 +342,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	// a Gift is effective from the start of day, unless there is a 'start <HH:MM>' note
 	private setGift(gift: number, start: number, note?: string) {
-		let offset = getDate(start).startOf('day').ts;
+		let offset = getInstant(start).startOf('day').ts;
 		if (note?.includes('start: ')) {
 			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
 			if (!isNull(time)) {
 				let hhmm = time[0].split(':').map(asNumber);
-				offset = getDate(start)
+				offset = getInstant(start)
 					.startOf('day')
 					.add(hhmm[0], 'hours')
 					.add(hhmm[1], 'minutes')
@@ -360,7 +360,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			let time = note.substring(note.indexOf('end: ') + 4).match(/\d\d:\d\d+/g);
 			if (!isNull(time)) {
 				let hhmm = time[0].split(':').map(asNumber);
-				expiry = getDate(start)
+				expiry = getInstant(start)
 					.startOf('day')
 					.add(hhmm[0], 'hours')
 					.add(hhmm[1], 'minutes')
@@ -420,12 +420,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) this.dbg('hist: %j', row);
 
 		let what: CLASS = Migration.LOOKUP[row.type] ?? row.type;
-		const now = getDate(row.date);
-		const hhmi = getDate(row.stamp).format(Instant.FORMAT.HHMI);
+		const now = getInstant(row.date);
+		const hhmi = getInstant(row.stamp).format(Instant.FORMAT.HHMI);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.calendar, [fire.addWhere(FIELD.key, row.date), fire.addWhere(STORE.location, 'norths', '!=')], row.date)[0];
-		const calDate = caldr && getDate(caldr[FIELD.key]);
+		const calDate = caldr && getInstant(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
 
 		let sfx = suffix ? suffix.split(' ')[0] : '1';
@@ -524,7 +524,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				sched = {
 					[FIELD.store]: STORE.calendar, [FIELD.type]: SCHEDULE.event, [FIELD.id]: caldr[FIELD.id], [FIELD.key]: what,
-					day: getDate(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
+					day: getInstant(caldr[FIELD.key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
 					note: row.note, amount: price,
 				}
 				break;
@@ -684,7 +684,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const test3 = summary.funds < 0;
 			if (test1 || test2 || test3) {
 				const when = active[0].approve[FIELD.stamp];
-				this.dbg('closed: %j, %s', when, fmtDate(Instant.FORMAT.display, when));
+				this.dbg('closed: %j, %s', when, fmtInstant(Instant.FORMAT.display, when));
 				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: when, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
 				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp });
 			}
@@ -692,7 +692,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		if (active[0][FIELD.type] === PAYMENT.topUp && profile.plan === PLAN.gratis && active[0].expiry) {
 			if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
-				this.dbg('closed: %j, %s', closed, fmtDate(Instant.FORMAT.display, closed));
+				this.dbg('closed: %j, %s', closed, fmtInstant(Instant.FORMAT.display, closed));
 				updates.push({ ...active[0], [FIELD.expire]: closed });
 			}
 		}
@@ -732,7 +732,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	async revAttend() {
 		const dt = window.prompt('From which date');
 		if (dt) {
-			const now = getDate(dt);
+			const now = getInstant(dt);
 			if (!now.isValid()) {
 				window.alert(`'${dt}': Not a valid date`);
 				return;
