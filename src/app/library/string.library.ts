@@ -1,6 +1,5 @@
 import { format } from 'util';
-import { isString, isObject, assertCondition, assertString, isDate, getType } from '@library/type.library';
-import { fmtInstant, Instant } from './instant.library';
+import { isString, isObject, assertCondition, assertString, getType } from '@library/type.library';
 
 // Prototype <string> extensions
 
@@ -137,11 +136,11 @@ export const objectify = <T>(str: T | null) => {
 		case asString && val.startsWith('Set:["') && val.endsWith('"]'):
 			return new Set(JSON.parse(val.substring(4))) as Set<T>;
 
+		case asString && val.startsWith('Date:"') && val.endsWith('"'):
+			return new Date(str as unknown as Date);
+
 		case asString:
 			return str as T;
-
-		case isDate(str):
-			return fmtInstant(Instant.FORMAT.dayTime, val) as unknown as T;
 
 		default:
 			return ifNumeric(val) as unknown as T;

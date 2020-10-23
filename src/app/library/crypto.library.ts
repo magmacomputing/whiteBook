@@ -18,7 +18,7 @@ export const cryptoHash = async (source: string | object, len: number = 64) => {
 	const buffer = encodeBuffer(asString(source));
 	const hash = await crypto.subtle.digest(CRYPTO.algorithm, buffer);
 
-	return toHex([...Array.from(new Uint8Array(hash))], len);
+	return toHex(Array.from(new Uint8Array(hash)), len);
 }
 
 const encodeBuffer = (str: string) => new TextEncoder().encode(str);
