@@ -1,9 +1,9 @@
 import { TWhere } from '@dbase/fire/fire.interface';
 import { FIELD } from '@dbase/data/data.define';
-import type { Meta } from '@dbase/data/data.schema';
+import type { BaseDocument, FireDocument } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant, Instant } from '@library/instant.library';
-import { isString, isUndefined, isArray, isNumber } from '@library/type.library';
+import { isString, isUndefined, isArray } from '@library/type.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { toLower } from '@library/string.library';
@@ -83,8 +83,8 @@ export const firstRow = <T>(table: T[] = [], filters: TWhere = []) =>
 
 /**
  * Search an array, returning a single row that matches the cond,  
- * and was in-effect on date,  
- * and is nearest in time to \<near>.  
+ * 	and was in-effect on date,  
+ * 	and is nearest in time to \<near>.  
  * e.g. near = {start: '19:30'}   will return the table-row whose \<start> field is nearest to '19:30'
  */
 export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = new Instant(), near: Partial<T>) => {
@@ -96,7 +96,7 @@ export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = n
 			if (arr.length <= 1)
 				return curr;															// no 'near' comparison needed
 
-			const fld1 = (curr as T & Record<string, string | number>)[key];
+			const fld1 = (curr as T & FireDocument)[key];
 			const fld2 = (prev as T & Record<string, string | number>)[key];
 
 			return Math.abs(asTime(fld1) - time) < Math.abs(asTime(fld2) - time)
@@ -116,9 +116,9 @@ export const nearAt = <T>(table: T[] = [], cond: TWhere = [], date: TInstant = n
 export const asAt = <T>(table: T[], cond: TWhere = [], date?: TInstant) => {
 	const stamp = getStamp(date);
 
-	return filterTable(table as (T & Meta)[], cond)		// return the rows where date is between _effect and _expire
+	return filterTable(table as (T & BaseDocument)[], cond)		// return the rows where date is between _effect and _expire
 		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
 		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
-		.filter(row => !row[FIELD.hidden])								// discard rows that should not be visible
+		.filter(row => !row[FIELD.hidden])											// discard rows that should not be visible
 		.map(row => row as T)
 }

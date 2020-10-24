@@ -7,8 +7,8 @@ import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
-import { TStoreBase, Meta, StoreMeta } from '@dbase/data/data.schema';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
+import type { TStoreBase, BaseDocument, StoreMeta } from '@dbase/data/data.schema';
 
 import { AuthService } from '@service/auth/auth.service';
 import { UserInfo } from '@service/auth/auth.interface';
@@ -131,7 +131,7 @@ export class DataService {
 
 			try {
 				nextDoc = docPrep(nextDoc, uid);										// make sure we have a <key/uid>
-				where = getWhere(nextDoc as Meta, filter);
+				where = getWhere(nextDoc as BaseDocument, filter);
 			} catch (error) {
 				this.snack.open(error.message);                     // show the error to the User
 				return;                                             // abort the Create/Update

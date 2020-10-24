@@ -10,7 +10,7 @@ type TStoreMember = STORE.profile | STORE.payment | STORE.gift | STORE.message |
 type TStoreForum = STORE.comment | STORE.react;
 
 // These are the meta- and common-fields for a standard document
-export interface Meta {
+export interface BaseDocument {
 	[FIELD.create]?: number;								// the time when originally created
 	[FIELD.update]?: number;								// the time when last updated
 	[FIELD.access]?: number;								// the time when last accessed
@@ -24,6 +24,9 @@ export interface Meta {
 	[FIELD.type]?: string | number;					// an optional 'type' code to qualify the 'key'
 	[FIELD.note]?: TString;									// an optional 'note' on all documents
 }
+export interface FireDocument extends BaseDocument {
+	[key: string]: any;
+}
 
 /**
  * We have two main types of 'store' documents.  
@@ -34,17 +37,17 @@ export interface Meta {
  * a) forum (keyed by 'store/type/uid/key')
  * b) zoom (keyed by 'store/type')
  */
-export interface ClientBase extends Meta {
+export interface ClientBase extends BaseDocument {
 	[FIELD.store]: TStoreClient | TStoreConfig;
 	[FIELD.key]: string | number;
 	[FIELD.image]?: string;									// an optional icon for the UI
 }
-interface MemberBase extends Meta {			// this is the base for Member-related documents
+interface MemberBase extends BaseDocument {			// this is the base for Member-related documents
 	[FIELD.store]: TStoreMember;
 	[FIELD.uid]: string;
 	[FIELD.stamp]: number;
 }
-export interface Forum extends Meta {
+export interface Forum extends BaseDocument {
 	[FIELD.store]: TStoreForum;
 	[FIELD.type]: STORE;										// allow for Forum on any Store type
 	[FIELD.uid]: string;										// the Member making the feedback
@@ -56,7 +59,7 @@ export interface Forum extends Meta {
 }
 export type TStoreBase = ClientBase | MemberBase | Forum | Migrate;
 
-export interface Import extends Meta {
+export interface Import extends BaseDocument {
 	[FIELD.store]: STORE.import;						// record of Google Sheet on migrated member
 	[FIELD.uid]: string;
 	credit: number;
@@ -67,7 +70,7 @@ export interface Import extends Meta {
 	userName: string;
 	providers: TProviderInfo[]
 }
-export interface Migrate extends Meta {	// these allow for reconciliation of migrated event
+export interface Migrate extends BaseDocument {	// these allow for reconciliation of migrated event
 	[FIELD.store]: STORE.migrate;
 	[FIELD.type]: STORE.event | STORE.class;
 	[FIELD.uid]: string;
@@ -76,7 +79,7 @@ export interface Migrate extends Meta {	// these allow for reconciliation of mig
 		[order: string]: CLASS;
 	}
 }
-export interface StoreMeta extends Meta, Record<string, any> { }
+export interface StoreMeta extends BaseDocument, Record<string, any> { }
 
 //	/client/_default_
 export interface Default extends ClientBase {
