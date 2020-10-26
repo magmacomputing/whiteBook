@@ -4,7 +4,7 @@ import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { TStateSlice } from '@dbase/state/state.define';
 import { AttendAction } from '@dbase/state/state.action';
 
-import { StoreMeta } from '@dbase/data/data.schema';
+import { Attend, StoreMeta } from '@dbase/data/data.schema';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
@@ -31,14 +31,14 @@ export class AttendState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 		let empty: Record<string, boolean> = {};
 
-		asArray(payload).forEach(doc => {
+		asArray<Attend>(payload as Attend[]).forEach(doc => {
 			const payment = doc.payment[FIELD.id];
 
 			if (state[payment] && !state[payment].length)
-				empty[payment] = true;							// check the first instance
-			if (!empty[payment])									// dont bother with filter, if originally empty
-				state[payment] = this.filterState(state, doc);	// remove the doc if it was previously created
-			state[payment].push(doc);												// push the changed AttendDoc into the Store
+				empty[payment] = true;															// check the first instance
+			if (!empty[payment])																	// dont bother with filter, if originally empty
+				state[payment] = this.filterState(state, doc);			// remove the doc if it was previously created
+			state[payment].push(doc);															// push the changed AttendDoc into the Store
 
 			if (debug) this.dbg('setAttend: %j', doc);
 		})
@@ -51,7 +51,7 @@ export class AttendState implements NgxsOnInit {
 	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AttendAction.Del) {
 		const state = cloneObj(getState()) || {};
 
-		asArray(payload).forEach(doc => {
+		asArray(payload as Attend[]).forEach(doc => {
 			const payment = doc.payment[FIELD.id];
 			state[payment] = this.filterState(state, doc);
 
@@ -62,7 +62,7 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new AttendAction.Sync(payload));									// tell any listener we have sync'd
+		dispatch(new AttendAction.Sync(payload));								// tell any listener we have sync'd
 	}
 
 	@Action(AttendAction.Trunc)
@@ -72,7 +72,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Attend Store */
-	private filterState(state: TStateSlice<StoreMeta>, payload: StoreMeta) {
+	private filterState(state: TStateSlice<StoreMeta>, payload: Attend) {
 		const slice = payload.payment[FIELD.id];
 		const curr = state && slice && state[slice] || [];
 

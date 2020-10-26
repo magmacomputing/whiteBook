@@ -33,14 +33,14 @@
 					</div>
 				</div>
 				<div *ngIf="timetable.bonus">
-					<p>{{ timetable.bonus.desc }}</p>
+					<p>{{ timetable.bonus.note }}</p>
 				</div>
 
 				<div *ngIf="timetable.client?.diary?.length">
 					<fieldset id="fsComments" style="border-width:1px;">
 						<legend id="wbCommentLegend">Upcoming Events</legend>
 						<div *ngFor="let calendar of timetable.client?.diary;">
-							<p> {{ calendar.desc }} </p>
+							<p> {{ calendar.note }} </p>
 							<p> {{ calendar.name }} </p>
 							<hr>
 						</div>
@@ -60,7 +60,7 @@
 							</mat-card-title>
 
 							<mat-card-subtitle>
-								{{ item.desc }}
+								{{ item.note }}
 							</mat-card-subtitle>
 
 							<mat-card-content>

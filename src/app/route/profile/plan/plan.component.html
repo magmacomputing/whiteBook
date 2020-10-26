@@ -9,7 +9,7 @@
 				<mat-card-header>
 					<img mat-card-avatar [src]="plan.image || 'https://source.unsplash.com/random/200x200'" (click)="showPlan(plan, data.client?.price)">
 					<mat-card-title> {{ plan.key }} </mat-card-title>
-					<mat-card-subtitle> {{ plan.desc }} </mat-card-subtitle>
+					<mat-card-subtitle> {{ plan.note }} </mat-card-subtitle>
 
 					<mat-card-content align="right">
 						<button mat-raised-button [disabled]="plan._disable" (click)="member.setPlan(plan.key)">

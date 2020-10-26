@@ -54,7 +54,7 @@ interface openDialog {
 	observe?: Observable<any>;
 	image?: string;
 	title?: string;
-	subtitle?: string;
+	subtitle?: TString;
 	actions?: string[];
 }
 

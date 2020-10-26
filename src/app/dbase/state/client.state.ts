@@ -12,7 +12,6 @@ import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { isEmpty } from '@library/type.library';
 import { dbg } from '@library/logger.library';
-import { tap } from 'rxjs/operators';
 
 @Injectable()
 @State<TStateSlice<StoreMeta>>({

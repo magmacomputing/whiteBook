@@ -87,7 +87,7 @@ export class AttendService {
 		if (timetable.bonus?.gift) {
 			updates.push(...timetable.bonus.gift);					// batch any Gift updates
 			delete timetable.bonus.gift;										// not needed
-			delete timetable.bonus.desc;										// not needed
+			delete timetable.bonus.note;										// not needed
 			if (isEmpty(timetable.bonus))
 				delete timetable.bonus;												// not needed
 		}

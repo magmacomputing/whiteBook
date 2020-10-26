@@ -37,7 +37,7 @@ export class PlanComponent implements OnInit {
 	showPlan(plan: Plan, prices: Price[]) {
 		const image = plan.image;
 		const title = plan[FIELD.key];
-		const subtitle = `${plan.desc}${isUndefined(plan.rule) ? '' : ', ' + plan.rule}`;
+		const subtitle = `${plan.note}${isUndefined(plan.rule) ? '' : ', ' + plan.rule}`;
 		const actions = ['Close'];
 
 		let content: string[] = [];

@@ -1,5 +1,5 @@
 import { TimetableState } from '@dbase/state/state.define';
-import { FIELD, BONUS, COLLECTION, STORE, PLAN } from '@dbase/data/data.define';
+import { FIELD, BONUS, COLLECTION, STORE, PLAN, CLASS } from '@dbase/data/data.define';
 import type { Gift, TBonus, Attend, Bonus, ProfilePlan } from '@dbase/data/data.schema';
 
 import { TInstant, getInstant, Instant } from '@library/instant.library';
@@ -14,7 +14,7 @@ import { plural } from '@library/string.library';
  * date:		effective date, else today
  * elect:		Bonus override (e.g. Member may elect to *not* use one of their Gifts)
  */
-export const calcBonus = (source: TimetableState, event: string, date?: TInstant, elect?: BONUS) => {
+export const calcBonus = (source: TimetableState, event: CLASS, date?: TInstant, elect?: BONUS) => {
 	const now = getInstant(date);
 	const bonus = {} as TBonus;															// calculated Bonus entitlement
 
@@ -96,7 +96,7 @@ const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Inst
 				Object.assign(bonus, {																// assign Bonus
 					[FIELD.id]: gift[FIELD.id],
 					[FIELD.type]: BONUS.gift,
-					desc: `${giftLeft} ${plural(giftLeft, 'gift')}`,
+					note: `${giftLeft} ${plural(giftLeft, 'gift')}`,
 					count: gift.count,
 				})
 				break;
@@ -135,7 +135,7 @@ const bonusWeek = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Inst
 			{
 				[FIELD.id]: scheme[FIELD.id],
 				[FIELD.type]: BONUS.week,
-				desc: scheme.desc,
+				note: scheme.note,
 				count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.week).length + 1,
 			})
 
@@ -162,7 +162,7 @@ const bonusClass = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Ins
 			{
 				[FIELD.id]: scheme[FIELD.id],
 				[FIELD.type]: BONUS.class,
-				desc: scheme.desc,
+				note: scheme.note,
 				count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.class).length + 1,
 			})
 	}
@@ -191,7 +191,7 @@ const bonusSunday = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: In
 			{
 				[FIELD.id]: scheme[FIELD.id],
 				[FIELD.type]: BONUS.sunday,
-				desc: scheme.desc,
+				note: scheme.note,
 				count: attendWeek.filter(row => row.bonus?.[FIELD.type] === BONUS.sunday).length + 1,
 			})
 	}
@@ -220,7 +220,7 @@ const bonusMonth = (bonus: TBonus, scheme: Bonus, attendMonth: Attend[], now: In
 			{
 				[FIELD.id]: scheme[FIELD.id],
 				[FIELD.type]: BONUS.month,
-				desc: scheme.desc,
+				note: scheme.note,
 				count: attendMonth.filter(row => row.bonus?.[FIELD.type] === BONUS.month).length + 1,
 			})
 	}
@@ -249,7 +249,7 @@ const bonusHome = (bonus: TBonus, scheme: Bonus, attendToday: Attend[], profile:
 			{
 				[FIELD.id]: scheme[FIELD.id],
 				[FIELD.type]: BONUS.home,
-				desc: scheme.desc,
+				note: scheme.note,
 				count: attendToday.length + 1,
 			})
 	}

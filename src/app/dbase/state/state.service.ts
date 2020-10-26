@@ -153,13 +153,13 @@ export class StateService {
 	}
 
 	/**
-	 * Extend AuthState with an Object describing a Member returned as IMemberState, where:  
+	 * Extend AuthState with an Object describing a Member returned as MemberState, where:  
 	 * application._default -> has the current defaults to be used where join-fields are undefined  
 	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
 	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
 	 * member.gift	-> has an array of Member gifts  
-	 * client.price -> has an array of IPrice that match the Member's plan-type  
-	 * client.plan  -> has array of the asAt IPlan description
+	 * client.price -> has an array of Price that match the Member's plan-type  
+	 * client.plan  -> has array of the asAt Plan description
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 */

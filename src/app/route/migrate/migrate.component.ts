@@ -265,17 +265,18 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (row.debit === undefined && row.credit === undefined)
 					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
 
-				return {
+				const obj = {
 					[FIELD.store]: STORE.payment,
 					[FIELD.type]: payType,
-					stamp: row.stamp,
+					[FIELD.stamp]: row.stamp,
+					[FIELD.note]: row.note,
 					hold: row.hold,
 					amount: payType === PAYMENT.topUp ? parseFloat(row.credit!) : undefined,
 					adjust: row.debit && parseFloat(row.debit),
 					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
-					note: row.note,
-				} as Payment
+				} as Partial<Payment>
+				return obj as StoreMeta;
 			})
 
 		// parse the Attends to look for 'Gift' notes, and build a Gift document
@@ -318,17 +319,17 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
 	private getExpiry(row: MHistory, profile: ProfilePlan[], plans: Plan[], prices: Price[]) {
-		const plan = asAt(profile, fire.addWhere(FIELD.type, STORE.plan), row.stamp)[0];
-		const desc = asAt(plans, fire.addWhere(FIELD.key, plan.plan), row.stamp)[0];
-		const curr = asAt(prices, fire.addWhere(FIELD.key, plan.plan), row.stamp);
-		const topUp = curr.find(row => row[FIELD.type] === PRICE.topUp && row[FIELD.key] === plan.plan);
+		const prof = asAt(profile, fire.addWhere(FIELD.type, STORE.plan), row.stamp)[0];
+		const plan = asAt(plans, fire.addWhere(FIELD.key, prof.plan), row.stamp)[0];
+		const curr = asAt(prices, fire.addWhere(FIELD.key, prof.plan), row.stamp);
+		const topUp = curr.find(row => row[FIELD.type] === PRICE.topUp && row[FIELD.key] === prof.plan);
 		const paid = parseFloat(row.credit || '0') + parseFloat(row.debit || '0');
 		let expiry: number | undefined = undefined;
 
-		if (topUp && !isUndefined(desc.expiry)) {
+		if (topUp && !isUndefined(plan.expiry)) {
 			const offset = topUp.amount
-				? Math.round(paid / (topUp.amount / desc.expiry)) || 1
-				: desc.expiry;
+				? Math.round(paid / (topUp.amount / plan.expiry)) || 1
+				: plan.expiry;
 			expiry = getInstant(row.approved || row.stamp)
 				.add(offset, 'months')
 				.add(row.hold ?? 0, 'days')
@@ -600,7 +601,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						this.data.getFire<Forum>(COLLECTION.forum, { where })
 							.then(list => {
 								if (!list.length)
-									this.forum.setComment({ key: sched[FIELD.id], type: sched[FIELD.store], date: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
+									this.forum.setComment({ [FIELD.key]: sched[FIELD.id], [FIELD.type]: sched[FIELD.store], [FIELD.date]: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
 								resolve(true);
 							})
 					}

@@ -99,7 +99,7 @@ export namespace AdminAction {
 
 /** helper function to return all except nominated document */
 export const filterState = (state: TStateSlice<StoreMeta>, payload: StoreMeta, segment = FIELD.store) => {
-	const slice = payload[segment];
+	const slice = payload[segment] as FIELD.store | FIELD.type;
 	const curr = state && slice && state[slice] || [];
 
 	return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];

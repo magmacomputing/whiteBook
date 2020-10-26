@@ -59,7 +59,7 @@ export class AttendComponent implements OnDestroy {
 		// const bonus = client.bonus!.find(row => row[FIELD.key] === item.bonus);
 
 		const title = item[FIELD.key];
-		const subtitle = event && event.desc || '';
+		const subtitle = event?.note ?? '';
 		const image = item.image;
 		const actions = ['Close'];
 
