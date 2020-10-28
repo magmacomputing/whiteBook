@@ -4,15 +4,15 @@ export type TWhere = FireWhere | FireWhere[];
 
 /** Query.where */
 export interface FireWhere {
-	fieldPath: string | firebase.firestore.FieldPath;
-	opStr?: firebase.firestore.WhereFilterOp;
+	fieldPath: string | firebase.default.firestore.FieldPath;
+	opStr?: firebase.default.firestore.WhereFilterOp;
 	value: any | any[];
 }
 
 /** Query.orderBy */
 export interface FireOrderBy {
-	fieldPath: string | firebase.firestore.FieldPath;
-	directionStr?: firebase.firestore.OrderByDirection;
+	fieldPath: string | firebase.default.firestore.FieldPath;
+	directionStr?: firebase.default.firestore.OrderByDirection;
 }
 
 /** Collection.Query */

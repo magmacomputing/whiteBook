@@ -3,7 +3,7 @@ import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
 
 import { Store, Actions, ofActionDispatched } from '@ngxs/store';
-import { DocumentChangeAction } from '@angular/fire/firestore';
+import type { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';

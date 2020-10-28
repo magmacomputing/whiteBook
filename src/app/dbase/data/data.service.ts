@@ -11,7 +11,6 @@ import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.libra
 import type { TStoreBase, BaseDocument, StoreMeta } from '@dbase/data/data.schema';
 
 import { AuthService } from '@service/auth/auth.service';
-import { UserInfo } from '@service/auth/auth.interface';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { asAt } from '@library/app.library';
@@ -76,7 +75,7 @@ export class DataService {
 		return this.fire.createToken(uid);
 	}
 
-	authToken(token: string, user: UserInfo) {
+	authToken(token: string, user: firebase.default.UserInfo) {
 		return this.fire.authToken(token, user);
 	}
 

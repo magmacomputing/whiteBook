@@ -1,5 +1,3 @@
-import { UserInfo } from 'firebase';
-
 import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom, TRACK } from '@dbase/data/data.define';
 import { TString } from '@library/type.library';
 import { Instant } from '@library/instant.library';
@@ -430,9 +428,9 @@ export interface CustomClaims {		// a special sub-set of fields from the User To
 	allow?: string[];
 	deny?: string[];
 }
-export type TUser = UserInfo & {
+export type TUser = firebase.default.UserInfo & {
 	customClaims?: CustomClaims;
-	providerData?: (UserInfo | null)[];
+	providerData?: (firebase.default.UserInfo | null)[];
 }
 type TProviderInfo = {
 	id: string;

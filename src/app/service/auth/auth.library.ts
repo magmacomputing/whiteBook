@@ -1,4 +1,4 @@
-import { auth } from 'firebase/app';
+import firebase from 'firebase/app';
 
 import { UserState } from '@dbase/state/state.define';
 import { Auth } from '@dbase/data/data.define';
@@ -10,46 +10,45 @@ interface EmailToken {
 	password: string;
 }
 export const getAuthProvider = (providerId: string,
-	token?: (auth.IdTokenResult & EmailToken) | null): [Auth.METHOD | undefined, auth.AuthProvider | undefined, auth.AuthCredential | undefined] => {
-	let authProvider: auth.AuthProvider | undefined;
-	let authCredential: auth.AuthCredential | undefined;
+	token?: (firebase.auth.IdTokenResult & EmailToken) | null): [Auth.METHOD | undefined, firebase.auth.AuthProvider | undefined, firebase.auth.AuthCredential | undefined] => {
+	let authProvider: firebase.auth.AuthProvider | undefined;
+	let authCredential: firebase.auth.AuthCredential | undefined;
 	let method: Auth.METHOD | undefined = Auth.METHOD.identity;									// default to 'identity' 
 
 	switch (providerId) {
 		case Auth.METHOD.email:
 			method = Auth.METHOD.email
-			authProvider = new auth.EmailAuthProvider();
-			// authProvider = new auth.EmailAuthProvider();
+			authProvider = new firebase.auth.EmailAuthProvider();
 			if (token)
-				authCredential = auth.EmailAuthProvider.credential(token.email, token.password);
+				authCredential = firebase.auth.EmailAuthProvider.credential(token.email, token.password);
 			break;
 
 		case 'google':
 		case 'google.com':
-			authProvider = new auth.GoogleAuthProvider();
+			authProvider = new firebase.auth.GoogleAuthProvider();
 			if (token)
-				authCredential = auth.GoogleAuthProvider.credential(token.token);
+				authCredential = firebase.auth.GoogleAuthProvider.credential(token.token);
 			break;
 
 		case 'twitter':
 		case 'twitter.com':
-			authProvider = new auth.TwitterAuthProvider();
+			authProvider = new firebase.auth.TwitterAuthProvider();
 			if (token)
-				authCredential = auth.TwitterAuthProvider.credential(token.token, '');
+				authCredential = firebase.auth.TwitterAuthProvider.credential(token.token, '');
 			break;
 
 		case 'github':
 		case 'github.com':
-			authProvider = new auth.GithubAuthProvider();
+			authProvider = new firebase.auth.GithubAuthProvider();
 			if (token)
-				authCredential = auth.GithubAuthProvider.credential(token.token);
+				authCredential = firebase.auth.GithubAuthProvider.credential(token.token);
 			break;
 
 		case 'facebook':
 		case 'facebook.com':
-			authProvider = new auth.FacebookAuthProvider();
+			authProvider = new firebase.auth.FacebookAuthProvider();
 			if (token)
-				authCredential = auth.FacebookAuthProvider.credential(token.token);
+				authCredential = firebase.auth.FacebookAuthProvider.credential(token.token);
 			break;
 
 		// case 'linkedin':

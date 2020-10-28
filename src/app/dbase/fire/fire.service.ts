@@ -1,19 +1,18 @@
 import { Injectable, NgZone } from '@angular/core';
-import { firestore } from 'firebase/app';
 import { Observable, combineLatest, merge, concat } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
-import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction } from '@angular/fire/firestore';
+import firebase from 'firebase/app';
+import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction, DocumentData } from '@angular/fire/firestore';
 import { AngularFireFunctions } from '@angular/fire/functions';
-import { UserInfo } from '@service/auth/auth.interface';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
+import { fnQuery } from '@dbase/fire/fire.library';
 import { FireQuery, DocMeta } from '@dbase/fire/fire.interface';
 import { StoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
-import { fnQuery } from '@dbase/fire/fire.library';
 
 import { isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
@@ -100,14 +99,14 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private removeMeta(doc: firestore.DocumentData, opts: Record<string, boolean> = {}) {
+	private removeMeta(doc: DocumentData, opts: Record<string, boolean> = {}) {
 		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
 
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value)) {
 				if (opts.setUndefined)
 					delete rest[key]										// remove the field if 'set'
-				else rest[key] = firestore.FieldValue.delete(); // delete the target field if 'update'
+				else rest[key] = firebase.firestore.FieldValue.delete(); // delete the target field if 'update'
 			}
 		})
 
@@ -170,7 +169,7 @@ export class FireService {
 		})
 	}
 
-	async setDoc(store: STORE, doc: firestore.DocumentData) {
+	async setDoc(store: STORE, doc: DocumentData) {
 		const docId: string = doc[FIELD.id] || this.newId();
 
 		doc = this.removeMeta(doc);									// remove the meta-fields from the document
@@ -178,7 +177,7 @@ export class FireService {
 		return docId;
 	}
 
-	async updDoc(store: STORE, docId: string, data: firestore.DocumentData) {
+	async updDoc(store: STORE, docId: string, data: DocumentData) {
 		data = this.removeMeta(data);
 		await this.docRef(store, docId).update(data)
 		return docId;
@@ -204,7 +203,7 @@ export class FireService {
 	}
 
 	/** Useful when Member is already authenticated elsewhere (eg. helloJS) */
-	authToken(access_token: string, user: UserInfo) {
+	authToken(access_token: string, user: firebase.UserInfo) {
 		return this.callHttps<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
 	}
 

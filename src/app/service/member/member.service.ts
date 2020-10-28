@@ -157,7 +157,7 @@ export class MemberService {
 	}
 
 	/** check for change of User.additionalInfo */
-	async getAuthProfile(info: firebase.auth.AdditionalUserInfo | null, uid?: string) {
+	async getAuthProfile(info: firebase.default.auth.AdditionalUserInfo | null, uid?: string) {
 		if (!info)
 			return;																				// No AdditionalUserInfo available
 		this.dbg('info: %s', info.providerId);

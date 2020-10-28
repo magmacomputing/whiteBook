@@ -18,7 +18,7 @@ export const fnQuery = (query: FireQuery = {}) => {
 				if (split.where)
 					asArray(split.where)
 						.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value; not supported
-						.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || '==') as firebase.firestore.WhereFilterOp, where.value));
+						.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || '=='), where.value));
 
 				if (split.orderBy)
 					asArray(split.orderBy)
@@ -70,15 +70,15 @@ const splitQuery = (query: FireQuery = {}) => {
 
 	const split: FireQuery[] = asArray(wheres)
 		.map(where =>																// for each split IWhere,
-			({																				// build an array of IQuery
-				orderBy: query.orderBy,
-				limitTo: query.limit,
-				startAt: query.startAt,
-				startAfter: query.startAfter,
-				endAt: query.endAt,
-				endBefore: query.endBefore,
-				where: where,
-			})
+		({																				// build an array of IQuery
+			orderBy: query.orderBy,
+			limitTo: query.limit,
+			startAt: query.startAt,
+			startAfter: query.startAfter,
+			endAt: query.endAt,
+			endBefore: query.endBefore,
+			where: where,
+		})
 		)
 
 	return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query

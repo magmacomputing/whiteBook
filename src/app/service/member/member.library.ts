@@ -10,7 +10,7 @@ import { getStamp, getInstant, TInstant } from '@library/instant.library';
 // Library of member-related functions
 
 // assemble a standard Member Info object
-export const getMemberInfo = (provider: firebase.auth.AdditionalUserInfo) => {
+export const getMemberInfo = (provider: firebase.default.auth.AdditionalUserInfo) => {
 	const profile: Record<string, any> = provider.profile ?? {};
 
 	const profileInfo: MemberInfo = {

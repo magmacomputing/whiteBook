@@ -1,3 +1,4 @@
+import type firebase from 'firebase/app';
 import { CustomClaims } from '@dbase/data/data.schema';
 
 export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
@@ -12,15 +13,6 @@ export interface Credential {
 	credential: firebase.auth.AuthCredential;
 	oauthAccessToken?: string;
 	emailLink?: string;
-}
-
-export interface UserInfo {			// borrowed from firebase-admin/auth
-	uid: string;
-	displayName: string;
-	email: string;
-	phoneNumber: string;
-	photoURL: string;
-	providerId: string;
 }
 
 export interface FireClaims {
