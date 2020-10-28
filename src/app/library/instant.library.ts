@@ -74,8 +74,6 @@ class Timestamp {
  */
 export class Instant {
 	#date: InstantVars;													// Date parsed into components
-	static maxStamp = new Date('9999-12-31').valueOf() / 1000;	// static property
-	static minStamp = new Date('1000-01-01').valueOf() / 1000;	// static property
 
 	constructor(dt?: TInstant, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
 
@@ -174,7 +172,7 @@ export class Instant {
 				const vals = args as number[];												// assumed as [MM, DD, HH, MI, SS, ms]
 				date = vals.length
 					? new Date(nbr, vals[0] - 1, ...vals.slice(1))			// change month-number to zero-indexed
-					: new Date(nbr < Instant.maxStamp ? nbr * 1000 : nbr)	// assume timestamp to milliseconds
+					: new Date(nbr < Instant.DATE.maxStamp ? nbr * 1000 : nbr)	// assume timestamp to milliseconds
 				break;
 
 			case 'Instant':																					// already have a valid Instant
@@ -216,25 +214,12 @@ export class Instant {
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
-		const ww = Math.floor((thu - ny) / this.#divideBy('weeks') + 1);	// ISO Week Number
+		const ww = Math.floor((thu - ny) / Instant.TIMES.weeks + 1);	// ISO Week Number
 
 		return {
 			yy, mm, dd, HH, MI, SS, ts, ms, tz, ww, dow,
 			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
 		} as InstantVars;
-	}
-
-	/** hide some working-variables */
-	#divideBy = (unit: TUnitDiff) => {													// approx date-offset divisors (unix-timestamp precision)
-		return {
-			years: 31_536_000_000,
-			months: 2_628_000_000,
-			weeks: 604_800_000,
-			days: 86_400_000,
-			hours: 3_600_000,
-			minutes: 60_000,
-			seconds: 1_000,
-		}[unit]
 	}
 
 	/** create a new offset Instant */
@@ -456,8 +441,8 @@ export class Instant {
 		const offset = this.#parseDate(dt2, args);
 		const diff = (this.#date.ts * 1000 + this.#date.ms) - (offset.ts * 1000 + offset.ms);
 		return diff < 0
-			? Math.ceil(diff / this.#divideBy(unit))
-			: Math.floor(diff / this.#divideBy(unit))
+			? Math.ceil(diff / Instant.TIMES[unit])
+			: Math.floor(diff / Instant.TIMES[unit])
 	}
 }
 
@@ -467,6 +452,33 @@ export namespace Instant {
 	export enum MONTH { All, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
 	export enum MONTHS { Every, January, February, March, April, May, June, July, August, September, October, November, December };
 	export enum DURATION { 'year', 'month', 'week', 'day', 'hour', 'minute', 'second' };
+
+	/** number of seconds per unit-of-time */
+	export enum TIME {
+		years = 31_536_000,
+		months = 2_628_000,
+		weeks = 604_800,
+		days = 86_400,
+		hours = 3_600,
+		minutes = 60,
+		seconds = 1,
+	}
+	/** number of milliseconds per unit-of-time */
+	export enum TIMES {
+		years = TIME.years * 1_000,
+		months = TIME.months * 1_000,
+		weeks = TIME.weeks * 1_000,
+		days = TIME.days * 1_000,
+		hours = TIME.hours * 1_000,
+		minutes = TIME.minutes * 1_000,
+		seconds = TIME.seconds * 1_000,
+	}
+
+	/**  */
+	export enum DATE {
+		maxStamp = new Date('9999-12-31').valueOf() / 1_000,
+		minStamp = new Date('1000-01-01').valueOf() / 1_000,
+	}
 
 	export enum FORMAT {
 		display = 'ddd, dd mmm yyyy',
