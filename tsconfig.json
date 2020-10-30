@@ -36,11 +36,19 @@
 			"@service/*": [
 				"src/app/service/*",
 			],
+			"@lib": [
+				"../whiteShare/library"
+			]
 		}
 	},
 	"exclude": [
 		"doc/**/*.ts",
 		"node_modules",
 		"dist"
+	],
+	"references:": [
+		{
+			"path": "../whiteShare/library"
+		}
 	]
 }

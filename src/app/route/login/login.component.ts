@@ -12,8 +12,7 @@ import { FIELD } from '@dbase/data/data.define';
 import { Provider } from '@dbase/data/data.schema';
 import { StateService } from '@dbase/state/state.service';
 
-import { drag } from '@library/html.library';
-import { dbg } from '@library/logger.library';
+import { drag, dbg } from '@lib';
 
 @Component({
 	selector: 'wb-login',
