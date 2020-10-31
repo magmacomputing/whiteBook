@@ -35,14 +35,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	private stop$ = new Subject();											// notify Subscriptions to complete
 	private meetings: ZoomMeeting[] = [];
 	private meetingDate = new BehaviorSubject<Instant>(new Instant());
-	public meetings$!: Observable<ZoomMeeting[]>;					// the date's Meetings
+	public meetings$!: Observable<ZoomMeeting[]>;				// the date's Meetings
 
 	private color!: Record<CLASS, Class>;
 	private colorCache!: (white: ZoomWhite | undefined) => COLOR
 
 	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
 		setTimer(this.stop$)
-			.subscribe(_ => this.setDate(0));								// watch for midnight, then update UI to new date
+			.subscribe(() => this.setDate(0));							// watch for midnight, then update UI to new date
 
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
@@ -70,11 +70,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	// }
 
 	/**
-   * Call this onInit, whenever the Admin changes the UI-date, and at midnight.  
-   * dir:	if -1,	show previous day  
-   * 			if  1,	show next day  
-   * 			if  0,	show today
-   */
+	 * Call this onInit, whenever the Admin changes the UI-date, and at midnight.  
+	 * dir:	if -1,	show previous day  
+	 * 			if  1,	show next day  
+	 * 			if  0,	show today
+	 */
 	setDate(dir: -1 | 0 | 1) {
 		this.offset = dir;
 		this.date = dir === 0
@@ -262,9 +262,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				const fmt = `
 				<tr>
 				<td>${join.format('ddd')}</td>
-				<td>${ join.format('HH:MM')} </td>
+				<td>${join.format('HH:MM')} </td>
 				<td style="color:${color};font-weight:bold;" > ${event} </td>
-				<td align = "right" > ${ asCurrency(price!)} </td>
+				<td align = "right" > ${asCurrency(price!)} </td>
 				</tr>`;
 				return attends.push({ date: doc[FIELD.stamp], attend: fmt });
 			})

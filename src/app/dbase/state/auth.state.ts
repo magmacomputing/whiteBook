@@ -299,8 +299,8 @@ export class AuthState {
 			const token = await currUser.getIdTokenResult(true)
 			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
 			ctx.patchState({ token });
-			this.dbg('customClaims: %j', (ctx.getState().token as firebase.auth.IdTokenResult).claims.claims);
 
+			this.dbg('customClaims: %j', ctx.getState().token?.claims.claims);
 			if (roles.includes(Auth.ROLE.admin)) {
 				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one stream
 					[COLLECTION.member, { where: fire.addWhere(FIELD.store, STORE.status) }]);

@@ -1,5 +1,5 @@
 import { COLLECTION, STORE } from '@dbase/data/data.define';
-import { ISortOption } from '@library/array.library';
+import { SortOption } from '@library/array.library';
 import { TString } from '@library/type.library';
 
 /** These variables are built in ClientState snapshots */
@@ -11,7 +11,7 @@ export const SLICES: Partial<Record<COLLECTION, STORE[]>> = {};
 export const FILTER: Partial<Record<COLLECTION, TString>> = {}
 
 // STORE sort criteria
-export const SORTBY: Partial<Record<STORE, (string | ISortOption)[]>> = {};
+export const SORTBY: Partial<Record<STORE, (string | SortOption)[]>> = {};
 
 // Comment parse criteria
 interface Pattern {

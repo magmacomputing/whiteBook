@@ -9,6 +9,7 @@
 		"moduleResolution": "node",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
+		"allowSyntheticDefaultImports": true, /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
 		"importHelpers": true,
 		"incremental": true,
 		"target": "es2019",
@@ -28,16 +29,16 @@
 				"src/app/dbase/*",
 			],
 			"@library/*": [
-				"src/app/library/*",
+				"../whiteShare/library/*",
+			],
+			"@library": [
+				"../whiteShare/library",
 			],
 			"@route/*": [
 				"src/app/route/*",
 			],
 			"@service/*": [
 				"src/app/service/*",
-			],
-			"@lib": [
-				"../whiteShare/library"
 			]
 		}
 	},
@@ -46,9 +47,9 @@
 		"node_modules",
 		"dist"
 	],
-	"references:": [
+	"references": [
 		{
-			"path": "../whiteShare/library"
+			"path": "../whiteShare"
 		}
 	]
 }

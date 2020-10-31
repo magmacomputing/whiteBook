@@ -20,7 +20,7 @@
 				<table style="width:100%;">
 					<tr>
 						<td> <strong style="font-size:20px;">{{ loc.name }}</strong></td>
-						<td align="right" *ngIf="timetable.client?.location.length > 1">
+						<td style="float:right;" *ngIf="timetable.client?.location.length > 1">
 							{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
 						</td>
 					</tr>
@@ -39,11 +39,18 @@
 				<div *ngIf="timetable.client?.diary?.length">
 					<fieldset id="fsComments" style="border-width:1px;">
 						<legend id="wbCommentLegend">Upcoming Events</legend>
-						<div *ngFor="let calendar of timetable.client?.diary;">
-							<p> {{ calendar.note }} </p>
-							<p> {{ calendar.name }} </p>
-							<hr>
-						</div>
+						<table style="width:100%;">
+							<div *ngFor="let calendar of timetable.client?.diary">
+								<tr>
+									<td width="75%"> <strong style="font-size:15px;">{{ calendar.note }}</strong></td>
+									<td style="float:right;">{{ calendar.start }}</td>
+								</tr>
+								<tr>
+									<td width="75%"><strong style="font-size:15px;">{{ calendar.name }}</strong></td>
+									<td style="float:right;">{{ getDate(calendar.key) }}</td>
+								</tr>
+							</div>
+						</table>
 					</fieldset>
 				</div>
 

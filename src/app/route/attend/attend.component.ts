@@ -14,7 +14,7 @@ import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined, TString } from '@library/type.library';
 import { setTimer } from '@library/observable.library';
-import { Instant } from '@library/instant.library';
+import { Instant, TInstant } from '@library/instant.library';
 import { suffix } from '@library/number.library';
 import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
@@ -109,6 +109,10 @@ export class AttendComponent implements OnDestroy {
 			: offset
 
 		this.getSchedule();																// get day's Schedule
+	}
+
+	getDate(dt: TInstant) {
+		return new Instant(dt).format('ddd, dd mmm yyyy');
 	}
 
 	private getSchedule() {

@@ -367,7 +367,9 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 			}
 
 			offset += duration;												// update offset to next class start-time
-			times.push(time as Schedule);						// add the Event to the timetable
+			const timeIdx = times.findIndex(doc => doc[FIELD.id] === time[FIELD.id]);
+			if (timeIdx === -1)
+				times.push(time as Schedule);						// add the Event to the timetable
 		})
 	})
 

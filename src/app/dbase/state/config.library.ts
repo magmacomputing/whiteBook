@@ -36,7 +36,7 @@ export const getConfig = (config: Config[], type: string, key: string) => {
 	const placeholder: Record<string, string> = {};
 
 	config
-		.filter(row => row[FIELD.type] === 'placeholder')// get the placeholder values on first pass
+		.filter(row => row[FIELD.type] === 'default')		// get the placeholder values on first pass
 		.filter(row => !row[FIELD.expire])
 		.filter(row => isString(row.value))							// restrict string-only template placeholders
 		.forEach(row => placeholder[row[FIELD.key]] = row.value);
