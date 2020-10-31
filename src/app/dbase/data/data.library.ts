@@ -121,5 +121,5 @@ export const checkDiscard = (discards: TString, nextDoc: StoreMeta, currDocs: St
 				.every(bool => bool === true)							// is a match if *all* fields are equal
 		)
 
-	return isMatch.includes(true)                 // at least one currDoc matches every field
+	return isMatch.includes(true)                 	// at least one currDoc matches every field
 }

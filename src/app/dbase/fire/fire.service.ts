@@ -3,8 +3,8 @@ import { Observable, combineLatest, merge, concat } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
 import firebase from 'firebase/app';
-import { AngularFirestore, DocumentReference, AngularFirestoreCollection, DocumentChangeAction, DocumentData } from '@angular/fire/firestore';
-import { AngularFireFunctions } from '@angular/fire/functions';
+import { AngularFirestore, AngularFirestoreCollection, DocumentReference, DocumentChangeAction, DocumentData } from '@angular/fire/firestore';
+import { AngularFireFunctions, } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';

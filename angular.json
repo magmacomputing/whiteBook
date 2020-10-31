@@ -53,7 +53,8 @@
             ],
 						"scripts": [],
 						"allowedCommonJsDependencies": [
-							"util"
+							"firebase/app",
+							"@angular/fire/firestore"
 						]
           },
           "configurations": {
