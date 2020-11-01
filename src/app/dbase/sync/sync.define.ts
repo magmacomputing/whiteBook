@@ -4,7 +4,7 @@ import { FireQuery } from '@dbase/fire/fire.interface';
 import { COLLECTION } from '@dbase/data/data.define';
 import { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
 
-import { Pledge, TPledge } from '@library/utility.library';
+import { Pledge } from '@library/utility.library';
 
 export namespace Sync {
 
@@ -16,7 +16,7 @@ export namespace Sync {
 	export interface Status {
 		collection: COLLECTION;
 		query?: FireQuery;
-		promise: TPledge;
+		promise: Pledge.Status;
 	}
 
 	export interface Listen {
