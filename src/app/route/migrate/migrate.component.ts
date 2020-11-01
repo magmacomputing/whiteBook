@@ -134,11 +134,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async signIn(register: Register, import_: Import) {
+		this.history = new Pledge<MHistory[]>();										// quickly remove previous member's History[]							
 		if (this.current?.user.customClaims!.alias === register.user.customClaims!.alias)
 			return this.signOut();																		// <click> on picture will signIn / signOut
 		this.current = register;																		// stash current Member
 		this.import_ = import_;																			// stash Members Import sheet
-		this.history = new Pledge<MHistory[]>().resolve([]);				// quickly remove previous member's History[]							
 
 		this.store.dispatch(new LoginAction.Other(register.uid))
 			.pipe(take(1))
