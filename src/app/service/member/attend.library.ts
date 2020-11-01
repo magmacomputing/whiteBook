@@ -24,7 +24,7 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: TInstant,
 
 	(source[COLLECTION.client][STORE.bonus] || [])					// current Bonus schemes to which the Member is entitled
 		.forEach(scheme => {																	// loop over each Bonus in its sort-order
-			if (bonus[FIELD.id])																// if a prior forEach determined a Bonus...
+			if (bonus[FIELD.id])																// if a prior forEach found an applicable Bonus...
 				return;																						// 	skip checking the rest
 
 			switch (scheme[FIELD.key]) {
@@ -62,13 +62,13 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: TInstant,
 
 /**
  * Admin adds 'Gift' records to a Member's account, which will detail the start-date
- * and limit of free classes (and an optional expiry-date for the Gift).  
+ * and limit of free classes (and an optional expiry-date as 'use-by' for the Gift).  
  * 
  * Even though the Member may have an active Gift, we check all of them if they are useable.  
  * Any Gifts that have passed their expiry-date will be marked as closed.
  */
 const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Instant, elect = BONUS.gift) => {
-	const upd: Gift[] = [];																		// an array of updates for calling-function to apply on /member/gift
+	const upd: Gift[] = [];																			// an array of updates for calling-function to apply on /member/gift
 	let curr = -1;																							// the Gift to use in determining eligibility
 
 	gifts.forEach((gift, idx) => {
@@ -80,7 +80,7 @@ const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Inst
 		switch (true) {
 			case giftLeft < 0:																			// max number of Attends against this Gift reached
 			case nullToZero(gift.expiry) > now.ts:									// or this Gift has expired
-				upd.push({ [FIELD.expire]: now.ts, ...gift });				// auto-expire it
+				upd.push({ ...gift, [FIELD.expire]: now.ts });				// auto-expire it
 				break;
 
 			case elect !== BONUS.gift:															// Member elected to not use a Gift
@@ -89,9 +89,9 @@ const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Inst
 			case curr === -1:																				// found the first useable Gift
 				curr = idx;																						// to stop further checking
 				upd.push({																						// stack a Gift update
-					[FIELD.effect]: now.ts,															// if first usage of this Gift
+					...gift,																						// spread Gift
+					[FIELD.effect]: gift[FIELD.effect] ?? now.ts,				// if first usage of this Gift
 					[FIELD.expire]: giftLeft === 0 ? now.ts : undefined,// if last usage of this Gift
-					...gift,																						// spread Gift (note: ok to override FIELD.effect with its prior value)
 				})
 				Object.assign(bonus, {																// assign Bonus
 					[FIELD.id]: gift[FIELD.id],
@@ -115,7 +115,7 @@ const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Inst
  * (note: scheme.free only covers one calendar day)
  */
 const bonusWeek = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Instant, elect = BONUS.week) => {
-	const today = now.format(Instant.FORMAT.yearMonthDay);																					// the dow on which the Bonus qualified
+	const today = now.format(Instant.FORMAT.yearMonthDay);			// the dow on which the Bonus qualified
 
 	const okLevel = attendWeek																	// sum the non-Bonus -or- Gift Attends
 		.filter(row => isUndefined(row.bonus) || row.bonus[FIELD.type] === BONUS.gift)
@@ -127,7 +127,7 @@ const bonusWeek = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Inst
 		.map(row => row.track[FIELD.date])												// just the track.date field
 		.sort()																										// should be a single-date, but just in case...
 	const okFree = weekCnt.length === 0 ||											// if first Bonus of the day, or...
-		( weekCnt[0] === today && weekCnt.length < scheme.free )	// same day, and within scheme.free limit
+		(weekCnt[0] === today && weekCnt.length < scheme.free)	// same day, and within scheme.free limit
 	const okElect = elect === BONUS.week;												// if not skipped, then Bonus will apply
 
 	if (okLevel && okFree && okElect)
@@ -229,16 +229,20 @@ const bonusMonth = (bonus: TBonus, scheme: Bonus, attendMonth: Attend[], now: In
 }
 
 /**
- * The Home scheme qualifies as a Bonus if the Member has already attended an '@Home' class earlier today
+ * The Home scheme qualifies as a Bonus if the Member has already attended a paid '@Home' class earlier today.  
+ * Note: PLAN.sponsor gets the Bonus for any type of @Home class today (eg. Step@Home, Rumba@Home),  
+ * all others get the Bonus for any attending the same type of @Home class today (eg. Step@Home).  
+ * scheme.free is set to '@Home'
  */
 const bonusHome = (bonus: TBonus, scheme: Bonus, attendToday: Attend[], profile: ProfilePlan, elect = BONUS.home, event: string) => {
-	if (profile.plan === PLAN.sponsor)															// TODO: workaround this hard-coded check
-		event = 'Home';																								// check only the '@Home' suffix
+	const home = scheme.free as string;
+	if (!event.endsWith(home))																			// Event must be of type '@Home'
+		return;
 
 	const okLevel = attendToday
 		.filter(attend => {
 			return profile.plan === PLAN.sponsor
-				? attend.timetable[FIELD.key].split('@')[1] === event			// attended any @Home event today
+				? attend.timetable[FIELD.key].endsWith(home)							// attended any @Home event today
 				: attend.timetable[FIELD.key] === event										// else same @Home event today
 		})
 		.length >= scheme.level																				// required number of Attends today

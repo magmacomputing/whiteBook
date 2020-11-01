@@ -208,7 +208,8 @@ export const sumPayment = (source: AccountState) => {
 	if (source.account) {
 		const sum: ISummary = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 };
 
-		source.account.payment = asArray(source.account.payment);
+		source.account.payment = asArray(source.account.payment)
+			.orderBy(FIELD.stamp)
 		source.account.summary = source.account.payment
 			.reduce((sum, payment, indx) => {
 				if (indx === 0) {																		// only 1st Payment

@@ -123,34 +123,34 @@ export class StateService {
 	/**
 	 * Watch for changes on the Member's Attendance
 	 */
-	getAttendData(payment?: string): Observable<AttendState> {
-		const filterAttend = [
-			fire.addWhere(FIELD.store, STORE.attend),
-			fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
-		];
-		if (payment)
-			filterAttend.push(fire.addWhere(`${STORE.payment}.${FIELD.id}`, payment))
+	// getAttendData(payment?: string): Observable<AttendState> {
+	// 	const filterAttend = [
+	// 		fire.addWhere(FIELD.store, STORE.attend),
+	// 		fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
+	// 	];
+	// 	if (payment)
+	// 		filterAttend.push(fire.addWhere(`${STORE.payment}.${FIELD.id}`, payment))
 
-		return this.attend$.pipe(
-			switchMap(_attnd => this.getAuthData()),
-			joinDoc(this.states, 'application', STORE.default),
-			joinDoc(this.states, 'attend', STORE.attend, filterAttend),
-		)
-	}
+	// 	return this.attend$.pipe(
+	// 		switchMap(_attnd => this.getAuthData()),
+	// 		joinDoc(this.states, 'application', STORE.default),
+	// 		joinDoc(this.states, 'attend', STORE.attend, filterAttend),
+	// 	)
+	// }
 
 	/**
 	 * Watch for changes on the Member's Payments
 	 */
-	getPaymentData(): Observable<PaymentState> {
-		const filterPayment = [
-			fire.addWhere(FIELD.store, STORE.payment),
-			fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
-		]
+	// getPaymentData(): Observable<PaymentState> {
+	// 	const filterPayment = [
+	// 		fire.addWhere(FIELD.store, STORE.payment),
+	// 		fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
+	// 	]
 
-		return this.getMemberData().pipe(
-			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
-		)
-	}
+	// 	return this.getMemberData().pipe(
+	// 		joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
+	// 	)
+	// }
 
 	/**
 	 * Extend AuthState with an Object describing a Member returned as MemberState, where:  
@@ -228,8 +228,6 @@ export class StateService {
 			fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 
-		// return combineLatest(this.getAttendData(), this.getPaymentData()).pipe(
-		// 	switchMap(_ => this.getMemberData(date)),
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'account.payment', STORE.payment, filterPayment, undefined, sumPayment),
 			joinDoc(this.states, 'account.attend', STORE.attend, filterAttend, undefined, sumAttend),
@@ -297,7 +295,7 @@ export class StateService {
 			fire.addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
 		]
 
-		return combineLatest(this.getForumData(date), this.getMemberData(date)).pipe(
+		return combineLatest([this.getForumData(date), this.getMemberData(date)]).pipe(
 			map(([forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.states, 'application', STORE.default, fire.addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday (or every weekday)

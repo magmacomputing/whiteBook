@@ -47,10 +47,10 @@ export class AttendService {
 		const when = now.format(Instant.FORMAT.yearMonthDay);
 
 		// There is a bit of overlap in these Observables, but they serve different purposes
-		let [data, source] = await combineLatest(
+		let [data, source] = await combineLatest([
 			this.state.getAccountData(date),								// get Member's current account details
 			this.state.getScheduleData(date, schedule.elect),// get Schedule for this date
-		)
+		])
 			.pipe(take(1))																	// unsubscribe on first-emit
 			.toPromise()																		// emit Observable as Promise
 
