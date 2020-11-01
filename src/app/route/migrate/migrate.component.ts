@@ -138,6 +138,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			return this.signOut();																		// <click> on picture will signIn / signOut
 		this.current = register;																		// stash current Member
 		this.import_ = import_;																			// stash Members Import sheet
+		this.history = new Pledge<MHistory[]>().resolve([]);				// quickly remove previous member's History[]							
 
 		this.store.dispatch(new LoginAction.Other(register.uid))
 			.pipe(take(1))
@@ -163,10 +164,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			});
 	}
 
-	async signOut() {																					// signOut of 'on-behalf' mode
+	async signOut() {																							// signOut of 'on-behalf' mode
 		this.current = null;
 		this.import_ = null;
-		this.history = new Pledge();
 		this.hide = '';
 
 		this.store.dispatch(new LoginAction.Other());
