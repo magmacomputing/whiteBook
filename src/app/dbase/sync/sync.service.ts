@@ -17,7 +17,7 @@ import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { StoreMeta } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
-import { FireQuery } from '@dbase/fire/fire.interface';
+import { Fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
 import { isFunction, isUndefined } from '@library/type.library';
@@ -38,7 +38,7 @@ export class SyncService {
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
 	 * Additional collections can be defined, and merged into the same stream
 	 */
-	public async on(collection: COLLECTION, query?: FireQuery, ...additional: [COLLECTION, FireQuery?][]) {
+	public async on(collection: COLLECTION, query?: Fire.Query, ...additional: [COLLECTION, Fire.Query?][]) {
 		const ready = new Pledge<boolean>();
 		const refs = this.fire.colRef<StoreMeta>(collection, query);
 		const key: Sync.Key = { collection, query };
@@ -110,7 +110,7 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection?: COLLECTION, query?: FireQuery, trunc?: boolean) {
+	public off(collection?: COLLECTION, query?: Fire.Query, trunc?: boolean) {
 		for (const [key, listen] of this.listener.entries()) {
 			if ((collection ?? key.collection) === key.collection
 				&& JSON.stringify((query ?? key.query)) === JSON.stringify(key.query)) {

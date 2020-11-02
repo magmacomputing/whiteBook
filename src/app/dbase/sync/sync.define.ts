@@ -1,21 +1,21 @@
 import { Subscription } from 'rxjs';
 
-import { FireQuery } from '@dbase/fire/fire.interface';
-import { COLLECTION } from '@dbase/data/data.define';
-import { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
+import type { Fire } from '@dbase/fire/fire.library';
+import type { COLLECTION } from '@dbase/data/data.define';
+import type { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
 
-import { Pledge } from '@library/utility.library';
+import type { Pledge } from '@library/utility.library';
 
 export namespace Sync {
 
 	export interface Key {
 		collection: COLLECTION;
-		query?: FireQuery;
+		query?: Fire.Query;
 	}
 
 	export interface Status {
 		collection: COLLECTION;
-		query?: FireQuery;
+		query?: Fire.Query;
 		promise: Pledge.Status;
 	}
 

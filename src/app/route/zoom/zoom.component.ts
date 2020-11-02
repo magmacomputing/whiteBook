@@ -2,9 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
-import { TWhere } from '@dbase/fire/fire.interface';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
 import type { ZoomMeeting, ZoomEvent, TStarted, TEnded, TJoined, TLeft, Class, ZoomWhite, Import } from '@dbase/data/data.schema';
@@ -100,9 +99,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<ZoomEvent<TStarted>>(COLLECTION.zoom, {
 						where: [
-							fire.addWhere(FIELD.type, Zoom.EVENT.started),
-							fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
-							fire.addWhere('hook', 0),
+							Fire.addWhere(FIELD.type, Zoom.EVENT.started),
+							Fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
+							Fire.addWhere('hook', 0),
 						]
 					})
 				),
@@ -110,10 +109,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				mergeMap(track => {														// merge all documents per meeting.started event
 					return this.data.getLive<ZoomEvent<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
 						where: [
-							fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
-							fire.addWhere('hook', 0),
+							Fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
+							Fire.addWhere('hook', 0),
 						],
-						orderBy: fire.addOrder(FIELD.stamp),						// order by timestamp
+						orderBy: Fire.addOrder(FIELD.stamp),						// order by timestamp
 					})
 				}
 				),
@@ -233,14 +232,14 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		if (!white.status?.trackDaysThisWeek)
 			return;
 
-		const where: TWhere = [
-			fire.addWhere(FIELD.type, Zoom.EVENT.joined),
-			fire.addWhere('white.alias', white.alias),
-			fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
+		const where = [
+			Fire.addWhere(FIELD.type, Zoom.EVENT.joined),
+			Fire.addWhere('white.alias', white.alias),
+			Fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
 		const [join, imports] = await Promise.all([
 			this.data.getLive<ZoomEvent<TJoined>>(COLLECTION.zoom, { where }),
-			this.state.getSingle<Import>(STORE.import, fire.addWhere(FIELD.uid, white.alias))
+			this.state.getSingle<Import>(STORE.import, Fire.addWhere(FIELD.uid, white.alias))
 		])
 
 		const image = imports.picture;

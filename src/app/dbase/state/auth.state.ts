@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import firebase from 'firebase/app';
 import { AngularFireAuth } from '@angular/fire/auth';
+import firebase from 'firebase/app';
 
 import { State, StateContext, Action, Store } from '@ngxs/store';
 import { BehaviorSubject } from 'rxjs';
@@ -18,8 +18,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { Register } from '@dbase/data/data.schema';
-import { fire } from '@dbase/fire/fire.library';
-import { FireQuery } from '@dbase/fire/fire.interface';
+import { Fire } from '@dbase/fire/fire.library';
 
 import { Storage, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
@@ -211,7 +210,7 @@ export class AuthState {
 	/** Events */
 	@Action(LoginEvent.Success)														// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
-		const query: FireQuery = { where: fire.addWhere(FIELD.uid, user.uid) };
+		const query: Fire.Query = { where: Fire.addWhere(FIELD.uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;
 
 		if (currUser) {
@@ -271,7 +270,7 @@ export class AuthState {
 			this.sync.off(COLLECTION.member);						// unsubscribe from /member
 			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend
 
-			const where = fire.addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
+			const where = Fire.addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
 			this.sync.on(COLLECTION.member, { where });	// re-subscribe to /member, with supplied UIDs
 			this.sync.on(COLLECTION.attend, { where });	// re-subscribe to /attend, with supplied UIDs
 		}
@@ -303,7 +302,7 @@ export class AuthState {
 			this.dbg('customClaims: %j', ctx.getState().token?.claims.claims);
 			if (roles.includes(Auth.ROLE.admin)) {
 				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one stream
-					[COLLECTION.member, { where: fire.addWhere(FIELD.store, STORE.status) }]);
+					[COLLECTION.member, { where: Fire.addWhere(FIELD.store, STORE.status) }]);
 			} else {
 				this.sync.off(COLLECTION.admin);
 				this.navigate.route(ROUTE.attend);

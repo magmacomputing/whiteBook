@@ -16,7 +16,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { asAt } from '@library/app.library';
 import { getSlice } from '@dbase/state/state.library';
 import { StateService } from '@dbase/state/state.service';
-import { TWhere, FireQuery } from '@dbase/fire/fire.interface';
+import { Fire } from '@dbase/fire/fire.library';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
@@ -42,7 +42,7 @@ export class DataService {
 	}
 
 	/** Make Store data available in a Promise */
-	private snap<T>(store: STORE, query?: FireQuery) {
+	private snap<T>(store: STORE, query?: Fire.Query) {
 		const slice = getSlice(store);
 
 		if (query)
@@ -53,15 +53,15 @@ export class DataService {
 			.toPromise()
 	}
 
-	getCurrent<T>(store: STORE, where: TWhere = []) {
+	getCurrent<T>(store: STORE, where: Fire.Query["where"] = []) {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getStore<T>(store: STORE, where: TWhere = [], date?: TInstant) {
+	getStore<T>(store: STORE, where: Fire.Query["where"] = [], date?: TInstant) {
 		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 
-	getState<T>(store: STORE, where: TWhere = []) {
+	getState<T>(store: STORE, where: Fire.Query["where"] = []) {
 		return this.state.asPromise(this.state.getState<T>(store, where));
 	}
 
@@ -89,11 +89,11 @@ export class DataService {
 			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
 
-	getFire<T>(collection: COLLECTION, query?: FireQuery) {		// direct access to collection, rather than via state
+	getFire<T>(collection: COLLECTION, query?: Fire.Query) {	// direct access to collection, rather than via state
 		return this.fire.get<T>(collection, query)
 	}
 
-	getLive<T>(collection: COLLECTION, query?: FireQuery) {		// direct access to collection as observable
+	getLive<T>(collection: COLLECTION, query?: Fire.Query) {	// direct access to collection as observable
 		return this.fire.listen<T>(collection, query);
 	}
 
@@ -117,7 +117,7 @@ export class DataService {
 	}
 
 	/** Expire any current matching docs, and Create new doc */
-	async insDoc(nextDocs: TStoreBase, filter?: TWhere, discards: TString = []) {
+	async insDoc(nextDocs: TStoreBase, filter?: Fire.Query["where"], discards: TString = []) {
 		const creates: TStoreBase[] = [];												// array of documents to Create
 		const updates: TStoreBase[] = [];												// array of documents to Update
 		const stamp = getStamp();																// the timestamp of the Insert
@@ -125,7 +125,7 @@ export class DataService {
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.effect] || stamp;
-			let where: TWhere;
+			let where: Fire.Query["where"];
 			const collection = getSlice(nextDoc[FIELD.store]);
 
 			try {

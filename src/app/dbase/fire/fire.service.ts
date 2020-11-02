@@ -9,8 +9,7 @@ import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
-import { fnQuery } from '@dbase/fire/fire.library';
-import { FireQuery, DocMeta } from '@dbase/fire/fire.interface';
+import { Fire } from '@dbase/fire/fire.library';
 import { StoreMeta } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -38,10 +37,10 @@ export class FireService {
 	 * return Collection References (limited by an optional query).  
 	 * If a 'logical-or' is detected in the 'value' of any query's Where-clause, multiple Collection References are returned.
 	 */
-	colRef<T>(collection: COLLECTION, query?: FireQuery) {
+	colRef<T>(collection: COLLECTION, query?: Fire.Query) {
 		return isUndefined(query)
 			? [this.afs.collection<T>(collection)]		// reference against the entire collection
-			: fnQuery(query)													// else register an array of Querys over a collection reference
+			: Fire.fnQuery(query)													// else register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
 	}
 
@@ -62,14 +61,14 @@ export class FireService {
 			.pipe(map(obs => obs.flat()))								// flatten the array-of-values results
 	}
 
-	listen<T>(collection: COLLECTION, query?: FireQuery) {
+	listen<T>(collection: COLLECTION, query?: Fire.Query) {
 		return this.combine<T, 'snapshotChanges'>(this.colRef<T>(collection, query), 'snapshotChanges')
 			.pipe(map(snap => snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id, } as T))))
 	}
 
-	get<T>(collection: COLLECTION, query?: FireQuery) {
+	get<T>(collection: COLLECTION, query?: Fire.Query) {
 		return this.afs
-			.collection(collection, fnQuery(query)[0])
+			.collection(collection, Fire.fnQuery(query)[0])
 			.get({ source: 'server' })								// get the server-data, rather than cache
 			.toPromise()
 			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.id]: doc.id } as unknown as T)))
@@ -184,7 +183,7 @@ export class FireService {
 	}
 
 	/** get all Documents, optionally with a supplied Query */
-	async getAll<T>(collection: COLLECTION, query?: FireQuery) {
+	async getAll<T>(collection: COLLECTION, query?: Fire.Query) {
 		const snap = await this.colRef<T>(collection, query)[0]	// TODO: allow for logical-or, merge of snapshotChanges
 			.snapshotChanges()
 			.pipe(take(1))
@@ -194,7 +193,7 @@ export class FireService {
 	}
 
 	callMeta(store: STORE, docId: string) {
-		return this.callHttps<DocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
+		return this.callHttps<Fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
 	}
 
 	/** This helps an Admin impersonate another Member */
