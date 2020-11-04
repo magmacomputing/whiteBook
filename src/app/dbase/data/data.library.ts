@@ -1,7 +1,7 @@
 import { FireService } from '@dbase/fire/fire.service';
 import { Fire } from '@dbase/fire/fire.library';
 
-import type { TStoreBase, StoreMeta, ClientBase } from '@dbase/data/data.schema';
+import type { TStoreBase, FireDocument, ClientDocument } from '@dbase/data/data.schema';
 import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
 import { FILTER } from '@dbase/state/config.define';
 import { getSlice } from '@dbase/state/state.library';
@@ -12,11 +12,11 @@ import { asString } from '@library/string.library';
 import { asArray } from '@library/array.library';
 
 // client documents have a '<key>' field, member documents have a '<uid>' field
-const isClientDocument = (document: TStoreBase): document is ClientBase =>
+const isClientDocument = (document: TStoreBase): document is ClientDocument =>
 	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
-export const getWhere = (nextDoc: StoreMeta, filter: Fire.Query["where"] = []) => {
+export const getWhere = (nextDoc: FireDocument, filter: Fire.Query["where"] = []) => {
 	const where: Fire.Where[] = [];
 	const collection = getSlice(nextDoc[FIELD.store]);
 	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
@@ -89,7 +89,7 @@ export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: Fire
  * @param currDocs: IStoreMeta[]  array of documents to compare to the Create document
  * @returns boolean:							true indicates at least one currDoc matches nextDoc, so no Insert needed
  */
-export const checkDiscard = (discards: TString, nextDoc: StoreMeta, currDocs: StoreMeta[]) => {
+export const checkDiscard = (discards: TString, nextDoc: FireDocument, currDocs: FireDocument[]) => {
 	console.log('discard.discards: ', discards);
 	console.log('discard.nextDoc: ', nextDoc);
 	console.log('discard.currDocs: ', currDocs);

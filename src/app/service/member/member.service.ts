@@ -11,7 +11,7 @@ import { asAt } from '@library/app.library';
 import { Fire } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
-import { ProfilePlan, Payment, ProfileInfo, Class, StoreMeta, StatusAccount, Price } from '@dbase/data/data.schema';
+import { ProfilePlan, Payment, ProfileInfo, Class, FireDocument, StatusAccount, Price } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant } from '@library/instant.library';
 import { isNull } from '@library/type.library';
@@ -102,7 +102,7 @@ export class MemberService {
 	}
 
 	// create / update accountDoc and stash into creates[]/updates[]
-	setAccount = async (creates: StoreMeta[] = [], updates: StoreMeta[] = [], data?: AccountState) => {
+	setAccount = async (creates: FireDocument[] = [], updates: FireDocument[] = [], data?: AccountState) => {
 		data = data || await this.getAccount();
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
@@ -120,15 +120,15 @@ export class MemberService {
 			: { ...doc[0], [FIELD.stamp]: getStamp(), summary }
 
 		if (!accountDoc[FIELD.id])
-			creates.push(accountDoc as StoreMeta)
-		else updates.push(accountDoc as StoreMeta)
+			creates.push(accountDoc as FireDocument)
+		else updates.push(accountDoc as FireDocument)
 
 		return accountDoc;
 	}
 
 	updAccount = async (data?: AccountState) => {
-		const creates: StoreMeta[] = [];
-		const updates: StoreMeta[] = [];
+		const creates: FireDocument[] = [];
+		const updates: FireDocument[] = [];
 
 		await this.setAccount(creates, updates, data);
 		return this.data.batch(creates, updates);

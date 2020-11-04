@@ -8,7 +8,7 @@ import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@dbase/state/config.define';
 
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
-import { Default, StoreMeta, Class, Price, Event, Schedule, Span, ProfilePlan, TStoreBase, Icon, Calendar, ISummary } from '@dbase/data/data.schema';
+import { Default, FireDocument, Class, Price, Event, Schedule, Span, ProfilePlan, TStoreBase, Icon, Calendar, ISummary } from '@dbase/data/data.schema';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
@@ -23,7 +23,7 @@ import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from 
  */
 export const getCurrent = <T>(states: IState, store: STORE, filter: Fire.Query["where"] = [], date?: TInstant, segment?: string) => {
 	const slice = getSlice(store);
-	const state = states[slice] as Observable<StoreMeta>;
+	const state = states[slice] as Observable<FireDocument>;
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 

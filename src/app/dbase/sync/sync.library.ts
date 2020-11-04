@@ -3,7 +3,7 @@ import { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
-import { StoreMeta, TStoreBase } from '@dbase/data/data.schema';
+import type { FireDocument, TStoreBase } from '@dbase/data/data.schema';
 import { Sync } from '@dbase/sync/sync.define';
 
 import { LState } from '@dbase/state/state.define';
@@ -13,7 +13,7 @@ import { cryptoHash } from '@library/crypto.library';
 import { Storage } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
-export const getSource = (snaps: DocumentChangeAction<StoreMeta>[]) => {
+export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
 	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firebase.firestore.SnapshotMetadata;
 	return meta.fromCache
 		? 'cache'
@@ -23,10 +23,10 @@ export const getSource = (snaps: DocumentChangeAction<StoreMeta>[]) => {
 }
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
-export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<StoreMeta>[]) => {
+export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<FireDocument>[]) => {
 	const localState = new Storage('local').get<LState>(Sync.storeStorage, {})
 	const localSlice = localState[listen.key.collection] || {};
-	const localList: StoreMeta[] = [];
+	const localList: FireDocument[] = [];
 	const snapList = snaps.map(addMeta);
 
 	Object.entries(localSlice).forEach(([_key, value]) => localList.push(...value.map(remMeta)));
@@ -47,7 +47,7 @@ export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAct
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback, at this time)
-export const buildDoc = async (snap: DocumentChangeAction<StoreMeta>, fire: FireService) => {//FireService) => {
+export const buildDoc = async (snap: DocumentChangeAction<FireDocument>, fire: FireService) => {//FireService) => {
 	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
 	return {
 		...snap.payload.doc.data(),
@@ -59,12 +59,12 @@ export const buildDoc = async (snap: DocumentChangeAction<StoreMeta>, fire: Fire
 }
 
 /** These fields do not exist in the snapshot data() */
-const remMeta = (doc: StoreMeta) => {
+const remMeta = (doc: FireDocument) => {
 	const { [FIELD.create]: c, [FIELD.update]: u, [FIELD.access]: a, ...rest } = doc;
 	return rest;
 }
-export const addMeta = (snap: DocumentChangeAction<StoreMeta>) =>
-	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as StoreMeta)
+export const addMeta = (snap: DocumentChangeAction<FireDocument>) =>
+	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as FireDocument)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: COLLECTION) => {

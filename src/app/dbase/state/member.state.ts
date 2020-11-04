@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
-import { TStateSlice } from '@dbase/state/state.define';
-import { StoreMeta } from '@dbase/data/data.schema';
+import type { TStateSlice } from '@dbase/state/state.define';
+import type { FireDocument } from '@dbase/data/data.schema';
 import { MemberAction, filterState } from '@dbase/state/state.action';
-
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
+
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<TStateSlice<StoreMeta>>({
+@State<TStateSlice<FireDocument>>({
 	name: COLLECTION.member,
 	defaults: {}
 })
@@ -20,14 +20,14 @@ export class MemberState implements NgxsOnInit {
 
 	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');
 	}
 
 	@Action(MemberAction.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: MemberAction.Set) {
+	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: MemberAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -44,7 +44,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(MemberAction.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: MemberAction.Del) {
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: MemberAction.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -61,7 +61,7 @@ export class MemberState implements NgxsOnInit {
 	}
 
 	@Action(MemberAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: MemberAction.Trunc) {
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: MemberAction.Trunc) {
 		if (debug) this.dbg('truncMember');
 		setState({});
 	}

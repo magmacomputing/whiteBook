@@ -4,7 +4,7 @@ import { Device } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { StoreMeta, Config } from '@dbase/data/data.schema';
+import { FireDocument, Config } from '@dbase/data/data.schema';
 
 import { makeTemplate } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
@@ -18,7 +18,7 @@ import { dbg } from '@library/logger.library';
  * UI preferences for _login_ (which are needed prior to authentication)
  */
 @Injectable()
-@State<TStateSlice<StoreMeta>>({
+@State<TStateSlice<FireDocument>>({
 	name: COLLECTION.device,
 	defaults: {}
 })
@@ -27,14 +27,14 @@ export class DeviceState implements NgxsOnInit {
 
 	constructor(private store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { this.init(); }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { this.init(); }
 
 	private init() {
 		this.dbg('init:');
 	}
 
 	@Action(Device.Set)
-	setStore({ setState, getState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: Device.Set) {
+	setStore({ setState, getState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: Device.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -52,7 +52,7 @@ export class DeviceState implements NgxsOnInit {
 	}
 
 	@Action(Device.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: Device.Del) {
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: Device.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -70,13 +70,13 @@ export class DeviceState implements NgxsOnInit {
 
 	// TODO: dont delete local-device store?
 	@Action(Device.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: Device.Trunc) {
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: Device.Trunc) {
 		if (debug) this.dbg('truncDevice');
 		setState({});
 	}
 
 	/** remove an item from the Device Store */
-	private filterState(state: TStateSlice<StoreMeta>, payload: StoreMeta, segment = FIELD.store) {
+	private filterState(state: TStateSlice<FireDocument>, payload: FireDocument, segment = FIELD.store) {
 		const group = '@' + payload[segment].replace(/_/g, '') + '@';
 		const curr = state && state[payload[group]] || [];
 

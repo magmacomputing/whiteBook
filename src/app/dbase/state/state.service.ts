@@ -10,7 +10,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
-import { StoreMeta, Register, StatusConnect, StatusAccount, Forum, Comment, React, Import } from '@dbase/data/data.schema';
+import { FireDocument, Register, StatusConnect, StatusAccount, ForumDocument, Comment, React, Import } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { Fire } from '@dbase/fire/fire.library';
@@ -31,7 +31,7 @@ export class StateService {
 	@Select() member$!: OState;
 	@Select() attend$!: OState;
 	@Select() admin$!: OState;
-	@Select() local$!: Observable<TStateSlice<StoreMeta>>;
+	@Select() local$!: Observable<TStateSlice<FireDocument>>;
 	private forum$: OState = of({ forum: [] });
 
 	private dbg = dbg(this);
@@ -244,8 +244,8 @@ export class StateService {
 			orderBy: Fire.addOrder(FIELD.stamp),
 		}
 
-		return this.fire.listen<Forum>(COLLECTION.forum, query).pipe(
-			startWith([] as Forum[]),													// dont make subcriber wait for 1st emit
+		return this.fire.listen<ForumDocument>(COLLECTION.forum, query).pipe(
+			startWith([] as ForumDocument[]),													// dont make subcriber wait for 1st emit
 			distinctUntilChanged((curr, prev) => JSON.stringify(curr) === JSON.stringify(prev)),
 			map(source => ({
 				forum: {

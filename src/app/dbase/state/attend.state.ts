@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
-import { TStateSlice } from '@dbase/state/state.define';
+import type { TStateSlice } from '@dbase/state/state.define';
+import type { Attend, FireDocument } from '@dbase/data/data.schema';
 import { AttendAction } from '@dbase/state/state.action';
-
-import { Attend, StoreMeta } from '@dbase/data/data.schema';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
+
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<TStateSlice<StoreMeta>>({
+@State<TStateSlice<FireDocument>>({
 	name: COLLECTION.attend,
 	defaults: {}
 })
@@ -20,14 +20,14 @@ export class AttendState implements NgxsOnInit {
 
 	constructor() { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');
 	}
 
 	@Action(AttendAction.Set)
-	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AttendAction.Set) {
+	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: AttendAction.Set) {
 		const state = cloneObj(getState()) || {};
 		let empty: Record<string, boolean> = {};
 
@@ -48,7 +48,7 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(AttendAction.Del)																	// very rare Event
-	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: AttendAction.Del) {
+	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: AttendAction.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload as Attend[]).forEach(doc => {
@@ -66,13 +66,13 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(AttendAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: AttendAction.Trunc) {
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: AttendAction.Trunc) {
 		if (debug) this.dbg('truncAttend');
 		setState({});
 	}
 
 	/** remove an item from the Attend Store */
-	private filterState(state: TStateSlice<StoreMeta>, payload: Attend) {
+	private filterState(state: TStateSlice<FireDocument>, payload: Attend) {
 		const slice = payload.payment[FIELD.id];
 		const curr = state && slice && state[slice] || [];
 

@@ -10,7 +10,7 @@ import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
-import { Attend, StoreMeta, TStoreBase, Schedule, Payment, Gift, Forum } from '@dbase/data/data.schema';
+import { Attend, FireDocument, TStoreBase, Schedule, Payment, Gift, ForumDocument } from '@dbase/data/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -33,8 +33,8 @@ export class AttendService {
 
 	/** Insert an Attend document, aligned to an active Payment  */
 	public setAttend = async (schedule: Schedule, date?: TInstant) => {
-		const creates: StoreMeta[] = [];
-		const updates: StoreMeta[] = [];
+		const creates: FireDocument[] = [];
+		const updates: FireDocument[] = [];
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered.  
@@ -252,8 +252,8 @@ export class AttendService {
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
 			filter.push(memberUid);																// ensure UID is present in where-clause
 
-		const updates: StoreMeta[] = [];
-		const deletes: StoreMeta[] = await this.data.getStore<Attend>(STORE.attend, filter);
+		const updates: FireDocument[] = [];
+		const deletes: FireDocument[] = await this.data.getStore<Attend>(STORE.attend, filter);
 
 		if (deletes.length === 0) {
 			this.dbg('No items to delete');
@@ -284,7 +284,7 @@ export class AttendService {
 			this.data.getStore<Attend>(STORE.attend, Fire.addWhere(`payment.${FIELD.id}`, payIds)),
 			this.data.getStore<Payment>(STORE.payment, memberUid),
 			this.data.getStore<Gift>(STORE.gift, [memberUid, Fire.addWhere(FIELD.id, giftIds)]),
-			this.data.getFire<Forum>(COLLECTION.forum, {
+			this.data.getFire<ForumDocument>(COLLECTION.forum, {
 				where: [
 					memberUid,
 					Fire.addWhere(FIELD.type, STORE.schedule),

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { DataService } from '@dbase/data/data.service';
-import { React, StoreMeta, Comment, TStoreBase } from '@dbase/data/data.schema';
+import { React, FireDocument, Comment, TStoreBase } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 
 import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
@@ -18,9 +18,9 @@ export class ForumService {
 		const now = getInstant(date);
 		const reactDoc = await this.getForum<React>({ store: STORE.react, key, type, date });
 
-		const creates: StoreMeta[] = [];
-		const updates: StoreMeta[] = [];
-		const deletes: StoreMeta[] = [];
+		const creates: FireDocument[] = [];
+		const updates: FireDocument[] = [];
+		const deletes: FireDocument[] = [];
 
 		switch (true) {
 			case reactDoc.length && react === REACT.none:					// delete the old React

@@ -9,7 +9,7 @@ import { DialogService } from '@service/material/dialog.service';
 import { TimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, REACT } from '@dbase/data/data.define';
-import { Schedule, Forum } from '@dbase/data/data.schema';
+import { Schedule, ForumDocument } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
 
 import { isUndefined, TString } from '@library/type.library';
@@ -123,7 +123,7 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	public getForum() {
-		return this.forum.getForum<Forum>()
+		return this.forum.getForum<ForumDocument>()
 			.then(forum => this.dbg('forum: %j', forum))
 	}
 	public setReact(item: Schedule, react: REACT) {

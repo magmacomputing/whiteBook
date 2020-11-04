@@ -1,10 +1,10 @@
 import { Observable } from 'rxjs';
 
-import { AuthSlice } from './auth.action';
+import type { AuthSlice } from './auth.action';
 import { STORE, BONUS, COLLECTION } from '@dbase/data/data.define';
 import {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
-	Location, Instructor, ProfileInfo, StoreMeta, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
+	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
 	StatusConnect, StatusAccount, TBonus, Icon, Provider, React, Comment, Import, ISummary,
 } from '@dbase/data/data.schema';
 
@@ -37,8 +37,8 @@ export enum SLICE {
  */
 
 export type TStateSlice<T> = Record<string, T[]>;
-export type LState = Record<string, TStateSlice<StoreMeta>>;	// localStorage State
-export type OState = Observable<TStateSlice<StoreMeta>>;
+export type LState = Record<string, TStateSlice<FireDocument>>;	// localStorage State
+export type OState = Observable<TStateSlice<FireDocument>>;
 export type IState = Record<string, OState>;
 
 export interface UserState {

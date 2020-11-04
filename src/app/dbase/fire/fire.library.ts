@@ -55,7 +55,7 @@ export namespace Fire {
 	 * [ {fieldPath:'uid', value:'abc'}, {fieldPath:'uid', value'def'} ]  
 	 * This allows us to set separate Queries for each split clause
 	 */
-	const splitQuery = (query: Fire.Query = {}) => {
+	const splitQuery = (query: Fire.Query = {} as Fire.Query) => {
 		const wheres = asArray(query.where)						// for each 'where' clause
 			.map(where => {
 				if (isArray(where.value)) {

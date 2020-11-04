@@ -10,7 +10,7 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
 import { Fire } from '@dbase/fire/fire.library';
-import { StoreMeta } from '@dbase/data/data.schema';
+import { FireDocument } from '@dbase/data/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isUndefined } from '@library/type.library';
@@ -118,7 +118,7 @@ export class FireService {
 	 * If they are Member documents and missing a <uid> field, the current User is inserted  
 	 * Perform all creates first, then all updates, finally all deletes
 	 */
-	batch(creates: StoreMeta[] = [], updates: StoreMeta[] = [], deletes: StoreMeta[] = []) {
+	batch(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = []) {
 		const cloneCreate = [...asArray(creates)];
 		const cloneUpdate = [...asArray(updates)];
 		const cloneDelete = [...asArray(deletes)];
@@ -142,7 +142,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
-	runTxn(creates: StoreMeta[] = [], updates: StoreMeta[] = [], deletes: StoreMeta[] = [], selects: DocumentReference[] = []) {
+	runTxn(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = [], selects: DocumentReference[] = []) {
 		const cloneCreate = asArray(cloneObj(creates));
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));

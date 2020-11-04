@@ -14,7 +14,7 @@ import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 
 import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { StoreMeta } from '@dbase/data/data.schema';
+import { FireDocument } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { Fire } from '@dbase/fire/fire.library';
@@ -40,11 +40,11 @@ export class SyncService {
 	 */
 	public async on(collection: COLLECTION, query?: Fire.Query, ...additional: [COLLECTION, Fire.Query?][]) {
 		const ready = new Pledge<boolean>();
-		const refs = this.fire.colRef<StoreMeta>(collection, query);
+		const refs = this.fire.colRef<FireDocument>(collection, query);
 		const key: Sync.Key = { collection, query };
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
-			refs.push(...this.fire.colRef<StoreMeta>(collection, query)));
+			refs.push(...this.fire.colRef<FireDocument>(collection, query)));
 		const stream = this.fire.merge(refs, 'stateChanges');
 		const sync = this.sync.bind(this, key);
 		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
@@ -126,7 +126,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(key: Sync.Key, snaps: DocumentChangeAction<StoreMeta>[]) {
+	private async sync(key: Sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
 		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
 
@@ -137,7 +137,7 @@ export class SyncService {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
 				cnts[idx].push(addMeta(snap))
 				return cnts;
-			}, [[] as StoreMeta[], [] as StoreMeta[], [] as StoreMeta[]]);
+			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
 		listen.cnt += 1;
 		this.dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',

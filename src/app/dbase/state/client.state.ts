@@ -6,7 +6,7 @@ import { TStateSlice } from '@dbase/state/state.define';
 import { SLICES, COMMENT } from '@dbase/state/config.define';
 import { setSchema, setConfig } from '@dbase/state/config.library';
 import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import { StoreMeta, Schema, Config } from '@dbase/data/data.schema';
+import type { FireDocument, Schema, Config } from '@dbase/data/data.schema';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
@@ -14,7 +14,7 @@ import { isEmpty } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
-@State<TStateSlice<StoreMeta>>({
+@State<TStateSlice<FireDocument>>({
 	name: COLLECTION.client,
 	defaults: {}
 })
@@ -23,7 +23,7 @@ export class ClientState implements NgxsOnInit {
 
 	constructor(private readonly store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<StoreMeta>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { /** this.init(); */ }
 
 	private init() {
 		this.dbg('init:');
@@ -36,10 +36,10 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(ClientAction.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: ClientAction.Set) {
+	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: ClientAction.Set) {
 		const state = cloneObj(getState()) || {};
-		const schema: StoreMeta[] = [];
-		const config: StoreMeta[] = [];
+		const schema: FireDocument[] = [];
+		const config: FireDocument[] = [];
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
@@ -62,10 +62,10 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(ClientAction.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<StoreMeta>>, { payload, debug }: ClientAction.Del) {
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: ClientAction.Del) {
 		const state = cloneObj(getState()) || {};
-		const schema: StoreMeta[] = [];
-		const config: StoreMeta[] = [];
+		const schema: FireDocument[] = [];
+		const config: FireDocument[] = [];
 
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.store];
@@ -89,7 +89,7 @@ export class ClientState implements NgxsOnInit {
 	}
 
 	@Action(ClientAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<StoreMeta>>, { debug }: ClientAction.Trunc) {
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: ClientAction.Trunc) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}

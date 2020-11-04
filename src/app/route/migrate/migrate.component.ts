@@ -13,7 +13,7 @@ import { Migration } from '@route/migrate/migrate.define';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data/data.define';
-import { Register, Payment, Schedule, Event, Calendar, Attend, Migrate, StoreMeta, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Import, Forum } from '@dbase/data/data.schema';
+import type { Register, Payment, Schedule, Event, Calendar, Attend, Migrate, FireDocument, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Import } from '@dbase/data/data.schema';
 import { LoginAction } from '@dbase/state/auth.action';
 import { AccountState, AdminState } from '@dbase/state/state.define';
 import { MemberAction } from '@dbase/state/state.action';
@@ -82,9 +82,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	async delUser() {
 		const where = Fire.addWhere(FIELD.uid, this.current!.uid);
 		const deletes = await Promise.all([
-			this.data.getFire<StoreMeta>(COLLECTION.member, { where }),
-			this.data.getFire<StoreMeta>(COLLECTION.admin, { where }),
-			this.data.getFire<StoreMeta>(COLLECTION.attend, { where }),
+			this.data.getFire<FireDocument>(COLLECTION.member, { where }),
+			this.data.getFire<FireDocument>(COLLECTION.admin, { where }),
+			this.data.getFire<FireDocument>(COLLECTION.attend, { where }),
 			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
@@ -189,8 +189,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 * calculate new summary, and batch into /member/status/account
 	 */
 	async setAccount() {
-		const creates: StoreMeta[] = [],
-			updates: StoreMeta[] = [];
+		const creates: FireDocument[] = [],
+			updates: FireDocument[] = [];
 
 		await this.member.setAccount(creates, updates);
 
@@ -217,8 +217,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
 		const [payments, gifts, profile, plans, prices, comments, hist = []] = await this.getMember();
-		const updates: StoreMeta[] = [];
-		const creates: StoreMeta[] = hist
+		const updates: FireDocument[] = [];
+		const creates: FireDocument[] = hist
 			.filter(row => (row.type === 'Debit' && !(row.note?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => {
 				const match = payments.find(pay => pay[FIELD.stamp] === row[FIELD.stamp]);
@@ -275,7 +275,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					approve: approve.stamp && approve || undefined,
 					expiry: this.getExpiry(row, profile, plans, prices),
 				} as Partial<Payment>
-				return obj as StoreMeta;
+				return obj as FireDocument;
 			})
 
 		// parse the Attends to look for 'Gift' notes, and build a Gift document
@@ -597,7 +597,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							Fire.addWhere('track.class', sched[FIELD.key]),
 							Fire.addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
 						]
-						this.data.getFire<Forum>(COLLECTION.forum, { where })
+						this.data.getFire<Comment>(COLLECTION.forum, { where })
 							.then(list => {
 								if (!list.length)
 									this.forum.setComment({ [FIELD.key]: sched[FIELD.id], [FIELD.type]: sched[FIELD.store], [FIELD.date]: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.key] }, comment })
@@ -672,8 +672,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			return prev;
 		}, { paid: 0, spend: 0 }))
 
-		const creates: StoreMeta[] = [];
-		const updates: StoreMeta[] = [];
+		const creates: FireDocument[] = [];
+		const updates: FireDocument[] = [];
 		const closed = active[0] && active[0].expiry;
 
 		this.dbg('account: %j', summary);					// the current account summary
@@ -712,9 +712,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.data.getStore<Payment>(STORE.payment, [where, Fire.addWhere(FIELD.store, STORE.payment)]),
 			this.data.getStore<Gift>(STORE.gift, [where, Fire.addWhere(FIELD.store, STORE.gift)]),
 		])
-		const creates: StoreMeta[] = [];
-		const updates: StoreMeta[] = [];
-		const deletes: StoreMeta[] = [...attends, ...payments, ...gifts];
+		const creates: FireDocument[] = [];
+		const updates: FireDocument[] = [];
+		const deletes: FireDocument[] = [...attends, ...payments, ...gifts];
 
 		if (full)																						// full-delete of Migrate documents as well
 			deletes.push(...await this.data.getStore<Migrate>(STORE.migrate, [where, Fire.addWhere(FIELD.type, [STORE.event, STORE.class])]))

@@ -8,7 +8,7 @@ import { Store } from '@ngxs/store';
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
-import type { TStoreBase, BaseDocument, StoreMeta } from '@dbase/data/data.schema';
+import type { TStoreBase, BaseDocument, FireDocument } from '@dbase/data/data.schema';
 
 import { AuthService } from '@service/auth/auth.service';
 
@@ -157,7 +157,7 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Batch */
-	batch(creates: StoreMeta[] = [], updates: StoreMeta[] = [], deletes: StoreMeta[] = [], event?: any, callBack?: (evt: any) => any) {
+	batch(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = [], event?: any, callBack?: (evt: any) => any) {
 		const writes = creates.length + updates.length + deletes.length;
 		const sync = (event && writes)													// an Event that this batch will fire
 			? this.sync.wait(event, callBack)											// start a listener for 1st emit of Event
@@ -175,7 +175,7 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Transaction */
-	runTxn(creates?: StoreMeta[], updates?: StoreMeta[], deletes?: StoreMeta[], selects?: DocumentReference[]) {
+	runTxn(creates?: FireDocument[], updates?: FireDocument[], deletes?: FireDocument[], selects?: DocumentReference[]) {
 		return this.fire.runTxn(creates, updates, deletes, selects);
 	}
 
