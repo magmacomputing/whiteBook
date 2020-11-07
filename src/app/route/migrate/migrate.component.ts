@@ -7,7 +7,7 @@ import { Store } from '@ngxs/store';
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { MHistory, AdminStore } from '@route/migrate/migrate.interface';
+import { MHistory } from '@route/migrate/migrate.interface';
 import { cleanNote } from '@route/forum/forum.library';
 import { Migration } from '@route/migrate/migrate.define';
 
@@ -16,9 +16,8 @@ import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE 
 import type { Register, Payment, Schedule, Event, Calendar, Attend, Migrate, FireDocument, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Sheet } from '@dbase/data/data.schema';
 import { LoginAction } from '@dbase/state/auth.action';
 import { AccountState, AdminState } from '@dbase/state/state.define';
-import { MemberAction } from '@dbase/state/state.action';
+import { memberAction } from '@dbase/state/state.action';
 import { StateService } from '@dbase/state/state.service';
-import { sync } from '@dbase/sync/sync.define';
 import { fire } from '@dbase/fire/fire.library';
 
 import { Instant, getInstant, getStamp, fmtInstant } from '@library/instant.library';
@@ -41,7 +40,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public dash$!: Observable<AdminState["dash"]>;
 	public account$!: Observable<AccountState>;
 	public sheet: Sheet | null = null;
-	public admin: AdminStore = {};
+	public filter = {} as Storage.AdminStore["migrate"];
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	private check!: Pledge<boolean>;
@@ -58,7 +57,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
 		this.history = new Pledge();
-		this.filter();																					// restore the previous filter state
+		this.setFilter();																					// restore the previous filter state
 
 		Promise.all([																						// fetch required Stores
 			this.data.getStore<Schedule>(STORE.schedule),
@@ -96,17 +95,19 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 * 	'hide'		toggle shows 'hidden' Members  
 	 *  'credit'	toggle shows Members with $0 credit
 	 */
-	public filter(key?: 'hide' | 'credit') {
-		const local = new Storage('local');
-		this.admin = local.get(sync.adminStorage, {});
-		const migrateFilter = this.admin.migrateFilter || { hidden: false, credit: Migration.CREDIT.all };
+	public setFilter(key?: 'hide' | 'credit') {
+		const admin = Storage.local.get(Storage.Admin, {} as Storage.AdminStore);
+		this.filter = Object.assign(												// extract the 'filter' from AdminStore
+			{ hidden: false, credit: Migration.CREDIT.all },
+			admin.migrate
+		)
 
 		this.dash$ = this.state.getAdminData().pipe(
 			map(data => data.dash
 				.filter(row => row[STORE.sheet])
-				.filter(row => !!row.register[FIELD.hidden] === migrateFilter.hidden)
+				.filter(row => !!row.register[FIELD.hidden] === this.filter.hidden)
 				.filter(row => {
-					switch (migrateFilter.credit) {
+					switch (this.filter.credit) {
 						case Migration.CREDIT.all:
 							return true;
 						case Migration.CREDIT.value:
@@ -120,23 +121,24 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		switch (key) {
 			case 'hide':
-				migrateFilter.hidden = !migrateFilter.hidden;
+				this.filter.hidden = !this.filter.hidden;
 				break;
 			case 'credit':
-				migrateFilter.credit += 1;
-				if (migrateFilter.credit >= Object.keys(Migration.CREDIT).length / 2)
-					migrateFilter.credit = 0;
+				this.filter.credit += 1;
+				if (this.filter.credit >= Object.keys(Migration.CREDIT).length / 2)
+					this.filter.credit = 0;
 				break;
 		}
 
-		local.set(sync.adminStorage, { ...this.admin, migrateFilter });				// persist settings
+		Object.assign(admin, { migrate: { ...this.filter } });
+		Storage.local.set(Storage.Admin, admin);								// persist settings
 	}
 
 	async signIn(register: Register, sheet: Sheet) {
-		this.history = new Pledge<MHistory[]>();										// quickly remove previous member's History[]							
+		this.history = new Pledge<MHistory[]>();								// quickly remove previous member's History[]							
 		if (this.current?.user.customClaims!.alias === register.user.customClaims!.alias)
-			return this.signOut();																		// <click> on picture will signIn / signOut
-		this.current = register;																		// stash current Member
+			return this.signOut();																// <click> on picture will signIn / signOut
+		this.current = register;																// stash current Member
 		this.sheet = sheet;																			// stash Members Import sheet
 
 		this.store.dispatch(new LoginAction.Other(register.uid))
@@ -311,7 +313,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (giftCnt && !gifts.find(row => row[FIELD.stamp] === start))
 			creates.push(this.setGift(giftCnt, start, rest));
 
-		this.data.batch(creates, updates, undefined, MemberAction.Set)
+		this.data.batch(creates, updates, undefined, memberAction.Set)
 			.then(_ => this.member.updAccount())
 			.then(_ => this.dbg('payment: %s, %s', creates.length, updates.length))
 	}
@@ -489,7 +491,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					if (idx === event.agenda.length)
 						throw new Error('Cannot determine event');
 
-						migrate.attend[sfx] = event.agenda[idx];
+					migrate.attend[sfx] = event.agenda[idx];
 					await this.writeMigrate(migrate);
 				}
 				what = migrate.attend[sfx];
@@ -516,7 +518,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						if (idx === event.agenda.length)
 							throw new Error('Cannot determine event');
 
-							migrate.attend[what] = event.agenda[idx];
+						migrate.attend[what] = event.agenda[idx];
 						await this.writeMigrate(migrate);
 					}
 					what = migrate.attend[what];
@@ -697,7 +699,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			}
 		}
 
-		this.data.batch(creates, updates, undefined, MemberAction.Set)
+		this.data.batch(creates, updates, undefined, memberAction.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}
@@ -719,7 +721,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (full)																						// full-delete of Migrate documents as well
 			deletes.push(...await this.data.getStore<Migrate>(STORE.migrate, [where, fire.addWhere(FIELD.type, [STORE.event, STORE.class])]))
 
-		return this.data.batch(creates, updates, deletes, MemberAction.Set)
+		return this.data.batch(creates, updates, deletes, memberAction.Set)
 			.then(_ => this.member.updAccount())
 			.finally(() => this.dbg('done'))
 	}

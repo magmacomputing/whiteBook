@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { ClientAction, filterState } from '@dbase/state/state.action';
+import { clientAction, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
 import { SLICES, COMMENT } from '@dbase/state/config.define';
@@ -35,8 +35,8 @@ export class ClientState implements NgxsOnInit {
 			})
 	}
 
-	@Action(ClientAction.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: ClientAction.Set) {
+	@Action(clientAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: clientAction.Set) {
 		const state = cloneObj(getState()) || {};
 		const schema: FireDocument[] = [];
 		const config: FireDocument[] = [];
@@ -61,8 +61,8 @@ export class ClientState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(ClientAction.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: ClientAction.Del) {
+	@Action(clientAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: clientAction.Del) {
 		const state = cloneObj(getState()) || {};
 		const schema: FireDocument[] = [];
 		const config: FireDocument[] = [];
@@ -88,8 +88,8 @@ export class ClientState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(ClientAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: ClientAction.Trunc) {
+	@Action(clientAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: clientAction.Trunc) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}

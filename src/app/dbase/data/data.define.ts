@@ -1,13 +1,13 @@
 
 export enum COLLECTION {
-	log = 'log',						// App actions
-	member = 'member',			// Member-related details
-	attend = 'attend',			// Attendance records (per Member, per Event)
-	client = 'client',			// App details
-	admin = 'admin',				// Administrator records
-	device = 'device',			// Connected Devices (per Member)
-	forum = 'forum',				// Comments / Reactions / Feedback
-	zoom = 'zoom',					// Zoom Meeting integration
+	client = 'client',							// App details
+	member = 'member',							// Member-related details
+	attend = 'attend',							// Attendance records (per Member, per Event)
+	admin = 'admin',								// Administrator records
+	device = 'device',							// Connected Devices (per Member)
+	forum = 'forum',								// Comments / Reactions / Feedback
+	zoom = 'zoom',									// Zoom Meeting integration
+	log = 'log',										// App actions
 }
 
 export enum STORE {
@@ -33,14 +33,12 @@ export enum STORE {
 	diary = 'diary',
 	payment = 'payment',
 	message = 'message',
-	migrate = 'migrate',
 	profile = 'profile',
 	setting = 'setting',
-	status = 'status',
+	status = 'status',							// ad-hoc member documents
 	// Admin
 	register = 'register',					// copy of Firestore Authentication object
-	account = 'account',						// summary of Member's current account balance
-	connect = 'connect',						// Member's connection status
+	migrate = 'migrate',						// imported event attends from Google Apps Sheets
 	sheet = 'sheet',								// imported details from Google Apps Sheets register
 	// Forum
 	comment = 'comment',
@@ -252,8 +250,8 @@ export namespace Auth {
 }
 
 export enum STATUS {
-	connect = 'connect',
-	account = 'account',
+	connect = 'connect',						// status-document to store current connection-state
+	account = 'account',						// status-document for summary of Member's current account balance						
 }
 
 export enum CONNECT {

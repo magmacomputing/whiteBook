@@ -3,7 +3,7 @@ import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
 import type { TStateSlice } from '@dbase/state/state.define';
 import type { Attend, FireDocument } from '@dbase/data/data.schema';
-import { AttendAction } from '@dbase/state/state.action';
+import { attendAction } from '@dbase/state/state.action';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 
 import { asArray } from '@library/array.library';
@@ -26,8 +26,8 @@ export class AttendState implements NgxsOnInit {
 		this.dbg('init:');
 	}
 
-	@Action(AttendAction.Set)
-	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: AttendAction.Set) {
+	@Action(attendAction.Set)
+	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: attendAction.Set) {
 		const state = cloneObj(getState()) || {};
 		let empty: Record<string, boolean> = {};
 
@@ -44,11 +44,11 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new AttendAction.Sync(payload));								// tell any listener we have sync'd
+		dispatch(new attendAction.Sync(payload));								// tell any listener we have sync'd
 	}
 
-	@Action(AttendAction.Del)																	// very rare Event
-	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: AttendAction.Del) {
+	@Action(attendAction.Del)																	// very rare Event
+	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: attendAction.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload as Attend[]).forEach(doc => {
@@ -62,11 +62,11 @@ export class AttendState implements NgxsOnInit {
 		})
 
 		setState({ ...state });
-		dispatch(new AttendAction.Sync(payload));								// tell any listener we have sync'd
+		dispatch(new attendAction.Sync(payload));								// tell any listener we have sync'd
 	}
 
-	@Action(AttendAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: AttendAction.Trunc) {
+	@Action(attendAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: attendAction.Trunc) {
 		if (debug) this.dbg('truncAttend');
 		setState({});
 	}

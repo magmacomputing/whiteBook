@@ -4,13 +4,13 @@ import { map, take, startWith, distinctUntilChanged } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { AuthSlice } from '@dbase/state/auth.action';
-import { TStateSlice, ApplicationState, AdminState, ProviderState, ForumState } from '@dbase/state/state.define';
-import { MemberState, PlanState, TimetableState, IState, OState, AccountState, UserState } from '@dbase/state/state.define';
+import type { TStateSlice, ApplicationState, AdminState, ProviderState, ForumState } from '@dbase/state/state.define';
+import type { MemberState, PlanState, TimetableState, IState, OState, AccountState, UserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
-import { FireDocument, Register, StatusConnect, StatusAccount, ForumDocument, Comment, React, Sheet } from '@dbase/data/data.schema';
+import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data/data.define';
+import type { FireDocument, Register, Connect, Account, Comment, React, Sheet } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
@@ -49,7 +49,7 @@ export class StateService {
 	}
 
 	/** Fetch the current, useable values for a supplied store */
-	getCurrent<T>(store: STORE, where?: fire.Query["where"] ) {
+	getCurrent<T>(store: STORE, where?: fire.Query["where"]) {
 		const filters = asArray(where);
 		filters.push(fire.addWhere(FIELD.expire, 0));
 		filters.push(fire.addWhere(FIELD.hidden, false));
@@ -57,15 +57,15 @@ export class StateService {
 		return getCurrent<T>(this.states, store, filters);
 	}
 
-	getStore<T>(store: STORE, where?: fire.Query["where"] , date?: TInstant) {
+	getStore<T>(store: STORE, where?: fire.Query["where"], date?: TInstant) {
 		return getStore<T>(this.states, store, where, date);
 	}
 
-	getState<T>(store: STORE, where?: fire.Query["where"] ) {
+	getState<T>(store: STORE, where?: fire.Query["where"]) {
 		return getState<T>(this.states, store, where);
 	}
 
-	getSingle<T>(store: STORE, filter: fire.Query["where"] ) {
+	getSingle<T>(store: STORE, filter: fire.Query["where"]) {
 		return this.asPromise(this.getCurrent<T>(store, filter))
 			.then(table => table[0]);				// only the first document
 	}
@@ -101,17 +101,17 @@ export class StateService {
 		return this.admin$.pipe(
 			map(source => ({
 				[STORE.register]: source[STORE.register] as Register[],
-				[STORE.account]: source[STORE.account] as StatusAccount[],
-				[STORE.connect]: source[STORE.connect] as StatusConnect[],
+				[STATUS.account]: source[STATUS.account] as Account[],
+				[STATUS.connect]: source[STATUS.connect] as Connect[],
 				[STORE.sheet]: source[STORE.sheet] as Sheet[],
 				dash: [...(source[STORE.register] || [])]
 					.orderBy('user.customClaims.alias', FIELD.uid)
 					.map(reg => ({
 						[STORE.register]: reg as Register,
-						[STORE.account]: (source[STORE.account] || [])
-							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as StatusAccount,
-						[STORE.connect]: (source[STORE.connect] || [])
-							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as StatusConnect,
+						[STATUS.account]: (source[STATUS.account] || [])
+							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as Account,
+						[STATUS.connect]: (source[STATUS.connect] || [])
+							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as Connect,
 						[STORE.sheet]: (source[STORE.sheet] || [])
 							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as Sheet
 					}))
@@ -212,8 +212,8 @@ export class StateService {
 			orderBy: fire.addOrder(FIELD.stamp),
 		}
 
-		return this.fire.listen<ForumDocument>(COLLECTION.forum, query).pipe(
-			startWith([] as ForumDocument[]),													// dont make subcriber wait for 1st emit
+		return this.fire.listen<React | Comment>(COLLECTION.forum, query).pipe(
+			startWith([] as (React | Comment)[]),													// dont make subcriber wait for 1st emit
 			distinctUntilChanged((curr, prev) => JSON.stringify(curr) === JSON.stringify(prev)),
 			map(source => ({
 				forum: {

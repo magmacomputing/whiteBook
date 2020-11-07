@@ -1,4 +1,4 @@
-import { getType, isString, isObject, assertCondition, assertString } from '@library/type.library';
+import { getType, isString, isObject, assertCondition, assertString, isNullish } from '@library/type.library';
 
 // Prototype extensions
 
@@ -88,7 +88,7 @@ export const toLower = (str: string) => isString(str) ? str.toLowerCase().trim()
 export const toUpper = (str: string) => isString(str) ? str.toUpperCase().trim() : str;
 
 export const isNumeric = (str?: string | number): str is number => !isNaN(asNumber(str)) && isFinite(str as number);
-export const ifNumeric = (str: string | number, stripZero = false) =>
+export const ifNumeric = (str?: string | number, stripZero = false) =>
 	isNumeric(str) && (!str.toString().startsWith('0') || stripZero)
 		? asNumber(str)
 		: str
@@ -130,36 +130,33 @@ export const stringify = (obj: any) => {
 }
 
 export const objectify = <T>(str: T | null) => {
-	const asString = isString(str);
-	const val = (str as unknown as string).trim();								// easier to work with trimmed string
+	const val = isString(str) ? str.trim() : '';								// easier to work with trimmed string
+	const pos = val.indexOf(':') + 1;
 
 	switch (true) {
-		case asString && val.startsWith('{"') && val.endsWith('}'):
-		case asString && val.startsWith('[') && val.endsWith(']'):
-		case asString && val === '{}':
+		case val.startsWith('{"') && val.endsWith('}'):
+		case val.startsWith('[') && val.endsWith(']'):
+		case val === '{}':
 			return JSON.parse(val) as T;
 
-		case asString && val.startsWith('Object:{"') && val.endsWith('}'):
-		case asString && val.startsWith('Array:[') && val.endsWith(']'):
-			const pos = val.indexOf(':') + 1;
+		case val.startsWith('Object:{"') && val.endsWith('}'):
+		case val.startsWith('Array:[') && val.endsWith(']'):
 			return JSON.parse(val.substring(pos)) as T;
 
-		case asString && val.startsWith('Map:[[') && val.endsWith(']]'):
-			return new Map(JSON.parse(val?.substring(4))) as Map<any, T>;
+		case val.startsWith('Map:[[') && val.endsWith(']]'):
+			return new Map(JSON.parse(val?.substring(pos))) as Map<any, T>;
 
-		case asString && val.startsWith('Set:["') && val.endsWith('"]'):
-			return new Set(JSON.parse(val.substring(4))) as Set<T>;
+		case val.startsWith('Set:["') && val.endsWith('"]'):
+			return new Set(JSON.parse(val.substring(pos))) as Set<T>;
 
-		case asString && val.startsWith('Date:"') && val.endsWith('"'):
-			return new Date(str as unknown as Date);
+		case val.startsWith('Date:"') && val.endsWith('"'):
+			return new Date(JSON.parse(val.substring(pos)));
 
-		case asString:
-			return str as T;
-
-		// case isDate(str):																			// TODO: this adds a circular-dependency
-		// 	return fmtInstant(Instant.FORMAT.dayTime, val) as unknown as T;
+		case isNullish(str):
+		case val === '':
+			return null;
 
 		default:
-			return ifNumeric(val) as unknown as T;
+			return ifNumeric(str as unknown as string);
 	}
 }

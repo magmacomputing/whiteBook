@@ -1,9 +1,9 @@
-import { TStateSlice } from '@dbase/state/state.define';
-import type { FireDocument } from '@dbase/data/data.schema';
 import { FIELD } from '@dbase/data/data.define';
+import type { FireDocument } from '@dbase/data/data.schema';
+import { TStateSlice } from '@dbase/state/state.define';
 
 /** Actions */
-export namespace ClientAction {
+export namespace clientAction {
 	export class Set {									// Add a Client object into the Store
 		static readonly type = '[Sync Service] Set Client';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
@@ -18,7 +18,7 @@ export namespace ClientAction {
 	}
 }
 
-export namespace DeviceAction {
+export namespace deviceAction {
 	export class Set {										// Add a Client object-clone into the local Store
 		static readonly type = '[Sync Service] Set Device';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
@@ -33,7 +33,7 @@ export namespace DeviceAction {
 	}
 }
 
-export namespace MemberAction {
+export namespace memberAction {
 	export class Set {									// Add a Member object into the Store
 		static readonly type = '[Sync Service] Set Member';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
@@ -48,7 +48,7 @@ export namespace MemberAction {
 	}
 }
 
-export namespace AttendAction {
+export namespace attendAction {
 	export class Set {									// Add Attend object into the Store
 		static readonly type = '[Sync Service] Set Attend';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
@@ -67,7 +67,7 @@ export namespace AttendAction {
 	}
 }
 
-export namespace AdminAction {
+export namespace adminAction {
 	export class Set {										// Add Admin object into the Store
 		static readonly type = '[Sync Service] Set Admin';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }

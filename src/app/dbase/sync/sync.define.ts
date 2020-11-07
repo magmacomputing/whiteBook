@@ -2,7 +2,7 @@ import { Subscription } from 'rxjs';
 
 import type { fire } from '@dbase/fire/fire.library';
 import type { COLLECTION } from '@dbase/data/data.define';
-import type { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
+import type { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
 
 import type { Pledge } from '@library/utility.library';
 
@@ -27,12 +27,9 @@ export namespace sync {
 		ready: Pledge<boolean>;								// indicate when snap0 is received
 		subscribe: Subscription;							// used for turning off Subscription
 		method: {
-			setStore: typeof ClientAction.Set | typeof MemberAction.Set | typeof AttendAction.Set | typeof DeviceAction.Set | typeof AdminAction.Set;
-			delStore: typeof ClientAction.Del | typeof MemberAction.Del | typeof AttendAction.Del | typeof DeviceAction.Del | typeof AdminAction.Del;
-			truncStore: typeof ClientAction.Trunc | typeof MemberAction.Trunc | typeof AttendAction.Trunc | typeof DeviceAction.Trunc | typeof AdminAction.Trunc;
+			setStore: typeof clientAction.Set | typeof memberAction.Set | typeof attendAction.Set | typeof deviceAction.Set | typeof adminAction.Set;
+			delStore: typeof clientAction.Del | typeof memberAction.Del | typeof attendAction.Del | typeof deviceAction.Del | typeof adminAction.Del;
+			truncStore: typeof clientAction.Trunc | typeof memberAction.Trunc | typeof attendAction.Trunc | typeof deviceAction.Trunc | typeof adminAction.Trunc;
 		}
 	}
-
-	export const storeStorage = '@@STATE';	// NGXS Store in localStorage
-	export const adminStorage = '@@ADMIN';	// administrator settings
 }

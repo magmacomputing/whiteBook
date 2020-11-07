@@ -5,12 +5,12 @@ import { take } from 'rxjs/operators';
 import { DBaseModule } from '@dbase/dbase.module';
 import { fire } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
-import { AttendAction } from '@dbase/state/state.action';
+import { attendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
-import { Attend, FireDocument, TStoreBase, Schedule, Payment, Gift, ForumDocument } from '@dbase/data/data.schema';
+import type { FireDocument, TStoreBase, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -209,7 +209,7 @@ export class AttendService {
 		}
 
 		creates.push(attendDoc as TStoreBase);						// batch the new Attend
-		return this.data.batch(creates, updates, undefined, AttendAction.Sync)
+		return this.data.batch(creates, updates, undefined, attendAction.Sync)
 			.then(_ => this.member.setAccount(creates, updates, data))
 	}
 
@@ -260,7 +260,7 @@ export class AttendService {
 			return;
 		}
 
-		const payIds = (deletes as Attend[])										// the Payment IDs related to this reversal
+		const payIds = (deletes as Attend[])									// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.id])
 			.distinct();
 		const giftIds = (deletes as Attend[])									// the Gift IDs related to this reversal
@@ -284,12 +284,12 @@ export class AttendService {
 			this.data.getStore<Attend>(STORE.attend, fire.addWhere(`payment.${FIELD.id}`, payIds)),
 			this.data.getStore<Payment>(STORE.payment, memberUid),
 			this.data.getStore<Gift>(STORE.gift, [memberUid, fire.addWhere(FIELD.id, giftIds)]),
-			this.data.getFire<ForumDocument>(COLLECTION.forum, {
+			this.data.getFire<React | Comment>(COLLECTION.forum, {
 				where: [
 					memberUid,
 					fire.addWhere(FIELD.type, STORE.schedule),
-					fire.addWhere(FIELD.key, scheduleIds, '=='),						// TODO: this workaround for FireStore limit
-					fire.addWhere('track.date', dates, '=='),							// on number of 'in' clauses in a Query
+					fire.addWhere(FIELD.key, scheduleIds, '=='),			// TODO: this workaround for FireStore limit
+					fire.addWhere('track.date', dates, '=='),					// on number of 'in' clauses in a Query
 				]
 			}),
 		])

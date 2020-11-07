@@ -7,7 +7,7 @@ import type { FireDocument, TStoreBase } from '@dbase/data/data.schema';
 import { sync } from '@dbase/sync/sync.define';
 
 import { LState } from '@dbase/state/state.define';
-import { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
+import { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@library/crypto.library';
 import { Storage } from '@library/browser.library';
@@ -24,7 +24,7 @@ export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
 export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAction<FireDocument>[]) => {
-	const localState = new Storage('local').get<LState>(sync.storeStorage, {})
+	const localState = Storage.local.get<LState>(Storage.State, {});
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: FireDocument[] = [];
 	const snapList = snaps.map(addMeta);
@@ -70,19 +70,19 @@ export const addMeta = (snap: DocumentChangeAction<FireDocument>) =>
 export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
 		case COLLECTION.client:
-			return { setStore: ClientAction.Set, delStore: ClientAction.Del, truncStore: ClientAction.Trunc }
+			return { setStore: clientAction.Set, delStore: clientAction.Del, truncStore: clientAction.Trunc }
 
 		case COLLECTION.member:
-			return { setStore: MemberAction.Set, delStore: MemberAction.Del, truncStore: MemberAction.Trunc }
+			return { setStore: memberAction.Set, delStore: memberAction.Del, truncStore: memberAction.Trunc }
 
 		case COLLECTION.attend:
-			return { setStore: AttendAction.Set, delStore: AttendAction.Del, truncStore: AttendAction.Trunc }
+			return { setStore: attendAction.Set, delStore: attendAction.Del, truncStore: attendAction.Trunc }
 
 		case COLLECTION.device:
-			return { setStore: DeviceAction.Set, delStore: DeviceAction.Del, truncStore: DeviceAction.Trunc }
+			return { setStore: deviceAction.Set, delStore: deviceAction.Del, truncStore: deviceAction.Trunc }
 
 		case COLLECTION.admin:
-			return { setStore: AdminAction.Set, delStore: AdminAction.Del, truncStore: AdminAction.Trunc }
+			return { setStore: adminAction.Set, delStore: adminAction.Del, truncStore: adminAction.Trunc }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

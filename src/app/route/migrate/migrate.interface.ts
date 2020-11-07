@@ -27,10 +27,3 @@ export interface MHistory {
 	approved?: number;
 	elect?: BONUS;
 }
-
-export interface AdminStore {
-	migrateFilter?: {
-		hidden: boolean;
-		credit: Migration.CREDIT;
-	}
-}

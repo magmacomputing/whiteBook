@@ -1,5 +1,5 @@
-<button color="accent" (click)="filter('hide')">Hidden</button> {{ admin?.migrateFilter?.hidden }}
-<button color="accent" (click)="filter('credit')">Credit </button> {{ credit[admin?.migrateFilter?.credit] }}
+<button color="accent" (click)="setFilter('hide')">Hidden</button> {{ filter.hidden }}
+<button color="accent" (click)="setFilter('credit')">Credit </button> {{ credit[filter.credit] }}
 
 <div *ngIf="(dash$ | async); let dash$">
 	<div *ngIf="dash$.length; else noDash"></div>

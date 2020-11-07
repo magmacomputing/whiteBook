@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { take, first, delay, tap } from 'rxjs/operators';
+import { take, first, delay } from 'rxjs/operators';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
@@ -12,7 +12,7 @@ import { asAt } from '@library/app.library';
 import { fire } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
-import type { ProfilePlan, Payment, ProfileInfo, Class, FireDocument, StatusAccount, Price } from '@dbase/data/data.schema';
+import type { ProfilePlan, Payment, ProfileInfo, Class, FireDocument, Account, Price } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant } from '@library/instant.library';
 import { isNull } from '@library/type.library';
@@ -39,7 +39,10 @@ export class MemberService {
 				first(info => !isNull(info)),								// subscribe until the first non-null response
 				delay(5000),																// or if no response in 5 seconds.
 			)
-			.subscribe(info => this.getAuthProfile(info), console.log)
+			.subscribe(
+				info => this.getAuthProfile(info),
+				err => this.dbg('listenInfo: %j', err.message),
+			)
 	}
 
 	async setPlan(plan: PLAN, dt?: TInstant) {
@@ -105,11 +108,11 @@ export class MemberService {
 	setAccount = async (creates: FireDocument[] = [], updates: FireDocument[] = [], data?: AccountState) => {
 		data = data || await this.getAccount();
 		const uid = await this.data.getUID();
-		const [summary, doc] = await Promise.all([
+		const [summary, account] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<StatusAccount>(STORE.status, [fire.addWhere(FIELD.uid, uid), fire.addWhere(FIELD.type, STATUS.account)]),
+			this.data.getStore<Account>(STORE.status, [fire.addWhere(FIELD.uid, uid), fire.addWhere(FIELD.type, STATUS.account)]),
 		]);
-		const accountDoc: Partial<StatusAccount> = !doc.length
+		const accountDoc: Partial<Account> = !account.length
 			? {																// scaffold a new Account doc
 				[FIELD.store]: STORE.status,
 				[FIELD.type]: STATUS.account,
@@ -117,7 +120,7 @@ export class MemberService {
 				[FIELD.stamp]: getStamp(),
 				summary,
 			}
-			: { ...doc[0], [FIELD.stamp]: getStamp(), summary }
+			: { ...account[0], [FIELD.stamp]: getStamp(), summary }
 
 		if (!accountDoc[FIELD.id])
 			creates.push(accountDoc as FireDocument)

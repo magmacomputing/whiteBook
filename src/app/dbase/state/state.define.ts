@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
 
 import type { AuthSlice } from './auth.action';
-import type { COLLECTION, STORE, BONUS } from '@dbase/data/data.define';
+import type { COLLECTION, STORE, BONUS, STATUS } from '@dbase/data/data.define';
 import type {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
 	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
-	StatusConnect, StatusAccount, TBonus, Icon, Provider, React, Comment, Sheet,
+	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -47,13 +47,13 @@ export interface UserState {
 
 export interface AdminState {
 	[STORE.register]: Register[];
-	[STORE.account]: StatusAccount[];
-	[STORE.connect]: StatusConnect[];
+	[STATUS.account]: Account[];
+	[STATUS.connect]: Connect[];
 	[STORE.sheet]: Sheet[];
 	dash: {															// align elements of each Admin Array by UID
 		[STORE.register]: Register;
-		[STORE.account]?: StatusAccount;
-		[STORE.connect]?: StatusConnect;
+		[STATUS.account]?: Account;
+		[STATUS.connect]?: Connect;
 		[STORE.sheet]?: Sheet;
 	}[]
 }
@@ -100,16 +100,16 @@ export interface BonusState extends UserState, ApplicationState {
 	track: {
 		[BONUS.gift]: Attend[];						// array of Attends against their gifts
 		[BONUS.week]: Attend[];						// array of Attends against the current week
-		[BONUS.class]: Attend[];						// array of Attends against the current week
-		[BONUS.month]: Attend[];						// array of Attends against the current month
+		[BONUS.class]: Attend[];					// array of Attends against the current week
+		[BONUS.month]: Attend[];					// array of Attends against the current month
 	}
 }
 
 export interface AccountState extends MemberState, PlanState {
-	[STORE.account]: {
+	[STATUS.account]: {
 		payment: Payment[];								// array of open payment documents, sorted by <stamp>
 		attend: Attend[];
-		summary: StatusAccount["summary"];
+		summary: Account["summary"];
 	}
 }
 

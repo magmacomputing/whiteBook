@@ -1,7 +1,7 @@
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
-import type { TStoreBase, FireDocument, ClientDocument } from '@dbase/data/data.schema';
+import type { TStoreBase, FireDocument, ClientCollection } from '@dbase/data/data.schema';
 import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
 import { FILTER } from '@dbase/state/config.define';
 import { getSlice } from '@dbase/state/state.library';
@@ -12,7 +12,7 @@ import { asString } from '@library/string.library';
 import { asArray } from '@library/array.library';
 
 // client documents have a '<key>' field, member documents have a '<uid>' field
-const isClientDocument = (document: TStoreBase): document is ClientDocument =>
+const isClientDocument = (document: TStoreBase): document is ClientCollection =>
 	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */

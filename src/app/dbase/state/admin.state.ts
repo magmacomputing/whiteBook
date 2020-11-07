@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
-import { AdminAction, filterState } from '@dbase/state/state.action';
+import { adminAction, filterState } from '@dbase/state/state.action';
 import type { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
@@ -28,8 +28,8 @@ export class AdminState implements NgxsOnInit {
 
 	private init() { this.dbg('init:'); }
 
-	@Action(AdminAction.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: AdminAction.Set) {
+	@Action(adminAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: adminAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -45,8 +45,8 @@ export class AdminState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(AdminAction.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: AdminAction.Del) {
+	@Action(adminAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: adminAction.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -63,8 +63,8 @@ export class AdminState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(AdminAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: AdminAction.Trunc) {
+	@Action(adminAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: adminAction.Trunc) {
 		if (debug) this.dbg('truncAdmin');
 		setState({});
 	}

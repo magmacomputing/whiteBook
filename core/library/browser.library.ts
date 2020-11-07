@@ -1,6 +1,11 @@
+import { Migration } from '@route/migrate/migrate.define';
+
 import { getType, isUndefined } from '@library/type.library';
 import { stringify, objectify } from '@library/string.library';
 
+/**
+ * Wrapper around Web Storage
+ */
 export class Storage {
 	#storage: globalThis.Storage;
 
@@ -13,14 +18,13 @@ export class Storage {
 	public get<T>(key: string): T | null;
 	public get<T>(key: string, dflt: T): T;
 	public get<T>(key: string, dflt?: T) {
-		return isUndefined(dflt)
-			? objectify(this.#storage.getItem(key))
-			: objectify(this.#storage.getItem(key)) ?? dflt;
+		const obj = objectify(this.#storage.getItem(key));
+		return obj ?? (isUndefined(dflt) ? obj : dflt)
 	}
 
 	public set(key?: string, obj?: unknown, opt = { merge: true }) {
-		if (isUndefined(key))
-			return this.clear();																// synonym for 'clear'
+		if (isUndefined(key))																	// synonym for 'clear'
+			return this.clear();
 
 		let prev = this.get<string | any[] | {}>(key);				// needed if merge is true
 		const type = getType(obj);
@@ -98,3 +102,18 @@ export class Storage {
 
 export const alert = (msg: any) => window.alert(msg);
 export const prompt = (msg: any, dflt?: any) => window.prompt(msg, dflt);
+
+export namespace Storage {
+	export const State = '@@STATE';								// NGXS Store in localStorage
+	export const Admin = '@@ADMIN';								// administrator settings
+
+	export const local = new Storage('local');		// global reference to localStorage
+
+	export interface AdminStore {
+		migrate: {
+			hidden: boolean;
+			credit: Migration.CREDIT;
+		}
+
+	}
+}

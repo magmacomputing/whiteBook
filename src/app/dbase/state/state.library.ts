@@ -7,7 +7,7 @@ import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@dbase/state/config.define';
 
-import type { Default, FireDocument, Class, Price, Event, Schedule, Span, ProfilePlan, TStoreBase, Icon, Calendar, StatusAccount } from '@dbase/data/data.schema';
+import type { Default, FireDocument, Class, Price, Event, Schedule, Span, ProfilePlan, TStoreBase, Icon, Calendar, Account } from '@dbase/data/data.schema';
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
 import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
@@ -205,7 +205,7 @@ const decodeFilter = (parent: any, filter: fire.Query["where"] = []) => {
  */
 export const sumPayment = (source: AccountState) => {
 	if (source.account) {
-		const sum: StatusAccount["summary"] = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 };
+		const sum: Account["summary"] = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 };
 
 		source.account.payment = asArray(source.account.payment)
 			.orderBy(FIELD.stamp)
@@ -272,7 +272,7 @@ export const buildProvider = (source: ProviderState) => {
 /** Assemble a Plan-view */
 export const buildPlan = (source: PlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
-	const isAdmin = roles && roles.includes(Auth.ROLE.admin);
+	const isAdmin = roles?.includes(Auth.ROLE.admin);
 	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.type, STORE.plan));
 	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.type, PRICE.topUp));
 	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available

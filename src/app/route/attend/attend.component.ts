@@ -6,11 +6,11 @@ import { ForumService } from '@service/forum/forum.service';
 import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
 
-import { TimetableState } from '@dbase/state/state.define';
+import type { TimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { FIELD, REACT } from '@dbase/data/data.define';
-import { Schedule, ForumDocument } from '@dbase/data/data.schema';
 import { DataService } from '@dbase/data/data.service';
+import type { Schedule } from '@dbase/data/data.schema';
 
 import { isUndefined, TString } from '@library/type.library';
 import { setTimer } from '@library/observable.library';
@@ -122,16 +122,11 @@ export class AttendComponent implements OnDestroy {
 			)
 	}
 
-	public getForum() {
-		return this.forum.getForum<ForumDocument>()
-			.then(forum => this.dbg('forum: %j', forum))
-	}
 	public setReact(item: Schedule, react: REACT) {
 		this.forum.setReact({ key: item[FIELD.id], track: { class: item[FIELD.key] }, react })
-			.then(_ => this.getForum())
 	}
+
 	public setComment(item: Schedule, comment: TString) {
 		this.forum.setComment({ key: item[FIELD.id], track: { class: item[FIELD.key] }, comment })
-			.then(_ => this.getForum())
 	}
 }

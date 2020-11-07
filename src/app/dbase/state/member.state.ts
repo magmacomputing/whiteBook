@@ -3,7 +3,7 @@ import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
 import type { TStateSlice } from '@dbase/state/state.define';
 import type { FireDocument } from '@dbase/data/data.schema';
-import { MemberAction, filterState } from '@dbase/state/state.action';
+import { memberAction, filterState } from '@dbase/state/state.action';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 
 import { asArray } from '@library/array.library';
@@ -26,8 +26,8 @@ export class MemberState implements NgxsOnInit {
 		this.dbg('init:');
 	}
 
-	@Action(MemberAction.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: MemberAction.Set) {
+	@Action(memberAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: memberAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -43,8 +43,8 @@ export class MemberState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(MemberAction.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: MemberAction.Del) {
+	@Action(memberAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: memberAction.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -60,8 +60,8 @@ export class MemberState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(MemberAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: MemberAction.Trunc) {
+	@Action(memberAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: memberAction.Trunc) {
 		if (debug) this.dbg('truncMember');
 		setState({});
 	}
