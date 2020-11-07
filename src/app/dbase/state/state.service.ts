@@ -10,10 +10,10 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION } from '@dbase/data/data.define';
-import { FireDocument, Register, StatusConnect, StatusAccount, ForumDocument, Comment, React, Import } from '@dbase/data/data.schema';
+import { FireDocument, Register, StatusConnect, StatusAccount, ForumDocument, Comment, React, Sheet } from '@dbase/data/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { Fire } from '@dbase/fire/fire.library';
+import { fire } from '@dbase/fire/fire.library';
 
 import { Instant, TInstant, getInstant } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
@@ -49,23 +49,23 @@ export class StateService {
 	}
 
 	/** Fetch the current, useable values for a supplied store */
-	getCurrent<T>(store: STORE, where?: Fire.Query["where"] ) {
+	getCurrent<T>(store: STORE, where?: fire.Query["where"] ) {
 		const filters = asArray(where);
-		filters.push(Fire.addWhere(FIELD.expire, 0));
-		filters.push(Fire.addWhere(FIELD.hidden, false));
+		filters.push(fire.addWhere(FIELD.expire, 0));
+		filters.push(fire.addWhere(FIELD.hidden, false));
 
 		return getCurrent<T>(this.states, store, filters);
 	}
 
-	getStore<T>(store: STORE, where?: Fire.Query["where"] , date?: TInstant) {
+	getStore<T>(store: STORE, where?: fire.Query["where"] , date?: TInstant) {
 		return getStore<T>(this.states, store, where, date);
 	}
 
-	getState<T>(store: STORE, where?: Fire.Query["where"] ) {
+	getState<T>(store: STORE, where?: fire.Query["where"] ) {
 		return getState<T>(this.states, store, where);
 	}
 
-	getSingle<T>(store: STORE, filter: Fire.Query["where"] ) {
+	getSingle<T>(store: STORE, filter: fire.Query["where"] ) {
 		return this.asPromise(this.getCurrent<T>(store, filter))
 			.then(table => table[0]);				// only the first document
 	}
@@ -95,7 +95,7 @@ export class StateService {
 	 * dash.register	-> has an array of the current state of /admin/register
 	 * dash.account		-> has an array of the current value of /admin/account
 	 * dash.connect 	-> has an array of the current connections in /admin/connect
-	 * dash.import		-> has an array of the current state of /admin/import
+	 * dash.sheet			-> has an array of the current state of /admin/sheet
 	 */
 	getAdminData(): Observable<AdminState> {
 		return this.admin$.pipe(
@@ -103,7 +103,7 @@ export class StateService {
 				[STORE.register]: source[STORE.register] as Register[],
 				[STORE.account]: source[STORE.account] as StatusAccount[],
 				[STORE.connect]: source[STORE.connect] as StatusConnect[],
-				[STORE.import]: source[STORE.import] as Import[],
+				[STORE.sheet]: source[STORE.sheet] as Sheet[],
 				dash: [...(source[STORE.register] || [])]
 					.orderBy('user.customClaims.alias', FIELD.uid)
 					.map(reg => ({
@@ -112,44 +112,12 @@ export class StateService {
 							.find(account => account[FIELD.uid] === reg[FIELD.uid]) as StatusAccount,
 						[STORE.connect]: (source[STORE.connect] || [])
 							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as StatusConnect,
-						[STORE.import]: (source[STORE.import] || [])
-							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as Import
+						[STORE.sheet]: (source[STORE.sheet] || [])
+							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as Sheet
 					}))
 			}))
 		)
 	}
-
-	/**
-	 * Watch for changes on the Member's Attendance
-	 */
-	// getAttendData(payment?: string): Observable<AttendState> {
-	// 	const filterAttend = [
-	// 		fire.addWhere(FIELD.store, STORE.attend),
-	// 		fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
-	// 	];
-	// 	if (payment)
-	// 		filterAttend.push(fire.addWhere(`${STORE.payment}.${FIELD.id}`, payment))
-
-	// 	return this.attend$.pipe(
-	// 		switchMap(_attnd => this.getAuthData()),
-	// 		joinDoc(this.states, 'application', STORE.default),
-	// 		joinDoc(this.states, 'attend', STORE.attend, filterAttend),
-	// 	)
-	// }
-
-	/**
-	 * Watch for changes on the Member's Payments
-	 */
-	// getPaymentData(): Observable<PaymentState> {
-	// 	const filterPayment = [
-	// 		fire.addWhere(FIELD.store, STORE.payment),
-	// 		fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
-	// 	]
-
-	// 	return this.getMemberData().pipe(
-	// 		joinDoc(this.states, 'account.payment', STORE.payment, filterPayment),
-	// 	)
-	// }
 
 	/**
 	 * Extend AuthState with an Object describing a Member returned as MemberState, where:  
@@ -164,11 +132,11 @@ export class StateService {
 	 */
 	getMemberData(date?: TInstant): Observable<MemberState> {
 		const filterProfile = [
-			Fire.addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
-			Fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),  								// and the <uid> is current active User
+			fire.addWhere(FIELD.type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
+			fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),  								// and the <uid> is current active User
 		]
-		const filterPlan = Fire.addWhere(FIELD.key, '{{member.plan[0].plan}}');
-		const filterMessage = Fire.addWhere(FIELD.type, 'alert');
+		const filterPlan = fire.addWhere(FIELD.key, '{{member.plan[0].plan}}');
+		const filterMessage = fire.addWhere(FIELD.type, 'alert');
 
 		return this.getAuthData().pipe(
 			joinDoc(this.states, 'application', STORE.default, undefined, date),
@@ -185,7 +153,7 @@ export class StateService {
 	 * client.price -> has an array of asAt Price documents
 	 */
 	getPlanData(date?: TInstant): Observable<PlanState> {
-		const filterIcon = Fire.addWhere(FIELD.type, [STORE.plan, STORE.default]);
+		const filterIcon = fire.addWhere(FIELD.type, [STORE.plan, STORE.default]);
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.plan, undefined, date),
@@ -201,8 +169,8 @@ export class StateService {
 	 * client.icon			-> has an array of Provider icons
 	 */
 	getProviderData(date?: TInstant): Observable<ProviderState> {
-		const filterProvider = Fire.addWhere(FIELD.expire, 0);
-		const filterIcon = Fire.addWhere(FIELD.type, [STORE.provider, STORE.default]);
+		const filterProvider = fire.addWhere(FIELD.expire, 0);
+		const filterIcon = fire.addWhere(FIELD.type, [STORE.provider, STORE.default]);
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.states, 'client', STORE.provider, filterProvider, date),
@@ -219,12 +187,12 @@ export class StateService {
 	 */
 	getAccountData(date?: TInstant): Observable<AccountState> {
 		const filterPayment = [
-			Fire.addWhere(FIELD.store, STORE.payment),
-			Fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
+			fire.addWhere(FIELD.store, STORE.payment),
+			fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 		const filterAttend = [
-			Fire.addWhere(`payment.${FIELD.id}`, `{{account.payment[0].${FIELD.id}}}`),
-			Fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
+			fire.addWhere(`payment.${FIELD.id}`, `{{account.payment[0].${FIELD.id}}}`),
+			fire.addWhere(FIELD.uid, '{{auth.current.uid}}'),
 		];
 
 		return this.getMemberData(date).pipe(
@@ -239,9 +207,9 @@ export class StateService {
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
 	getForumData(date?: TInstant): Observable<ForumState> {
-		const query: Fire.Query = {
-			where: Fire.addWhere('track.date', getInstant(date).format(Instant.FORMAT.yearMonthDay)),
-			orderBy: Fire.addOrder(FIELD.stamp),
+		const query: fire.Query = {
+			where: fire.addWhere('track.date', getInstant(date).format(Instant.FORMAT.yearMonthDay)),
+			orderBy: fire.addOrder(FIELD.stamp),
 		}
 
 		return this.fire.listen<ForumDocument>(COLLECTION.forum, query).pipe(
@@ -274,29 +242,29 @@ export class StateService {
 	 */
 	getScheduleData(date?: TInstant, elect?: BONUS): Observable<TimetableState> {
 		const now = getInstant(date);
-		const isMine = Fire.addWhere(FIELD.uid, `{{auth.current.uid}}`);
+		const isMine = fire.addWhere(FIELD.uid, `{{auth.current.uid}}`);
 
-		const filterSchedule = Fire.addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in');
-		const filterCalendar = Fire.addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>');
-		const filterEvent = Fire.addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
-		const filterTypeClass = Fire.addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
-		const filterTypeEvent = Fire.addWhere(FIELD.key, `{{client.event.agenda}}`);
-		const filterLocation = Fire.addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
-		const filterInstructor = Fire.addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
-		const filterSpan = Fire.addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
-		const filterIcon = Fire.addWhere(FIELD.type, [STORE.class, STORE.default]);
-		const attendGift = [isMine, Fire.addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
-		const attendWeek = [isMine, Fire.addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
-		const attendMonth = [isMine, Fire.addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
-		const attendToday = [isMine, Fire.addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay))];
+		const filterSchedule = fire.addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in');
+		const filterCalendar = fire.addWhere(FIELD.key, now.format(Instant.FORMAT.yearMonthDay), '>');
+		const filterEvent = fire.addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
+		const filterTypeClass = fire.addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
+		const filterTypeEvent = fire.addWhere(FIELD.key, `{{client.event.agenda}}`);
+		const filterLocation = fire.addWhere(FIELD.key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
+		const filterInstructor = fire.addWhere(FIELD.key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
+		const filterSpan = fire.addWhere(FIELD.key, [`{{client.class.${FIELD.type}}}`, `{{client.class.${FIELD.key}}}`]);
+		const filterIcon = fire.addWhere(FIELD.type, [STORE.class, STORE.default]);
+		const attendGift = [isMine, fire.addWhere(`bonus.${FIELD.id}`, `{{member.gift[*].${FIELD.id}}}`)];
+		const attendWeek = [isMine, fire.addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
+		const attendMonth = [isMine, fire.addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
+		const attendToday = [isMine, fire.addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay))];
 		const filterAlert = [
-			Fire.addWhere(FIELD.type, STORE.schedule),
-			Fire.addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
+			fire.addWhere(FIELD.type, STORE.schedule),
+			fire.addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
 		]
 
 		return combineLatest([this.getForumData(date), this.getMemberData(date)]).pipe(
 			map(([forum, member]) => ({ ...forum, ...member })),
-			joinDoc(this.states, 'application', STORE.default, Fire.addWhere(FIELD.type, STORE.icon)),
+			joinDoc(this.states, 'application', STORE.default, fire.addWhere(FIELD.type, STORE.icon)),
 			joinDoc(this.states, 'client', STORE.schedule, filterSchedule, date),								// whats on this weekday (or every weekday)
 			joinDoc(this.states, 'client', STORE.calendar, undefined, date, calendarDay),				// get calendar for this date
 			joinDoc(this.states, 'client.diary', STORE.calendar, filterCalendar),								// get future events
@@ -324,13 +292,13 @@ export class StateService {
 	 */
 	getTimetableData(date?: TInstant): Observable<TimetableState> {
 		const now = getInstant(date);
-		const filterClass = Fire.addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
-		const filterLocation = Fire.addWhere(FIELD.key, '{{client.schedule.location}}');
+		const filterClass = fire.addWhere(FIELD.key, `{{client.schedule.${FIELD.key}}}`);
+		const filterLocation = fire.addWhere(FIELD.key, '{{client.schedule.location}}');
 		const filterCalendar = [
-			Fire.addWhere(FIELD.key, now.startOf('week').format(Instant.FORMAT.yearMonthDay), '>='),
-			Fire.addWhere(FIELD.key, now.endOf('week').format(Instant.FORMAT.yearMonthDay), '<='),
+			fire.addWhere(FIELD.key, now.startOf('week').format(Instant.FORMAT.yearMonthDay), '>='),
+			fire.addWhere(FIELD.key, now.endOf('week').format(Instant.FORMAT.yearMonthDay), '<='),
 		]
-		const filterEvent = Fire.addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
+		const filterEvent = fire.addWhere(FIELD.key, `{{client.calendar.${FIELD.type}}}`);
 
 		return of({}).pipe(																						// start with an empty Object
 			joinDoc(this.states, 'application', STORE.default, undefined, date),

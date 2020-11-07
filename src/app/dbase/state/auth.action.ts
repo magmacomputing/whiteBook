@@ -1,14 +1,14 @@
 import type firebase from 'firebase/app';
 import { Credential as LoginCredential } from '@service/auth/auth.interface';
 import { Auth } from '@dbase/data/data.define';
-import { TUser } from '@dbase/data/data.schema';
+import { Register } from '@dbase/data/data.schema';
 
 export interface AuthSlice {
 	user: firebase.UserInfo | null;
 	token: firebase.auth.IdTokenResult | null;
 	info: firebase.auth.AdditionalUserInfo | null;				// additionalUserInfo from provider
 	credential: firebase.auth.AuthCredential | null;
-	current: TUser | null;																// effective UserId
+	current: Register["user"] | null;																// effective UserId
 }
 
 // Actions

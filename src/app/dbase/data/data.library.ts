@@ -1,5 +1,5 @@
 import { FireService } from '@dbase/fire/fire.service';
-import { Fire } from '@dbase/fire/fire.library';
+import { fire } from '@dbase/fire/fire.library';
 
 import type { TStoreBase, FireDocument, ClientDocument } from '@dbase/data/data.schema';
 import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
@@ -16,20 +16,20 @@ const isClientDocument = (document: TStoreBase): document is ClientDocument =>
 	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
-export const getWhere = (nextDoc: FireDocument, filter: Fire.Query["where"] = []) => {
-	const where: Fire.Where[] = [];
+export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []) => {
+	const where: fire.Where[] = [];
 	const collection = getSlice(nextDoc[FIELD.store]);
 	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
 	asArray(filters).forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
-			where.push(Fire.addWhere(field, getPath(nextDoc, field)));
+			where.push(fire.addWhere(field, getPath(nextDoc, field)));
 		else throw new Error(`missing required field: ${field}`)
 	})
 
 	asArray(filter).forEach(clause => {           // add any additional match-criteria
 		if (getPath(nextDoc, clause.fieldPath as string))
-			where.push(Fire.addWhere(clause.fieldPath, clause.value, clause.opStr))
+			where.push(fire.addWhere(clause.fieldPath, clause.value, clause.opStr))
 	})
 
 	return where;

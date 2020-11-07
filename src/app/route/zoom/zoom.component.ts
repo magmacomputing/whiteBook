@@ -2,11 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
-import { Fire } from '@dbase/fire/fire.library';
+import { fire } from '@dbase/fire/fire.library';
+import type { zoom, Class, Sheet } from '@dbase/data/data.schema';
 import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
-import type { ZoomMeeting, ZoomEvent, TStarted, TEnded, TJoined, TLeft, Class, ZoomWhite, Import } from '@dbase/data/data.schema';
 import { DialogService } from '@service/material/dialog.service';
 
 import { Instant, fmtInstant } from '@library/instant.library';
@@ -32,12 +32,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 
 	private stop$ = new Subject();											// notify Subscriptions to complete
-	private meetings: ZoomMeeting[] = [];
+	private meetings: zoom.Meeting[] = [];
 	private meetingDate = new BehaviorSubject<Instant>(new Instant());
-	public meetings$!: Observable<ZoomMeeting[]>;				// the date's Meetings
+	public meetings$!: Observable<zoom.Meeting[]>;				// the date's Meetings
 
 	private color!: Record<CLASS, Class>;
-	private colorCache!: (white: ZoomWhite | undefined) => COLOR
+	private colorCache!: (white: zoom.White | undefined) => COLOR
 
 	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
 		setTimer(this.stop$)
@@ -97,28 +97,28 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				tap(_ => this.dateChange = true),							// move the selectedIndex to latest meeting
 
 				switchMap(inst =>															// get all meeting.started events for this.date
-					this.data.getLive<ZoomEvent<TStarted>>(COLLECTION.zoom, {
+					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.zoom, {
 						where: [
-							Fire.addWhere(FIELD.type, Zoom.EVENT.started),
-							Fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
-							Fire.addWhere('hook', 0),
+							fire.addWhere(FIELD.type, Zoom.EVENT.started),
+							fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
+							fire.addWhere('hook', 0),
 						]
 					})
 				),
 
 				mergeMap(track => {														// merge all documents per meeting.started event
-					return this.data.getLive<ZoomEvent<TStarted | TEnded | TJoined | TLeft>>(COLLECTION.zoom, {
+					return this.data.getLive<zoom.Event<zoom.Started | zoom.Ended | zoom.Joined | zoom.Left>>(COLLECTION.zoom, {
 						where: [
-							Fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
-							Fire.addWhere('hook', 0),
+							fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
+							fire.addWhere('hook', 0),
 						],
-						orderBy: Fire.addOrder(FIELD.stamp),						// order by timestamp
+						orderBy: fire.addOrder(FIELD.stamp),						// order by timestamp
 					})
 				}
 				),
 
 				map(track => {
-					(track as ZoomEvent<TStarted>[])								// look for Meeting.Started
+					(track as zoom.Event<zoom.Started>[])								// look for Meeting.Started
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
@@ -142,7 +142,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 						});
 
-					(track as ZoomEvent<TEnded>[])									// look for Meeting.Ended
+					(track as zoom.Event<zoom.Ended>[])									// look for Meeting.Ended
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
@@ -153,17 +153,17 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								this.meetings[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
 						});
 
-					(track as ZoomEvent<TJoined>[])									// add Participants.Joined
+					(track as zoom.Event<zoom.Joined>[])									// add Participants.Joined
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
-							const { class: event, price, credit, status = {} as ZoomWhite["status"] } = doc.white || {};
+							const { class: event, price, credit, status = {} as zoom.White["status"] } = doc.white || {};
 							const weekTrack = (status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtInstant(Instant.FORMAT.HHMI, join_time);
 							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							const fgcolor = { alias: this.color[event as CLASS]?.color };
-							const bgcolor: ZoomMeeting["participants"][0]["join"]["bgcolor"] = {
+							const bgcolor: zoom.Meeting["participants"][0]["join"]["bgcolor"] = {
 								price: isUndefined(price) || price > 0 ? COLOR.black : COLOR.green,
 								credit: isUndefined(credit) || credit > 20 ? COLOR.black : credit < 10 ? COLOR.red : COLOR.yellow,
 								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? COLOR.black : COLOR.yellow,
@@ -191,7 +191,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							}
 						});
 
-					(track as ZoomEvent<TLeft>[])										// add Participants.Left
+					(track as zoom.Event<zoom.Left>[])										// add Participants.Left
 						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
@@ -224,7 +224,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	 * Popup a attend-this-week summary.  
 	 * Note this shows only attends recorded through Zoom (not direct to WhiteBook)
 	 */
-	async showWeek(white?: ZoomWhite) {
+	async showWeek(white?: zoom.White) {
 		if (isUndefined(white))
 			return;
 		if (!white.alias)
@@ -233,18 +233,18 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			return;
 
 		const where = [
-			Fire.addWhere(FIELD.type, Zoom.EVENT.joined),
-			Fire.addWhere('white.alias', white.alias),
-			Fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
+			fire.addWhere(FIELD.type, Zoom.EVENT.joined),
+			fire.addWhere('white.alias', white.alias),
+			fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
-		const [join, imports] = await Promise.all([
-			this.data.getLive<ZoomEvent<TJoined>>(COLLECTION.zoom, { where }),
-			this.state.getSingle<Import>(STORE.import, Fire.addWhere(FIELD.uid, white.alias))
+		const [join, sheet] = await Promise.all([
+			this.data.getLive<zoom.Event<zoom.Joined>>(COLLECTION.zoom, { where }),
+			this.state.getSingle<Sheet>(STORE.sheet, fire.addWhere(FIELD.uid, white.alias))
 		])
 
-		const image = imports.picture;
+		const image = sheet.picture;
 		const title = white.alias;
-		const subtitle = `Attends this week for <span style="font-weight:bold;">${imports.userName}</span>`;
+		const subtitle = `Attends this week for <span style="font-weight:bold;">${sheet.userName}</span>`;
 		const actions = ['Close'];
 		const attends: { date: number, attend?: string }[] = [];
 
@@ -277,7 +277,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.dialog.open({ image, title, subtitle, actions, observe: obs$ });
 	}
 
-	setColor(white?: ZoomWhite) {
+	setColor(white?: zoom.White) {
 		return (white?.class && this.color[white.class as CLASS].color) || COLOR.black;
 	}
 }

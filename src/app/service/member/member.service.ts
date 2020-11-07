@@ -1,21 +1,21 @@
 import { Injectable } from '@angular/core';
-import { take, first, delay } from 'rxjs/operators';
+import { take, first, delay, tap } from 'rxjs/operators';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { getMemberInfo } from '@service/member/member.library';
 import { SnackService } from '@service/material/snack.service';
+import { AccountState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
 import { DataService } from '@dbase/data/data.service';
 
 import { asAt } from '@library/app.library';
-import { Fire } from '@dbase/fire/fire.library';
+import { fire } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
 import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data/data.define';
-import { ProfilePlan, Payment, ProfileInfo, Class, FireDocument, StatusAccount, Price } from '@dbase/data/data.schema';
+import type { ProfilePlan, Payment, ProfileInfo, Class, FireDocument, StatusAccount, Price } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant } from '@library/instant.library';
 import { isNull } from '@library/type.library';
-import { AccountState } from '@dbase/state/state.define';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -39,7 +39,7 @@ export class MemberService {
 				first(info => !isNull(info)),								// subscribe until the first non-null response
 				delay(5000),																// or if no response in 5 seconds.
 			)
-			.subscribe(info => this.getAuthProfile(info))
+			.subscribe(info => this.getAuthProfile(info), console.log)
 	}
 
 	async setPlan(plan: PLAN, dt?: TInstant) {
@@ -80,8 +80,8 @@ export class MemberService {
 
 	private async upgradePlan(plan: ProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<Price>(STORE.price, [
-			Fire.addWhere(FIELD.type, PRICE.topUp),
-			Fire.addWhere(FIELD.key, plan.bump),
+			fire.addWhere(FIELD.type, PRICE.topUp),
+			fire.addWhere(FIELD.key, plan.bump),
 		], getStamp(stamp))
 		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
 
@@ -107,7 +107,7 @@ export class MemberService {
 		const uid = await this.data.getUID();
 		const [summary, doc] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<StatusAccount>(STORE.status, [Fire.addWhere(FIELD.uid, uid), Fire.addWhere(FIELD.type, STATUS.account)]),
+			this.data.getStore<StatusAccount>(STORE.status, [fire.addWhere(FIELD.uid, uid), fire.addWhere(FIELD.type, STATUS.account)]),
 		]);
 		const accountDoc: Partial<StatusAccount> = !doc.length
 			? {																// scaffold a new Account doc
@@ -142,7 +142,7 @@ export class MemberService {
 	getEventPrice = async (event: string, data?: AccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
-		const classDoc = await this.state.getSingle<Class>(STORE.class, Fire.addWhere(FIELD.key, event));
+		const classDoc = await this.state.getSingle<Class>(STORE.class, fire.addWhere(FIELD.key, event));
 
 		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
 			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
@@ -160,7 +160,7 @@ export class MemberService {
 	async getAuthProfile(info: firebase.default.auth.AdditionalUserInfo | null, uid?: string) {
 		if (!info)
 			return;																				// No AdditionalUserInfo available
-		this.dbg('info: %s', info.providerId);
+		this.dbg('info: %j', info);
 
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<ProfileInfo> = {
@@ -170,7 +170,7 @@ export class MemberService {
 			[FIELD.uid]: uid || (await this.data.getActiveID()),
 			[PROFILE.info]: { ...memberInfo },						// spread the conformed member info
 		}
-		const where = Fire.addWhere(`${PROFILE.info}.providerId`, info.providerId);
+		const where = fire.addWhere(`${PROFILE.info}.providerId`, info.providerId);
 
 		this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.info);
 	}

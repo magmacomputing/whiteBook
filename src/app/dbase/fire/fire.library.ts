@@ -7,7 +7,7 @@ import { isNumeric } from '@library/string.library';
 import { isUndefined, isArray } from '@library/type.library';
 
 /** shortcuts to FireService static properties and types */
-export namespace Fire {
+export namespace fire {
 
 	/**
 	 * Array of Query functions with any limit / order criteria.  
@@ -15,14 +15,14 @@ export namespace Fire {
 	 * and needs to be split into separate Queries, as Firestore does not currently
 	 * allow 'or' in a complex Query
 	 */
-	export const fnQuery = (query: Fire.Query = {}) => {
+	export const fnQuery = (query: fire.Query = {}) => {
 		return splitQuery(query)
 			.map<QueryFn>(split =>
 				(colRef: firebase.default.firestore.Query) => {															// map a Query-function
 					if (split.where)
 						asArray(split.where)
 							.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value; not supported
-							.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || isArray(where.value) ? 'in' : '=='), where.value));
+							.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || (isArray(where.value) ? 'in' : '==')), where.value));
 
 					if (split.orderBy)
 						asArray(split.orderBy)
@@ -55,7 +55,7 @@ export namespace Fire {
 	 * [ {fieldPath:'uid', value:'abc'}, {fieldPath:'uid', value'def'} ]  
 	 * This allows us to set separate Queries for each split clause
 	 */
-	const splitQuery = (query: Fire.Query = {} as Fire.Query) => {
+	const splitQuery = (query: fire.Query = {} as fire.Query) => {
 		const wheres = asArray(query.where)						// for each 'where' clause
 			.map(where => {
 				if (isArray(where.value)) {
@@ -68,11 +68,11 @@ export namespace Fire {
 					? asArray(where)
 					: asArray(where.value)									// for each 'value'
 						.distinct()														// remove duplicates
-						.map(value => Fire.addWhere(where.fieldPath, value, where.opStr))
+						.map(value => fire.addWhere(where.fieldPath, value, where.opStr))
 			})
 			.cartesian();																// cartesian product of IWhere array
 
-		const split: Fire.Query[] = asArray(wheres)
+		const split: fire.Query[] = asArray(wheres)
 			.map(where =>																// for each split IWhere,
 			({																				// build an array of IQuery
 				orderBy: query.orderBy,
@@ -88,12 +88,12 @@ export namespace Fire {
 		return split.length ? split : asArray(query);	// if no IWhere[], return array of original Query
 	}
 
-	export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: Fire.Where["opStr"]): Fire.Where => {
+	export const addWhere = (fieldPath: string | FieldPath, value: any, opStr?: fire.Where["opStr"]): fire.Where => {
 		const operator = isArray(value) ? 'in' : '==';
 		return { fieldPath, opStr: opStr ?? operator, value };
 	}
 
-	export const addOrder = (fieldPath: string | FieldPath, directionStr: Fire.OrderBy["directionStr"] = 'asc'): Fire.OrderBy =>
+	export const addOrder = (fieldPath: string | FieldPath, directionStr: fire.OrderBy["directionStr"] = 'asc'): fire.OrderBy =>
 		({ fieldPath, directionStr });
 
 	/** Query.where */
@@ -111,8 +111,8 @@ export namespace Fire {
 
 	/** Collection.Query */
 	export interface Query {
-		where?: Fire.Where | Fire.Where[];
-		orderBy?: Fire.OrderBy | Fire.OrderBy[];
+		where?: fire.Where | fire.Where[];
+		orderBy?: fire.OrderBy | fire.OrderBy[];
 		limit?: number;
 		startAt?: string;
 		startAfter?: string;

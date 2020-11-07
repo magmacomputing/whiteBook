@@ -38,10 +38,10 @@ export enum STORE {
 	setting = 'setting',
 	status = 'status',
 	// Admin
+	register = 'register',					// copy of Firestore Authentication object
 	account = 'account',						// summary of Member's current account balance
 	connect = 'connect',						// Member's connection status
-	import = 'import',							// imported details from Google Apps Sheets
-	register = 'register',					// copy of Firestore Authentication object
+	sheet = 'sheet',								// imported details from Google Apps Sheets register
 	// Forum
 	comment = 'comment',
 	react = 'react',

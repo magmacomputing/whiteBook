@@ -13,7 +13,7 @@ import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
 
 import { SafePipe } from '@service/material/safe.pipe';
 
-import { Sync } from '@dbase/sync/sync.define';
+import { sync } from '@dbase/sync/sync.define';
 import { environment } from '../environments/environment';
 
 @NgModule({
@@ -23,7 +23,7 @@ import { environment } from '../environments/environment';
 	],
 	imports: [
 		NgxsModule.forRoot([], { developmentMode: !environment.production }),
-		NgxsStoragePluginModule.forRoot({ key: Sync.storeStorage }),
+		NgxsStoragePluginModule.forRoot({ key: sync.storeStorage }),
 		BrowserModule,
 		HammerModule,
 		DBaseModule,

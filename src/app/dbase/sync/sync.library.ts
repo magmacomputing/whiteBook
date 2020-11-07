@@ -4,7 +4,7 @@ import { DocumentChangeAction } from '@angular/fire/firestore';
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
 import type { FireDocument, TStoreBase } from '@dbase/data/data.schema';
-import { Sync } from '@dbase/sync/sync.define';
+import { sync } from '@dbase/sync/sync.define';
 
 import { LState } from '@dbase/state/state.define';
 import { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
@@ -23,8 +23,8 @@ export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
 }
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
-export const checkStorage = async (listen: Sync.Listen, snaps: DocumentChangeAction<FireDocument>[]) => {
-	const localState = new Storage('local').get<LState>(Sync.storeStorage, {})
+export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAction<FireDocument>[]) => {
+	const localState = new Storage('local').get<LState>(sync.storeStorage, {})
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: FireDocument[] = [];
 	const snapList = snaps.map(addMeta);

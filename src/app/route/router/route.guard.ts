@@ -7,11 +7,11 @@ import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
 import { AuthModule } from '@service/auth/auth.module';
-import { Fire } from '@dbase/fire/fire.library';
-import { LState } from '@dbase/state/state.define';
-import { Sync } from '@dbase/sync/sync.define';
+import { fire } from '@dbase/fire/fire.library';
+import type { LState } from '@dbase/state/state.define';
+import type { ProfilePlan } from '@dbase/data/data.schema';
+import { sync } from '@dbase/sync/sync.define';
 import { FIELD, STORE } from '@dbase/data/data.define';
-import { ProfilePlan } from '@dbase/data/data.schema';
 import { asAt } from '@library/app.library';
 
 import { Storage } from '@library/browser.library';
@@ -43,9 +43,9 @@ export class ProfileGuard implements CanActivate {
 	constructor(private navigate: NavigateService) { this.dbg('new') }
 
 	async canActivate() {
-		const localState = new Storage('local').get<LState>(Sync.storeStorage, {});
+		const localState = new Storage('local').get<LState>(sync.storeStorage, {});
 		const profile = getPath<ProfilePlan[]>(localState, 'member.profile') || [];
-		const planProfile = asAt(profile, Fire.addWhere(FIELD.type, STORE.plan));
+		const planProfile = asAt(profile, fire.addWhere(FIELD.type, STORE.plan));
 		if (getPath<string>(planProfile[0], STORE.plan))
 			return true;															// found a current 'plan' in localStorage
 

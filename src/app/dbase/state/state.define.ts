@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
 
 import type { AuthSlice } from './auth.action';
-import { STORE, BONUS, COLLECTION } from '@dbase/data/data.define';
-import {
+import type { COLLECTION, STORE, BONUS } from '@dbase/data/data.define';
+import type {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
 	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
-	StatusConnect, StatusAccount, TBonus, Icon, Provider, React, Comment, Import, ISummary,
+	StatusConnect, StatusAccount, TBonus, Icon, Provider, React, Comment, Sheet,
 } from '@dbase/data/data.schema';
 
 export enum SLICE {
@@ -49,18 +49,18 @@ export interface AdminState {
 	[STORE.register]: Register[];
 	[STORE.account]: StatusAccount[];
 	[STORE.connect]: StatusConnect[];
-	[STORE.import]: Import[];
-	dash: {																// align elements of each Admin Array by UID
+	[STORE.sheet]: Sheet[];
+	dash: {															// align elements of each Admin Array by UID
 		[STORE.register]: Register;
 		[STORE.account]?: StatusAccount;
 		[STORE.connect]?: StatusConnect;
-		[STORE.import]?: Import;
+		[STORE.sheet]?: Sheet;
 	}[]
 }
 
 export interface ApplicationState {		// application-wide settings
 	application: {
-		[STORE.default]: Default[];        // defaults to apply, if missing from Member data
+		[STORE.default]: Default[];				// defaults to apply, if missing from Member data
 		[STORE.schema]?: Schema[];
 		[STORE.config]?: Config[];
 	}
@@ -68,9 +68,9 @@ export interface ApplicationState {		// application-wide settings
 
 export interface MemberState extends UserState, ApplicationState {
 	[COLLECTION.member]: {
-		[STORE.plan]: ProfilePlan[];       // member's effective plan
+		[STORE.plan]: ProfilePlan[];      // member's effective plan
 		info: ProfileInfo[];             	// array of AdditionalUserInfo documents
-		pref: ProfilePref[];								// member's preferences
+		pref: ProfilePref[];							// member's preferences
 		[STORE.message]: Message[];				// array of messages to a Member
 		[STORE.gift]: Gift[];							// array of gifts for a Member
 	}
@@ -84,7 +84,7 @@ export interface ProviderState {
 }
 export interface PlanState extends MemberState {
 	[COLLECTION.client]: {
-		[STORE.plan]: Plan[];              // array of effective Plan documents
+		[STORE.plan]: Plan[];             // array of effective Plan documents
 		[STORE.price]: Price[];						// array of effective Price documents
 		[STORE.icon]: Icon[];							// array of Plan icons
 	}
@@ -109,7 +109,7 @@ export interface AccountState extends MemberState, PlanState {
 	[STORE.account]: {
 		payment: Payment[];								// array of open payment documents, sorted by <stamp>
 		attend: Attend[];
-		summary: ISummary;
+		summary: StatusAccount["summary"];
 	}
 }
 

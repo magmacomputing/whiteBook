@@ -29,10 +29,10 @@
 				"src/app/dbase/*",
 			],
 			"@library/*": [
-				"../whiteShare/library/*",
+				"core/library/*",
 			],
 			"@library": [
-				"../whiteShare/library",
+				"core/library",
 			],
 			"@route/*": [
 				"src/app/route/*",
@@ -46,10 +46,5 @@
 		"doc/**/*.ts",
 		"node_modules",
 		"dist"
-	],
-	"references": [
-		{
-			"path": "../whiteShare"
-		}
 	]
 }

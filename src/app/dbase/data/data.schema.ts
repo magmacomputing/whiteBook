@@ -1,11 +1,11 @@
 import { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, Zoom, TRACK } from '@dbase/data/data.define';
-import { TString } from '@library/type.library';
-import { Instant } from '@library/instant.library';
+import type { TString } from '@library/type.library';
+import type { Instant } from '@library/instant.library';
 
-type TStoreAdmin = STORE.register | STORE.import;
+type TStoreAdmin = STORE.register | STORE.sheet | STORE.migrate;
 type TStoreConfig = STORE.schema | STORE.config | STORE.default;
 type TStoreClient = STORE.class | STORE.event | STORE.price | STORE.plan | STORE.provider | STORE.schedule | STORE.calendar | STORE.location | STORE.instructor | STORE.bonus | STORE.span | STORE.alert | STORE.icon;
-type TStoreMember = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.migrate | STORE.attend | STORE.status;
+type TStoreMember = STORE.profile | STORE.payment | STORE.gift | STORE.message | STORE.attend | STORE.status;
 type TStoreForum = STORE.comment | STORE.react;
 
 // These are the meta- and common-fields for a standard document
@@ -402,10 +402,7 @@ export interface CustomClaims {		// a special sub-set of fields from the User To
 	allow?: string[];
 	deny?: string[];
 }
-export type TUser = firebase.default.UserInfo & {
-	customClaims?: CustomClaims;
-	providerData?: (firebase.default.UserInfo | null)[];
-}
+
 type TProviderInfo = {
 	id: string;
 	provider: Auth.PROVIDER;
@@ -420,18 +417,10 @@ type TProviderInfo = {
 }
 export interface Register extends AdminDocument {
 	[FIELD.store]: STORE.register;
-	user: TUser;
-}
-
-export interface ISummary {
-	bank: number;													// rollover from previous Payment
-	paid: number;													// topUp amount for active Payment
-	adjust: number;												// debit amount for active Payment
-	spend: number;												// sum of Attends' amount
-	funds: number;												// active Payment credit:	bank + paid + adjust - spend
-
-	credit: number;												// whole Account credit:	bank + paid + adjust - spend + pend
-	pend: number;													// sum of not-yet-Active Payments
+	user: firebase.default.UserInfo & {
+		customClaims?: CustomClaims;
+		providerData?: (firebase.default.UserInfo | null)[];
+	};
 }
 
 //	/member/status
@@ -441,7 +430,16 @@ export interface Status extends MemberDocument {
 }
 export interface StatusAccount extends Status {
 	[FIELD.type]: STATUS.account;
-	summary: ISummary;
+	summary: {
+		bank: number;												// rollover from previous Payment
+		paid: number;												// topUp amount for active Payment
+		adjust: number;											// debit amount for active Payment
+		spend: number;											// sum of Attends' amount
+		funds: number;											// active Payment credit:	bank + paid + adjust - spend
+
+		credit: number;											// whole Account credit:	bank + paid + adjust - spend + pend
+		pend: number;												// sum of not-yet-Active Payments
+	};
 }
 export interface StatusConnect extends Status {
 	[FIELD.type]: STATUS.connect;
@@ -449,215 +447,6 @@ export interface StatusConnect extends Status {
 	device?: string | null;
 }
 
-export interface ZoomEvent<T extends TStarted | TEnded | TJoined | TLeft | TStatus> {
-	[FIELD.id]: string;
-	[FIELD.create]: string;
-	[FIELD.update]: string;
-	[FIELD.store]: COLLECTION.zoom;
-	[FIELD.type]: Zoom.EVENT;
-	[FIELD.stamp]: number;
-	eventId: string;								// Cloud Functions event Id
-	hook?: number;									// number of times the webhook has been sent
-	head: Record<string, any>;
-	body: T;
-	track: {
-		date: number;
-		day: Instant.WEEKDAY;
-		week: number;
-		month: number;
-	},
-	white?: ZoomWhite;
-}
-
-export type TLeft = {
-	event: Zoom.EVENT.left;
-	payload: {
-		account_id: string;
-		object: {
-			start_time: Date;
-			topic: string;
-			type: number;
-			id: string;
-			duration: number;
-			uuid: string;
-			host_id: string;
-			participant: {
-				id: string;
-				leave_time: Date;
-				user_id: string;
-				user_name: string;
-			},
-			timezone: 'Australia/Sydney';
-		}
-	}
-}
-
-export type TJoined = {
-	event: Zoom.EVENT.joined;
-	payload: {
-		account_id: string;
-		object: {
-			start_time: Date;
-			topic: string;
-			type: number;
-			id: string;
-			duration: number;
-			uuid: string;
-			host_id: string;
-			participant: {
-				id: string;
-				join_time: Date;
-				user_id: string;
-				user_name: string;
-			},
-			timezone: string;
-		}
-	}
-}
-
-export type TStarted = {
-	event: Zoom.EVENT.started;
-	payload: {
-		account_id: string;
-		object: {
-			id: string;
-			uuid: string;
-			host_id: string;
-			topic: string;
-			type: Zoom.TYPE;
-			start_time: Date;
-			timezone: string;
-			duration: number;
-		}
-	};
-}
-
-export type TEnded = {
-	event: Zoom.EVENT.ended;
-	payload: {
-		account_id: string;
-		object: {
-			id: string;
-			uuid: string;
-			host_id: string;
-			topic: string;
-			type: Zoom.TYPE;
-			start_time: Date;
-			end_time: Date;
-			timezone: string;
-			duration: number;
-		}
-	}
-}
-
-export type TStatus = {
-	event: Zoom.EVENT.status;
-	payload: {
-		account_id: string;
-		object: {
-			date_time: Date;
-			email?: string;
-			id: string;
-			presence_status: Zoom.PRESENCE;
-		}
-	}
-}
-
-export interface ZoomMeeting {
-	uuid: string;
-	meeting_id: string;
-	topic?: string;
-	start: {
-		[FIELD.id]: string;
-		[FIELD.stamp]: number;
-		start_time: Date;
-		label: string;							// to be displayed on an UI tab
-		color?: COLOR;
-		white?: ZoomWhite;
-	},
-	end?: {
-		[FIELD.id]: string;
-		[FIELD.stamp]: number;
-		end_time: Date;
-		label: string;							// to be displayed on an UI tab
-	}
-	participants: {
-		participant_id: string;
-		user_id: string;
-		user_name: string;
-		join: {
-			[FIELD.id]: string;
-			[FIELD.stamp]: number;
-			join_time: Date;
-			label: string;							// to be displayed on an UI tab
-			white: ZoomWhite;
-			price?: number;
-			credit?: number;
-			fgcolor?: {
-				alias?: COLOR;
-			}
-			bgcolor?: {
-				price?: COLOR;
-				credit?: COLOR;
-				bonus?: COLOR;
-				priceTip?: string;
-				creditTip?: string;
-				bonusTip?: string;
-			}
-		},
-		leave?: {
-			[FIELD.id]: string;
-			[FIELD.stamp]: number;
-			leave_time: Date;
-			label: string;							// to be displayed on an UI tab
-		}
-	}[]
-}
-
-export interface ZoomEnv {
-	id: string;
-	start: string;
-	end: string;
-	event: string;
-	color: COLOR;
-	day?: number[];
-}
-
-export interface ZoomWhite {
-	class?: string;
-	alias?: string;
-	paid?: true;
-	credit?: number;
-	price?: number;
-	track?: {
-		history: number;
-	},
-	history?: Record<string, any>[];
-	status?: {
-		lastVisit: string;
-		eventType: string;
-		eventPrice: string;
-		eventNote?: string;
-		bonus?: string;
-		hr1?: string;
-		creditExpires: string;
-		creditRemaining: string;
-		trackDaysThisWeek: number;
-		_week: string;
-	},
-	checkIn?: {
-		type: string;
-		price: number;
-		nextAttend: {
-			row: number;
-			col: number;
-			spend: number;
-			bank: number;
-			amt: number;
-			pre: number;
-		}
-	}
-}
 
 export interface Track {
 	[FIELD.store]: STORE.log;
@@ -672,15 +461,15 @@ export interface Track {
 	event?: object;
 	memberId?: string;
 	stamp: number;
-	date: {										// useful for indexing
+	date: {																// useful for indexing
 		year: number;
 		month: number;
 		day: number;
 	}
 }
 
-export interface Import extends AdminDocument {
-	[FIELD.store]: STORE.import;						// record of Google Sheet on migrated member
+export interface Sheet extends AdminDocument {
+	[FIELD.store]: STORE.sheet;						// record of Google Sheet on migrated member
 	credit: number;
 	email: string;
 	picture: string;
@@ -689,10 +478,223 @@ export interface Import extends AdminDocument {
 	userName: string;
 	providers: TProviderInfo[]
 }
-export interface Migrate extends MemberDocument {	// these allow for reconciliation of migrated event
+export interface Migrate extends AdminDocument {	// these allow for reconciliation of migrated event
 	[FIELD.store]: STORE.migrate;
 	[FIELD.type]: STORE.event | STORE.class;
 	[COLLECTION.attend]: {
 		[order: string]: CLASS;
+	}
+}
+
+export namespace zoom {
+
+	export interface Event<T extends zoom.Started | zoom.Ended | zoom.Joined | zoom.Left | zoom.Status> {
+		[FIELD.id]: string;
+		[FIELD.create]: string;
+		[FIELD.update]: string;
+		[FIELD.store]: COLLECTION.zoom;
+		[FIELD.type]: Zoom.EVENT;
+		[FIELD.stamp]: number;
+		eventId: string;								// Cloud Functions event Id
+		hook?: number;									// number of times the webhook has been sent
+		head: Record<string, any>;
+		body: T;
+		track: {
+			date: number;
+			day: Instant.WEEKDAY;
+			week: number;
+			month: number;
+		},
+		white?: White;
+	}
+
+	export type Started = {
+		event: Zoom.EVENT.started;
+		payload: {
+			account_id: string;
+			object: {
+				id: string;
+				uuid: string;
+				host_id: string;
+				topic: string;
+				type: Zoom.TYPE;
+				start_time: Date;
+				timezone: string;
+				duration: number;
+			}
+		};
+	}
+
+	export type Ended = {
+		event: Zoom.EVENT.ended;
+		payload: {
+			account_id: string;
+			object: {
+				id: string;
+				uuid: string;
+				host_id: string;
+				topic: string;
+				type: Zoom.TYPE;
+				start_time: Date;
+				end_time: Date;
+				timezone: string;
+				duration: number;
+			}
+		}
+	}
+
+	export type Joined = {
+		event: Zoom.EVENT.joined;
+		payload: {
+			account_id: string;
+			object: {
+				start_time: Date;
+				topic: string;
+				type: number;
+				id: string;
+				duration: number;
+				uuid: string;
+				host_id: string;
+				participant: {
+					id: string;
+					join_time: Date;
+					user_id: string;
+					user_name: string;
+				},
+				timezone: string;
+			}
+		}
+	}
+
+	export type Left = {
+		event: Zoom.EVENT.left;
+		payload: {
+			account_id: string;
+			object: {
+				start_time: Date;
+				topic: string;
+				type: number;
+				id: string;
+				duration: number;
+				uuid: string;
+				host_id: string;
+				participant: {
+					id: string;
+					leave_time: Date;
+					user_id: string;
+					user_name: string;
+				},
+				timezone: 'Australia/Sydney';
+			}
+		}
+	}
+
+	export type Status = {
+		event: Zoom.EVENT.status;
+		payload: {
+			account_id: string;
+			object: {
+				date_time: Date;
+				email?: string;
+				id: string;
+				presence_status: Zoom.PRESENCE;
+			}
+		}
+	}
+
+	export interface Meeting {
+		uuid: string;
+		meeting_id: string;
+		topic?: string;
+		start: {
+			[FIELD.id]: string;
+			[FIELD.stamp]: number;
+			start_time: Date;
+			label: string;							// to be displayed on an UI tab
+			color?: COLOR;
+			white?: White;
+		},
+		end?: {
+			[FIELD.id]: string;
+			[FIELD.stamp]: number;
+			end_time: Date;
+			label: string;							// to be displayed on an UI tab
+		}
+		participants: {
+			participant_id: string;
+			user_id: string;
+			user_name: string;
+			join: {
+				[FIELD.id]: string;
+				[FIELD.stamp]: number;
+				join_time: Date;
+				label: string;							// to be displayed on an UI tab
+				white: zoom.White;
+				price?: number;
+				credit?: number;
+				fgcolor?: {
+					alias?: COLOR;
+				}
+				bgcolor?: {
+					price?: COLOR;
+					credit?: COLOR;
+					bonus?: COLOR;
+					priceTip?: string;
+					creditTip?: string;
+					bonusTip?: string;
+				}
+			},
+			leave?: {
+				[FIELD.id]: string;
+				[FIELD.stamp]: number;
+				leave_time: Date;
+				label: string;							// to be displayed on an UI tab
+			}
+		}[]
+	}
+
+	export interface Config {
+		id: string;
+		start: string;
+		end: string;
+		event: string;
+		color: COLOR;
+		day?: number[];
+	}
+
+	export interface White {
+		class?: string;
+		alias?: string;
+		paid?: true;
+		credit?: number;
+		price?: number;
+		track?: {
+			history: number;
+		},
+		history?: Record<string, any>[];
+		status?: {
+			lastVisit: string;
+			eventType: string;
+			eventPrice: string;
+			eventNote?: string;
+			bonus?: string;
+			hr1?: string;
+			creditExpires: string;
+			creditRemaining: string;
+			trackDaysThisWeek: number;
+			_week: string;
+		},
+		checkIn?: {
+			type: string;
+			price: number;
+			nextAttend: {
+				row: number;
+				col: number;
+				spend: number;
+				bank: number;
+				amt: number;
+				pre: number;
+			}
+		}
 	}
 }

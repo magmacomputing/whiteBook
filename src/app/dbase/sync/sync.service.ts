@@ -9,7 +9,7 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { Sync } from '@dbase/sync/sync.define';
+import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 
@@ -17,7 +17,7 @@ import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
 import { FireDocument } from '@dbase/data/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
-import { Fire } from '@dbase/fire/fire.library';
+import { fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
 import { isFunction, isUndefined } from '@library/type.library';
@@ -30,7 +30,7 @@ import { dbg } from '@library/logger.library';
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
 	private dbg = dbg(this);
-	private listener: Map<Sync.Key, Sync.Listen> = new Map();
+	private listener: Map<sync.Key, sync.Listen> = new Map();
 
 	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
 
@@ -38,10 +38,10 @@ export class SyncService {
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
 	 * Additional collections can be defined, and merged into the same stream
 	 */
-	public async on(collection: COLLECTION, query?: Fire.Query, ...additional: [COLLECTION, Fire.Query?][]) {
+	public async on(collection: COLLECTION, query?: fire.Query, ...additional: [COLLECTION, fire.Query?][]) {
 		const ready = new Pledge<boolean>();
 		const refs = this.fire.colRef<FireDocument>(collection, query);
-		const key: Sync.Key = { collection, query };
+		const key: sync.Key = { collection, query };
 
 		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
 			refs.push(...this.fire.colRef<FireDocument>(collection, query)));
@@ -72,7 +72,7 @@ export class SyncService {
 	}
 
 	public status(collection?: COLLECTION) {
-		const result: Sync.Status[] = [];
+		const result: sync.Status[] = [];
 
 		for (const [key, listen] of this.listener.entries())
 			if (isUndefined(collection) || collection === key.collection)
@@ -110,7 +110,7 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection?: COLLECTION, query?: Fire.Query, trunc?: boolean) {
+	public off(collection?: COLLECTION, query?: fire.Query, trunc?: boolean) {
 		for (const [key, listen] of this.listener.entries()) {
 			if ((collection ?? key.collection) === key.collection
 				&& JSON.stringify((query ?? key.query)) === JSON.stringify(key.query)) {
@@ -126,7 +126,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listeners */
-	private async sync(key: Sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
+	private async sync(key: sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
 		const listen = this.listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
 

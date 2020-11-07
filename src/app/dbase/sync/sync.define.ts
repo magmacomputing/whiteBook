@@ -1,26 +1,26 @@
 import { Subscription } from 'rxjs';
 
-import type { Fire } from '@dbase/fire/fire.library';
+import type { fire } from '@dbase/fire/fire.library';
 import type { COLLECTION } from '@dbase/data/data.define';
 import type { ClientAction, MemberAction, AttendAction, AdminAction, DeviceAction } from '@dbase/state/state.action';
 
 import type { Pledge } from '@library/utility.library';
 
-export namespace Sync {
+export namespace sync {
 
 	export interface Key {
 		collection: COLLECTION;
-		query?: Fire.Query;
+		query?: fire.Query;
 	}
 
 	export interface Status {
 		collection: COLLECTION;
-		query?: Fire.Query;
+		query?: fire.Query;
 		promise: Pledge.Status;
 	}
 
 	export interface Listen {
-		key: Sync.Key;												// the key to this listener
+		key: sync.Key;												// the key to this listener
 		label: string;												// Label to display for this listener
 		cnt: number;													// count of snapshots received
 		uid: string | null;										// authenticated User

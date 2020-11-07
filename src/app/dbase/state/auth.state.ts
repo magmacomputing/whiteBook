@@ -18,7 +18,7 @@ import { NavigateService } from '@route/router/navigate.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
 import { Register } from '@dbase/data/data.schema';
-import { Fire } from '@dbase/fire/fire.library';
+import { fire } from '@dbase/fire/fire.library';
 
 import { Storage, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
@@ -33,13 +33,13 @@ import { dbg } from '@library/logger.library';
 		token: null,																		// oauth token
 		info: null,																			// Provider additionalInfo
 		credential: null,																// authenticated user's credential
-		current: null,																	// the effective User (used in 'impersonate' mode)
+		current: null,																	// the effective User (used in 'on-behalf' mode)
 	}
 })
 export class AuthState {
 	private dbg = dbg(this);
 	private user: firebase.User | null = null;
-	private _memberSubject = new BehaviorSubject(null as firebase.auth.AdditionalUserInfo | null);
+	private _memberSubject: BehaviorSubject<AuthSlice["info"]> = this.newSubject();
 
 	constructor(private afAuth: AngularFireAuth, private sync: SyncService, private store: Store, private snack: SnackService, private navigate: NavigateService) { this.init(); }
 
@@ -49,9 +49,13 @@ export class AuthState {
 			.subscribe(user => this.store.dispatch(new LoginAction.Check(user)))
 	}
 
+	private newSubject() {
+		return new BehaviorSubject(null as AuthSlice["info"]);
+	}
+
 	get memberSubject() {
-		if (this._memberSubject.isStopped)							// start a new Subject
-			this._memberSubject = new BehaviorSubject(null as firebase.auth.AdditionalUserInfo | null);
+		if (this._memberSubject?.isStopped ?? true)			// start a new Subject
+			this._memberSubject = this.newSubject();
 		return this._memberSubject;
 	}
 
@@ -61,9 +65,9 @@ export class AuthState {
 			.toPromise();
 	}
 
-	private async authSuccess(ctx: StateContext<AuthSlice>, user: firebase.User | null, credential: firebase.auth.AuthCredential | null) {
+	private async authSuccess(ctx: StateContext<AuthSlice>, user: firebase.User | null, credential: AuthSlice["credential"]) {
 		if (user) {
-			if (credential) {														// have we been redirected here, via credential?
+			if (credential) {															// have we been redirected here, via credential?
 				const response = await user.linkWithCredential(credential);
 				ctx.patchState({ info: response.additionalUserInfo });
 			}
@@ -72,19 +76,19 @@ export class AuthState {
 	}
 
 	/** Commands */
-	@Action(LoginAction.Check)														// check Authentication status
+	@Action(LoginAction.Check)												// check Authentication status
 	private checkSession(ctx: StateContext<AuthSlice>, { user }: LoginAction.Check) {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && isNull(this.user))
-			this.navigate.route(ROUTE.login);						// redirect to LoginComponent
+			this.navigate.route(ROUTE.login);							// redirect to LoginComponent
 
-		if (isNull(user) && !isNull(this.user))				// TODO: does this affect OAuth logins
-			ctx.dispatch(new LoginAction.Out());							// User logged-out
+		if (isNull(user) && !isNull(this.user))					// TODO: does this affect OAuth logins
+			ctx.dispatch(new LoginAction.Out());					// User logged-out
 
 		if (!isNull(user) && isNull(this.user)) {
-			this.user = user;														// stash the Auth User
-			ctx.dispatch(new LoginEvent.Success(user));			// User logged-in
+			this.user = user;															// stash the Auth User
+			ctx.dispatch(new LoginEvent.Success(user));		// User logged-in
 		}
 	}
 
@@ -136,7 +140,7 @@ export class AuthState {
 	/** Attempt to signIn User via authentication with a Custom Token */
 	@Action(LoginAction.Token)
 	private async loginToken(ctx: StateContext<AuthSlice>, { token, user, prefix }: LoginAction.Token) {
-		const additionalUserInfo: firebase.auth.AdditionalUserInfo = {
+		const additionalUserInfo: AuthSlice["info"] = {
 			isNewUser: false,
 			providerId: getProviderId(prefix),
 			profile: user,
@@ -210,7 +214,7 @@ export class AuthState {
 	/** Events */
 	@Action(LoginEvent.Success)														// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
-		const query: Fire.Query = { where: Fire.addWhere(FIELD.uid, user.uid) };
+		const query: fire.Query = { where: fire.addWhere(FIELD.uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;
 
 		if (currUser) {
@@ -270,7 +274,7 @@ export class AuthState {
 			this.sync.off(COLLECTION.member);						// unsubscribe from /member
 			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend
 
-			const where = Fire.addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
+			const where = fire.addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
 			this.sync.on(COLLECTION.member, { where });	// re-subscribe to /member, with supplied UIDs
 			this.sync.on(COLLECTION.attend, { where });	// re-subscribe to /attend, with supplied UIDs
 		}
@@ -302,7 +306,7 @@ export class AuthState {
 			this.dbg('customClaims: %j', ctx.getState().token?.claims.claims);
 			if (roles.includes(Auth.ROLE.admin)) {
 				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one stream
-					[COLLECTION.member, { where: Fire.addWhere(FIELD.store, STORE.status) }]);
+					[COLLECTION.member, { where: fire.addWhere(FIELD.store, STORE.status) }]);
 			} else {
 				this.sync.off(COLLECTION.admin);
 				this.navigate.route(ROUTE.attend);
