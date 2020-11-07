@@ -13,7 +13,7 @@ import { dbg } from '@library/logger.library';
 })
 export class AccountComponent implements OnInit {
 	public data$!: Observable<AccountState>;
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(readonly state: StateService, readonly member: MemberService) { 	}
 

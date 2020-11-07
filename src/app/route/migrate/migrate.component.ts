@@ -35,7 +35,7 @@ import { dbg } from '@library/logger.library';
 	templateUrl: './migrate.component.html',
 })
 export class MigrateComponent implements OnInit, OnDestroy {
-	private dbg = dbg(this, 'MigrateComponent');
+	#dbg = dbg(this, 'MigrateComponent');
 
 	public dash$!: Observable<AdminState["dash"]>;
 	public account$!: Observable<AccountState>;
@@ -153,8 +153,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					})
 					.then(history => this.history.resolve(history))
 				this.history.promise
-					.then(hist => this.dbg('history: %s, %j', hist.length, this.status))
-					.catch(err => this.dbg('err: %j', err.message))
+					.then(hist => this.#dbg('history: %s, %j', hist.length, this.status))
+					.catch(err => this.#dbg('err: %j', err.message))
 
 				this.account$ = this.state.getAccountData();
 				this.dflt = CLASS.Zumba;
@@ -235,7 +235,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						return false;																						// no further checking required on this Payment
 					}
 				} else if (isUndefined(match))
-					this.dbg('warn; unapproved: %j', row);										// warn if first-time migrated
+					this.#dbg('warn; unapproved: %j', row);										// warn if first-time migrated
 
 				return isUndefined(match);
 			})
@@ -280,7 +280,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				return obj as FireDocument;
 			})
 
-		// parse the Attends to look for 'Gift' notes, and build a Gift document
+		// parse the Attends to look for 'Gift' notes to create Gift documents
 		let giftCnt = 0;
 		let start = 0;
 		let rest: string | undefined = undefined;
@@ -315,7 +315,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		this.data.batch(creates, updates, undefined, memberAction.Set)
 			.then(_ => this.member.updAccount())
-			.then(_ => this.dbg('payment: %s, %s', creates.length, updates.length))
+			.then(_ => this.#dbg('payment: %s, %s', creates.length, updates.length))
 	}
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
@@ -342,7 +342,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		return expiry;
 	}
 
-	// a Gift is effective from the start of day, unless there is a 'start <HH:MM>' note
+	// a Gift is effective from the start of day, unless there is a 'start: <HH:MM>' note
 	private setGift(gift: number, start: number, note?: string) {
 		let offset = getInstant(start).startOf('day').ts;
 		if (note?.includes('start: ')) {
@@ -394,7 +394,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.key]);
-			this.dbg('startFrom: %s, %j', startFrom, startAttend);
+			this.#dbg('startFrom: %s, %j', startFrom, startAttend);
 			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migration.LOOKUP[row.type] || row.type)))).length;
 			table.splice(0, offset);
 		}
@@ -408,18 +408,18 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.check = new Pledge();
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
 			this.check.promise														// wait for pre-process to complete
-				.then(_ready => this.dbg('ready: %j', _ready))
+				.then(_ready => this.#dbg('ready: %j', _ready))
 				.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
-		} else this.dbg('nothing to load');
+		} else this.#dbg('nothing to load');
 	}
 
 	private async nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
 		if (!row) {
 			if (flag)
 				this.lastAttend();
-			return this.dbg('done: %s', flag);
+			return this.#dbg('done: %s', flag);
 		}
-		if (flag) this.dbg('hist: %j', row);
+		if (flag) this.#dbg('hist: %j', row);
 
 		let what: CLASS = Migration.LOOKUP[row.type] ?? row.type;
 		const now = getInstant(row.date);
@@ -437,11 +437,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let migrate: Migrate | undefined;
 
 		if (Migration.SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
-			if (flag) this.dbg(`${prefix}: need to resolve ${sfx} class`);
+			if (flag) this.#dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
 				row.type = prefix + `*-${nbr}.${sfx}`;
 				rest.splice(0, 0, { ...row, [FIELD.stamp]: row.stamp + nbr - 1 });
-				if (flag) this.dbg('splice: %j', row.type);
+				if (flag) this.#dbg('splice: %j', row.type);
 			}
 			sfx = `-1.${sfx}`;
 		}
@@ -620,21 +620,23 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private getElect(row: MHistory) {
-		if (row.note?.includes('elect false')) {
+		if (!row.note)
+			return;
+		if (row.note.includes('elect false')) {
 			row.elect = BONUS.none;
-		} else if (row.note?.includes('elect none')) {
+		} else if (row.note.includes('elect none')) {
 			row.elect = BONUS.none;
-		} else if (row.note?.includes('Gift #')) {
+		} else if (row.note.includes('Gift #')) {
 			row.elect = BONUS.gift;
-		} else if (row.note?.toUpperCase().includes('Bonus: Week Level reached'.toUpperCase())) {
+		} else if (row.note.toUpperCase().includes('Bonus: Week Level reached'.toUpperCase())) {
 			row.elect = BONUS.week;											// Week bonus takes precedence
-		} else if (row.note?.toUpperCase().includes('Bonus: Class Level reached'.toUpperCase())) {
+		} else if (row.note.toUpperCase().includes('Bonus: Class Level reached'.toUpperCase())) {
 			row.elect = BONUS.class;
-		} else if (row.note?.toUpperCase().includes('Bonus: Month Level reached'.toUpperCase())) {
+		} else if (row.note.toUpperCase().includes('Bonus: Month Level reached'.toUpperCase())) {
 			row.elect = BONUS.month;
-		} else if (row.note?.toUpperCase().includes('Bonus: Sunday Level reached'.toUpperCase())) {
+		} else if (row.note.toUpperCase().includes('Bonus: Sunday Level reached'.toUpperCase())) {
 			row.elect = BONUS.sunday;
-		} else if (row.note?.toUpperCase().includes('Multiple @Home classes today'.toUpperCase())) {
+		} else if (row.note.toUpperCase().includes('Multiple @Home classes today'.toUpperCase())) {
 			row.elect = BONUS.home;
 		}
 	}
@@ -667,7 +669,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.history.promise,
 		]);
 
-		this.dbg('history: %j', history.reduce((prev: any, curr: any) => {
+		this.#dbg('history: %j', history.reduce((prev: any, curr: any) => {
 			if (curr.type === 'Debit')
 				prev.paid += parseFloat(curr.credit)
 			else prev.spend += parseFloat(curr.debit)
@@ -678,7 +680,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const updates: FireDocument[] = [];
 		const closed = active[0] && active[0].expiry;
 
-		this.dbg('account: %j', summary);					// the current account summary
+		this.#dbg('account: %j', summary);					// the current account summary
 		active.orderBy({ field: FIELD.stamp, dir: 'desc' });
 		if (active[0][FIELD.type] === PAYMENT.debit && active[0].approve && !active[0][FIELD.expire]) {
 			const test1 = active[0].expiry && active[0].expiry < getStamp();
@@ -686,7 +688,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const test3 = summary.funds < 0;
 			if (test1 || test2 || test3) {
 				const when = active[0].approve[FIELD.stamp];
-				this.dbg('closed: %j, %s', when, fmtInstant(Instant.FORMAT.display, when));
+				this.#dbg('closed: %j, %s', when, fmtInstant(Instant.FORMAT.display, when));
 				updates.push({ ...active[0], [FIELD.effect]: active[0].stamp, [FIELD.expire]: when, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
 				updates.push({ ...active[1], [FIELD.expire]: active[0].stamp });
 			}
@@ -694,14 +696,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		if (active[0][FIELD.type] === PAYMENT.topUp && profile.plan === PLAN.gratis && active[0].expiry) {
 			if (closed && closed < getStamp() && !active[0][FIELD.expire]) {
-				this.dbg('closed: %j, %s', closed, fmtInstant(Instant.FORMAT.display, closed));
+				this.#dbg('closed: %j, %s', closed, fmtInstant(Instant.FORMAT.display, closed));
 				updates.push({ ...active[0], [FIELD.expire]: closed });
 			}
 		}
 
 		this.data.batch(creates, updates, undefined, memberAction.Set)
 			.then(_ => this.member.updAccount())
-			.finally(() => this.dbg('done'))
+			.finally(() => this.#dbg('done'))
 	}
 
 	async delPayment(full = false) {
@@ -723,11 +725,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		return this.data.batch(creates, updates, deletes, memberAction.Set)
 			.then(_ => this.member.updAccount())
-			.finally(() => this.dbg('done'))
+			.finally(() => this.#dbg('done'))
 	}
 
 	async revPayment() {
-		this.dbg('revPayment:  not implemented');
+		this.#dbg('revPayment:  not implemented');
 		return;
 	}
 
@@ -760,7 +762,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				.pipe(retry(2))
 				.toPromise();
 			const json = res.substring(0, res.length - 1).substring(Migration.SHEET_PREFIX.length + 1, res.length);
-			this.dbg('fetch: %j', urlParams);
+			this.#dbg('fetch: %j', urlParams);
 			try {
 				const obj = JSON.parse(json);
 				return (action === 'history,status')
@@ -768,12 +770,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					: obj[action];
 			}
 			catch (err) {
-				this.dbg('not a valid JSON');
+				this.#dbg('not a valid JSON');
 				return {};
 			}
 		}
 		catch (err_1) {
-			return this.dbg('cannot fetch: %s', err_1.message);
+			return this.#dbg('cannot fetch: %s', err_1.message);
 		}
 	}
 
@@ -789,13 +791,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		// const deletes = await this.data.getFire<IComment>(COLLECTION.forum, { where: fire.addWhere(FIELD.uid, uid) });
 		// await this.data.batch(undefined, undefined, deletes);
 
-		this.dbg('list: %j', list.length);
-		this.dbg('list: %j', list);
+		this.#dbg('list: %j', list.length);
+		this.#dbg('list: %j', list);
 		list.forEach(async doc => {
 			const { comment, note } = cleanNote(doc[FIELD.note]);
-			this.dbg('note: <%s> => clean: <%s>', doc[FIELD.note], note);
+			this.#dbg('note: <%s> => clean: <%s>', doc[FIELD.note], note);
 			if (doc[FIELD.note] !== note) {
-				this.dbg('comment: %j', comment);
+				this.#dbg('comment: %j', comment);
 				doc[FIELD.note] = note;																// replace with cleaned Note
 				await Promise.all([
 					this.data.updDoc(STORE.attend, doc[FIELD.id], doc),	// update Attend with cleansed Note
@@ -814,7 +816,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	public parseNote() {
 		const { comment, note } = cleanNote(window.prompt('Enter a note') ?? '');
-		this.dbg('comment: %s', comment);
-		this.dbg('note: %s', note);
+		this.#dbg('comment: %s', comment);
+		this.#dbg('note: %s', note);
 	}
 }

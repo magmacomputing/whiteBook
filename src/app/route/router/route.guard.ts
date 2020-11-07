@@ -25,12 +25,12 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable({ providedIn: AuthModule })
 export class OAuthGuard implements CanActivate {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
-	constructor(private navigate: NavigateService) { this.dbg('new') }
+	constructor(private navigate: NavigateService) { this.#dbg('new') }
 
 	async canActivate() {
-		this.dbg('oauth: %s', this.navigate.url);
+		this.#dbg('oauth: %s', this.navigate.url);
 		return true;
 	}
 }
@@ -38,9 +38,9 @@ export class OAuthGuard implements CanActivate {
 /** ensure Member Profile has a current 'plan' */
 @Injectable({ providedIn: AuthModule })
 export class ProfileGuard implements CanActivate {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
-	constructor(private navigate: NavigateService) { this.dbg('new') }
+	constructor(private navigate: NavigateService) { this.#dbg('new') }
 
 	async canActivate() {
 		const localState = Storage.local.get<LState>(Storage.State, {});
@@ -60,9 +60,9 @@ interface DeactivateComponent {
 }
 @Injectable({ providedIn: LoginModule })
 export class DeactivateGuard implements CanDeactivate<DeactivateComponent> {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
-	constructor() { this.dbg('new') }
+	constructor() { this.#dbg('new') }
 
 	canDeactivate(component: DeactivateComponent) {
 		return component.canDeactivate ? component.canDeactivate() : true;

@@ -34,7 +34,7 @@ export class StateService {
 	@Select() local$!: Observable<TStateSlice<FireDocument>>;
 	private forum$: OState = of({ forum: [] });
 
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 	public states: IState;
 
 	constructor(private fire: FireService) {

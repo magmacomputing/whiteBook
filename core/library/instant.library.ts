@@ -1,4 +1,3 @@
-
 import { asString, asNumber, toProperCase } from '@library/string.library';
 import { getType, isString, isNumber } from '@library/type.library';
 import { fix } from '@library/number.library';
@@ -38,33 +37,7 @@ type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
 
-export type TInstant = string | number | Date | Instant;//| Timestamp;
-
-/** Mirror the Firestore Timestamp class */
-// class Timestamp {
-// 	#seconds: number;
-// 	#nanoseconds: number;
-// 	#now: number;
-
-// 	constructor(seconds?: number, nanoseconds?: number) {
-// 		const now = new Date();
-// 		this.#seconds = isUndefined(seconds)
-// 			? now.getSeconds()
-// 			: seconds
-// 		this.#nanoseconds = isUndefined(nanoseconds)
-// 			? now.getMilliseconds() * 1_000_000
-// 			: nanoseconds
-// 		this.#now = now.setHours(0, 0, this.#seconds, this.#nanoseconds / 1000);
-// 	}
-
-// 	get seconds() { return this.#seconds }
-// 	get nanoseconds() { return this.#nanoseconds }
-
-// 	public toDate = () => new Date(this.#now);
-// 	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1_000_000);
-// 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
-// 	static now = new Timestamp();
-// }
+export type TInstant = string | number | Date | Instant;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -79,7 +52,7 @@ export type TInstant = string | number | Date | Instant;//| Timestamp;
  * An Instant is a object that is used to manage Javascript Dates.  
  * It has properties that break a Date into components ('yy', 'dd', etc.)  
  * It has methods to perform Date manipulations (add(), format(), diff(), startOf(), etc.)  
- * It has short-cut functions to work with an Instant (getDate(), getStamp(), fmtDate())
+ * It has short-cut functions to work with an Instant (getInstant(), fmtInstant(), getStamp())
  */
 export class Instant {
 	#date: InstantVars;																			// Date parsed into components
@@ -506,3 +479,29 @@ export namespace Instant {
 		minStamp = new Date('1000-01-01').valueOf() / 1_000,
 	}
 }
+
+/** Mirror the Firestore Timestamp class */
+// class Timestamp {
+// 	#seconds: number;
+// 	#nanoseconds: number;
+// 	#now: number;
+
+// 	constructor(seconds?: number, nanoseconds?: number) {
+// 		const now = new Date();
+// 		this.#seconds = isUndefined(seconds)
+// 			? now.getSeconds()
+// 			: seconds
+// 		this.#nanoseconds = isUndefined(nanoseconds)
+// 			? now.getMilliseconds() * 1_000_000
+// 			: nanoseconds
+// 		this.#now = now.setHours(0, 0, this.#seconds, this.#nanoseconds / 1000);
+// 	}
+
+// 	get seconds() { return this.#seconds }
+// 	get nanoseconds() { return this.#nanoseconds }
+
+// 	public toDate = () => new Date(this.#now);
+// 	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1_000_000);
+// 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
+// 	static now = new Timestamp();
+// }

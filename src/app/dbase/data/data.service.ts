@@ -33,12 +33,12 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class DataService {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private state: StateService, private snack: SnackService) {
-		this.dbg('new');
+		this.#dbg('new');
 		this.sync.on(COLLECTION.client)
-			.then(res => this.dbg('init: %j', res));
+			.then(res => this.#dbg('init: %j', res));
 	}
 
 	/** Make Store data available in a Promise */
@@ -171,7 +171,7 @@ export class DataService {
 			})
 			.then(_ => this.fire.batch(creates, updates, deletes))// batch the writes
 			.then(_ => sync)																			// wait for callback to resolve
-			.catch(err => this.dbg('err: %s', err.message))
+			.catch(err => this.#dbg('err: %s', err.message))
 	}
 
 	/** Wrap writes in a Transaction */
@@ -180,7 +180,7 @@ export class DataService {
 	}
 
 	connect(onOff: boolean) {
-		this.dbg('server: %s', onOff ? 'online' : 'offline');
+		this.#dbg('server: %s', onOff ? 'online' : 'offline');
 		return this.fire.connect(onOff);
 	}
 }

@@ -20,10 +20,10 @@ import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class MemberService {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(private readonly data: DataService, private auth: AuthState, private state: StateService, private snack: SnackService) {
-		this.dbg('new');
+		this.#dbg('new');
 		this.listenInfo(true);
 	}
 
@@ -33,7 +33,7 @@ export class MemberService {
 				return;																			// dont listen from constructor if not signed-In
 		}
 
-		this.dbg('listen');
+		this.#dbg('listen');
 		this.auth.memberSubject													// this.auth will call complete() after first emit
 			.pipe(
 				first(info => !isNull(info)),								// subscribe until the first non-null response
@@ -41,7 +41,7 @@ export class MemberService {
 			)
 			.subscribe(
 				info => this.getAuthProfile(info),
-				err => this.dbg('listenInfo: %j', err.message),
+				err => this.#dbg('listenInfo: %j', err.message),
 			)
 	}
 
@@ -52,10 +52,10 @@ export class MemberService {
 			[FIELD.type]: PROFILE.plan,
 			[STORE.plan]: plan
 		} as ProfilePlan;
-		this.dbg('plan: %j', doc);
+		this.#dbg('plan: %j', doc);
 
 		return this.data.insDoc(doc, undefined, 'plan')
-			.catch(err => this.dbg('setPlan: %j', err.message))
+			.catch(err => this.#dbg('setPlan: %j', err.message))
 	}
 
 	/** Create a new TopUp payment  */
@@ -163,7 +163,7 @@ export class MemberService {
 	async getAuthProfile(info: firebase.default.auth.AdditionalUserInfo | null, uid?: string) {
 		if (!info)
 			return;																				// No AdditionalUserInfo available
-		this.dbg('info: %j', info);
+		this.#dbg('info: %j', info);
 
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<ProfileInfo> = {

@@ -23,7 +23,7 @@ import { dbg } from '@library/logger.library';
 	styleUrls: ['./zoom.component.scss'],
 })
 export class ZoomComponent implements OnInit, OnDestroy {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 	public date!: Instant;															// the date of the Meeting to display
 	public offset!: number;															// the number of days before today, to control UI date-spiiner
 	private dateChange = false;													// used to set the selectedIndex

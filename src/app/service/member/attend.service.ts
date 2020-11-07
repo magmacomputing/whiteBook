@@ -26,10 +26,9 @@ import { dbg } from '@library/logger.library';
 /** Add/Delete to the Attend collection */
 @Injectable({ providedIn: DBaseModule })
 export class AttendService {
-	private self = 'AttendService';
-	private dbg = dbg(this, this.self);
+	#dbg = dbg(this, 'AttendService');
 
-	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.dbg('new'); }
+	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.#dbg('new'); }
 
 	/** Insert an Attend document, aligned to an active Payment  */
 	public setAttend = async (schedule: Schedule, date?: TInstant) => {
@@ -96,7 +95,7 @@ export class AttendService {
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
 		// this is useful for the bulk Migration of attends
 		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price.amount) {// calculation mis-match
-			this.dbg('bonus: %j', timetable.bonus);
+			this.#dbg('bonus: %j', timetable.bonus);
 			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price.amount}`);
 		}
 		schedule.amount = timetable.price.amount;					// the price to use for this class
@@ -121,9 +120,9 @@ export class AttendService {
 			if (tests.every(val => val))										// if every test passed ok
 				break;																				// we have found a useable Payment
 
-			this.dbg('limit: %j, %j', tests[PAY.under_limit], data.account.attend.length);
-			this.dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.amount, data.account.summary);
-			this.dbg('expiry: %j, %j, %j', tests[PAY.not_expired], now.ts, expiry);
+			this.#dbg('limit: %j, %j', tests[PAY.under_limit], data.account.attend.length);
+			this.#dbg('funds: %j, %j, %j', tests[PAY.enough_funds], schedule.amount, data.account.summary);
+			this.#dbg('expiry: %j, %j, %j', tests[PAY.not_expired], now.ts, expiry);
 
 			// If over-limit (100+ Attends per Payment) but still have sufficient funds to cover this Class price,
 			// 	insert an auto-approved $0 Payment (only if the next Attend is earlier than any future Payments)
@@ -256,7 +255,7 @@ export class AttendService {
 		const deletes: FireDocument[] = await this.data.getStore<Attend>(STORE.attend, filter);
 
 		if (deletes.length === 0) {
-			this.dbg('No items to delete');
+			this.#dbg('No items to delete');
 			return;
 		}
 

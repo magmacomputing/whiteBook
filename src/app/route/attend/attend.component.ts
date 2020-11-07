@@ -25,7 +25,7 @@ import { dbg } from '@library/logger.library';
 	styleUrls: ['./attend.component.scss'],
 })
 export class AttendComponent implements OnDestroy {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 	public date!: Instant;															// the date for the Schedule to display
 	public offset!: number;															// the number of days before today 
 	public firstPaint = true;                           // indicate first-paint
@@ -33,19 +33,19 @@ export class AttendComponent implements OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<TimetableState>;		// the date's Schedule
-	private stop$ = new Subject<any>();									// notify Subscriptions to complete
+	#stop$ = new Subject<any>();									// notify Subscriptions to complete
 
 	constructor(public readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnInit() {
-		setTimer(this.stop$)
+		setTimer(this.#stop$)
 			.subscribe(_ => this.setDate(0));								// watch for midnight, then update UI to new date
 	}
 
 	ngOnDestroy() {
-		this.stop$.next();
-		this.stop$.unsubscribe();
+		this.#stop$.next();
+		this.#stop$.unsubscribe();
 	}
 
 	// Build info to show in a Dialog

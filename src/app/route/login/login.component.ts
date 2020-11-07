@@ -21,7 +21,7 @@ import { dbg } from '@library/logger.library';
 })
 export class LoginComponent implements OnInit {
 	public provider$!: Observable<Provider[]>;
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(private readonly state: StateService, private readonly auth: AuthService,
 		private readonly data: DataService, private readonly member: MemberService) { }

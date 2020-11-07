@@ -20,7 +20,7 @@ import { dbg } from '@library/logger.library';
 })
 export class PlanComponent implements OnInit {
 	public data$!: Observable<PlanState>;
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(public readonly member: MemberService, private readonly state: StateService, public dialog: DialogService) { }
 

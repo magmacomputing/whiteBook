@@ -29,10 +29,10 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class SyncService {
-	private dbg = dbg(this);
-	private listener: Map<sync.Key, sync.Listen> = new Map();
+	#dbg = dbg(this);
+	#listener: Map<sync.Key, sync.Listen> = new Map();
 
-	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.dbg('new'); }
+	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.#dbg('new'); }
 
 	/**
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
@@ -50,7 +50,7 @@ export class SyncService {
 		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
 
 		this.off(collection, query);											// detach any prior Subscription of the same signature
-		this.listener.set(key, {
+		this.#listener.set(key, {
 			key,																						// stash reference to the key
 			label,																					// stash IListen references			
 			ready,
@@ -60,7 +60,7 @@ export class SyncService {
 			subscribe: stream.subscribe(sync)
 		})
 
-		this.dbg('on: %s', label);
+		this.#dbg('on: %s', label);
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 
@@ -74,7 +74,7 @@ export class SyncService {
 	public status(collection?: COLLECTION) {
 		const result: sync.Status[] = [];
 
-		for (const [key, listen] of this.listener.entries())
+		for (const [key, listen] of this.#listener.entries())
 			if (isUndefined(collection) || collection === key.collection)
 				result.push({ collection: key.collection, query: key.query, promise: listen.ready.status })
 
@@ -103,7 +103,7 @@ export class SyncService {
 					},
 					err => {
 						reject(err);
-						this.dbg('timeOut: %s', event.name);				// log the event not detected
+						this.#dbg('timeOut: %s', event.name);				// log the event not detected
 					}
 				)
 		})
@@ -111,23 +111,23 @@ export class SyncService {
 
 	/** detach an existing snapshot listener */
 	public off(collection?: COLLECTION, query?: fire.Query, trunc?: boolean) {
-		for (const [key, listen] of this.listener.entries()) {
+		for (const [key, listen] of this.#listener.entries()) {
 			if ((collection ?? key.collection) === key.collection
 				&& JSON.stringify((query ?? key.query)) === JSON.stringify(key.query)) {
-				this.dbg('off: %s %j', key.collection, key.query || {});
+				this.#dbg('off: %s %j', key.collection, key.query || {});
 
 				listen.subscribe.unsubscribe();
 				if (trunc)
 					this.store.dispatch(new listen.method.truncStore());
 
-				this.listener.delete(key);
+				this.#listener.delete(key);
 			}
 		}
 	}
 
 	/** handler for snapshot listeners */
 	private async sync(key: sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
-		const listen = this.listener.get(key)!;
+		const listen = this.#listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = getSource(snaps);
@@ -140,7 +140,7 @@ export class SyncService {
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
 		listen.cnt += 1;
-		this.dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
+		this.#dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
 			listen.label, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots

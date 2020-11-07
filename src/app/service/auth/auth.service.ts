@@ -19,26 +19,26 @@ import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
-	private auth$ = this.state.getAuthData();
-	private dbg = dbg(this);
+	#auth$ = this.state.getAuthData();
+	#dbg = dbg(this);
 
-	constructor(private readonly store: Store, private state: StateService, private fire: FireService) { this.dbg('new'); }
+	constructor(private readonly store: Store, private state: StateService, private fire: FireService) { this.#dbg('new'); }
 
 	get active() {
-		return this.auth$.pipe(
+		return this.#auth$.pipe(
 			take(1),
 			map(state => isActive(state)),
 		)
 	}
 
 	get user() {
-		return this.auth$
+		return this.#auth$
 			.pipe(take(1))
 			.toPromise()
 	}
 
 	get current() {
-		return this.auth$
+		return this.#auth$
 			.pipe(take(1))
 			.toPromise()
 			.then(user => user.auth.current)
@@ -50,7 +50,7 @@ export class AuthService {
 
 	public async signIn(provider: Provider, opts: Record<string, any> = {}) {
 		const { image, ...rest } = provider;								// drop the <image> for debug
-		this.dbg('signIn: %j', rest);
+		this.#dbg('signIn: %j', rest);
 
 		switch (provider[FIELD.type]) {
 			case undefined:
@@ -87,7 +87,7 @@ export class AuthService {
 				break;
 
 			default:
-				this.dbg('signIn: %s', provider);
+				this.#dbg('signIn: %s', provider);
 				break;
 		}
 	}
@@ -132,10 +132,10 @@ export class AuthService {
 	/** This runs in the OAuth popup */
 	public signInToken(response: any) {
 		const parent = this.openChannel('token');// link to the parent of this popup
-		this.dbg('signInToken: %j', response);
+		this.#dbg('signInToken: %j', response);
 
 		return this.store.dispatch(new LoginAction.Token(response.token, response.prefix, response.user))
-			.pipe(switchMap(_ => this.auth$))			// this will fire multiple times, as AuthState settles
+			.pipe(switchMap(_ => this.#auth$))			// this will fire multiple times, as AuthState settles
 			.subscribe(state => {
 				if (state.auth.info) 								// tell the parent to update State
 					parent.postMessage(JSON.stringify(state.auth.info));
@@ -167,7 +167,7 @@ export class AuthService {
 		return this.fire.createToken(uid)				// ask Cloud Functions to mint a token on our behalf
 			.then(token => {
 				const authInfo = { token, prefix: 'local', user: {} };
-				this.dbg('token: %j', token);
+				this.#dbg('token: %j', token);
 
 				this.signOut();
 				return this.signInToken(authInfo)

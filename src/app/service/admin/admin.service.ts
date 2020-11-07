@@ -22,9 +22,9 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable({ providedIn: DBaseModule })
 export class AdminService {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
-	constructor(private data: DataService, private member: MemberService) { this.dbg('new') }
+	constructor(private data: DataService, private member: MemberService) { this.#dbg('new') }
 
 	/** Check if active Member Payment expiry date has passed */
 	expirePayment = async (uid: string) => {

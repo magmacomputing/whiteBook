@@ -15,7 +15,7 @@ import { dbg } from '@library/logger.library';
 	templateUrl: './oauth.component.html',
 })
 export class OAuthComponent implements OnInit {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService, private state: StateService) { }
 
@@ -27,17 +27,17 @@ export class OAuthComponent implements OnInit {
 				.then(config => getConfig(config, STORE.provider, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
-					this.dbg('oauth: %s', url);
+					this.#dbg('oauth: %s', url);
 
 					this.http.post<any>(url, {})
 						.subscribe(res => this.auth.signInToken(res))
 				})
-				.catch(err => this.dbg('error; %s', err.message))
+				.catch(err => this.#dbg('error; %s', err.message))
 		}
 	}
 
 	canDeactivate() {
-		this.dbg('deactivate: %s', false);
+		this.#dbg('deactivate: %s', false);
 		return false;											// once on this page, cannot move away
 	}
 }

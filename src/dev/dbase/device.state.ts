@@ -23,14 +23,14 @@ import { dbg } from '@library/logger.library';
 	defaults: {}
 })
 export class DeviceState implements NgxsOnInit {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(private store: Store) { this.init(); }
 
 	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { this.init(); }
 
 	private init() {
-		this.dbg('init:');
+		this.#dbg('init:');
 	}
 
 	@Action(Device.Set)
@@ -62,7 +62,7 @@ export class DeviceState implements NgxsOnInit {
 
 			if (state[slice].length === 0)
 				delete state[slice];
-			if (debug) this.dbg('delDevice: %j', doc);
+			if (debug) this.#dbg('delDevice: %j', doc);
 		})
 
 		setState({ ...state });
@@ -71,7 +71,7 @@ export class DeviceState implements NgxsOnInit {
 	// TODO: dont delete local-device store?
 	@Action(Device.Trunc)
 	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: Device.Trunc) {
-		if (debug) this.dbg('truncDevice');
+		if (debug) this.#dbg('truncDevice');
 		setState({});
 	}
 

@@ -60,8 +60,8 @@ interface openDialog {
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
-	private ref?: MatDialogRef<{}>;
-	private dbg = dbg(this);
+	#ref?: MatDialogRef<{}>;
+	#dbg = dbg(this);
 
 	constructor(private dialog: MatDialog) { }
 
@@ -73,13 +73,13 @@ export class DialogService {
 				.replace(/\n/g, '')
 
 		this.dismiss();
-		this.ref = this.dialog.open(InfoDialogComponent, config);
+		this.#ref = this.dialog.open(InfoDialogComponent, config);
 	}
 
 	public dismiss() {                    // dismiss any MatDialog, if present
-		if (this.ref) {
-			this.ref.close();
-			this.ref = undefined;
+		if (this.#ref) {
+			this.#ref.close();
+			this.#ref = undefined;
 		}
 	}
 }

@@ -8,7 +8,7 @@ import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class ReactionService {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	userId!: string;
 	emojiList = ['none', 'like', 'love', 'wow', 'haha', 'sad', 'angry']

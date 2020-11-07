@@ -26,11 +26,11 @@ type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChange
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
-	private dbg = dbg(this);
+	#dbg = dbg(this);
 
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
-		this.dbg('new');
+		this.#dbg('new');
 	}
 
 	/**
