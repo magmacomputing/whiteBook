@@ -344,39 +344,42 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	// a Gift is effective from the start of day, unless there is a 'start: <HH:MM>' note
 	private setGift(gift: number, start: number, note?: string) {
-		let offset = getInstant(start).startOf('day').ts;
-		if (note?.includes('start: ')) {
-			let time = note.substring(note.indexOf('start: ') + 6).match(/\d\d:\d\d+/g);
-			if (!isNull(time)) {
-				let hhmm = time[0].split(':').map(asNumber);
-				offset = getInstant(start)
-					.startOf('day')
-					.add(hhmm[0], 'hours')
-					.add(hhmm[1], 'minutes')
-					.ts
-			}
-		}
+		const day = getInstant(start).startOf('day');
 
-		let expiry = undefined;
-		if (note?.includes('end: ')) {
-			let time = note.substring(note.indexOf('end: ') + 4).match(/\d\d:\d\d+/g);
-			if (!isNull(time)) {
-				let hhmm = time[0].split(':').map(asNumber);
-				expiry = getInstant(start)
-					.startOf('day')
-					.add(hhmm[0], 'hours')
-					.add(hhmm[1], 'minutes')
-			}
-		}
+		let offset = day.ts;
+		if (note?.includes('start: '))
+			offset = this.matchTime(note, day, 'end');
 
-		return {
+		let expiry: number | undefined;
+		if (note?.includes('end: '))
+			expiry = this.matchTime(note, day, 'end');
+
+		const doc: Partial<Gift> = {
 			[FIELD.effect]: offset,
 			[FIELD.store]: STORE.gift,
 			stamp: start,
 			limit: gift,
 			note,
 			expiry,
-		} as Gift
+		}
+
+		return doc as FireDocument;
+	}
+
+	private matchTime(note: string, day: Instant, search: 'start' | 'end') {
+		const startPos = note.indexOf(`${search}: `);
+		const time = note
+			.substring(startPos, search.length + 1)
+			.match(/\d\d:\d\d+/g)
+
+		const hhmm = isNull(time)
+			? [0, 0]
+			: time[0].split(':').map(asNumber)
+
+		return day
+			.add(hhmm[0], 'hours')
+			.add(hhmm[1], 'minutes')
+			.ts
 	}
 
 	/** Add Attendance records for a Member */

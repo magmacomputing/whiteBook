@@ -107,9 +107,9 @@ export class DataService {
 		return this.fire.newId();                       				// get Firebase to generate a new Key
 	}
 
-	async setDoc<T extends FireDocument>(store: STORE, doc: T) {
-		doc = docPrep(doc, await this.getUID())									// make sure we have a <key/uid> field
-		return this.fire.setDoc(store, doc);
+	async setDoc<T>(store: STORE, doc: T) {
+		const set = docPrep(doc, await this.getUID())									// make sure we have a <key/uid> field
+		return this.fire.setDoc(store, set);
 	}
 
 	updDoc(store: STORE, docId: string, data: FireDocument) {

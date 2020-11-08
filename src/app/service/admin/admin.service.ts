@@ -8,7 +8,7 @@ import { FIELD, STORE } from '@dbase/data/data.define';
 import { FireDocument, Gift } from '@dbase/data/data.schema';
 
 import { getStamp, TInstant, getInstant } from '@library/instant.library';
-import { TString } from '@library/type.library';
+import { isDefined, TString } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -48,16 +48,17 @@ export class AdminService {
 	}
 
 	/** Create a Gift for a Member to use in future check-ins */
-	addGift = async (uid: string, limit: number, type?: string, start?: TInstant, note?: TString, expiry?: TInstant) => {
-		return this.data.setDoc(STORE.gift, {
-			[FIELD.effect]: getInstant(start).startOf('day').ts,
+	addGift = async (uid: string, limit: number, start?: TInstant, note?: TString, expiry?: TInstant) => {
+		const gift: Partial<Gift> = {
+			[FIELD.effect]: getStamp(start),
 			[FIELD.store]: STORE.gift,
-			[FIELD.type]: type,
 			[FIELD.uid]: uid,
 			stamp: getStamp(),
-			expiry: expiry && getStamp(expiry),
+			expiry: isDefined(expiry) ? getStamp(expiry) : undefined,
 			limit: limit,
 			note: note,
-		} as Gift)
+		}
+
+		return this.data.setDoc(STORE.gift, gift);
 	}
 }

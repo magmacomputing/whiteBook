@@ -31,17 +31,18 @@ export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []
 	return where;
 }
 
-export const docPrep = <T extends FireDocument>(doc: T, uid: string) => {
-	if (!doc[FIELD.store])												// every document needs a <store> field
+export const docPrep = <T>(doc: T, uid: string) => {
+	const prep = doc as unknown as FireDocument;
+	if (!prep[FIELD.store])												// every document needs a <store> field
 		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`);
 
-	const collection = getSlice(doc[FIELD.store]);
+	const collection = getSlice(prep[FIELD.store]);
 	const filters = FILTER[collection] || [];
 
-	if (filters.includes(FIELD.uid) && !(doc as FireDocument)[FIELD.uid])
-		(doc as FireDocument)[FIELD.uid] = uid;												// push the current user's uid on the document
+	if (filters.includes(FIELD.uid) && !prep[FIELD.uid])
+		prep[FIELD.uid] = uid;												// push the current user's uid on the document
 
-	return doc;
+	return prep as unknown as T;
 }
 
 /** Expire current docs */
@@ -72,7 +73,7 @@ export const updPrep = async <T extends FireDocument>(currDocs: T[], tstamp: num
 					break;
 			}
 
-			return currUpdate;
+			return currUpdate as T;
 		})
 	)
 
