@@ -10,7 +10,7 @@ import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
 import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
-import type { FireDocument, TStoreBase, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data/data.schema';
+import type { FireDocument, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
@@ -184,7 +184,7 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
 
-		const attendDoc: Partial<Attend> = {
+		const attendDoc = {
 			[FIELD.store]: STORE.attend,
 			[FIELD.stamp]: stamp,														// createDate
 			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
@@ -205,9 +205,9 @@ export class AttendService {
 				month: now.format(Instant.FORMAT.yearMonth),	// month-number of year
 			},
 			bonus: timetable.bonus,													// <id>/<type>/<count> of Bonus
-		}
+		} as Attend
 
-		creates.push(attendDoc as TStoreBase);						// batch the new Attend
+		creates.push(attendDoc);						// batch the new Attend
 		return this.data.batch(creates, updates, undefined, attendAction.Sync)
 			.then(_ => this.member.setAccount(creates, updates, data))
 	}

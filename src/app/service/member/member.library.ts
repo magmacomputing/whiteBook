@@ -1,6 +1,6 @@
 import { PlanState } from '@dbase/state/state.define';
 import { FIELD } from '@dbase/data/data.define';
-import { ProfileInfo, MemberInfo, Payment } from '@dbase/data/data.schema';
+import { ProfileInfo, Payment } from '@dbase/data/data.schema';
 
 import { isString, isNumber, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
@@ -13,7 +13,7 @@ import { getStamp, getInstant, TInstant } from '@library/instant.library';
 export const getMemberInfo = (provider: firebase.default.auth.AdditionalUserInfo) => {
 	const profile: Record<string, any> = provider.profile ?? {};
 
-	const profileInfo: MemberInfo = {
+	const profileInfo: ProfileInfo["info"] = {
 		providerId: provider.providerId,
 		providerUid: profile.id || profile.login,
 		firstName: profile.given_name || profile.first_name || profile.firstName,

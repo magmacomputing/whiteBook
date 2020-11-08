@@ -113,7 +113,7 @@ export class StateService {
 						[STATUS.connect]: (source[STATUS.connect] || [])
 							.find(connect => connect[FIELD.uid] === reg[FIELD.uid]) as Connect,
 						[STORE.sheet]: (source[STORE.sheet] || [])
-							.find(import_ => import_[FIELD.uid] === reg[FIELD.uid]) as Sheet
+							.find(sheet => sheet[FIELD.uid] === reg[FIELD.uid]) as Sheet
 					}))
 			}))
 		)

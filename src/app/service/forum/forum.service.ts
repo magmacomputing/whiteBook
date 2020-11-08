@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { DataService } from '@dbase/data/data.service';
-import { React, FireDocument, Comment, TStoreBase } from '@dbase/data/data.schema';
+import { FireDocument, React, Comment } from '@dbase/data/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
 
 import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
@@ -47,7 +47,7 @@ export class ForumService {
 		return comment === ''
 			? undefined
 			: this.newForum<Comment>({ store: STORE.comment, key, type, track, date, uid })
-				.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment } as TStoreBase))
+				.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment }))
 	}
 
 	/** create a Forum base */

@@ -7,21 +7,21 @@ import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@dbase/state/config.define';
 
-import type { Default, FireDocument, Class, Price, Event, Schedule, Span, ProfilePlan, TStoreBase, Icon, Calendar, Account } from '@dbase/data/data.schema';
+import type { FireDocument, Default, Class, Price, Event, Schedule, Span, ProfilePlan, Icon, Calendar, Account } from '@dbase/data/data.schema';
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
-import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
 
 import { asArray } from '@library/array.library';
-import { getInstant, TInstant, Instant } from '@library/instant.library';
 import { getPath } from '@library/object.library';
+import { getInstant, TInstant, Instant } from '@library/instant.library';
 import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
 /**
  * Generic Slice Observable  
  *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
  */
-export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant, segment?: string) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant, segment?: TYPE) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<FireDocument>;
 	if (!state)
@@ -111,8 +111,8 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				parent = data;                                        // stash the original parent data state
 
 				return combineLatest(store === STORE.attend
-					? [getStore<TStoreBase>(states, store, filters, date)]
-					: [getCurrent<TStoreBase>(states, store, filters, date)]
+					? [getStore<FireDocument>(states, store, filters, date)]
+					: [getCurrent<FireDocument>(states, store, filters, date)]
 				);
 			}),
 
@@ -125,7 +125,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				}
 
 				const nodes = node && node.split('.') || [];					// specific branch on node
-				let joins: Record<string, TStoreBase[]> = nodes[0] && parent[nodes[0]] || {};
+				let joins: Record<string, FireDocument[]> = nodes[0] && parent[nodes[0]] || {};
 
 				res.forEach(table => {
 					if (table.length) {

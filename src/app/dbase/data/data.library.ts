@@ -1,8 +1,8 @@
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
-import type { TStoreBase, FireDocument, ClientCollection } from '@dbase/data/data.schema';
-import { COLLECTION, STORE, FIELD } from '@dbase/data/data.define';
+import type { FireDocument } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data/data.define';
 import { FILTER } from '@dbase/state/config.define';
 import { getSlice } from '@dbase/state/state.library';
 
@@ -10,10 +10,6 @@ import { isObject, TString, isString } from '@library/type.library';
 import { isEqual, getPath } from '@library/object.library';
 import { asString } from '@library/string.library';
 import { asArray } from '@library/array.library';
-
-// client documents have a '<key>' field, member documents have a '<uid>' field
-const isClientDocument = (document: TStoreBase): document is ClientCollection =>
-	getSlice(document[FIELD.store]).toString() === COLLECTION.client || getSlice(document[FIELD.store]).toString() === STORE.local;
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []) => {
@@ -35,24 +31,26 @@ export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []
 	return where;
 }
 
-export const docPrep = (doc: TStoreBase, uid: string) => {
+export const docPrep = <T extends FireDocument>(doc: T, uid: string) => {
 	if (!doc[FIELD.store])												// every document needs a <store> field
 		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`);
 
-	if (!isClientDocument(doc))										// if not a /client document
-		if (!doc[FIELD.uid] && uid)									//  and the <uid> field is missing from the document
-			doc[FIELD.uid] = uid;											//  push the current user's uid onto the document
+	const collection = getSlice(doc[FIELD.store]);
+	const filters = FILTER[collection] || [];
+
+	if (filters.includes(FIELD.uid) && !(doc as FireDocument)[FIELD.uid])
+		(doc as FireDocument)[FIELD.uid] = uid;												// push the current user's uid on the document
 
 	return doc;
 }
 
 /** Expire current docs */
-export const updPrep = async (currDocs: TStoreBase[], tstamp: number, fire: FireService) => {
+export const updPrep = async <T extends FireDocument>(currDocs: T[], tstamp: number, fire: FireService) => {
 	let stamp = tstamp;                           // stash the tstamp
 	const updates = await Promise.all(
 		currDocs.map(async currDoc => {             // loop through existing-docs first, to determine currEffect/currExpire range
 			const currStore = currDoc[FIELD.store];
-			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as TStoreBase;
+			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as FireDocument;
 			const currExpire = currDoc[FIELD.expire];
 			const currEffect = currDoc[FIELD.effect]
 				|| await fire.callMeta(currStore, currDoc[FIELD.id]).then(meta => meta[FIELD.create])

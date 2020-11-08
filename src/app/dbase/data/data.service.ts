@@ -8,7 +8,7 @@ import { Store } from '@ngxs/store';
 import { SnackService } from '@service/material/snack.service';
 import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
-import type { TStoreBase, FireDocument } from '@dbase/data/data.schema';
+import type { FireDocument } from '@dbase/data/data.schema';
 
 import { AuthService } from '@service/auth/auth.service';
 
@@ -107,19 +107,19 @@ export class DataService {
 		return this.fire.newId();                       				// get Firebase to generate a new Key
 	}
 
-	async setDoc(store: STORE, doc: TStoreBase) {
+	async setDoc<T extends FireDocument>(store: STORE, doc: T) {
 		doc = docPrep(doc, await this.getUID())									// make sure we have a <key/uid> field
 		return this.fire.setDoc(store, doc);
 	}
 
-	updDoc(store: STORE, docId: string, data: TStoreBase) {
+	updDoc(store: STORE, docId: string, data: FireDocument) {
 		return this.fire.updDoc(store, docId, data);
 	}
 
 	/** Expire any current matching docs, and Create new doc */
-	async insDoc(nextDocs: TStoreBase, filter?: fire.Query["where"], discards: TString = []) {
-		const creates: TStoreBase[] = [];												// array of documents to Create
-		const updates: TStoreBase[] = [];												// array of documents to Update
+	async insDoc(nextDocs: FireDocument, filter?: fire.Query["where"], discards: TString = []) {
+		const creates: FireDocument[] = [];											// array of documents to Create
+		const updates: FireDocument[] = [];											// array of documents to Update
 		const stamp = getStamp();																// the timestamp of the Insert
 		const uid = await this.getUID();
 
@@ -136,7 +136,7 @@ export class DataService {
 				return;                                             // abort the Create/Update
 			}
 
-			const currDocs = await this.getFire<any>(collection, { where })
+			const currDocs = await this.getFire<FireDocument>(collection, { where })
 				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
@@ -165,9 +165,9 @@ export class DataService {
 
 		return this.getUID()
 			.then(uid => {																				// ensure we have a <store>/<uid> in all Member-releated documents
-				creates = creates.map(doc => docPrep(doc as TStoreBase, uid));
-				updates = updates.map(doc => docPrep(doc as TStoreBase, uid));
-				deletes = deletes.map(doc => docPrep(doc as TStoreBase, uid));
+				creates = creates.map(doc => docPrep(doc, uid));
+				updates = updates.map(doc => docPrep(doc, uid));
+				deletes = deletes.map(doc => docPrep(doc, uid));
 			})
 			.then(_ => this.fire.batch(creates, updates, deletes))// batch the writes
 			.then(_ => sync)																			// wait for callback to resolve

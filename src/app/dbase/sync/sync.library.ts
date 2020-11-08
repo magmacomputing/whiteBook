@@ -1,12 +1,11 @@
 import firebase from 'firebase/app';
-import { DocumentChangeAction } from '@angular/fire/firestore';
+import type { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, COLLECTION } from '@dbase/data/data.define';
-import type { FireDocument, TStoreBase } from '@dbase/data/data.schema';
-import { sync } from '@dbase/sync/sync.define';
+import type { FireDocument } from '@dbase/data/data.schema';
+import type { sync } from '@dbase/sync/sync.define';
 
-import { LState } from '@dbase/state/state.define';
+import type { LState } from '@dbase/state/state.define';
 import { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@library/crypto.library';
@@ -47,16 +46,16 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 }
 
 // TODO: call to meta introduces an unacceptable delay (for payback, at this time)
-export const buildDoc = async (snap: DocumentChangeAction<FireDocument>, fire: FireService) => {//FireService) => {
-	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
-	return {
-		...snap.payload.doc.data(),
-		[FIELD.id]: meta[FIELD.id],
-		[FIELD.create]: meta[FIELD.create],
-		[FIELD.update]: meta[FIELD.update],
-		[FIELD.access]: meta[FIELD.access],
-	} as TStoreBase
-}
+// export const buildDoc = async (snap: DocumentChangeAction<FireDocument>, fire: FireService) => {//FireService) => {
+// 	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
+// 	return {
+// 		...snap.payload.doc.data(),
+// 		[FIELD.id]: meta[FIELD.id],
+// 		[FIELD.create]: meta[FIELD.create],
+// 		[FIELD.update]: meta[FIELD.update],
+// 		[FIELD.access]: meta[FIELD.access],
+// 	} as FireDocument
+// }
 
 /** These fields do not exist in the snapshot data() */
 const remMeta = (doc: FireDocument) => {
