@@ -3,8 +3,9 @@ import { Observable, BehaviorSubject, Subject, of } from 'rxjs';
 import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
 import { fire } from '@dbase/fire/fire.library';
-import type { zoom, Class, Sheet } from '@dbase/data/data.schema';
-import { COLLECTION, FIELD, Zoom, STORE, CLASS, COLOR } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE, CLASS, COLOR } from '@dbase/data.define';
+import { zoom } from '@dbase/zoom.schema';
+import type { Class, Sheet } from '@dbase/data.schema';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
 import { DialogService } from '@service/material/dialog.service';
@@ -99,7 +100,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.zoom, {
 						where: [
-							fire.addWhere(FIELD.type, Zoom.EVENT.started),
+							fire.addWhere(FIELD.type, zoom.EVENT.started),
 							fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
 							fire.addWhere('hook', 0),
 						]
@@ -119,7 +120,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 				map(track => {
 					(track as zoom.Event<zoom.Started>[])								// look for Meeting.Started
-						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.started)
+						.filter(doc => getPath(doc, zoom.EVENT.type) === zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtInstant(Instant.FORMAT.HHMI, start_time);
@@ -143,7 +144,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						});
 
 					(track as zoom.Event<zoom.Ended>[])									// look for Meeting.Ended
-						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.ended)
+						.filter(doc => getPath(doc, zoom.EVENT.type) === zoom.EVENT.ended)
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
 							const label = fmtInstant(Instant.FORMAT.HHMI, end_time);
@@ -154,7 +155,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						});
 
 					(track as zoom.Event<zoom.Joined>[])									// add Participants.Joined
-						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.joined)
+						.filter(doc => getPath(doc, zoom.EVENT.type) === zoom.EVENT.joined)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, join_time } = doc.body.payload.object.participant;
 							const { class: event, price, credit, status = {} as zoom.White["status"] } = doc.white || {};
@@ -192,7 +193,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						});
 
 					(track as zoom.Event<zoom.Left>[])										// add Participants.Left
-						.filter(doc => getPath(doc, Zoom.EVENT.type) === Zoom.EVENT.left)
+						.filter(doc => getPath(doc, zoom.EVENT.type) === zoom.EVENT.left)
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtInstant(Instant.FORMAT.HHMI, leave_time);
@@ -233,7 +234,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			return;
 
 		const where = [
-			fire.addWhere(FIELD.type, Zoom.EVENT.joined),
+			fire.addWhere(FIELD.type, zoom.EVENT.joined),
 			fire.addWhere('white.alias', white.alias),
 			fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]

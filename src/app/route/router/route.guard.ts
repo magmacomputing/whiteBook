@@ -9,9 +9,9 @@ import { LoginModule } from '@route/login/login.module';
 import { AuthModule } from '@service/auth/auth.module';
 import { fire } from '@dbase/fire/fire.library';
 import type { LState } from '@dbase/state/state.define';
-import type { ProfilePlan } from '@dbase/data/data.schema';
+import type { ProfilePlan } from '@dbase/data.schema';
 import { sync } from '@dbase/sync/sync.define';
-import { FIELD, STORE } from '@dbase/data/data.define';
+import { FIELD, STORE } from '@dbase/data.define';
 import { asAt } from '@library/app.library';
 
 import { Storage } from '@library/browser.library';

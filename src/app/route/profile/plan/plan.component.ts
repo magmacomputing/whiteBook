@@ -7,8 +7,8 @@ import { DialogService } from '@service/material/dialog.service';
 
 import { PlanState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, PRICE } from '@dbase/data/data.define';
-import { Price, Plan } from '@dbase/data/data.schema';
+import { FIELD, PRICE } from '@dbase/data.define';
+import { Price, Plan } from '@dbase/data.schema';
 
 import { isUndefined } from '@library/type.library';
 import { padString } from '@library/string.library';

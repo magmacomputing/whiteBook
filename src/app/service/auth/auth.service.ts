@@ -10,8 +10,8 @@ import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, STORE, Auth } from '@dbase/data/data.define';
-import { Provider, Config } from '@dbase/data/data.schema';
+import { FIELD, STORE, Auth } from '@dbase/data.define';
+import { Provider, Config } from '@dbase/data.schema';
 
 import { asArray } from '@library/array.library';
 import { getConfig } from '@dbase/state/config.library';

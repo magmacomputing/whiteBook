@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { MESSAGE, Auth } from '@dbase/data/data.define';
+import { MESSAGE, Auth } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
 

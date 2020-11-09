@@ -5,8 +5,8 @@ import { TStateSlice } from '@dbase/state/state.define';
 
 import { SLICES, COMMENT } from '@dbase/state/config.define';
 import { setSchema, setConfig } from '@dbase/state/config.library';
-import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
-import type { FireDocument, Schema, Config } from '@dbase/data/data.schema';
+import { STORE, FIELD, COLLECTION } from '@dbase/data.define';
+import type { FireDocument, Schema, Config } from '@dbase/data.schema';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';

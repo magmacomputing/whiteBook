@@ -27,6 +27,7 @@
 			],
 			"@dbase/*": [
 				"src/app/dbase/*",
+				"core/dbase/*",
 			],
 			"@library/*": [
 				"core/library/*",

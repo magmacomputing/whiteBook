@@ -8,9 +8,9 @@ import { DialogService } from '@service/material/dialog.service';
 
 import type { TimetableState } from '@dbase/state/state.define';
 import { StateService } from '@dbase/state/state.service';
-import { FIELD, REACT } from '@dbase/data/data.define';
+import { FIELD, REACT } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
-import type { Schedule } from '@dbase/data/data.schema';
+import type { Schedule } from '@dbase/data.schema';
 
 import { isUndefined, TString } from '@library/type.library';
 import { setTimer } from '@library/observable.library';

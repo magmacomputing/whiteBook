@@ -4,8 +4,8 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { MemberService } from '@service/member/member.service';
 
-import { FIELD, STORE } from '@dbase/data/data.define';
-import { FireDocument, Gift } from '@dbase/data/data.schema';
+import { FIELD, STORE } from '@dbase/data.define';
+import { FireDocument, Gift } from '@dbase/data.schema';
 
 import { getStamp, TInstant, getInstant } from '@library/instant.library';
 import { isDefined, TString } from '@library/type.library';

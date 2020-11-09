@@ -1,6 +1,6 @@
 import { TimetableState } from '@dbase/state/state.define';
-import { FIELD, BONUS, COLLECTION, STORE, PLAN, CLASS } from '@dbase/data/data.define';
-import type { Gift, TBonus, Attend, Bonus, ProfilePlan } from '@dbase/data/data.schema';
+import { FIELD, BONUS, COLLECTION, STORE, PLAN, CLASS } from '@dbase/data.define';
+import type { Gift, TBonus, Attend, Bonus, ProfilePlan } from '@dbase/data.schema';
 
 import { TInstant, getInstant, Instant } from '@library/instant.library';
 import { TString, isUndefined, nullToZero } from '@library/type.library';

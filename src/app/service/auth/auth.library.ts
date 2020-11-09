@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 
 import { UserState } from '@dbase/state/state.define';
-import { Auth } from '@dbase/data/data.define';
+import { Auth } from '@dbase/data.define';
 
 import { isNull } from '@library/type.library';
 

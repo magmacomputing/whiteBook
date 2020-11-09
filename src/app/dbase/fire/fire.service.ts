@@ -8,9 +8,9 @@ import { AngularFireFunctions, } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { FIELD, COLLECTION, STORE } from '@dbase/data/data.define';
+import { FIELD, COLLECTION, STORE } from '@dbase/data.define';
 import { fire } from '@dbase/fire/fire.library';
-import { FireDocument } from '@dbase/data/data.schema';
+import { FireDocument } from '@dbase/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isUndefined } from '@library/type.library';

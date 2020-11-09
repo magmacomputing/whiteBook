@@ -1,6 +1,6 @@
 import { FieldPath, QueryFn } from '@angular/fire/firestore';
 
-import { FIELD } from '@dbase/data/data.define';
+import { FIELD } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';

@@ -1,6 +1,6 @@
-import { STORE, FIELD, COLLECTION } from '@dbase/data/data.define';
+import { STORE, FIELD, COLLECTION } from '@dbase/data.define';
 import { FILTER, SLICES, SORTBY, COMMENT } from '@dbase/state/config.define';
-import { Schema, Config } from '@dbase/data/data.schema';
+import { Schema, Config } from '@dbase/data.schema';
 
 import { isString } from '@library/type.library';
 import { sortInsert, asArray } from '@library/array.library';

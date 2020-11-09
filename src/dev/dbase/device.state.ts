@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
-import { Device } from '@dbase/state/state.action';
+import { deviceAction } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { FireDocument, Config } from '@dbase/data/data.schema';
+import { FIELD, STORE, COLLECTION } from '@dbase/data.define';
+import { FireDocument, Config } from '@dbase/data.schema';
 
 import { makeTemplate } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
@@ -33,8 +33,8 @@ export class DeviceState implements NgxsOnInit {
 		this.#dbg('init:');
 	}
 
-	@Action(Device.Set)
-	setStore({ setState, getState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: Device.Set) {
+	@Action(deviceAction.Set)
+	setStore({ setState, getState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: deviceAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -51,8 +51,8 @@ export class DeviceState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(Device.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: Device.Del) {
+	@Action(deviceAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: deviceAction.Del) {
 		const state = cloneObj(getState()) || {};
 		const segment = FIELD.store;
 
@@ -69,8 +69,8 @@ export class DeviceState implements NgxsOnInit {
 	}
 
 	// TODO: dont delete local-device store?
-	@Action(Device.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: Device.Trunc) {
+	@Action(deviceAction.Trunc)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: deviceAction.Trunc) {
 		if (debug) this.#dbg('truncDevice');
 		setState({});
 	}

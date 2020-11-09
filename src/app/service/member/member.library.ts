@@ -1,6 +1,6 @@
 import { PlanState } from '@dbase/state/state.define';
-import { FIELD } from '@dbase/data/data.define';
-import { ProfileInfo, Payment } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data.define';
+import { ProfileInfo, Payment } from '@dbase/data.schema';
 
 import { isString, isNumber, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';

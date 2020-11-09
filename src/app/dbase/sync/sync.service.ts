@@ -13,8 +13,8 @@ import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 
-import { FIELD, STORE, COLLECTION } from '@dbase/data/data.define';
-import { FireDocument } from '@dbase/data/data.schema';
+import { FIELD, STORE, COLLECTION } from '@dbase/data.define';
+import { FireDocument } from '@dbase/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';

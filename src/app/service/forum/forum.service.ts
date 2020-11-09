@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 
 import { DataService } from '@dbase/data/data.service';
-import { FireDocument, React, Comment } from '@dbase/data/data.schema';
-import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data/data.define';
+import { FireDocument, React, Comment } from '@dbase/data.schema';
+import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data.define';
 
 import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
 import { fire } from '@dbase/fire/fire.library';

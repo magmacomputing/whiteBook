@@ -1,6 +1,6 @@
-import { FIELD } from '@dbase/data/data.define';
-import type { FireDocument } from '@dbase/data/data.schema';
-import { TStateSlice } from '@dbase/state/state.define';
+import { FIELD } from '@dbase/data.define';
+import type { FireDocument } from '@dbase/data.schema';
+import type { TStateSlice } from '@dbase/state/state.define';
 
 /** Actions */
 export namespace clientAction {

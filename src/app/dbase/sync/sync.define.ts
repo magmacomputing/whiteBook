@@ -1,7 +1,7 @@
 import { Subscription } from 'rxjs';
 
 import type { fire } from '@dbase/fire/fire.library';
-import type { COLLECTION } from '@dbase/data/data.define';
+import type { COLLECTION } from '@dbase/data.define';
 import type { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
 
 import type { Pledge } from '@library/utility.library';

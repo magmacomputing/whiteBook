@@ -7,10 +7,10 @@ import { calcBonus } from '@service/member/attend.library';
 import { getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@dbase/state/config.define';
 
-import type { FireDocument, Default, Class, Price, Event, Schedule, Span, ProfilePlan, Icon, Calendar, Account } from '@dbase/data/data.schema';
+import type { FireDocument, Default, Class, Price, Event, Schedule, Span, ProfilePlan, Icon, Calendar, Account } from '@dbase/data.schema';
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
-import { COLLECTION, STORE, TYPE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { getPath } from '@library/object.library';

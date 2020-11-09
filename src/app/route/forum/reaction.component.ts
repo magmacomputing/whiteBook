@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 
-import { REACT } from '@dbase/data/data.define';
+import { REACT } from '@dbase/data.define';
 import { ReactionService } from '@service/forum/reaction.service';
 
 @Component({

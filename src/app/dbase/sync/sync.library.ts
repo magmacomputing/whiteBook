@@ -1,8 +1,8 @@
 import firebase from 'firebase/app';
 import type { DocumentChangeAction } from '@angular/fire/firestore';
 
-import { FIELD, COLLECTION } from '@dbase/data/data.define';
-import type { FireDocument } from '@dbase/data/data.schema';
+import { FIELD, COLLECTION } from '@dbase/data.define';
+import type { FireDocument } from '@dbase/data.schema';
 import type { sync } from '@dbase/sync/sync.define';
 
 import type { LState } from '@dbase/state/state.define';

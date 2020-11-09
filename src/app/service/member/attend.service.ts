@@ -9,8 +9,8 @@ import { attendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
-import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data/data.define';
-import type { FireDocument, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data/data.schema';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data.define';
+import type { FireDocument, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data.schema';
 
 import { PAY, ATTEND } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';

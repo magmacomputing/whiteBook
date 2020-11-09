@@ -1,4 +1,4 @@
-import { STORE, REACT } from '@dbase/data/data.define';
+import { STORE, REACT } from '@dbase/data.define';
 import { TString } from '@library/type.library';
 import { TInstant } from '@library/instant.library';
 

@@ -6,9 +6,9 @@ import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
-import { COLLECTION, FIELD, STORE } from '@dbase/data/data.define';
+import { COLLECTION, FIELD, STORE } from '@dbase/data.define';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
-import type { FireDocument } from '@dbase/data/data.schema';
+import type { FireDocument } from '@dbase/data.schema';
 
 import { AuthService } from '@service/auth/auth.service';
 

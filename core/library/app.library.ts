@@ -1,5 +1,5 @@
-import { FIELD } from '@dbase/data/data.define';
-import type { FireDocument } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data.define';
+import type { FireDocument } from '@dbase/data.schema';
 import type { fire } from '@dbase/fire/fire.library';
 
 import { getStamp, TInstant, Instant } from '@library/instant.library';

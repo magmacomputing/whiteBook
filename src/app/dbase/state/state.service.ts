@@ -9,8 +9,8 @@ import type { MemberState, PlanState, TimetableState, IState, OState, AccountSta
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data/data.define';
-import type { FireDocument, Register, Connect, Account, Comment, React, Sheet } from '@dbase/data/data.schema';
+import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data.define';
+import type { FireDocument, Register, Connect, Account, Comment, React, Sheet } from '@dbase/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';

@@ -6,8 +6,8 @@ import { AuthService } from '@service/auth/auth.service';
 import { StateService } from '@dbase/state/state.service';
 import { getConfig } from '@dbase/state/config.library';
 
-import { STORE } from '@dbase/data/data.define';
-import { Config } from '@dbase/data/data.schema';
+import { STORE } from '@dbase/data.define';
+import { Config } from '@dbase/data.schema';
 import { dbg } from '@library/logger.library';
 
 @Component({

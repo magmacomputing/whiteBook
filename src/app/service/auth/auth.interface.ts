@@ -1,5 +1,5 @@
 import type firebase from 'firebase/app';
-import { CustomClaims } from '@dbase/data/data.schema';
+import { CustomClaims } from '@dbase/data.schema';
 
 export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
 export type TScopes = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;

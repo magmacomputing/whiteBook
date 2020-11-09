@@ -1,12 +1,12 @@
 import { Observable } from 'rxjs';
 
 import type { AuthSlice } from './auth.action';
-import type { COLLECTION, STORE, BONUS, STATUS } from '@dbase/data/data.define';
+import type { COLLECTION, STORE, BONUS, STATUS } from '@dbase/data.define';
 import type {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
 	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
 	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet,
-} from '@dbase/data/data.schema';
+} from '@dbase/data.schema';
 
 export enum SLICE {
 	root = 'root',

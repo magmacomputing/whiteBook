@@ -1,4 +1,4 @@
-import { COLLECTION, STORE } from '@dbase/data/data.define';
+import { COLLECTION, STORE } from '@dbase/data.define';
 import { SortOption } from '@library/array.library';
 import { TString } from '@library/type.library';
 

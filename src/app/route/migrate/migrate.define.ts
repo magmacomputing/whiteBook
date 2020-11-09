@@ -1,4 +1,4 @@
-import { CLASS } from '@dbase/data/data.define';
+import { CLASS } from '@dbase/data.define';
 
 export namespace Migration {
 	export const LOOKUP: Record<string, CLASS> = {

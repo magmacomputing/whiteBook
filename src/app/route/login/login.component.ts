@@ -8,8 +8,8 @@ import { AuthService } from '@service/auth/auth.service';
 import { MemberService } from '@service/member/member.service';
 import { DataService } from '@dbase/data/data.service';
 
-import { FIELD } from '@dbase/data/data.define';
-import { Provider } from '@dbase/data/data.schema';
+import { FIELD } from '@dbase/data.define';
+import { Provider } from '@dbase/data.schema';
 import { StateService } from '@dbase/state/state.service';
 
 import { drag } from '@library/html.library';

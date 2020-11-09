@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
 import type { TStateSlice } from '@dbase/state/state.define';
-import type { Attend, FireDocument } from '@dbase/data/data.schema';
+import type { Attend, FireDocument } from '@dbase/data.schema';
 import { attendAction } from '@dbase/state/state.action';
-import { FIELD, COLLECTION } from '@dbase/data/data.define';
+import { FIELD, COLLECTION } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';

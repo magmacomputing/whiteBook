@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
-import { STORE, REACT } from '@dbase/data/data.define';
+import { STORE, REACT } from '@dbase/data.define';
 
 import { dbg } from '@library/logger.library';
 

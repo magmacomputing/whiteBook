@@ -1,8 +1,8 @@
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
-import type { FireDocument } from '@dbase/data/data.schema';
-import { FIELD } from '@dbase/data/data.define';
+import type { FireDocument } from '@dbase/data.schema';
+import { FIELD } from '@dbase/data.define';
 import { FILTER } from '@dbase/state/config.define';
 import { getSlice } from '@dbase/state/state.library';
 

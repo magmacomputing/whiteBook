@@ -16,8 +16,8 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 
 import { SyncService } from '@dbase/sync/sync.service';
-import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data/data.define';
-import type { Register } from '@dbase/data/data.schema';
+import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data.define';
+import type { Register } from '@dbase/data.schema';
 import { fire } from '@dbase/fire/fire.library';
 
 import { Storage, prompt } from '@library/browser.library';

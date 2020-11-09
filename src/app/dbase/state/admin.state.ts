@@ -4,8 +4,8 @@ import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import { adminAction, filterState } from '@dbase/state/state.action';
 import type { TStateSlice } from '@dbase/state/state.define';
 
-import { FIELD, COLLECTION } from '@dbase/data/data.define';
-import type { FireDocument } from '@dbase/data/data.schema';
+import { FIELD, COLLECTION } from '@dbase/data.define';
+import type { FireDocument } from '@dbase/data.schema';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
