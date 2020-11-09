@@ -279,6 +279,7 @@ export interface Provider extends ClientCollection {
 export interface Message extends MemberCollection {
 	[FIELD.store]: STORE.message;
 	[FIELD.type]: MESSAGE;
+	[FIELD.note]: TString;
 }
 
 //	/member/profile

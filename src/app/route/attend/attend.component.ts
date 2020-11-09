@@ -32,8 +32,8 @@ export class AttendComponent implements OnDestroy {
 
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
-	public timetable$!: Observable<TimetableState>;		// the date's Schedule
-	#stop$ = new Subject<any>();									// notify Subscriptions to complete
+	public timetable$!: Observable<TimetableState>;			// the date's Schedule
+	#stop$ = new Subject<any>();												// notify Subscriptions to complete
 
 	constructor(public readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }

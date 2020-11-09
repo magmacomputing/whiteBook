@@ -1,5 +1,4 @@
 import type { BONUS, Auth } from '@dbase/data.define';
-import type { Migration } from './migrate.define';
 
 export interface MRegister {
 	id: string;
