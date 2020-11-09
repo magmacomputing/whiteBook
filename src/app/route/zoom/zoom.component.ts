@@ -4,7 +4,7 @@ import { map, switchMap, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
 import { fire } from '@dbase/fire/fire.library';
 import { COLLECTION, FIELD, STORE, CLASS, COLOR } from '@dbase/data.define';
-import { zoom } from '@dbase/zoom.schema';
+import * as  zoom from '@dbase/zoom.schema';
 import type { Class, Sheet } from '@dbase/data.schema';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
