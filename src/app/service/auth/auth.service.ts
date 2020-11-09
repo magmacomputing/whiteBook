@@ -19,8 +19,8 @@ import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: AuthModule })
 export class AuthService {
+	#dbg = dbg(this, 'AuthService');
 	#auth$ = this.state.getAuthData();
-	#dbg = dbg(this);
 
 	constructor(private readonly store: Store, private state: StateService, private fire: FireService) { this.#dbg('new'); }
 

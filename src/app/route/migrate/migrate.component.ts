@@ -43,30 +43,30 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public filter = {} as Storage.AdminStore["migrate"];
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
-	private check!: Pledge<boolean>;
-	private history: Pledge<MHistory[]>;
-	private status!: Record<string, any>;
-	private migrate!: Migrate[];
-	private current: Register | null = null;
-	private dflt!: CLASS;
+	#check!: Pledge<boolean>;
+	#history: Pledge<MHistory[]>;
+	#status!: Record<string, any>;
+	#migrate!: Migrate[];
+	#current: Register | null = null;
+	#dflt!: CLASS;
 
-	private schedule!: Schedule[];
-	private calendar!: Calendar[];
-	private events!: Record<string, Event>;
+	#schedule!: Schedule[];																		// stash current Schedule[]
+	#calendar!: Calendar[];																		// stash current Calendar[]
+	#event!: Record<string, Event>;													// stash current Event[] as lookup
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
-		this.history = new Pledge();
-		this.setFilter();																					// restore the previous filter state
+		this.#history = new Pledge();
+		this.setFilter();																				// restore the previous filter state
 
 		Promise.all([																						// fetch required Stores
 			this.data.getStore<Schedule>(STORE.schedule),
 			this.data.getStore<Calendar>(STORE.calendar, fire.addWhere(FIELD.type, 'Closed', '!=')),
 			this.data.getStore<Event>(STORE.event, fire.addWhere(FIELD.type, 'special')),
-		]).then(([schedule, calendar, events]) => {
-			this.schedule = schedule;
-			this.calendar = calendar;
-			this.events = events.groupBy(true, FIELD.key);
+		]).then(([schedule, calendar, event]) => {
+			this.#schedule = schedule;
+			this.#calendar = calendar;
+			this.#event = event.groupBy(true, FIELD.key);
 		})
 	}
 
@@ -79,7 +79,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 * uses getFire() to delete directly from Firestore (and not from State)
 	 */
 	async delUser() {
-		const where = fire.addWhere(FIELD.uid, this.current!.uid);
+		const where = fire.addWhere(FIELD.uid, this.#current!.uid);
 		const deletes = await Promise.all([
 			this.data.getFire<FireDocument>(COLLECTION.member, { where }),
 			this.data.getFire<FireDocument>(COLLECTION.admin, { where }),
@@ -135,10 +135,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async signIn(register: Register, sheet: Sheet) {
-		this.history = new Pledge<MHistory[]>();								// quickly remove previous member's History[]							
-		if (this.current?.user.customClaims!.alias === register.user.customClaims!.alias)
+		this.#history = new Pledge<MHistory[]>();								// quickly remove previous member's History[]							
+		if (this.#current?.user.customClaims!.alias === register.user.customClaims!.alias)
 			return this.signOut();																// <click> on picture will signIn / signOut
-		this.current = register;																// stash current Member
+		this.#current = register;																// stash current Member
 		this.sheet = sheet;																			// stash Members Import sheet
 
 		this.store.dispatch(new LoginAction.Other(register.uid))
@@ -148,16 +148,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const { id, provider } = sheet.providers![0];
 				this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: MHistory[], status: {} }) => {
-						this.status = resp.status;
+						this.#status = resp.status;
 						return (resp.history || []).orderBy(FIELD.stamp);
 					})
-					.then(history => this.history.resolve(history))
-				this.history.promise
-					.then(hist => this.#dbg('history: %s, %j', hist.length, this.status))
+					.then(history => this.#history.resolve(history))
+				this.#history.promise
+					.then(hist => this.#dbg('history: %s, %j', hist.length, this.#status))
 					.catch(err => this.#dbg('err: %j', err.message))
 
 				this.account$ = this.state.getAccountData();
-				this.dflt = CLASS.Zumba;
+				this.#dflt = CLASS.Zumba;
 				this.hide = register[FIELD.hidden]
 					? 'Un'
 					: ''
@@ -166,7 +166,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async signOut() {																							// signOut of 'on-behalf' mode
-		this.current = null;
+		this.#current = null;
 		this.sheet = null;
 		this.hide = '';
 
@@ -177,7 +177,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 * toggle the '_hidden' boolean on /admin/register
 	 */
 	async hideUser() {
-		const reg = (await this.data.getStore<Register>(STORE.register, fire.addWhere(FIELD.uid, this.current!.uid)))[0];
+		const reg = (await this.data.getStore<Register>(STORE.register, fire.addWhere(FIELD.uid, this.#current!.uid)))[0];
 		reg[FIELD.hidden] = reg[FIELD.hidden]
 			? undefined
 			: true
@@ -206,13 +206,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	/** get the data needed to migrate a Member */
 	private getMember() {
 		return Promise.all([
-			this.data.getStore<Payment>(STORE.payment, fire.addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<Gift>(STORE.gift, fire.addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<ProfilePlan>(STORE.profile, fire.addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Payment>(STORE.payment, fire.addWhere(FIELD.uid, this.#current!.uid)),
+			this.data.getStore<Gift>(STORE.gift, fire.addWhere(FIELD.uid, this.#current!.uid)),
+			this.data.getStore<ProfilePlan>(STORE.profile, fire.addWhere(FIELD.uid, this.#current!.uid)),
 			this.data.getStore<Plan>(STORE.plan),
 			this.data.getStore<Price>(STORE.price),
-			this.data.getStore<Comment>(STORE.comment, fire.addWhere(FIELD.uid, this.current!.uid)),
-			this.history.promise,
+			this.data.getStore<Comment>(STORE.comment, fire.addWhere(FIELD.uid, this.#current!.uid)),
+			this.#history.promise,
 		])
 	}
 
@@ -384,12 +384,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	/** Add Attendance records for a Member */
 	public async addAttend() {
-		const history = await this.history.promise;
+		const history = await this.#history.promise;
 		const [migrate, attend] = await Promise.all([
-			this.data.getStore<Migrate>(STORE.migrate, fire.addWhere(FIELD.uid, this.current!.uid)),
-			this.data.getStore<Attend>(STORE.attend, fire.addWhere(FIELD.uid, this.current!.uid)),
+			this.data.getStore<Migrate>(STORE.migrate, fire.addWhere(FIELD.uid, this.#current!.uid)),
+			this.data.getStore<Attend>(STORE.attend, fire.addWhere(FIELD.uid, this.#current!.uid)),
 		])
-		this.migrate = migrate;
+		this.#migrate = migrate;
 		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
 		const start = attend.orderBy({ field: 'track.date', dir: 'desc' });		// attendance, by descending date
 		const preprocess = cloneObj(table);
@@ -408,9 +408,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		// this.dbg('endAt: %s, %j', endAt, table.length);
 
 		if (table.length) {
-			this.check = new Pledge();
+			this.#check = new Pledge();
 			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
-			this.check.promise														// wait for pre-process to complete
+			this.#check.promise														// wait for pre-process to complete
 				.then(_ready => this.#dbg('ready: %j', _ready))
 				.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
 		} else this.#dbg('nothing to load');
@@ -429,7 +429,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const hhmi = getInstant(row.stamp).format(Instant.FORMAT.HHMI);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
-		const caldr = asAt(this.calendar, [fire.addWhere(FIELD.key, row.date), fire.addWhere(STORE.location, 'norths', '!=')], row.date)[0];
+		const caldr = asAt(this.#calendar, [fire.addWhere(FIELD.key, row.date), fire.addWhere(STORE.location, 'norths', '!=')], row.date)[0];
 		const calDate = caldr && getInstant(caldr[FIELD.key]);
 		const [prefix, suffix] = what.split('*');
 
@@ -451,7 +451,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		if (Migration.PACK.includes(prefix)) {
 			const [plan, prices, bonus] = await Promise.all([
-				this.data.getStore<ProfilePlan>(STORE.profile, [fire.addWhere(FIELD.type, STORE.plan), fire.addWhere(FIELD.uid, this.current!.user.uid)], now),
+				this.data.getStore<ProfilePlan>(STORE.profile, [fire.addWhere(FIELD.type, STORE.plan), fire.addWhere(FIELD.uid, this.#current!.user.uid)], now),
 				this.data.getStore<Price>(STORE.price, undefined, now),
 				this.data.getStore<Bonus>(STORE.bonus, undefined, now),
 			])
@@ -483,7 +483,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
-				event = this.events[caldr[FIELD.type]];
+				event = this.#event[caldr[FIELD.type]];
 				migrate = this.lookupMigrate(caldr[FIELD.key]);
 
 				if (!migrate.attend[sfx]) {
@@ -506,7 +506,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 
 			case (!isUndefined(caldr) && !row.elect):			// special event match by <date>, so we already know the 'class'
-				event = this.events[caldr[FIELD.type]];
+				event = this.#event[caldr[FIELD.type]];
 				if (what === CLASS.MultiStep && !event.agenda.includes(what))
 					what = CLASS.SingleStep;
 
@@ -539,16 +539,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				let className = migrate.attend.class || null;
 
 				if (isNull(className)) {
-					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}?`, this.dflt) as CLASS;
+					className = window.prompt(`This ${prefix} class on ${now.format(Instant.FORMAT.display)} for $${(parseInt(row.debit || '0') * -1).toFixed(2)}?`, this.#dflt) as CLASS;
 					if (isNull(className))
 						throw new Error('Cannot determine class');
-					this.dflt = className;
+					this.#dflt = className;
 
 					migrate.attend = { class: className };
 					await this.writeMigrate(migrate);
 				}
 
-				sched = nearAt(this.schedule, fire.addWhere(FIELD.key, className), row.stamp, { start: hhmi });
+				sched = nearAt(this.#schedule, fire.addWhere(FIELD.key, className), row.stamp, { start: hhmi });
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;											// to allow AttendService to check what was charged
@@ -561,7 +561,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					fire.addWhere('day', [Instant.WEEKDAY.All, now.dow]),
 				];
 
-				sched = nearAt(this.schedule, where, row.stamp, { start: hhmi })
+				sched = nearAt(this.#schedule, where, row.stamp, { start: hhmi })
 				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (isUndefined(row.elect))
@@ -598,7 +598,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				.then(_ => new Promise((resolve, reject) => {
 					if (comment) {
 						const where = [
-							fire.addWhere(FIELD.uid, this.current!.uid),
+							fire.addWhere(FIELD.uid, this.#current!.uid),
 							fire.addWhere('track.class', sched[FIELD.key]),
 							fire.addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
 						]
@@ -615,7 +615,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		} else {
 			p.resolve(flag)
 			if (!rest.length)														// queue is empty
-				this.check.resolve(true);									// mark 'check phase' complete
+				this.#check.resolve(true);									// mark 'check phase' complete
 		}
 
 		p.promise
@@ -645,31 +645,31 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private lookupMigrate(key: string | number, type: string = STORE.event) {
-		return this.migrate
+		return this.#migrate
 			.find(row => row[FIELD.key] === asString(key)) || {
 				[FIELD.id]: this.data.newId,
 				[FIELD.store]: STORE.migrate,
 				[FIELD.type]: type as STORE.class | STORE.event,
 				[FIELD.key]: asString(key),
-				[FIELD.uid]: this.current!.uid,
+				[FIELD.uid]: this.#current!.uid,
 				attend: {}
 			} as Migrate
 	}
 
 	private writeMigrate(migrate: Migrate) {
-		const where = fire.addWhere(FIELD.uid, this.current!.uid);
+		const where = fire.addWhere(FIELD.uid, this.#current!.uid);
 
 		return this.data.setDoc(STORE.migrate, migrate)
 			.then(_ => this.data.getStore<Migrate>(STORE.migrate, where))
-			.then(res => this.migrate = res);
+			.then(res => this.#migrate = res);
 	}
 
 	private async lastAttend() {
 		const [summary, profile, active, history] = await Promise.all([
 			this.member.getAmount(),								// get closing balance
 			this.member.getPlan(),									// get final Plan
-			this.data.getStore<Payment>(STORE.payment, fire.addWhere(FIELD.uid, this.current!.uid)),
-			this.history.promise,
+			this.data.getStore<Payment>(STORE.payment, fire.addWhere(FIELD.uid, this.#current!.uid)),
+			this.#history.promise,
 		]);
 
 		this.#dbg('history: %j', history.reduce((prev: any, curr: any) => {
@@ -713,7 +713,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (!window.confirm(`Are you sure you want to delete all Payments / Attends ?`))
 			return;
 
-		const where = fire.addWhere(FIELD.uid, this.current!.uid);
+		const where = fire.addWhere(FIELD.uid, this.#current!.uid);
 		const [attends, payments, gifts] = await Promise.all([
 			this.data.getStore<Attend>(STORE.attend, where),
 			this.data.getStore<Payment>(STORE.payment, [where, fire.addWhere(FIELD.store, STORE.payment)]),
@@ -753,7 +753,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (!window.confirm(`Are you sure you want to delete all Attends ?`))
 			return;
 
-		const where = fire.addWhere(FIELD.uid, this.current!.uid);
+		const where = fire.addWhere(FIELD.uid, this.#current!.uid);
 		return this.attend.delAttend(where);
 	}
 

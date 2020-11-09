@@ -62,6 +62,7 @@ const remMeta = (doc: FireDocument) => {
 	const { [FIELD.create]: c, [FIELD.update]: u, [FIELD.access]: a, ...rest } = doc;
 	return rest;
 }
+
 export const addMeta = (snap: DocumentChangeAction<FireDocument>) =>
 	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as FireDocument)
 
