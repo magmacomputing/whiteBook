@@ -76,7 +76,7 @@ export enum FIELD {								// common Field names
 	date = 'date',
 	sort = 'sort',
 	image = 'image',
-};
+}
 
 export enum CLASS {
 	AeroStep = 'AeroStep',
@@ -92,6 +92,7 @@ export enum CLASS {
 	"Step@Home" = 'Step@Home',
 	"Rumba@Home" = 'Rumbe@Home',
 }
+
 export enum MESSAGE {
 	diary = 'diary',
 	alert = 'alert',

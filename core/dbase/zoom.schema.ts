@@ -1,5 +1,5 @@
 import { COLOR, FIELD, STORE } from '@dbase/data.define';
-import { FireDocument } from '@dbase/data.schema';
+import { IdentDocument } from '@dbase/data.schema';
 
 import { Instant } from '@library/instant.library';
 
@@ -26,8 +26,7 @@ export enum PRESENCE {
 	disturb = 'Do Not Disturb',
 }
 
-export interface Event<T extends Started | Ended | Joined | Left | Status> extends FireDocument {
-	[FIELD.id]: string;
+export interface Event<T extends Started | Ended | Joined | Left | Status> extends IdentDocument {
 	[FIELD.store]: STORE.zoom;
 	[FIELD.type]: EVENT;
 	[FIELD.stamp]: number;
