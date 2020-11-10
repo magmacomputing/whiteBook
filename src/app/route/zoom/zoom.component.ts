@@ -27,21 +27,21 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	#dbg = dbg(this, 'ZoomComponent');
 	public date!: Instant;															// the date of the Meeting to display
 	public offset!: number;															// the number of days before today, to control UI date-spiiner
-	private dateChange = false;													// used to set the selectedIndex
+	#dateChange = false;																// used to set the selectedIndex
 
 	public firstPaint = true;                           // indicate first-paint
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 
-	private stop$ = new Subject();											// notify Subscriptions to complete
-	private meetings: zoom.Meeting[] = [];
-	private meetingDate = new BehaviorSubject<Instant>(new Instant());
+	#stop$ = new Subject();															// notify Subscriptions to complete
+	#meetings: zoom.Meeting[] = [];
+	#meetingDate = new BehaviorSubject<Instant>(new Instant());
 	public meetings$!: Observable<zoom.Meeting[]>;				// the date's Meetings
 
-	private color!: Record<CLASS, Class>;
-	private colorCache!: (white: zoom.White | undefined) => COLOR
+	#color!: Record<CLASS, Class>;
+	#colorCache!: (white: zoom.White | undefined) => COLOR
 
 	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
-		setTimer(this.stop$)
+		setTimer(this.#stop$)
 			.subscribe(() => this.setDate(0));							// watch for midnight, then update UI to new date
 
 		this.getMeetings();																// wire-up the Meetings Observable
@@ -50,16 +50,16 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	private async getColor() {
-		this.color = await this.data.getStore<Class>(STORE.class)
+		this.#color = await this.data.getStore<Class>(STORE.class)
 			.then(store => store.groupBy(true, FIELD.key))
-		this.colorCache = memoize(this.setColor.bind(this));
+		this.#colorCache = memoize(this.setColor.bind(this));
 	}
 
 	ngOnInit() { }
 
 	ngOnDestroy() {
-		this.stop$.next(true);
-		this.stop$.unsubscribe();
+		this.#stop$.next(true);
+		this.#stop$.unsubscribe();
 	}
 
 	// onSwipe(idx: number, len: number, event: Event) {
@@ -81,7 +81,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			? new Instant().startOf('day')
 			: new Instant(this.date).add(dir, 'days')
 
-		this.meetingDate.next(this.date);									// give the date to the Observable
+		this.#meetingDate.next(this.date);									// give the date to the Observable
 	}
 
 	/**
@@ -91,11 +91,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	 * then map everything into an IMeeting[] format for the UI to present
 	 */
 	private getMeetings() {
-		return this.meetings$ = this.meetingDate					// wait on the date to change
+		return this.meetings$ = this.#meetingDate					// wait on the date to change
 			.pipe(
-				takeUntil(this.stop$),												// teardown Observables
-				tap(_ => this.meetings = []),									// reset the assembled details
-				tap(_ => this.dateChange = true),							// move the selectedIndex to latest meeting
+				takeUntil(this.#stop$),												// teardown Observables
+				tap(_ => this.#meetings = []),									// reset the assembled details
+				tap(_ => this.#dateChange = true),							// move the selectedIndex to latest meeting
 
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.zoom, {
@@ -124,11 +124,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;
 							const label = fmtInstant(Instant.FORMAT.HHMI, start_time);
-							const color = this.colorCache(doc.white);
-							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
+							const color = this.#colorCache(doc.white);
+							const idx = this.#meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx === -1) {
-								this.meetings.push({									// a new meeting started
+								this.#meetings.push({									// a new meeting started
 									uuid, meeting_id, participants: [], ...rest,
 									start: {
 										[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
@@ -136,10 +136,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 									},
 								})
 
-								if (!this.dateChange)									// flag date change if new meeting detected on current day
-									this.dateChange = this.date.format(Instant.FORMAT.yearMonthDay) === new Instant().format(Instant.FORMAT.yearMonthDay);
+								if (!this.#dateChange)									// flag date change if new meeting detected on current day
+									this.#dateChange = this.date.format(Instant.FORMAT.yearMonthDay) === new Instant().format(Instant.FORMAT.yearMonthDay);
 							} else {																// change to existing meeting
-								this.meetings[idx].start = { ...this.meetings[idx].start, white: doc.white, color };
+								this.#meetings[idx].start = { ...this.#meetings[idx].start, white: doc.white, color };
 							}
 						});
 
@@ -148,10 +148,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { uuid, end_time, ...rest } = doc.body.payload.object;
 							const label = fmtInstant(Instant.FORMAT.HHMI, end_time);
-							const idx = this.meetings.findIndex(meeting => meeting.uuid === uuid);
+							const idx = this.#meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx !== -1)
-								this.meetings[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
+								this.#meetings[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
 						});
 
 					(track as zoom.Event<zoom.Joined>[])									// add Participants.Joined
@@ -161,9 +161,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const { class: event, price, credit, status = {} as zoom.White["status"] } = doc.white || {};
 							const weekTrack = (status?._week || '0.0.0').split('.').map(Number);
 							const label = fmtInstant(Instant.FORMAT.HHMI, join_time);
-							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
+							const idx = this.#meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
-							const fgcolor = { alias: this.color[event as CLASS]?.color };
+							const fgcolor = { alias: this.#color[event as CLASS]?.color };
 							const bgcolor: zoom.Meeting["participants"][0]["join"]["bgcolor"] = {
 								price: isUndefined(price) || price > 0 ? COLOR.black : COLOR.green,
 								credit: isUndefined(credit) || credit > 20 ? COLOR.black : credit < 10 ? COLOR.red : COLOR.yellow,
@@ -182,10 +182,10 @@ export class ZoomComponent implements OnInit, OnDestroy {
 									: status.bonus
 
 							if (idx !== -1) {
-								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
-								const leave = this.meetings[idx].participants[pdx]?.leave;	// in case Join-update where Member already Left
+								const pdx = this.#meetings[idx].participants.findIndex(party => party.user_id === user_id);
+								const leave = this.#meetings[idx].participants[pdx]?.leave;	// in case Join-update where Member already Left
 
-								this.meetings[idx].participants[pdx === -1 ? this.meetings[idx].participants.length : pdx] = {
+								this.#meetings[idx].participants[pdx === -1 ? this.#meetings[idx].participants.length : pdx] = {
 									participant_id, user_id, user_name, leave,
 									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, fgcolor, bgcolor },
 								}
@@ -197,26 +197,26 @@ export class ZoomComponent implements OnInit, OnDestroy {
 						.forEach(doc => {
 							const { id: participant_id, user_id, user_name, leave_time } = doc.body.payload.object.participant;
 							const label = fmtInstant(Instant.FORMAT.HHMI, leave_time);
-							const idx = this.meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
+							const idx = this.#meetings.findIndex(meeting => meeting.uuid === doc.body.payload.object.uuid);
 
 							if (idx !== -1) {
-								const pdx = this.meetings[idx].participants.findIndex(party => party.user_id === user_id);
+								const pdx = this.#meetings[idx].participants.findIndex(party => party.user_id === user_id);
 								if (pdx === -1) {										// Leave without a corresponding Join, so create dummy Join
-									this.meetings[idx].participants.push({
+									this.#meetings[idx].participants.push({
 										participant_id, user_id, user_name,
 										join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', },
 										leave: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label },
 									})
 								}
-								else this.meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
+								else this.#meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
 							}
 						});
 
-					if (this.dateChange) {
-						this.dateChange = false;
-						this.selectedIndex = this.meetings.length - 1;
+					if (this.#dateChange) {
+						this.#dateChange = false;
+						this.selectedIndex = this.#meetings.length - 1;
 					}
-					return this.meetings;
+					return this.#meetings;
 				}),
 			)
 	}
@@ -250,12 +250,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		const attends: { date: number, attend?: string }[] = [];
 
 		const obs$ = join.pipe(
-			takeUntil(this.stop$),												// teardown Subject
+			takeUntil(this.#stop$),												// teardown Subject
 
 			map(docs => docs.filter(doc => !isUndefined(doc.white?.price))),
 			map(docs => docs.map(doc => {
 				const { class: event, price } = doc.white || {};
-				const color = this.colorCache(doc.white);
+				const color = this.#colorCache(doc.white);
 				const { join_time } = doc.body.payload.object.participant || [];
 				const join = new Instant(join_time);
 
@@ -279,6 +279,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	setColor(white?: zoom.White) {
-		return (white?.class && this.color[white.class as CLASS].color) || COLOR.black;
+		return (white?.class && this.#color[white.class as CLASS].color) || COLOR.black;
 	}
 }

@@ -33,19 +33,19 @@ export class ErrorSnackBar {
 
 @Injectable({ providedIn: MaterialModule })
 export class SnackService {
-	private ref?: MatSnackBarRef<SimpleSnackBar | InfoSnackBar | WarnSnackBar | ErrorSnackBar>;
-	private timeOut = 5000;
+	#ref?: MatSnackBarRef<SimpleSnackBar | InfoSnackBar | WarnSnackBar | ErrorSnackBar>;
+	#timeOut = 5000;
 
 	constructor(public snack: MatSnackBar, private zone: NgZone) { }
 
 	private setConfig(config: MatSnackBarConfig) {
 		config.verticalPosition = config.verticalPosition || 'bottom';
-		return { duration: this.timeOut, ...config };
+		return { duration: this.#timeOut, ...config };
 	}
 
 	public open(msg: string, action?: string, config: MatSnackBarConfig = {}) {
 		this.dismiss();
-		this.ref = this.snack.open(msg, action, this.setConfig(config));
+		this.#ref = this.snack.open(msg, action, this.setConfig(config));
 	}
 
 	public info(msg: string, action?: string, config: MatSnackBarConfig = {}) {
@@ -63,15 +63,15 @@ export class SnackService {
 	}
 
 	public dismiss() {                    // dismiss any snackbar, if present
-		if (this.ref)
-			this.ref = undefined;
+		if (this.#ref)
+			this.#ref = undefined;
 	}
 
 	// TODO: fix 'any' typing for component
 	private fromComponent<T extends InfoSnackBar | WarnSnackBar | ErrorSnackBar>(component: any, config: MatSnackBarConfig = {}, msg: string) {
 		this.dismiss();
 		this.zone.run(_ => {
-			this.ref = this.snack.openFromComponent<T>(component, { ...this.setConfig(config), data: msg })
+			this.#ref = this.snack.openFromComponent<T>(component, { ...this.setConfig(config), data: msg })
 		});
 	}
 }

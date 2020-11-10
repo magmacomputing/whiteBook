@@ -15,12 +15,14 @@ export const getType = (obj?: any): string => {
 }
 
 export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, })
-export const isType = (obj: unknown, type: string = 'Object') => getType(obj).toLowerCase() === type.toLowerCase();
+export const isType = <T>(obj: unknown, type = 'Object'): obj is T => getType(obj) === type;
 
 /** Type-Guards: return a boolean to test \<obj> is of \<type> */
 export const isIterable = <T>(obj: T | Iterable<T>): obj is Iterable<T> => Symbol.iterator in Object(obj) && !isString(obj);
 export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
 
+export const isPrimitive = (obj?: unknown): obj is null | boolean | number | bigint | string | symbol | undefined => ['Null', 'Boolean', 'Number', 'BigInt', 'String', 'Symbol', 'Undefined'].includes(getType(obj));
+export const isReference = (obj?: unknown): obj is Object => !isPrimitive(obj);
 export const isString = (obj?: unknown): obj is string => isType(obj, 'String');
 export const isNumber = (obj?: unknown): obj is number => isType(obj, 'Number');
 export const isInteger = (obj?: unknown): obj is bigint => isType(obj, 'BigInt');

@@ -16,7 +16,7 @@ export const lprintf = (name: string = '', fmt?: any, ...msg: any[]) => {
 }
 
 /** break a fmt/msg into a 'Console.type' and 'message' */
-export const fprintf = (fmt?: any, ...msg: any[]) => {
+const fprintf = (fmt?: any, ...msg: any[]) => {
 	let type = 'log';
 
 	if (isString(fmt)) {

@@ -10,7 +10,7 @@ import { toLower } from '@library/string.library';
 import { asTime } from '@library/number.library';
 
 /**
- * apply filters to an array (table) of objects (rows).  
+ * apply filters (columns) to an array (table) of objects (rows).  
  * each row in the table must match all the filters to be selected.  
  * each field must match at least one of the filter-values to be selected.  
  * 
