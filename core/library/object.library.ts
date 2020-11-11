@@ -1,6 +1,6 @@
 import firebase from 'firebase/app';
 
-import { isObject, isArray, isString, TString, isNull, isUndefined, isNullish, isReference, getType } from '@library/type.library';
+import { isObject, isArray, isString, TString, isNull, isUndefined, isNullish, isReference } from '@library/type.library';
 
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 const regDate = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/;
