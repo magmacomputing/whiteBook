@@ -1,5 +1,5 @@
 import type firebase from 'firebase/app';
-import { Credential as LoginCredential } from '@service/auth/auth.interface';
+import { LoginCredential } from '@service/auth/auth.interface';
 import { auth } from '@dbase/data.define';
 import { Register } from '@dbase/data.schema';
 

@@ -398,9 +398,9 @@ export interface React extends ForumCollection {
 }
 
 //	/admin/register
-export interface CustomClaims {		// a special sub-set of fields from the User Token
+export interface CustomClaims {					// a special sub-set of fields from the User Token
 	alias?: string;
-	roles?: auth.ROLE[];							// TODO: does this need to be Array?
+	roles?: auth.ROLE[];									// TODO: does this need to be Array?
 	allow?: string[];
 	deny?: string[];
 }

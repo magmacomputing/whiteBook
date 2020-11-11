@@ -1,10 +1,9 @@
 import type firebase from 'firebase/app';
-import { CustomClaims } from '@dbase/data.schema';
 
 export type TParams = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.TwitterAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
 export type TScopes = firebase.auth.GoogleAuthProvider | firebase.auth.FacebookAuthProvider | firebase.auth.GithubAuthProvider | firebase.auth.OAuthProvider;
 
-export interface Credential {
+export interface LoginCredential {
 	code: string;
 	message: string;
 	email: string;
@@ -28,20 +27,4 @@ export interface FireClaims {
 		sign_in_provider: string;
 	}
 	auth_time: number;
-}
-export interface JwtClaims {			// industry-standard json-web-token format
-	exp: number;						// expiration time
-	iss: string;						// issuer
-	iat?: number;						// issued time
-	nbf?: number;						// not before
-	aud?: string;						// audience
-	sub?: string;						// subject
-}
-export type TTokenClaims = FireClaims & CustomClaims & JwtClaims;
-export enum JWT {
-	expires = 'exp',
-	not_before = 'nbf',
-	issuer = 'iss',
-	audience = 'aud',
-	subject = 'sub',
 }
