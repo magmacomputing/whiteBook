@@ -1,6 +1,6 @@
 import type firebase from 'firebase/app';
 import { Credential as LoginCredential } from '@service/auth/auth.interface';
-import { Auth } from '@dbase/data.define';
+import { auth } from '@dbase/data.define';
 import { Register } from '@dbase/data.schema';
 
 export interface AuthSlice {
@@ -27,11 +27,11 @@ export namespace LoginAction {
 	}
 	export class Token {
 		static readonly type = '[Auth] LoginToken';
-		constructor(public token: string, public prefix: Auth.PROVIDER, public user: any) { }
+		constructor(public token: string, public prefix: auth.PROVIDER, public user: any) { }
 	}
 	export class OIDC {
 		static readonly type = '[Auth] LoginOIDC';
-		constructor(public token: string, public prefix: Auth.PROVIDER, public user: any) { }
+		constructor(public token: string, public prefix: auth.PROVIDER, public user: any) { }
 	}
 	export class Email {
 		static readonly type = '[Auth] LoginEmail';

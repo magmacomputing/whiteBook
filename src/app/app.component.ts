@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
-import { MESSAGE, Auth } from '@dbase/data.define';
+import { MESSAGE, auth } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
-import { isEqual } from '@library/object.library';
-
 import { NavigateService } from '@route/router/navigate.service';
 
 @Component({
@@ -15,13 +13,9 @@ import { NavigateService } from '@route/router/navigate.service';
 export class AppComponent implements OnInit {
 	public app$ = this.state.getMemberData();
 	public MESSAGE = MESSAGE;
-	public ROLE = Auth.ROLE;
+	public ROLE = auth.ROLE;
 
-	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService) {
-const obj1 = {one:1};
-const obj2 = {two:2};
-		console.log('deep: ', isEqual(obj1, obj2));
-	}
+	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService) { }
 
 	ngOnInit() { }
 }

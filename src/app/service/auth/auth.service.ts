@@ -10,8 +10,8 @@ import { getAuthProvider, isActive } from '@service/auth/auth.library';
 import { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { FIELD, STORE, Auth } from '@dbase/data.define';
-import { Provider, Config } from '@dbase/data.schema';
+import { FIELD, STORE, auth } from '@dbase/data.define';
+import { Provider, Config, CustomClaims } from '@dbase/data.schema';
 
 import { asArray } from '@library/array.library';
 import { getConfig } from '@dbase/state/config.library';
@@ -31,17 +31,36 @@ export class AuthService {
 		)
 	}
 
+	get current() {
+		return this.#auth$
+			.pipe(take(1))
+			.toPromise()
+			.then(user => user.auth.current)
+	}
+
 	get user() {
 		return this.#auth$
 			.pipe(take(1))
 			.toPromise()
 	}
 
-	get current() {
-		return this.#auth$
-			.pipe(take(1))
-			.toPromise()
-			.then(user => user.auth.current)
+	get user$() {
+		return this.#auth$;
+	}
+
+	get claims$() {
+		return this.user$
+			.pipe(map(user => user.auth.token?.claims?.claims as CustomClaims || {}))
+	}
+
+	get roles$() {
+		return this.claims$
+			.pipe(map(claims => claims.roles || []))
+	}
+
+	get isAdmin$() {
+		return this.roles$
+			.pipe(map(roles => roles.includes(auth.ROLE.admin)))
 	}
 
 	public signOut() {
@@ -54,35 +73,35 @@ export class AuthService {
 
 		switch (provider[FIELD.type]) {
 			case undefined:
-			case Auth.METHOD.identity:
+			case auth.METHOD.identity:
 				this.signInIdentity(provider);
 				break;
 
-			case Auth.METHOD.oauth:
+			case auth.METHOD.oauth:
 				this.signInOAuth(provider);
 				break;
 
-			case Auth.METHOD.oidc:
+			case auth.METHOD.oidc:
 				this.signInOIDC(provider);
 				break;
 
-			case Auth.METHOD.email:
+			case auth.METHOD.email:
 				this.signInEmail(provider, opts.email, opts.password);
 				break;
 
-			case Auth.METHOD.play:
+			case auth.METHOD.play:
 				this.signInPlay(provider);
 				break;
 
-			case Auth.METHOD.phone:
+			case auth.METHOD.phone:
 				this.signInPhone(provider);
 				break;
 
-			case Auth.METHOD.anonymous:
+			case auth.METHOD.anonymous:
 				this.signInAnon(provider);
 				break;
 
-			case Auth.METHOD.custom:
+			case auth.METHOD.custom:
 				this.signInCustom(opts.jwt as string);
 				break;
 
@@ -154,7 +173,7 @@ export class AuthService {
 	}
 
 	private signInCustom(token: string) {
-		return this.store.dispatch(new LoginAction.Token(token, Auth.PROVIDER.jwt, {}));
+		return this.store.dispatch(new LoginAction.Token(token, auth.PROVIDER.jwt, {}));
 	}
 
 	private signInOIDC(provider: Provider) { }

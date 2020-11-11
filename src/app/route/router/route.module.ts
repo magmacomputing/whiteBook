@@ -14,12 +14,12 @@ import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
 
-import { Auth } from '@dbase/data.define';
+import { auth } from '@dbase/data.define';
 import { getPath } from '@library/object.library';
 
 const toLogin = () => redirectUnauthorizedTo([ROUTE.login]);
 const toAttend = () => redirectLoggedInTo([ROUTE.attend, ROUTE.zoom]);
-const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(Auth.ROLE.admin)));
+const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'claims.roles', [])!.includes(auth.ROLE.admin)));
 
 const routes: Routes = [
 	{ path: ROUTE.oauth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded

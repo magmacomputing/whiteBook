@@ -1,4 +1,4 @@
-import type { COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, Auth, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, TRACK } from '@dbase/data.define';
+import type { auth, COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REACT, PLAN, PRICE, PAYMENT, PROFILE, STATUS, SCHEDULE, MESSAGE, SPAN, COLOR, TRACK } from '@dbase/data.define';
 import type { TString } from '@library/type.library';
 import type { Instant } from '@library/instant.library';
 
@@ -226,7 +226,7 @@ export interface Alert extends ClientCollection {
 export interface Icon extends ClientCollection {
 	[FIELD.store]: STORE.icon;
 	[FIELD.type]: STORE.react | STORE.class | STORE.event | STORE.provider | STORE.bonus;
-	[FIELD.key]: keyof typeof REACT | CLASS | EVENT | Auth.PROVIDER | BONUS;
+	[FIELD.key]: keyof typeof REACT | CLASS | EVENT | auth.PROVIDER | BONUS;
 	[FIELD.sort]: number;
 	image: string;
 }
@@ -234,7 +234,7 @@ export interface Icon extends ClientCollection {
 //	/client/schedule
 export interface Provider extends ClientCollection {
 	[FIELD.store]: STORE.provider;
-	[FIELD.type]: Auth.METHOD;
+	[FIELD.type]: auth.METHOD;
 	[FIELD.sort]?: number;					// list-order to display to User
 	prefix?: string;
 	scope?: TString;								// if array, joinScope determines how to encode as a string
@@ -400,7 +400,7 @@ export interface React extends ForumCollection {
 //	/admin/register
 export interface CustomClaims {		// a special sub-set of fields from the User Token
 	alias?: string;
-	roles?: Auth.ROLE[];							// TODO: does this need to be Array?
+	roles?: auth.ROLE[];							// TODO: does this need to be Array?
 	allow?: string[];
 	deny?: string[];
 }
@@ -466,7 +466,7 @@ export interface Sheet extends AdminCollection {
 	userName: string;
 	providers: {
 		id: string;
-		provider: Auth.PROVIDER;
+		provider: auth.PROVIDER;
 		firstName: string;
 		lastName: string;
 		userName: string;

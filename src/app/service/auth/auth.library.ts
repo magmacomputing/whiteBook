@@ -1,7 +1,7 @@
 import firebase from 'firebase/app';
 
 import { UserState } from '@dbase/state/state.define';
-import { Auth } from '@dbase/data.define';
+import { auth } from '@dbase/data.define';
 
 import { isNull } from '@library/type.library';
 
@@ -10,14 +10,14 @@ interface EmailToken {
 	password: string;
 }
 export const getAuthProvider = (providerId: string,
-	token?: (firebase.auth.IdTokenResult & EmailToken) | null): [Auth.METHOD | undefined, firebase.auth.AuthProvider | undefined, firebase.auth.AuthCredential | undefined] => {
+	token?: (firebase.auth.IdTokenResult & EmailToken) | null): [auth.METHOD | undefined, firebase.auth.AuthProvider | undefined, firebase.auth.AuthCredential | undefined] => {
 	let authProvider: firebase.auth.AuthProvider | undefined;
 	let authCredential: firebase.auth.AuthCredential | undefined;
-	let method: Auth.METHOD | undefined = Auth.METHOD.identity;									// default to 'identity' 
+	let method: auth.METHOD | undefined = auth.METHOD.identity;									// default to 'identity' 
 
 	switch (providerId) {
-		case Auth.METHOD.email:
-			method = Auth.METHOD.email
+		case auth.METHOD.email:
+			method = auth.METHOD.email
 			authProvider = new firebase.auth.EmailAuthProvider();
 			if (token)
 				authCredential = firebase.auth.EmailAuthProvider.credential(token.email, token.password);
@@ -66,24 +66,24 @@ export const getAuthProvider = (providerId: string,
 	return [method, authProvider, authCredential];
 }
 
-export const getProviderId = (prefix: Auth.PROVIDER) => {
+export const getProviderId = (prefix: auth.PROVIDER) => {
 	switch (prefix) {
-		case Auth.PROVIDER.fb:
+		case auth.PROVIDER.fb:
 			return 'facebook.com';
 
-		case Auth.PROVIDER.go:
+		case auth.PROVIDER.go:
 			return 'google.com';
 
-		case Auth.PROVIDER.tw:
+		case auth.PROVIDER.tw:
 			return 'twitter.com';
 
-		case Auth.PROVIDER.gh:
+		case auth.PROVIDER.gh:
 			return 'github.com';
 
-		case Auth.PROVIDER.li:
+		case auth.PROVIDER.li:
 			return 'linkedin.com';
 
-		case Auth.PROVIDER.as:											// Google Apps Sheet
+		case auth.PROVIDER.as:											// Google Apps Sheet
 			return 'docs.google.com';
 
 		default:

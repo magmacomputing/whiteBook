@@ -6,7 +6,7 @@ import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
-import { COLLECTION, FIELD, STORE } from '@dbase/data.define';
+import { auth, COLLECTION, FIELD, STORE } from '@dbase/data.define';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 import type { FireDocument } from '@dbase/data.schema';
 
@@ -87,6 +87,18 @@ export class DataService {
 	getActiveID() {
 		return this.auth.user
 			.then(state => state.auth.user?.uid);									// get the signIn UserID
+	}
+
+	getClaims$() {																							// CustomClaims object
+		return this.auth.claims$;
+	}
+
+	getRoles$() {																							// ROLE[]
+		return this.auth.roles$
+	}
+
+	isAdmin$() {
+		return this.auth.isAdmin$;
 	}
 
 	getFire<T>(collection: COLLECTION, query?: fire.Query) {	// direct access to collection, rather than via state

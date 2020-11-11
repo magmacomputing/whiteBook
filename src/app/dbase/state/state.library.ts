@@ -10,7 +10,7 @@ import { SLICES, SORTBY } from '@dbase/state/config.define';
 import type { FireDocument, Default, Class, Price, Event, Schedule, Span, ProfilePlan, Icon, Calendar, Account } from '@dbase/data.schema';
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
-import { COLLECTION, STORE, TYPE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, Auth } from '@dbase/data.define';
+import { COLLECTION, STORE, TYPE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, auth } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { getPath } from '@library/object.library';
@@ -272,7 +272,7 @@ export const buildProvider = (source: ProviderState) => {
 /** Assemble a Plan-view */
 export const buildPlan = (source: PlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
-	const isAdmin = roles?.includes(Auth.ROLE.admin);
+	const isAdmin = roles?.includes(auth.ROLE.admin);
 	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.type, STORE.plan));
 	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.type, PRICE.topUp));
 	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available

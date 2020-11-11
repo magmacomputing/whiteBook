@@ -16,7 +16,7 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 
 import { SyncService } from '@dbase/sync/sync.service';
-import { COLLECTION, FIELD, STORE, Auth } from '@dbase/data.define';
+import { COLLECTION, FIELD, STORE, auth } from '@dbase/data.define';
 import type { Register } from '@dbase/data.schema';
 import { fire } from '@dbase/fire/fire.library';
 
@@ -114,8 +114,8 @@ export class AuthState {
 			default:
 				const [method, authProvider] = getAuthProvider(methods[0]);
 				switch (method) {
-					case Auth.METHOD.identity:
-					case Auth.METHOD.oauth:
+					case auth.METHOD.identity:
+					case auth.METHOD.oauth:
 						ctx.dispatch(new LoginAction.Identity(authProvider as firebase.auth.AuthProvider, link.credential));
 						break;
 				}
@@ -235,11 +235,11 @@ export class AuthState {
 		ctx.patchState(info);
 	}
 
-	@Action(LoginAction.Other)															// behalf of another User
+	@Action(LoginAction.Other)											// behalf of another User
 	private(ctx: StateContext<AuthSlice>, { alias }: LoginAction.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
-		const loginAlias = (ctx.getState().token) && ctx.getState().token!.claims.claims.alias;
+		const loginAlias = ctx.getState().token?.claims?.claims?.alias as string;
 		const loginUID = loginUser?.uid as string;
 
 		if (!currUser && !alias)
@@ -304,7 +304,7 @@ export class AuthState {
 			ctx.patchState({ token });
 
 			this.dbg('customClaims: %j', ctx.getState().token?.claims.claims);
-			if (roles.includes(Auth.ROLE.admin)) {
+			if (roles.includes(auth.ROLE.admin)) {
 				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one stream
 					[COLLECTION.member, { where: fire.addWhere(FIELD.store, STORE.status) }]);
 			} else {
@@ -319,7 +319,7 @@ export class AuthState {
 		if (currUser) {
 			const token = await currUser.getIdTokenResult(true);
 			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
-			return roles.includes(Auth.ROLE.admin);
+			return roles.includes(auth.ROLE.admin);
 		}
 		return false;
 	}

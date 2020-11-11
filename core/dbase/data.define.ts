@@ -194,7 +194,7 @@ export enum TRACK {
 	off = 'off',
 }
 
-export namespace Auth {
+export namespace auth {
 	export enum PROVIDER {
 		fb = 'fb',										// Facebook
 		go = 'go',										// Google
