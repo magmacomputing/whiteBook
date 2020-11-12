@@ -7,7 +7,6 @@ import { Store } from '@ngxs/store';
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { MHistory } from '@route/migrate/migrate.interface';
 import { cleanNote } from '@route/forum/forum.library';
 import { Migration } from '@route/migrate/migrate.define';
 
@@ -44,7 +43,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	#check!: Pledge<boolean>;
-	#history: Pledge<MHistory[]>;
+	#history: Pledge<Migration.History[]>;
 	#status!: Record<string, any>;
 	#migrate!: Migrate[];
 	#current: Register | null = null;
@@ -135,7 +134,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	async signIn(register: Register, sheet: Sheet) {
-		this.#history = new Pledge<MHistory[]>();								// quickly remove previous member's History[]							
+		this.#history = new Pledge<Migration.History[]>();								// quickly remove previous member's History[]							
 		if (this.#current?.user.customClaims!.alias === register.user.customClaims!.alias)
 			return this.signOut();																// <click> on picture will signIn / signOut
 		this.#current = register;																// stash current Member
@@ -147,7 +146,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const action = 'history,status';
 				const { id, provider } = sheet.providers![0];
 				this.fetch(action, `provider=${provider}&id=${id}`)
-					.then((resp: { history: MHistory[], status: {} }) => {
+					.then((resp: { history: Migration.History[], status: {} }) => {
 						this.#status = resp.status;
 						return (resp.history || []).orderBy(FIELD.stamp);
 					})
@@ -319,7 +318,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
-	private getExpiry(row: MHistory, profile: ProfilePlan[], plans: Plan[], prices: Price[]) {
+	private getExpiry(row: Migration.History, profile: ProfilePlan[], plans: Plan[], prices: Price[]) {
 		const prof = asAt(profile, fire.addWhere(FIELD.type, STORE.plan), row.stamp)[0];
 		const plan = asAt(plans, fire.addWhere(FIELD.key, prof.plan), row.stamp)[0];
 		const curr = asAt(prices, fire.addWhere(FIELD.key, prof.plan), row.stamp);
@@ -416,7 +415,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		} else this.#dbg('nothing to load');
 	}
 
-	private async nextAttend(flag: boolean, row: MHistory, ...rest: MHistory[]) {
+	private async nextAttend(flag: boolean, row: Migration.History, ...rest: Migration.History[]) {
 		if (!row) {
 			if (flag)
 				this.lastAttend();
@@ -622,7 +621,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.then(_ => this.nextAttend(flag, rest[0], ...rest.slice(1)))
 	}
 
-	private getElect(row: MHistory) {
+	private getElect(row: Migration.History) {
 		if (!row.note)
 			return;
 		if (row.note.includes('elect false')) {

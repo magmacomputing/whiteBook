@@ -3,8 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { MESSAGE, auth } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
-import { isDefined } from '@library/type.library';
 import { NavigateService } from '@route/router/navigate.service';
+
+import { isDefined } from '@library/type.library';
 
 @Component({
 	selector: 'wb-root',
