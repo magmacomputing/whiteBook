@@ -37,7 +37,7 @@ const routes: Routes = [
 ]
 
 @NgModule({
-	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes),],
+	imports: [CommonModule, MaterialModule, HttpClientModule, AngularFireAuthGuardModule, RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' }),],
 	exports: [RouterModule],
 	declarations: [LoginComponent, AttendComponent, OAuthComponent],
 	providers: [AngularFireAuthGuard, DeactivateGuard, OAuthGuard],
