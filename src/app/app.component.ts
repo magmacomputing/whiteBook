@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { MESSAGE, auth } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
 import { StateService } from '@dbase/state/state.service';
+import { isDefined } from '@library/type.library';
 import { NavigateService } from '@route/router/navigate.service';
 
 @Component({
@@ -18,4 +19,16 @@ export class AppComponent implements OnInit {
 	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService) { }
 
 	ngOnInit() { }
+}
+
+if (isDefined(Worker)) {
+	// Create a new
+	const worker = new Worker('./app.worker', { type: 'module' });
+	worker.onmessage = ({ data }) => {
+		console.log(`page got message: ${data}`);
+	};
+	worker.postMessage('hello');
+} else {
+	// Web Workers are not supported in this environment.
+	// You should add a fallback so that your program still executes correctly.
 }
