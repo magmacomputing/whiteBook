@@ -122,10 +122,10 @@ export namespace fire {
 
 	/** FirestoreFunction getMeta() */
 	export interface DocMeta {
-		[FIELD.id]: string;
-		[FIELD.create]?: number;
-		[FIELD.update]?: number;
-		[FIELD.access]?: number;
+		[FIELD.Id]: string;
+		[FIELD.Create]?: number;
+		[FIELD.Update]?: number;
+		[FIELD.Access]?: number;
 		exists: boolean;
 		path: string;
 		parent: string;

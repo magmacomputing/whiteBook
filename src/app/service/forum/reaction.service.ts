@@ -4,6 +4,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { STORE, REACT } from '@dbase/data.define';
 
+import { isString } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -11,18 +12,18 @@ export class ReactionService {
 	#dbg = dbg(this);
 
 	userId!: string;
-	emojiList = ['none', 'like', 'love', 'wow', 'haha', 'sad', 'angry']
+	emojiList = Object.values(REACT).filter(isString)
 
 	constructor(private data: DataService) {
 		this.data.getUID()
 			.then(uid => this.userId = uid);
 	}
 
-	getReaction(itemId: string, store = STORE.attend) {
-		return [REACT.like];
+	getReaction(itemId: string, store = STORE.Attend) {
+		return [REACT.Like];
 	}
 
-	updateReaction(itemId: string, reaction: REACT = REACT.like) {
+	updateReaction(itemId: string, reaction: REACT = REACT.Like) {
 		const data = { [this.userId]: reaction }
 		// this.db.object(`reactions/${itemId}`).update(data)
 	}
@@ -37,7 +38,7 @@ export class ReactionService {
 	}
 
 	userReaction(reactions: REACT[]) {
-		return REACT.like;
+		return REACT.Like;
 		// return _.get(reactions, this.userId)
 	}
 

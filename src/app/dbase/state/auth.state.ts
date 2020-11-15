@@ -114,8 +114,8 @@ export class AuthState {
 			default:
 				const [method, authProvider] = getAuthProvider(methods[0]);
 				switch (method) {
-					case auth.METHOD.identity:
-					case auth.METHOD.oauth:
+					case auth.METHOD.Identity:
+					case auth.METHOD.Oauth:
 						ctx.dispatch(new LoginAction.Identity(authProvider as firebase.auth.AuthProvider, link.credential));
 						break;
 				}
@@ -214,12 +214,12 @@ export class AuthState {
 	/** Events */
 	@Action(LoginEvent.Success)														// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
-		const query: fire.Query = { where: fire.addWhere(FIELD.uid, user.uid) };
+		const query: fire.Query = { where: fire.addWhere(FIELD.Uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;
 
 		if (currUser) {
-			this.sync.on(COLLECTION.attend, query);
-			this.sync.on(COLLECTION.member, query)			// wait for /member snap0 
+			this.sync.on(COLLECTION.Attend, query);
+			this.sync.on(COLLECTION.Member, query)			// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this._memberSubject.complete())
 				.then(_ => this.isAdmin())
@@ -258,7 +258,7 @@ export class AuthState {
 		 */
 		this.store.selectOnce<TStateSlice<Register>>(state => state[SLICE.admin])
 			.pipe(
-				map(admin => admin[STORE.register]),			// get the Register segment
+				map(admin => admin[STORE.Register]),			// get the Register segment
 				map(table => table.find(row => getPath(row, 'user.customClaims.alias') === alias)),
 			)
 			.subscribe(reg => {
@@ -271,12 +271,12 @@ export class AuthState {
 
 	private syncUID(uids?: string | string[] | null) {
 		if (uids) {
-			this.sync.off(COLLECTION.member);						// unsubscribe from /member
-			this.sync.off(COLLECTION.attend);						// unsubscribe from /attend
+			this.sync.off(COLLECTION.Member);						// unsubscribe from /member
+			this.sync.off(COLLECTION.Attend);						// unsubscribe from /attend
 
-			const where = fire.addWhere(FIELD.uid, uids, isArray(uids) ? 'in' : '==');
-			this.sync.on(COLLECTION.member, { where });	// re-subscribe to /member, with supplied UIDs
-			this.sync.on(COLLECTION.attend, { where });	// re-subscribe to /attend, with supplied UIDs
+			const where = fire.addWhere(FIELD.Uid, uids, isArray(uids) ? 'in' : '==');
+			this.sync.on(COLLECTION.Member, { where });	// re-subscribe to /member, with supplied UIDs
+			this.sync.on(COLLECTION.Attend, { where });	// re-subscribe to /attend, with supplied UIDs
 		}
 	}
 
@@ -304,11 +304,11 @@ export class AuthState {
 			ctx.patchState({ token });
 
 			this.dbg('customClaims: %j', ctx.getState().token?.claims.claims);
-			if (roles.includes(auth.ROLE.admin)) {
-				this.sync.on(COLLECTION.admin, undefined,		// watch all /admin and /member/status  into one stream
-					[COLLECTION.member, { where: fire.addWhere(FIELD.store, STORE.status) }]);
+			if (roles.includes(auth.ROLE.Admin)) {
+				this.sync.on(COLLECTION.Admin, undefined,		// watch all /admin and /member/status  into one stream
+					[COLLECTION.Member, { where: fire.addWhere(FIELD.Store, STORE.Status) }]);
 			} else {
-				this.sync.off(COLLECTION.admin);
+				this.sync.off(COLLECTION.Admin);
 				this.navigate.route(ROUTE.attend);
 			}
 		}
@@ -319,7 +319,7 @@ export class AuthState {
 		if (currUser) {
 			const token = await currUser.getIdTokenResult(true);
 			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
-			return roles.includes(auth.ROLE.admin);
+			return roles.includes(auth.ROLE.Admin);
 		}
 		return false;
 	}

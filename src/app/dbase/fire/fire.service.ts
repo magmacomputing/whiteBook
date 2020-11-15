@@ -63,7 +63,7 @@ export class FireService {
 
 	listen<T>(collection: COLLECTION, query?: fire.Query) {
 		return this.combine<T, 'snapshotChanges'>(this.colRef<T>(collection, query), 'snapshotChanges')
-			.pipe(map(snap => snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id, } as T))))
+			.pipe(map(snap => snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.Id]: docs.payload.doc.id, } as T))))
 	}
 
 	get<T>(collection: COLLECTION, query?: fire.Query) {
@@ -71,7 +71,7 @@ export class FireService {
 			.collection(collection, fire.fnQuery(query)[0])
 			.get({ source: 'server' })								// get the server-data, rather than cache
 			.toPromise()
-			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.id]: doc.id } as unknown as T)))
+			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
 	}
 
 	/** Document Reference, for existing or new */
@@ -99,7 +99,7 @@ export class FireService {
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
 	private removeMeta(doc: DocumentData, opts: Record<string, boolean> = {}) {
-		const { [FIELD.id]: a, [FIELD.create]: b, [FIELD.update]: c, [FIELD.access]: d, ...rest } = doc;
+		const { [FIELD.Id]: a, [FIELD.Create]: b, [FIELD.Update]: c, [FIELD.Access]: d, ...rest } = doc;
 
 		Object.entries(rest).forEach(([key, value]) => {
 			if (isUndefined(value)) {
@@ -131,9 +131,9 @@ export class FireService {
 			const d = cloneDelete.splice(0, limit - c.length - u.length);
 
 			const bat = this.afs.firestore.batch();
-			c.forEach(ins => bat.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins, { setUndefined: true })));
-			u.forEach(upd => bat.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-			d.forEach(del => bat.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+			c.forEach(ins => bat.set(this.docRef(ins[FIELD.Store], ins[FIELD.Id]), this.removeMeta(ins, { setUndefined: true })));
+			u.forEach(upd => bat.update(this.docRef(upd[FIELD.Store], upd[FIELD.Id]), this.removeMeta(upd)));
+			d.forEach(del => bat.delete(this.docRef(del[FIELD.Store], del[FIELD.Id])));
 			commits.push(bat.commit());
 		}
 
@@ -157,9 +157,9 @@ export class FireService {
 
 				this.afs.firestore.runTransaction(txn => {
 					asArray(selects).forEach(ref => txn.get(ref));
-					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.store], ins[FIELD.id]), this.removeMeta(ins)));
-					u.forEach(upd => txn = txn.update(this.docRef(upd[FIELD.store], upd[FIELD.id]), this.removeMeta(upd)));
-					d.forEach(del => txn = txn.delete(this.docRef(del[FIELD.store], del[FIELD.id])));
+					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.Store], ins[FIELD.Id]), this.removeMeta(ins)));
+					u.forEach(upd => txn = txn.update(this.docRef(upd[FIELD.Store], upd[FIELD.Id]), this.removeMeta(upd)));
+					d.forEach(del => txn = txn.delete(this.docRef(del[FIELD.Store], del[FIELD.Id])));
 
 					return Promise.resolve(true);					// if any change fails, the Transaction rejects
 				})
@@ -169,7 +169,7 @@ export class FireService {
 	}
 
 	async setDoc(store: STORE, doc: DocumentData) {
-		const docId: string = doc[FIELD.id] || this.newId();
+		const docId: string = doc[FIELD.Id] || this.newId();
 
 		doc = this.removeMeta(doc);									// remove the meta-fields from the document
 		await this.docRef(store, docId).set(doc);
@@ -189,11 +189,11 @@ export class FireService {
 			.pipe(take(1))
 			.toPromise()
 
-		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.id]: docs.payload.doc.id }));
+		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.Id]: docs.payload.doc.id }));
 	}
 
 	callMeta(store: STORE, docId: string) {
-		return this.callHttps<fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.id]: docId }, `checking ${store}`);
+		return this.callHttps<fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.Id]: docId }, `checking ${store}`);
 	}
 
 	/** This helps an Admin impersonate another Member */

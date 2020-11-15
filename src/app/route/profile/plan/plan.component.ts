@@ -27,7 +27,7 @@ export class PlanComponent implements OnInit {
 	ngOnInit() {
 		this.data$ = this.state.getPlanData().pipe(
 			map(source => {
-				source.client.plan = source.client.plan.filter(row => !row[FIELD.hidden])
+				source.client.plan = source.client.plan.filter(row => !row[FIELD.Hidden])
 				return source;
 			})
 		)
@@ -36,7 +36,7 @@ export class PlanComponent implements OnInit {
 	/** Describe the clicked Plan */
 	showPlan(plan: Plan, prices: Price[]) {
 		const image = plan.image;
-		const title = plan[FIELD.key];
+		const title = plan[FIELD.Key];
 		const subtitle = `${plan.note}${isUndefined(plan.rule) ? '' : ', ' + plan.rule}`;
 		const actions = ['Close'];
 
@@ -54,15 +54,15 @@ export class PlanComponent implements OnInit {
 		content.push('-');											// blank line
 		content.push('Pricing...');
 		prices
-			.filter(row => row[FIELD.key] === plan[FIELD.key])
+			.filter(row => row[FIELD.Key] === plan[FIELD.Key])
 			.forEach(price => {
-				if (price[FIELD.type] === PRICE.topUp && price.amount)
+				if (price[FIELD.Type] === PRICE.TopUp && price.amount)
 					content.push(`$${padString(price.amount)} to topUp your account`);
-				if (price[FIELD.type] === PRICE.hold)
+				if (price[FIELD.Type] === PRICE.Hold)
 					content.push(`$${padString(price.amount)} to put funds on-hold for 90-days`)
-				if (price[FIELD.type] === PRICE.full)
+				if (price[FIELD.Type] === PRICE.Full)
 					content.push(`$${padString(price.amount)} for a one-hour Class`);
-				if (price[FIELD.type] === PRICE.half)
+				if (price[FIELD.Type] === PRICE.Half)
 					content.push(`$${padString(price.amount)} for a half-hour Class`)
 			})
 

@@ -50,8 +50,8 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	private async getColor() {
-		this.#color = await this.data.getStore<Class>(STORE.class)
-			.then(store => store.groupBy(true, FIELD.key))
+		this.#color = await this.data.getStore<Class>(STORE.Class)
+			.then(store => store.groupBy(true, FIELD.Key))
 		this.#colorCache = memoize(this.setColor.bind(this));
 	}
 
@@ -98,9 +98,9 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				tap(_ => this.#dateChange = true),							// move the selectedIndex to latest meeting
 
 				switchMap(inst =>															// get all meeting.started events for this.date
-					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.zoom, {
+					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.Zoom, {
 						where: [
-							fire.addWhere(FIELD.type, zoom.EVENT.started),
+							fire.addWhere(FIELD.Type, zoom.EVENT.started),
 							fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
 							fire.addWhere('hook', 0),
 						]
@@ -108,12 +108,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				),
 
 				mergeMap(track => {														// merge all documents per meeting.started event
-					return this.data.getLive<zoom.Event<zoom.Started | zoom.Ended | zoom.Joined | zoom.Left>>(COLLECTION.zoom, {
+					return this.data.getLive<zoom.Event<zoom.Started | zoom.Ended | zoom.Joined | zoom.Left>>(COLLECTION.Zoom, {
 						where: [
 							fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
 							fire.addWhere('hook', 0),
 						],
-						orderBy: fire.addOrder(FIELD.stamp),						// order by timestamp
+						orderBy: fire.addOrder(FIELD.Stamp),						// order by timestamp
 					})
 				}
 				),
@@ -131,7 +131,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								this.#meetings.push({									// a new meeting started
 									uuid, meeting_id, participants: [], ...rest,
 									start: {
-										[FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp],
+										[FIELD.Id]: doc[FIELD.Id], [FIELD.Stamp]: doc[FIELD.Stamp],
 										white: doc.white, start_time, label, color
 									},
 								})
@@ -151,7 +151,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							const idx = this.#meetings.findIndex(meeting => meeting.uuid === uuid);
 
 							if (idx !== -1)
-								this.#meetings[idx].end = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], end_time, label };
+								this.#meetings[idx].end = { [FIELD.Id]: doc[FIELD.Id], [FIELD.Stamp]: doc[FIELD.Stamp], end_time, label };
 						});
 
 					(track as zoom.Event<zoom.Joined>[])									// add Participants.Joined
@@ -165,15 +165,15 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 							const fgcolor = { alias: this.#color[event as CLASS]?.color };
 							const bgcolor: zoom.Meeting["participants"][0]["join"]["bgcolor"] = {
-								price: isUndefined(price) || price > 0 ? COLOR.black : COLOR.green,
-								credit: isUndefined(credit) || credit > 20 ? COLOR.black : credit < 10 ? COLOR.red : COLOR.yellow,
-								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? COLOR.black : COLOR.yellow,
+								price: isUndefined(price) || price > 0 ? COLOR.Black : COLOR.Green,
+								credit: isUndefined(credit) || credit > 20 ? COLOR.Black : credit < 10 ? COLOR.Red : COLOR.Yellow,
+								bonus: (weekTrack[2] <= 4 || weekTrack[1] === 7) ? COLOR.Black : COLOR.Yellow,
 							}
-							if (bgcolor?.price !== COLOR.black && status?.eventNote)
+							if (bgcolor?.price !== COLOR.Black && status?.eventNote)
 								bgcolor.priceTip = status.eventNote.startsWith('Bonus: ')
 									? status.eventNote.split(':')[1].trim()
 									: status?.eventNote;
-							if (bgcolor.credit !== COLOR.black) {
+							if (bgcolor.credit !== COLOR.Black) {
 								bgcolor.creditTip = (credit || 0) <= 0 ? 'TopUp Due' : (credit || 0) < 10 ? 'Low Credit' : 'Credit Alert'
 							}
 							if (status?.bonus)
@@ -187,7 +187,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 
 								this.#meetings[idx].participants[pdx === -1 ? this.#meetings[idx].participants.length : pdx] = {
 									participant_id, user_id, user_name, leave,
-									join: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], white: doc.white!, join_time, label, price, credit, fgcolor, bgcolor },
+									join: { [FIELD.Id]: doc[FIELD.Id], [FIELD.Stamp]: doc[FIELD.Stamp], white: doc.white!, join_time, label, price, credit, fgcolor, bgcolor },
 								}
 							}
 						});
@@ -204,11 +204,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 								if (pdx === -1) {										// Leave without a corresponding Join, so create dummy Join
 									this.#meetings[idx].participants.push({
 										participant_id, user_id, user_name,
-										join: { [FIELD.id]: '', [FIELD.stamp]: -1, white: {}, join_time: leave_time, label: '', },
-										leave: { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label },
+										join: { [FIELD.Id]: '', [FIELD.Stamp]: -1, white: {}, join_time: leave_time, label: '', },
+										leave: { [FIELD.Id]: doc[FIELD.Id], [FIELD.Stamp]: doc[FIELD.Stamp], leave_time, label },
 									})
 								}
-								else this.#meetings[idx].participants[pdx].leave = { [FIELD.id]: doc[FIELD.id], [FIELD.stamp]: doc[FIELD.stamp], leave_time, label }
+								else this.#meetings[idx].participants[pdx].leave = { [FIELD.Id]: doc[FIELD.Id], [FIELD.Stamp]: doc[FIELD.Stamp], leave_time, label }
 							}
 						});
 
@@ -234,13 +234,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			return;
 
 		const where = [
-			fire.addWhere(FIELD.type, zoom.EVENT.joined),
+			fire.addWhere(FIELD.Type, zoom.EVENT.joined),
 			fire.addWhere('white.alias', white.alias),
 			fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
 		const [join, sheet] = await Promise.all([
-			this.data.getLive<zoom.Event<zoom.Joined>>(COLLECTION.zoom, { where }),
-			this.state.getSingle<Sheet>(STORE.sheet, fire.addWhere(FIELD.uid, white.alias))
+			this.data.getLive<zoom.Event<zoom.Joined>>(COLLECTION.Zoom, { where }),
+			this.state.getSingle<Sheet>(STORE.Sheet, fire.addWhere(FIELD.Uid, white.alias))
 		])
 
 		const image = sheet.picture;
@@ -266,11 +266,11 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				<td style="color:${color};font-weight:bold;" > ${event} </td>
 				<td align = "right" > ${asCurrency(price!)} </td>
 				</tr>`;
-				return attends.push({ date: doc[FIELD.stamp], attend: fmt });
+				return attends.push({ date: doc[FIELD.Stamp], attend: fmt });
 			})
 			),
 			switchMap(_ => of(attends
-				.orderBy(FIELD.date)
+				.orderBy(FIELD.Date)
 				.map(list => list.attend)
 			)),
 		)
@@ -279,6 +279,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	}
 
 	setColor(white?: zoom.White) {
-		return (white?.class && this.#color[white.class as CLASS].color) || COLOR.black;
+		return (white?.class && this.#color[white.class as CLASS].color) || COLOR.Black;
 	}
 }

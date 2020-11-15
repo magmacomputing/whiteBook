@@ -5,7 +5,7 @@ import { TStateSlice } from '@dbase/state/state.define';
 
 import { SLICES, COMMENT } from '@dbase/state/config.define';
 import { setSchema, setConfig } from '@dbase/state/config.library';
-import { STORE, FIELD, COLLECTION } from '@dbase/data.define';
+import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
 import type { FireDocument, Schema, Config } from '@dbase/data.schema';
 
 import { asArray } from '@library/array.library';
@@ -15,7 +15,7 @@ import { dbg } from '@library/logger.library';
 
 @Injectable()
 @State<TStateSlice<FireDocument>>({
-	name: COLLECTION.client,
+	name: COLLECTION.Client,
 	defaults: {}
 })
 export class ClientState implements NgxsOnInit {
@@ -27,11 +27,11 @@ export class ClientState implements NgxsOnInit {
 
 	private init() {
 		this.dbg('init:');
-		this.store.selectOnce(state => state[COLLECTION.client])
+		this.store.selectOnce(state => state[COLLECTION.Client])
 			.toPromise()
 			.then(client => {
-				setSchema(client && client[STORE.schema]);				// initial load of STORES / SORTBY / FILTER
-				setConfig(client && client[STORE.config]);				// initial load of COMMENT
+				setSchema(client && client[STORE.Schema]);				// initial load of STORES / SORTBY / FILTER
+				setConfig(client && client[STORE.Config]);				// initial load of COMMENT
 			})
 	}
 
@@ -42,22 +42,22 @@ export class ClientState implements NgxsOnInit {
 		const config: FireDocument[] = [];
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.store];
+			const store = doc[FIELD.Store];
 			state[store] = filterState(state, doc);
 			state[store].push(doc);									// push the new/changed ClientDoc into the Store
 
-			if (doc[FIELD.store] === STORE.schema && (debug || isEmpty<object>(SLICES)))
+			if (doc[FIELD.Store] === STORE.Schema && (debug || isEmpty<object>(SLICES)))
 				schema.push(doc);											// if STORE.schema changes, rebuild schema-variables
-			if (doc[FIELD.store] === STORE.config && (debug || isEmpty<object>(COMMENT)))
+			if (doc[FIELD.Store] === STORE.Config && (debug || isEmpty<object>(COMMENT)))
 				config.push(doc);
 
-			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.store], doc);
+			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.Store], doc);
 		})
 
 		if (schema.length)
-			setSchema(state[STORE.schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
+			setSchema(state[STORE.Schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.config] as Config[]);
+			setConfig(state[STORE.Config] as Config[]);
 		setState({ ...state });
 	}
 
@@ -68,23 +68,23 @@ export class ClientState implements NgxsOnInit {
 		const config: FireDocument[] = [];
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.store];
+			const store = doc[FIELD.Store];
 			state[store] = filterState(state, doc);
 
 			if (state[store].length === 0)
-				delete state[doc[FIELD.store]]
-			if (store === STORE.schema && doc[FIELD.type] && doc[FIELD.key])
+				delete state[doc[FIELD.Store]]
+			if (store === STORE.Schema && doc[FIELD.Type] && doc[FIELD.Key])
 				schema.push(doc);
-			if (store === STORE.config && doc[FIELD.type] && doc[FIELD.key])
+			if (store === STORE.Config && doc[FIELD.Type] && doc[FIELD.Key])
 				config.push(doc);
 
-			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.store], doc);
+			if (debug) this.dbg('delClient: %s, %j', doc[FIELD.Store], doc);
 		})
 
 		if (schema.length)
-			setSchema(state[STORE.schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
+			setSchema(state[STORE.Schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.config] as Config[]);	// rebuild the COMMENT variable
+			setConfig(state[STORE.Config] as Config[]);	// rebuild the COMMENT variable
 		setState({ ...state });
 	}
 

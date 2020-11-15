@@ -4,7 +4,7 @@ import { TInstant } from '@library/instant.library';
 
 export interface ForumArgs {
 	key: string,
-	store?: STORE.react | STORE.comment;
+	store?: STORE.React | STORE.Comment;
 	type?: STORE,
 	track?: Record<string, string | number>;
 	date?: TInstant;

@@ -143,7 +143,7 @@ export class SyncService {
 		this.#dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
 			listen.label, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-		if (listen.cnt === 0 && key.collection !== COLLECTION.admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
+		if (listen.cnt === 0 && key.collection !== COLLECTION.Admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps)) {
 				listen.ready.resolve(true);										// storage already sync'd... skip the initial snapshot
@@ -161,19 +161,19 @@ export class SyncService {
 		if (listen.cnt !== 0) {
 			snaps.forEach(async snap => {										// look for special actions to emit
 				const data = addMeta(snap);
-				if (data[FIELD.uid] === listen.uid) {					// but only for authenticated User
+				if (data[FIELD.Uid] === listen.uid) {					// but only for authenticated User
 					switch (snap.type) {
 						case 'added':
 						case 'modified':
-							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'claim' && !data[FIELD.expire])
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === 'claim' && !data[FIELD.Expire])
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
-							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === 'plan' && !data[FIELD.Expire])
 								this.navigate.route(ROUTE.attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
-							if (data[FIELD.store] === STORE.profile && data[FIELD.type] === 'plan' && !data[FIELD.expire])
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === 'plan' && !data[FIELD.Expire])
 								this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
 							break;
 					}

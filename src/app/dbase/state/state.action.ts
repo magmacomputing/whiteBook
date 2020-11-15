@@ -98,9 +98,9 @@ export namespace adminAction {
 // }
 
 /** helper function to return all except nominated document */
-export const filterState = (state: TStateSlice<FireDocument>, payload: FireDocument, segment = FIELD.store) => {
-	const slice = payload[segment] as FIELD.store | FIELD.type;
+export const filterState = (state: TStateSlice<FireDocument>, payload: FireDocument, segment = FIELD.Store) => {
+	const slice = payload[segment] as FIELD.Store | FIELD.Type;
 	const curr = state && slice && state[slice] || [];
 
-	return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
+	return [...curr.filter(itm => itm[FIELD.Id] !== payload[FIELD.Id])];
 }

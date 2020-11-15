@@ -4,7 +4,7 @@ import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 import type { TStateSlice } from '@dbase/state/state.define';
 import type { FireDocument } from '@dbase/data.schema';
 import { memberAction, filterState } from '@dbase/state/state.action';
-import { FIELD, COLLECTION } from '@dbase/data.define';
+import { COLLECTION, FIELD } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
@@ -12,7 +12,7 @@ import { dbg } from '@library/logger.library';
 
 @Injectable()
 @State<TStateSlice<FireDocument>>({
-	name: COLLECTION.member,
+	name: COLLECTION.Member,
 	defaults: {}
 })
 export class MemberState implements NgxsOnInit {
@@ -32,7 +32,7 @@ export class MemberState implements NgxsOnInit {
 
 		asArray(payload).forEach(doc => {
 			doc
-			const store = doc[FIELD.store];
+			const store = doc[FIELD.Store];
 
 			state[store] = filterState(state, doc);
 			state[store].push(doc);							// push the changed MemberDoc into the Store
@@ -46,7 +46,7 @@ export class MemberState implements NgxsOnInit {
 	@Action(memberAction.Del)
 	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: memberAction.Del) {
 		const state = cloneObj(getState()) || {};
-		const segment = FIELD.store;
+		const segment = FIELD.Store;
 
 		asArray(payload).forEach(doc => {
 			const slice = doc[segment];

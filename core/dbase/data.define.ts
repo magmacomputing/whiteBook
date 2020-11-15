@@ -1,81 +1,75 @@
 
 export enum COLLECTION {
-	client = 'client',							// App details
-	member = 'member',							// Member-related details
-	attend = 'attend',							// Attendance records (per Member, per Event)
-	admin = 'admin',								// Administrator records
-	device = 'device',							// Connected Devices (per Member)
-	forum = 'forum',								// Comments / Reactions / Feedback
-	zoom = 'zoom',									// Zoom Meeting integration
-	log = 'log',										// App actions
+	Client = 'client',							// App details
+	Member = 'member',							// Member-related details
+	Attend = 'attend',							// Attendance records (per Member, per Event)
+	Admin = 'admin',								// Administrator records
+	Device = 'device',							// Connected Devices (per Member)
+	Forum = 'forum',								// Comments / Reactions / Feedback
+	Zoom = 'zoom',									// Zoom Meeting integration
+	Log = 'log',										// App actions
 }
 
 export enum STORE {
 	// Client
-	alert = 'alert',
-	bonus = 'bonus',
-	calendar = 'calendar',
-	class = 'class',
-	event = 'event',
-	icon = 'icon',
-	instructor = 'instructor',
-	location = 'location',
-	plan = 'plan',
-	price = 'price',
-	provider = 'provider',
-	schedule = 'schedule',
-	span = 'span',
-	default = '_default_',
-	config = '_config_',
-	schema = '_schema_',
+	Alert = 'alert',
+	Bonus = 'bonus',
+	Calendar = 'calendar',
+	Class = 'class',
+	Event = 'event',
+	Icon = 'icon',
+	Instructor = 'instructor',
+	Location = 'location',
+	Plan = 'plan',
+	Price = 'price',
+	Provider = 'provider',
+	Schedule = 'schedule',
+	Span = 'span',
+	Default = '_default_',
+	Config = '_config_',
+	Schema = '_schema_',
 	// Member
-	gift = 'gift',
-	diary = 'diary',
-	payment = 'payment',
-	message = 'message',
-	profile = 'profile',
-	setting = 'setting',
-	status = 'status',							// ad-hoc member documents
+	Gift = 'gift',
+	Diary = 'diary',
+	Payment = 'payment',
+	Message = 'message',
+	Profile = 'profile',
+	Setting = 'setting',
+	Status = 'status',							// ad-hoc member documents
 	// Admin
-	register = 'register',					// copy of Firestore Authentication object
-	migrate = 'migrate',						// imported event attends from Google Apps Sheets
-	sheet = 'sheet',								// imported details from Google Apps Sheets register
+	Register = 'register',					// copy of Firestore Authentication object
+	Migrate = 'migrate',						// imported event attends from Google Apps Sheets
+	Sheet = 'sheet',								// imported details from Google Apps Sheets register
 	// Forum
-	comment = 'comment',
-	react = 'react',
+	Comment = 'comment',
+	React = 'react',
 	// Attend
-	attend = 'attend',
+	Attend = 'attend',
 	// misc
-	local = '@config@',
-	log = 'log',
-	zoom = 'zoom',
-}
-
-export enum TYPE {								// standard <type> field names
-	claim = 'claim',
-	info = 'info',
-	token = 'token',
+	Local = '@config@',
+	Log = 'log',
+	Zoom = 'zoom',
 }
 
 export enum FIELD {								// common Field names
-	effect = '_effect',							// valid when greater-than-or-equal-to
-	expire = '_expire',							// valid when less-than
-	update = '_update',							// date-time modified
-	create = '_create',							// date-time created
-	access = '_access',							// date-time accessed
-	hidden = '_hidden',							// valid, but not displayed to User
-	disable = '_disable',						// displayed, but greyed to User
-	id = '_id',
-	key = 'key',
-	type = 'type',
-	name = 'name',
-	store = 'store',
-	stamp = 'stamp',
-	uid = 'uid',
-	note = 'note',
-	date = 'date',
-	sort = 'sort',
-	image = 'image',
+	Effect = '_effect',							// valid when greater-than-or-equal-to
+	Expire = '_expire',							// valid when less-than
+	Update = '_update',							// date-time modified
+	Create = '_create',							// date-time created
+	Access = '_access',							// date-time accessed
+	Hidden = '_hidden',							// valid, but not displayed to User
+	Hisable = '_disable',						// displayed, but greyed to User
+	Id = '_id',
+	Key = 'key',
+	Type = 'type',
+	Name = 'name',
+	Store = 'store',
+	Stamp = 'stamp',
+	Uid = 'uid',
+	Note = 'note',
+	Date = 'date',
+	Sort = 'sort',
+	Image = 'image',
 }
 
 export enum CLASS {
@@ -94,8 +88,8 @@ export enum CLASS {
 }
 
 export enum MESSAGE {
-	diary = 'diary',
-	alert = 'alert',
+	Diary = 'diary',
+	Alert = 'alert',
 }
 
 export enum EVENT {
@@ -109,54 +103,53 @@ export enum EVENT {
 }
 
 export enum SCHEDULE {
-	class = 'class',
-	event = 'event',
-	special = 'special',
+	Class = 'class',
+	Event = 'event',
+	Special = 'special',
 }
 
 export enum PROFILE {
-	plan = 'plan',
-	claim = 'claim',
-	info = 'info',
-	pref = 'pref',
-	token = 'token',
+	Plan = 'plan',
+	Claim = 'claim',
+	Info = 'info',
+	Pref = 'pref',
+	Token = 'token',
 }
 
 export enum PLAN {
-	member = 'member',
-	casual = 'casual',
-	gratis = 'gratis',
-	student = 'student',
-	sponsor = 'sponsor',
-	senior = 'senior',
-	core = 'core',
-	intro = 'intro',
+	Member = 'member',
+	Casual = 'casual',
+	Gratis = 'gratis',
+	Student = 'student',
+	Sponsor = 'sponsor',
+	Senior = 'senior',
+	Core = 'core',
+	Intro = 'intro',
 }
 
 export enum PRICE {
-	full = 'full',
-	half = 'half',
-	topUp = 'topUp',
-	hold = 'hold',
-	home = 'home',
+	Full = 'full',
+	Half = 'half',
+	TopUp = 'topUp',
+	Hold = 'hold',
+	Home = 'home',
 }
 
 export enum PAYMENT {
-	credit = 'credit',
-	debit = 'debit',
-	topUp = 'topUp',
-	hold = 'hold',
+	TopUp = 'topUp',
+	Adjust = 'adjust',
+	Hold = 'hold',
 }
 
 export enum CALENDAR {
-	once = 'once',
-	special = 'special',
+	Once = 'once',
+	Special = 'special',
 }
 
 export enum SPAN {
-	full = 'full',
-	half = 'half',
-	home = 'home',
+	Full = 'full',
+	Half = 'half',
+	Home = 'home',
 }
 
 export enum COLOR {
@@ -174,24 +167,24 @@ export enum COLOR {
 	'Step@Home' = '#77aaff',
 	// 'Rumba@Home' = '#bf9000',
 	'Rumba@Home' = '#ac716e',
-	collection = '#4a86e8',
-	store = '#980000',
-	admin = '#38761d',
+	Collection = '#4a86e8',
+	Store = '#980000',
+	Admin = '#38761d',
 
-	black = '#ffffff',
-	yellow = '#fff2cc',
-	green = '#d9ead3',
-	red = '#e6b8af',
+	Black = '#ffffff',
+	Yellow = '#fff2cc',
+	Green = '#d9ead3',
+	Red = '#e6b8af',
 }
 
 export enum TRACK {
-	all = 'all',
-	debug = 'debug',
-	info = 'info',
-	warn = 'warn',
-	error = 'error',
-	fatal = 'fatal',
-	off = 'off',
+	Off = 'off',
+	All = 'all',
+	Debug = 'debug',
+	Info = 'info',
+	Warn = 'warn',
+	Error = 'error',
+	Fatal = 'fatal',
 }
 
 export namespace auth {
@@ -207,55 +200,55 @@ export namespace auth {
 	}
 
 	export enum METHOD {
-		identity = 'identity',
-		oauth = 'oauth',
-		oidc = 'oidc',
-		email = 'email',
-		phone = 'phone',
-		play = 'play',
-		anonymous = 'anonymous',
-		custom = 'custom',
+		Identity = 'identity',
+		Oauth = 'oauth',
+		Oidc = 'oidc',
+		Email = 'email',
+		Phone = 'phone',
+		Play = 'play',
+		Anonymous = 'anonymous',
+		Custom = 'custom',
 	}
 
 	export enum ROLE {
-		member = 'member',
-		instructor = 'instructor',
-		admin = 'admin',
-		guest = 'guest',
+		Member = 'member',
+		Instructor = 'instructor',
+		Admin = 'admin',
+		Guest = 'guest',
 	}
 }
 
 export enum STATUS {
-	connect = 'connect',						// status-document to store current connection-state
-	account = 'account',						// status-document for summary of Member's current account balance						
+	Connect = 'connect',						// status-document to store current connection-state
+	Account = 'account',						// status-document for summary of Member's current account balance						
 }
 
 export enum CONNECT {
-	connect = 'connect',						// connected, but not logged-in
-	active = 'active',							// logged-in, browser has focus
-	behalf = 'behalf',							// logged-in on behalf of Member
-	inactive = 'inactive',					// logged-in, browser lost focus
-	offline = 'offline',						// logged-in, network off air
-	logout = 'logout',							// logged-out, browser lost focus
+	Connect = 'connect',						// connected, but not logged-in
+	Active = 'active',							// logged-in, browser has focus
+	Behalf = 'behalf',							// logged-in on behalf of Member
+	Inactive = 'inactive',					// logged-in, browser lost focus
+	Offline = 'offline',						// logged-in, network off air
+	Logout = 'logout',							// logged-out, browser lost focus
 }
 
 export enum BONUS {
-	none = 'none',
-	gift = 'gift',
-	class = 'class',
-	week = 'week',
-	month = 'month',
-	sunday = 'sunday',
-	home = 'home',
+	None = 'none',
+	Gift = 'gift',
+	Class = 'class',
+	Week = 'week',
+	Month = 'month',
+	Sunday = 'sunday',
+	Home = 'home',
 }
 
 export enum REACT {
-	none,
-	like,
-	love,
-	wow,
-	laugh,
-	sad,
-	angry,
-	poop,
+	None,
+	Like,
+	Love,
+	Wow,
+	Laugh,
+	Sad,
+	Angry,
+	Poop,
 }

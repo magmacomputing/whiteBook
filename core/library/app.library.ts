@@ -117,8 +117,8 @@ export const asAt = <T>(table: T[], cond: fire.Query["where"] = [], date?: TInst
 	const stamp = getStamp(date);
 
 	return filterTable(table as (T & FireDocument)[], cond)		// return the rows where date is between _effect and _expire
-		.filter(row => stamp < (row[FIELD.expire] || Number.MAX_SAFE_INTEGER))
-		.filter(row => stamp >= (row[FIELD.effect] || Number.MIN_SAFE_INTEGER))
-		.filter(row => !row[FIELD.hidden])											// discard rows that should not be visible
+		.filter(row => stamp < (row[FIELD.Expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => stamp >= (row[FIELD.Effect] || Number.MIN_SAFE_INTEGER))
+		.filter(row => !row[FIELD.Hidden])											// discard rows that should not be visible
 		.map(row => row as T)
 }

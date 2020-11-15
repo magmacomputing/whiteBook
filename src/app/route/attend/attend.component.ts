@@ -51,14 +51,14 @@ export class AttendComponent implements OnDestroy {
 	// Build info to show in a Dialog
 	showEvent(client: TimetableState["client"], idx: number) {
 		const item = client.schedule![idx];							// the Schedule item clicked
-		const event = client.class!.find(row => row[FIELD.key] === item[FIELD.key]);
-		const locn = client.location!.find(row => row[FIELD.key] === item.location);
-		const instr = client.instructor!.find(row => row[FIELD.key] === item.instructor);
-		const span = client.span!.find(row => row[FIELD.key] === event![FIELD.type]);
+		const event = client.class!.find(row => row[FIELD.Key] === item[FIELD.Key]);
+		const locn = client.location!.find(row => row[FIELD.Key] === item.location);
+		const instr = client.instructor!.find(row => row[FIELD.Key] === item.instructor);
+		const span = client.span!.find(row => row[FIELD.Key] === event![FIELD.Type]);
 		const dow = Instant.WEEKDAY[item.day];
 		// const bonus = client.bonus!.find(row => row[FIELD.key] === item.bonus);
 
-		const title = item[FIELD.key];
+		const title = item[FIELD.Key];
 		const subtitle = event?.note ?? '';
 		const image = item.image;
 		const actions = ['Close'];
@@ -123,10 +123,10 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	public setReact(item: Schedule, react: REACT) {
-		this.forum.setReact({ key: item[FIELD.id], track: { class: item[FIELD.key] }, react })
+		this.forum.setReact({ key: item[FIELD.Id], track: { class: item[FIELD.Key] }, react })
 	}
 
 	public setComment(item: Schedule, comment: TString) {
-		this.forum.setComment({ key: item[FIELD.id], track: { class: item[FIELD.key] }, comment })
+		this.forum.setComment({ key: item[FIELD.Id], track: { class: item[FIELD.Key] }, comment })
 	}
 }

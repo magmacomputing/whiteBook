@@ -16,7 +16,7 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable()
 @State<TStateSlice<FireDocument>>({
-	name: COLLECTION.admin,
+	name: COLLECTION.Admin,
 	defaults: {}
 })
 export class AdminState implements NgxsOnInit {
@@ -33,8 +33,8 @@ export class AdminState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.type] || doc[FIELD.store];
-			const segment = doc[FIELD.type] ? FIELD.type : FIELD.store;
+			const store = doc[FIELD.Type] || doc[FIELD.Store];
+			const segment = doc[FIELD.Type] ? FIELD.Type : FIELD.Store;
 
 			state[store] = filterState(state, doc, segment);
 			state[store].push(doc);							// push the changed AdminDoc into the Store
@@ -50,8 +50,8 @@ export class AdminState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.type] || doc[FIELD.store];
-			const segment = doc[FIELD.type] ? FIELD.type : FIELD.store;
+			const store = doc[FIELD.Type] || doc[FIELD.Store];
+			const segment = doc[FIELD.Type] ? FIELD.Type : FIELD.Store;
 
 			state[store] = filterState(state, doc, segment);
 			if (state[store].length === 0)

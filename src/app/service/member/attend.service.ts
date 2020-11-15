@@ -9,16 +9,16 @@ import { attendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
-import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION, PAYMENT } from '@dbase/data.define';
 import type { FireDocument, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data.schema';
 
-import { PAY, ATTEND } from '@service/member/attend.define';
+import { PAY, ATTEND, Chain } from '@service/member/attend.define';
 import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
 
 import { getInstant, Instant, TInstant } from '@library/instant.library';
-import { isUndefined, isNumber, isEmpty, nullToZero } from '@library/type.library';
+import { isUndefined, isNumber, isEmpty, nullToZero, isDefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -37,9 +37,9 @@ export class AttendService {
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// if no <date>, then look back up-to 7 days to find when the Scheduled class was last offered.  
-		// This presumes that the <key> is from Schedule store, and not Calendar
+		// This presumes that the <key> is from Schedule store (classes), and not Calendar (events)
 		if (isUndefined(date))
-			date = await this.lkpDate(schedule[FIELD.key], schedule.location);
+			date = await this.lkpDate(schedule[FIELD.Key], schedule.location);
 		const now = getInstant(date);
 		const stamp = now.ts;
 		const when = now.format(Instant.FORMAT.yearMonthDay);
@@ -53,28 +53,28 @@ export class AttendService {
 			.toPromise()																		// emit Observable as Promise
 
 		// <schedule> might be from Schedule or Calender store
-		const field = schedule[FIELD.store] === STORE.schedule
-			? FIELD.id																			// compare requested schedule to timetable's ID
-			: FIELD.key																			// compare requested event to class's Key
+		const field = schedule[FIELD.Store] === STORE.Schedule
+			? FIELD.Id																			// compare requested schedule to timetable's ID
+			: FIELD.Key																			// compare requested event to class's Key
 		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
 		if (!timetable)																		// this schedule is not actually offered on this date!
-			return this.snack.error(`This schedule item not available today: ${schedule[FIELD.id]}`);
+			return this.snack.error(`This schedule item not available today: ${schedule[FIELD.Id]}`);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// check we are not re-booking same Class on same Day in same Location at same ScedhuleTime
-		const bookAttend = await this.data.getStore<Attend>(STORE.attend, [
-			fire.addWhere(FIELD.uid, data.auth.current!.uid),
-			fire.addWhere(`track.${FIELD.date}`, when),
-			fire.addWhere(`timetable.${FIELD.key}`, schedule[FIELD.key]),
-			fire.addWhere(`timetable.${FIELD.id}`, schedule[FIELD.id]),// schedule has <location>, <instructor>, <startTime>
-			fire.addWhere('note', schedule[FIELD.note]),					// a different 'note' will allow us to re-book same Class
-		]);
+		// check we are not re-booking same Class on same Day in same Location at same ScheduleTime
+		const bookAttend = await this.data.getStore<Attend>(STORE.Attend, [
+			fire.addWhere(FIELD.Uid, data.auth.current!.uid),
+			fire.addWhere(`track.${FIELD.Date}`, when),
+			fire.addWhere(`timetable.${FIELD.Key}`, schedule[FIELD.Key]),
+			fire.addWhere(`timetable.${FIELD.Id}`, schedule[FIELD.Id]),// schedule has <location>, <instructor>, <startTime>
+			fire.addWhere('note', schedule[FIELD.Note]),					// a different 'note' will allow us to re-book same Class
+		])
 
 		if (bookAttend.length) {													// disallow same Class, same Note
-			const noNote = !schedule[FIELD.note] && bookAttend.some(row => isUndefined(row[FIELD.note]));
-			const isNote = schedule[FIELD.note] && bookAttend.some(row => row[FIELD.note] === schedule[FIELD.note]);
+			const noNote = !schedule[FIELD.Note] && bookAttend.some(row => isUndefined(row[FIELD.Note]));
+			const isNote = schedule[FIELD.Note] && bookAttend.some(row => row[FIELD.Note] === schedule[FIELD.Note]);
 			if (noNote || isNote)
-				return this.snack.error(`Already attended ${schedule[FIELD.key]} on ${now.format(Instant.FORMAT.display)}`);
+				return this.snack.error(`Already attended ${schedule[FIELD.Key]} on ${now.format(Instant.FORMAT.display)}`);
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,12 +89,12 @@ export class AttendService {
 			if (isEmpty(timetable.bonus))
 				delete timetable.bonus;												// not needed
 		}
-		if (timetable.bonus?.[FIELD.id])
+		if (timetable.bonus?.[FIELD.Id])
 			timetable.price!.amount = nullToZero(timetable.bonus.amount);	// override Plan price
 
 		// if the caller provided a schedule.amount, and it is different to the calculated amount!  
 		// this is useful for the bulk Migration of attends
-		if (!isUndefined(schedule.amount) && schedule.amount !== timetable.price.amount) {// calculation mis-match
+		if (isDefined(schedule.amount) && schedule.amount !== timetable.price.amount) {// calculation mis-match
 			this.#dbg('bonus: %j', timetable.bonus);
 			return this.snack.error(`Price discrepancy: paid ${schedule.amount}, but should be ${timetable.price.amount}`);
 		}
@@ -129,7 +129,7 @@ export class AttendService {
 			if (!tests[PAY.under_limit] && tests[PAY.enough_funds]) {
 				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
 					const payment = await this.member.setPayment(0, stamp);
-					payment.approve = { uid: ATTEND.autoApprove, stamp };
+					Object.assign(payment.fee[0], { uid: ATTEND.autoApprove, stamp });
 
 					creates.push(payment);											// stack the topUp Payment into the batch
 					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment
@@ -152,13 +152,13 @@ export class AttendService {
 			if (next && !next.bank) {												// rollover unused funds into next Payment
 				data.account.payment[queue].bank = data.account.summary.funds;
 				if (active)
-					updates.push({ [FIELD.effect]: stamp, [FIELD.expire]: stamp, ...active });	// close previous Payment
+					updates.push({ [FIELD.Effect]: stamp, [FIELD.Expire]: stamp, ...active });	// close previous Payment
 				if (data.account.summary.funds)
-					updates.push({ ...data.account.payment[queue] });	// update the now-Active payment with <bank>
+					updates.push({ ...data.account.payment[queue] });	// update the now-Active Payment with <bank>
 
 				if (active)
-					data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive payment
-				data.account.attend = await this.data.getStore(STORE.attend, fire.addWhere(`${STORE.payment}.${FIELD.id}`, next[FIELD.id]));
+					data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive Payment
+				data.account.attend = await this.data.getStore(STORE.Attend, fire.addWhere(`${STORE.Payment}.${FIELD.Id}`, next[FIELD.Id]));
 			}
 
 			if (isUndefined(next))
@@ -167,39 +167,40 @@ export class AttendService {
 		if (isUndefined(active))
 			return this.snack.error('Could not allocate an active Payment');
 
-		const upd: Partial<Payment> = {};								// updates to the Payment
-		if (!active[FIELD.effect])
-			upd[FIELD.effect] = stamp;											// mark Effective on first check-in
+		const expired = active.fee.find(fee => asArray(fee.note).indexOf('Credit Expired') !== -1);
+		const upd: Partial<Payment> = {};									// updates to the Payment
+		if (!active[FIELD.Effect])
+			upd[FIELD.Effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
-			upd[FIELD.expire] = stamp;											// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.approve && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
-			upd.expiry = calcExpiry(active.approve.stamp, active, data.client);
+			upd[FIELD.Expire] = expired?.stamp ?? stamp;		// mark Expired if no funds (except $0 classes)
+		if (!active.expiry && active.fee[0][FIELD.Stamp] && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
+			upd.expiry = calcExpiry(active.fee[0][FIELD.Stamp]!, active, data.client);
 
 		if (!isEmpty(upd))																// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
-		if (data.member.plan[0].plan === PLAN.intro && (data.account.summary.funds - schedule.amount) <= 0)
-			this.member.setPlan(PLAN.member, stamp + 1);		// auto-bump 'intro' to 'member' Plan
+		if (data.member.plan[0].plan === PLAN.Intro && (data.account.summary.funds - schedule.amount) <= 0)
+			this.member.setPlan(PLAN.Member, stamp + 1);		// auto-bump 'intro' to 'member' Plan
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
 
 		const attendDoc = {
-			[FIELD.store]: STORE.attend,
-			[FIELD.stamp]: stamp,														// createDate
-			[FIELD.note]: schedule[FIELD.note],							// optional 'note'
+			[FIELD.Store]: STORE.Attend,
+			[FIELD.Stamp]: stamp,														// createDate
+			[FIELD.Note]: schedule[FIELD.Note],							// optional 'note'
 			timetable: {
-				[FIELD.id]: schedule[FIELD.id],								// <id> of the Schedule
-				[FIELD.key]: schedule[FIELD.key],							// the Attend's class
-				[FIELD.store]: schedule[FIELD.type] === SCHEDULE.class ? STORE.schedule : STORE.calendar,
-				[FIELD.type]: schedule[FIELD.type],						// the type of Attend ('class', 'event', 'special')
+				[FIELD.Id]: schedule[FIELD.Id],								// <id> of the Schedule
+				[FIELD.Key]: schedule[FIELD.Key],							// the Attend's class
+				[FIELD.Store]: schedule[FIELD.Type] === SCHEDULE.Class ? STORE.Schedule : STORE.Calendar,
+				[FIELD.Type]: schedule[FIELD.Type],						// the type of Attend ('class', 'event', 'special')
 			},
 			payment: {
-				[FIELD.id]: active[FIELD.id],									// <id> of Account's current active document
+				[FIELD.Id]: active[FIELD.Id],									// <id> of Account's current active document
 				amount: schedule.amount,											// calculated price of the Attend
 			},
 			track: {
-				[FIELD.date]: when,														// yyyymmdd of the Attend
+				[FIELD.Date]: when,														// yyyymmdd of the Attend
 				day: now.dow,																	// day of week
 				week: now.format(Instant.FORMAT.yearWeek),		// week-number of year
 				month: now.format(Instant.FORMAT.yearMonth),	// month-number of year
@@ -219,12 +220,12 @@ export class AttendService {
 		let ctr = 0;
 
 		if (!location)
-			location = this.state.getDefault(timetable, STORE.location);
+			location = this.state.getDefault(timetable, STORE.Location);
 
 		for (ctr; ctr < 7; ctr++) {
 			const classes = timetable.client.schedule!						// loop through schedule
 				.filter(row => row.day === now.dow)									// finding a match in 'day'
-				.filter(row => row[FIELD.key] === className)				// and match in 'class'
+				.filter(row => row[FIELD.Key] === className)				// and match in 'class'
 				.filter(row => row.location === location)						// and match in 'location'
 			// .filter(row => row.start === now.format(Instant.FORMAT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
 
@@ -246,13 +247,13 @@ export class AttendService {
 	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
 	 */
 	public delAttend = async (where: fire.Query["where"]) => {
-		const memberUid = fire.addWhere(FIELD.uid, (await this.data.getUID()));
+		const memberUid = fire.addWhere(FIELD.Uid, (await this.data.getUID()));
 		const filter = asArray(where);
-		if (!filter.map(clause => clause.fieldPath).includes(FIELD.uid))
+		if (!filter.map(clause => clause.fieldPath).includes(FIELD.Uid))
 			filter.push(memberUid);																// ensure UID is present in where-clause
 
 		const updates: FireDocument[] = [];
-		const deletes: FireDocument[] = await this.data.getStore<Attend>(STORE.attend, filter);
+		const deletes: FireDocument[] = await this.data.getStore<Attend>(STORE.Attend, filter);
 
 		if (deletes.length === 0) {
 			this.#dbg('No items to delete');
@@ -260,14 +261,14 @@ export class AttendService {
 		}
 
 		const payIds = (deletes as Attend[])									// the Payment IDs related to this reversal
-			.map(attend => attend.payment[FIELD.id])
+			.map(attend => attend.payment[FIELD.Id])
 			.distinct();
 		const giftIds = (deletes as Attend[])									// the Gift IDs related to this reversal
-			.filter(attend => attend.bonus?.[FIELD.type] === BONUS.gift)
-			.map(row => row.bonus![FIELD.id])
+			.filter(attend => attend.bonus?.[FIELD.Type] === BONUS.Gift)
+			.map(row => row.bonus![FIELD.Id])
 			.distinct();
 		const scheduleIds = (deletes as Attend[])							// the Schedule IDs that may have Forum content
-			.map(attend => attend.timetable[FIELD.id])
+			.map(attend => attend.timetable[FIELD.Id])
 			.distinct();
 		const dates = (deletes as Attend[])										// the Dates these Attends have Forum content
 			.map(attend => attend.track.date)
@@ -280,14 +281,14 @@ export class AttendService {
 		 * forum:			all the Forum content related to this reversal
 		 */
 		const [attends, payments, gifts, forum] = await Promise.all([
-			this.data.getStore<Attend>(STORE.attend, fire.addWhere(`payment.${FIELD.id}`, payIds)),
-			this.data.getStore<Payment>(STORE.payment, memberUid),
-			this.data.getStore<Gift>(STORE.gift, [memberUid, fire.addWhere(FIELD.id, giftIds)]),
-			this.data.getFire<React | Comment>(COLLECTION.forum, {
+			this.data.getStore<Attend>(STORE.Attend, fire.addWhere(`payment.${FIELD.Id}`, payIds)),
+			this.data.getStore<Payment & Chain>(STORE.Payment, memberUid),
+			this.data.getStore<Gift>(STORE.Gift, [memberUid, fire.addWhere(FIELD.Id, giftIds)]),
+			this.data.getFire<React | Comment>(COLLECTION.Forum, {
 				where: [
 					memberUid,
-					fire.addWhere(FIELD.type, STORE.schedule),
-					fire.addWhere(FIELD.key, scheduleIds, '=='),			// TODO: this workaround for FireStore limit
+					fire.addWhere(FIELD.Type, STORE.Schedule),
+					fire.addWhere(FIELD.Key, scheduleIds, '=='),			// TODO: this workaround for FireStore limit
 					fire.addWhere('track.date', dates, '=='),					// on number of 'in' clauses in a Query
 				]
 			}),
@@ -295,17 +296,17 @@ export class AttendService {
 
 		// build a linked-list of Payments
 		payments
-			.orderBy({ field: FIELD.stamp, dir: 'desc' }, FIELD.type)
+			.orderBy({ field: FIELD.Stamp, dir: 'desc' }, FIELD.Type)
 			.forEach((payment, idx, arr) => {
 				payment.chain = {
-					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.id] || undefined,
-					child: idx !== 0 && arr[idx - 1][FIELD.id] || undefined,
+					parent: idx + 1 < arr.length && arr[idx + 1][FIELD.Id] || undefined,
+					child: idx !== 0 && arr[idx - 1][FIELD.Id] || undefined,
 					index: idx,
 				}
 			})
 
 		let pays = attends																			// count the number of Attends per Payment
-			.map(row => row.payment[FIELD.id])
+			.map(row => row.payment[FIELD.Id])
 			.reduce((acc, itm) => {
 				acc[itm] = nullToZero(acc[itm]) + 1;
 				return acc;
@@ -315,35 +316,35 @@ export class AttendService {
 		deletes.forEach(attend => {
 			let idx: number;
 
-			if (attend.bonus && attend.bonus[FIELD.type] === BONUS.gift) {
-				idx = gifts.findIndex(row => row[FIELD.id] === attend.bonus![FIELD.id]);
+			if (attend.bonus && attend.bonus[FIELD.Type] === BONUS.Gift) {
+				idx = gifts.findIndex(row => row[FIELD.Id] === attend.bonus![FIELD.Id]);
 				const gift = gifts[idx];
 				if (gift) {
 					if (isNumber(gift.count))
 						gift.count! -= 1;																// decrement running-total
 					if (gift.count === 0)
 						gift.count = undefined;													// discard running-total
-					if (isNumber(gift[FIELD.expire]))
-						gift[FIELD.expire] = undefined;									// re-open a Gift
+					if (isNumber(gift[FIELD.Expire]))
+						gift[FIELD.Expire] = undefined;									// re-open a Gift
 				}
 			}
 
-			const payId = attend.payment[FIELD.id];								// get the Payment id
-			idx = payments.findIndex(row => row[FIELD.id] === payId);
+			const payId = attend.payment[FIELD.Id];								// get the Payment id
+			idx = payments.findIndex(row => row[FIELD.Id] === payId);
 			const payment = payments[idx];
 			if (payment) {
-				if (isNumber(payment[FIELD.expire]))
-					payment[FIELD.expire] = undefined;								// re-open a Payment
+				if (isNumber(payment[FIELD.Expire]))
+					payment[FIELD.Expire] = undefined;								// re-open a Payment
 				pays[payId] -= 1;																		// reduce the number of Attends for this Payment
 				if (pays[payId] === 0) {														// no other Attend booked against this Payment
-					payment[FIELD.effect] = undefined;								// so, mark the Payment as not-yet-effective
+					payment[FIELD.Effect] = undefined;								// so, mark the Payment as not-yet-effective
 					payment.bank = undefined;													// TODO: dont clear down Payment, if parent had $0 funds
 
 					chg.add(payId);																		// mark this Payment as 'changed
 					const parent = payment.chain!.parent;
 					if (parent) {
-						payments[idx + 1][FIELD.expire] = undefined;		// un-expire the parent
-						chg.add(payments[idx + 1][FIELD.id]);						// mark the parent as 'changed'
+						payments[idx + 1][FIELD.Expire] = undefined;		// un-expire the parent
+						chg.add(payments[idx + 1][FIELD.Id]);						// mark the parent as 'changed'
 					}
 				}
 			}
@@ -352,7 +353,7 @@ export class AttendService {
 		deletes.push(...forum);																	// delete Forum content as well
 		updates.push(...gifts);																	// batch the updates to Gifts
 		updates.push(...payments
-			.filter(row => chg.has(row[FIELD.id]))								// only those that have changed
+			.filter(row => chg.has(row[FIELD.Id]))								// only those that have changed
 			.map(row => ({ ...row, chain: undefined }))						// drop the calculated chain
 		);
 

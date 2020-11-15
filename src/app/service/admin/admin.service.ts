@@ -35,11 +35,11 @@ export class AdminService {
 		const updates: FireDocument[] = [];
 
 		asArray(active).forEach(async (pay, idx) => {
-			if (pay.expiry && pay.expiry < stamp && !pay[FIELD.expire]) {
-				updates.push({ ...pay, [FIELD.expire]: stamp });
+			if (pay.expiry && pay.expiry < stamp && !pay[FIELD.Expire]) {
+				updates.push({ ...pay, [FIELD.Expire]: stamp });
 				if (idx === 0 && data.account.summary.credit) {
 					const lapse = await this.member.setPayment(-data.account.summary.funds);
-					creates.push({ ...lapse, [FIELD.effect]: stamp });
+					creates.push({ ...lapse, [FIELD.Effect]: stamp });
 				}
 			}
 		});
@@ -50,15 +50,15 @@ export class AdminService {
 	/** Create a Gift for a Member to use in future check-ins */
 	addGift = async (uid: string, limit: number, start?: TInstant, note?: TString, expiry?: TInstant) => {
 		const gift: Partial<Gift> = {
-			[FIELD.effect]: getStamp(start),
-			[FIELD.store]: STORE.gift,
-			[FIELD.uid]: uid,
+			[FIELD.Effect]: getStamp(start),
+			[FIELD.Store]: STORE.Gift,
+			[FIELD.Uid]: uid,
 			stamp: getStamp(),
 			expiry: isDefined(expiry) ? getStamp(expiry) : undefined,
 			limit: limit,
 			note: note,
 		}
 
-		return this.data.setDoc(STORE.gift, gift);
+		return this.data.setDoc(STORE.Gift, gift);
 	}
 }

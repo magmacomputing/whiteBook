@@ -13,11 +13,11 @@ export const getAuthProvider = (providerId: string,
 	token?: (firebase.auth.IdTokenResult & EmailToken) | null): [auth.METHOD | undefined, firebase.auth.AuthProvider | undefined, firebase.auth.AuthCredential | undefined] => {
 	let authProvider: firebase.auth.AuthProvider | undefined;
 	let authCredential: firebase.auth.AuthCredential | undefined;
-	let method: auth.METHOD | undefined = auth.METHOD.identity;									// default to 'identity' 
+	let method: auth.METHOD | undefined = auth.METHOD.Identity;									// default to 'identity' 
 
 	switch (providerId) {
-		case auth.METHOD.email:
-			method = auth.METHOD.email
+		case auth.METHOD.Email:
+			method = auth.METHOD.Email
 			authProvider = new firebase.auth.EmailAuthProvider();
 			if (token)
 				authCredential = firebase.auth.EmailAuthProvider.credential(token.email, token.password);

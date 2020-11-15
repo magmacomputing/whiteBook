@@ -28,14 +28,14 @@ export class LoginComponent implements OnInit {
 
 	ngOnInit() {
 		this.provider$ = this.state.getProviderData().pipe(
-			map(source => source.client.provider.filter(row => !row[FIELD.hidden]))
+			map(source => source.client.provider.filter(row => !row[FIELD.Hidden]))
 		)
 	}
 
 	signIn(provider: Provider) {
 		const opts: { email?: string, password?: string } = {};
 
-		if (provider[FIELD.type] === 'email') {
+		if (provider[FIELD.Type] === 'email') {
 			opts.email = prompt('Enter your email address...') || undefined;
 			opts.password = prompt('Enter your password...') || undefined;
 		}

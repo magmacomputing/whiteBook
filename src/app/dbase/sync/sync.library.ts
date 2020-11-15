@@ -29,8 +29,8 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 	const snapList = snaps.map(addMeta);
 
 	Object.entries(localSlice).forEach(([_key, value]) => localList.push(...value.map(remMeta)));
-	const localSort = localList.sortBy(FIELD.store, FIELD.id);
-	const snapSort = snapList.sortBy(FIELD.store, FIELD.id);
+	const localSort = localList.sortBy(FIELD.Store, FIELD.Id);
+	const snapSort = snapList.sortBy(FIELD.Store, FIELD.Id);
 	const [localHash, storeHash] = await Promise.all([
 		cryptoHash(localSort),
 		cryptoHash(snapSort),
@@ -59,29 +59,29 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 
 /** These fields do not exist in the snapshot data() */
 const remMeta = (doc: FireDocument) => {
-	const { [FIELD.create]: c, [FIELD.update]: u, [FIELD.access]: a, ...rest } = doc;
+	const { [FIELD.Create]: c, [FIELD.Update]: u, [FIELD.Access]: a, ...rest } = doc;
 	return rest;
 }
 
 export const addMeta = (snap: DocumentChangeAction<FireDocument>) =>
-	({ ...snap.payload.doc.data(), [FIELD.id]: snap.payload.doc.id } as FireDocument)
+	({ ...snap.payload.doc.data(), [FIELD.Id]: snap.payload.doc.id } as FireDocument)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
-		case COLLECTION.client:
+		case COLLECTION.Client:
 			return { setStore: clientAction.Set, delStore: clientAction.Del, truncStore: clientAction.Trunc }
 
-		case COLLECTION.member:
+		case COLLECTION.Member:
 			return { setStore: memberAction.Set, delStore: memberAction.Del, truncStore: memberAction.Trunc }
 
-		case COLLECTION.attend:
+		case COLLECTION.Attend:
 			return { setStore: attendAction.Set, delStore: attendAction.Del, truncStore: attendAction.Trunc }
 
-		case COLLECTION.device:
+		case COLLECTION.Device:
 			return { setStore: deviceAction.Set, delStore: deviceAction.Del, truncStore: deviceAction.Trunc }
 
-		case COLLECTION.admin:
+		case COLLECTION.Admin:
 			return { setStore: adminAction.Set, delStore: adminAction.Del, truncStore: adminAction.Trunc }
 
 		default:

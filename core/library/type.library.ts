@@ -31,7 +31,7 @@ export const isArray = <T>(obj?: T | T[]): obj is T[] => isType(obj, 'Array');
 export const isObject = <T>(obj?: T): obj is NonNullable<typeof obj> => isType(obj, 'Object');
 export const isNull = (obj?: unknown): obj is null => isType(obj, 'Null');
 export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
-export const isDefined = <T>(obj: T): obj is T => !isNullish(obj);
+export const isDefined = <T>(obj: T): obj is NonNullable<T> => !isNullish(obj);
 
 export const isDate = (obj?: unknown): obj is Date => isType(obj, 'Date');
 export const isFunction = (obj?: unknown): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');

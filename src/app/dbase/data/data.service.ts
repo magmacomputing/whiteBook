@@ -37,7 +37,7 @@ export class DataService {
 
 	constructor(public auth: AuthService, private fire: FireService, private sync: SyncService, private store: Store, private state: StateService, private snack: SnackService) {
 		this.#dbg('new');
-		this.sync.on(COLLECTION.client)
+		this.sync.on(COLLECTION.Client)
 			.then(res => this.#dbg('init: %j', res));
 	}
 
@@ -136,9 +136,9 @@ export class DataService {
 		const uid = await this.getUID();
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
-			let tstamp = nextDoc[FIELD.effect] || stamp;
+			let tstamp = nextDoc[FIELD.Effect] || stamp;
 			let where: fire.Query["where"];
-			const collection = getSlice(nextDoc[FIELD.store]);
+			const collection = getSlice(nextDoc[FIELD.Store]);
 
 			try {
 				nextDoc = docPrep(nextDoc, uid);										// make sure we have a <key/uid>
@@ -154,8 +154,8 @@ export class DataService {
 
 			if (currDocs.updates.length) {
 				if (currDocs.stamp > 0)															// if the stamp is positive,
-					nextDoc[FIELD.effect] = currDocs.stamp;           // updPrep has changed the <effect>,
-				else nextDoc[FIELD.expire] = -currDocs.stamp;       // otherwise back-date the nextDoc's <expire>
+					nextDoc[FIELD.Effect] = currDocs.stamp;           // updPrep has changed the <effect>,
+				else nextDoc[FIELD.Expire] = -currDocs.stamp;       // otherwise back-date the nextDoc's <expire>
 			}
 
 			if (!checkDiscard(discards, nextDoc, currDocs.data)) {// only if all currDocs are different from nextDoc...

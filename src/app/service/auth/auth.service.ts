@@ -60,7 +60,7 @@ export class AuthService {
 
 	get isAdmin$() {
 		return this.roles$
-			.pipe(map(roles => roles.includes(auth.ROLE.admin)))
+			.pipe(map(roles => roles.includes(auth.ROLE.Admin)))
 	}
 
 	public signOut() {
@@ -71,37 +71,37 @@ export class AuthService {
 		const { image, ...rest } = provider;								// drop the <image> for debug
 		this.#dbg('signIn: %j', rest);
 
-		switch (provider[FIELD.type]) {
+		switch (provider[FIELD.Type]) {
 			case undefined:
-			case auth.METHOD.identity:
+			case auth.METHOD.Identity:
 				this.signInIdentity(provider);
 				break;
 
-			case auth.METHOD.oauth:
+			case auth.METHOD.Oauth:
 				this.signInOAuth(provider);
 				break;
 
-			case auth.METHOD.oidc:
+			case auth.METHOD.Oidc:
 				this.signInOIDC(provider);
 				break;
 
-			case auth.METHOD.email:
+			case auth.METHOD.Email:
 				this.signInEmail(provider, opts.email, opts.password);
 				break;
 
-			case auth.METHOD.play:
+			case auth.METHOD.Play:
 				this.signInPlay(provider);
 				break;
 
-			case auth.METHOD.phone:
+			case auth.METHOD.Phone:
 				this.signInPhone(provider);
 				break;
 
-			case auth.METHOD.anonymous:
+			case auth.METHOD.Anonymous:
 				this.signInAnon(provider);
 				break;
 
-			case auth.METHOD.custom:
+			case auth.METHOD.Custom:
 				this.signInCustom(opts.jwt as string);
 				break;
 
@@ -113,7 +113,7 @@ export class AuthService {
 
 	/** prepare an AuthProvider object before dispatching the SignIn flow */
 	private signInIdentity(provider: Provider) {
-		const [, authProvider] = getAuthProvider(provider[FIELD.key]);
+		const [, authProvider] = getAuthProvider(provider[FIELD.Key]);
 		if (!authProvider) return;                      // unsupported providerId
 
 		asArray(provider.scope)
@@ -131,8 +131,8 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: Provider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const oauth = await this.state.asPromise(this.state.getCurrent<Config>(STORE.config))
-			.then(config => getConfig(config, STORE.provider, 'oauth'))
+		const oauth = await this.state.asPromise(this.state.getCurrent<Config>(STORE.Config))
+			.then(config => getConfig(config, STORE.Provider, 'oauth'))
 			.then(oauth => oauth.value)
 
 		const child = this.openChannel('token');// link to the child popup

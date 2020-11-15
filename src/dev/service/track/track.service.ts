@@ -14,7 +14,7 @@ import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
 export class TrackService {
-	#logLevel = TRACK.all;
+	#logLevel = TRACK.All;
 	#dbg = dbg(this);
 
 	constructor(private fire: FireService, private auth: AuthService) { }
@@ -24,12 +24,12 @@ export class TrackService {
 		const uid = await this.auth.current
 			.then(user => user && user.uid)
 
-		const trackCol = `/${STORE.log}/${now.yy}${fix(now.mm)}/${fix(now.dd)}` as STORE;
+		const trackCol = `/${STORE.Log}/${now.yy}${fix(now.mm)}/${fix(now.dd)}` as STORE;
 		const trackDoc = {
-			[FIELD.store]: STORE.log,
-			[FIELD.type]: this.#logLevel,
-			[FIELD.uid]: uid || 'anonymous',
-			[FIELD.stamp]: now.ts,
+			[FIELD.Store]: STORE.Log,
+			[FIELD.Type]: this.#logLevel,
+			[FIELD.Uid]: uid || 'anonymous',
+			[FIELD.Stamp]: now.ts,
 			date: { year: now.yy, month: now.mm, day: now.dd },
 			msg: sprintf(fmt, ...data),
 		} as Track

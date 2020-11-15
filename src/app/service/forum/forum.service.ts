@@ -14,21 +14,21 @@ export class ForumService {
 
 	constructor(private data: DataService) { }
 
-	async setReact({ key, type = STORE.schedule, track, date, uid, react = REACT.like, }: ReactArgs) {
+	async setReact({ key, type = STORE.Schedule, track, date, uid, react = REACT.Like, }: ReactArgs) {
 		const now = getInstant(date);
-		const reactDoc = await this.getForum<React>({ store: STORE.react, key, type, date });
+		const reactDoc = await this.getForum<React>({ store: STORE.React, key, type, date });
 
 		const creates: FireDocument[] = [];
 		const updates: FireDocument[] = [];
 		const deletes: FireDocument[] = [];
 
 		switch (true) {
-			case reactDoc.length && react === REACT.none:					// delete the old React
+			case reactDoc.length && react === REACT.None:					// delete the old React
 				deletes.push({ ...reactDoc[0] });
 				break;
 
 			case reactDoc.length && react === reactDoc[0].react:	// React has not changed
-			case react === REACT.none:														// or no React
+			case react === REACT.None:														// or no React
 				break;																							// nothing to change
 
 			case reactDoc.length > 0:															// update the React
@@ -36,18 +36,18 @@ export class ForumService {
 				break;
 
 			default:																							// create the React
-				const forum = await this.newForum<React>({ store: STORE.react, key, type, track, date, uid });
+				const forum = await this.newForum<React>({ store: STORE.React, key, type, track, date, uid });
 				creates.push({ ...forum, react });
 		}
 
 		return this.data.batch(creates, updates, deletes);
 	}
 
-	async setComment({ key, type = STORE.schedule, track, date, uid, comment = '', }: CommentArgs) {
+	async setComment({ key, type = STORE.Schedule, track, date, uid, comment = '', }: CommentArgs) {
 		return comment === ''
 			? undefined
-			: this.newForum<Comment>({ store: STORE.comment, key, type, track, date, uid })
-				.then(forum => this.data.setDoc(STORE.comment, { ...forum, comment }))
+			: this.newForum<Comment>({ store: STORE.Comment, key, type, track, date, uid })
+				.then(forum => this.data.setDoc(STORE.Comment, { ...forum, comment }))
 	}
 
 	/** create a Forum base */
@@ -55,13 +55,13 @@ export class ForumService {
 		const now = getInstant(date);
 
 		const forum = {
-			[FIELD.store]: store,
-			[FIELD.type]: type,																		// the Store type related to this comment
-			[FIELD.key]: key,																			// the Store key related to this comment
-			[FIELD.stamp]: now.ts,
-			[FIELD.uid]: uid || await this.getUid(),
+			[FIELD.Store]: store,
+			[FIELD.Type]: type,																		// the Store type related to this comment
+			[FIELD.Key]: key,																			// the Store key related to this comment
+			[FIELD.Stamp]: now.ts,
+			[FIELD.Uid]: uid || await this.getUid(),
 			track: {
-				[FIELD.date]: now.format(Instant.FORMAT.yearMonthDay),
+				[FIELD.Date]: now.format(Instant.FORMAT.yearMonthDay),
 			},
 		} as T
 
@@ -77,17 +77,17 @@ export class ForumService {
 		const now = getInstant(date);
 
 		const forumFilter = [
-			fire.addWhere(FIELD.uid, uid || await this.getUid()),
-			fire.addWhere(`track.${FIELD.date}`, now.format(Instant.FORMAT.yearMonthDay)),
+			fire.addWhere(FIELD.Uid, uid || await this.getUid()),
+			fire.addWhere(`track.${FIELD.Date}`, now.format(Instant.FORMAT.yearMonthDay)),
 		]
 		if (store)
-			forumFilter.push(fire.addWhere(FIELD.store, store));
+			forumFilter.push(fire.addWhere(FIELD.Store, store));
 		if (key)
-			forumFilter.push(fire.addWhere(FIELD.key, key));
+			forumFilter.push(fire.addWhere(FIELD.Key, key));
 		if (type)
-			forumFilter.push(fire.addWhere(FIELD.type, type));
+			forumFilter.push(fire.addWhere(FIELD.Type, type));
 
-		return this.data.getFire<T>(COLLECTION.forum, { where: forumFilter });
+		return this.data.getFire<T>(COLLECTION.Forum, { where: forumFilter });
 	}
 
 	private getUid() {

@@ -47,10 +47,10 @@ export class MemberService {
 
 	async setPlan(plan: PLAN, dt?: TInstant) {
 		const doc = {
-			[FIELD.effect]: getStamp(dt),
-			[FIELD.store]: STORE.profile,
-			[FIELD.type]: PROFILE.plan,
-			[STORE.plan]: plan
+			[FIELD.Effect]: getStamp(dt),
+			[FIELD.Store]: STORE.Profile,
+			[FIELD.Type]: PROFILE.Plan,
+			[STORE.Plan]: plan
 		} as ProfilePlan;
 		this.#dbg('plan: %j', doc);
 
@@ -73,18 +73,20 @@ export class MemberService {
 			: await this.getPayPrice(data)
 
 		return {
-			[FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
-			[FIELD.store]: STORE.payment,
-			[FIELD.type]: PAYMENT.topUp,
-			[FIELD.stamp]: getStamp(stamp),
-			amount: amount ?? topUp,
+			// [FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
+			[FIELD.Store]: STORE.Payment,
+			[FIELD.Stamp]: getStamp(stamp),
+			fee: [{
+				[FIELD.Type]: PAYMENT.TopUp,
+				amount: amount ?? topUp,
+			}]
 		} as Payment
 	}
 
 	private async upgradePlan(plan: ProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
-		const prices = await this.data.getStore<Price>(STORE.price, [
-			fire.addWhere(FIELD.type, PRICE.topUp),
-			fire.addWhere(FIELD.key, plan.bump),
+		const prices = await this.data.getStore<Price>(STORE.Price, [
+			fire.addWhere(FIELD.Type, PRICE.TopUp),
+			fire.addWhere(FIELD.Key, plan.bump),
 		], getStamp(stamp))
 		const topUp = asAt(prices, undefined, stamp)[0];// the current Member topUp
 
@@ -110,19 +112,19 @@ export class MemberService {
 		const uid = await this.data.getUID();
 		const [summary, account] = await Promise.all([
 			this.getAmount(data),
-			this.data.getStore<Account>(STORE.status, [fire.addWhere(FIELD.uid, uid), fire.addWhere(FIELD.type, STATUS.account)]),
+			this.data.getStore<Account>(STORE.Status, [fire.addWhere(FIELD.Uid, uid), fire.addWhere(FIELD.Type, STATUS.Account)]),
 		]);
 		const accountDoc: Partial<Account> = !account.length
 			? {																// scaffold a new Account doc
-				[FIELD.store]: STORE.status,
-				[FIELD.type]: STATUS.account,
-				[FIELD.uid]: uid,
-				[FIELD.stamp]: getStamp(),
+				[FIELD.Store]: STORE.Status,
+				[FIELD.Type]: STATUS.Account,
+				[FIELD.Uid]: uid,
+				[FIELD.Stamp]: getStamp(),
 				summary,
 			}
-			: { ...account[0], [FIELD.stamp]: getStamp(), summary }
+			: { ...account[0], [FIELD.Stamp]: getStamp(), summary }
 
-		if (!accountDoc[FIELD.id])
+		if (!accountDoc[FIELD.Id])
 			creates.push(accountDoc as FireDocument)
 		else updates.push(accountDoc as FireDocument)
 
@@ -145,10 +147,10 @@ export class MemberService {
 	getEventPrice = async (event: string, data?: AccountState) => {
 		data = data || (await this.getAccount());
 		const profile = data.member.plan[0];						// the member's plan
-		const classDoc = await this.state.getSingle<Class>(STORE.class, fire.addWhere(FIELD.key, event));
+		const classDoc = await this.state.getSingle<Class>(STORE.Class, fire.addWhere(FIELD.Key, event));
 
 		return data.client.price												// look in member's prices for a match in 'span' and 'plan'
-			.filter(row => row[FIELD.type] === classDoc[FIELD.type] as unknown as PRICE && row[FIELD.key] === profile.plan)[0].amount || 0;
+			.filter(row => row[FIELD.Type] === classDoc[FIELD.Type] as unknown as PRICE && row[FIELD.Key] === profile.plan)[0].amount || 0;
 	}
 
 	/** Determine this member's topUp amount */
@@ -156,7 +158,7 @@ export class MemberService {
 		data = data || await this.getAccount();
 
 		return data.client.price
-			.filter(row => row[FIELD.type] === PRICE.topUp)[0].amount || 0;
+			.filter(row => row[FIELD.Type] === PRICE.TopUp)[0].amount || 0;
 	}
 
 	/** check for change of User.additionalInfo */
@@ -167,15 +169,15 @@ export class MemberService {
 
 		const memberInfo = getMemberInfo(info);
 		const profileInfo: Partial<ProfileInfo> = {
-			[FIELD.store]: STORE.profile,
-			[FIELD.type]: PROFILE.info,
-			[FIELD.effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
-			[FIELD.uid]: uid || (await this.data.getActiveID()),
-			[PROFILE.info]: { ...memberInfo },						// spread the conformed member info
+			[FIELD.Store]: STORE.Profile,
+			[FIELD.Type]: PROFILE.Info,
+			[FIELD.Effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
+			[FIELD.Uid]: uid || (await this.data.getActiveID()),
+			[PROFILE.Info]: { ...memberInfo },						// spread the conformed member info
 		}
-		const where = fire.addWhere(`${PROFILE.info}.providerId`, info.providerId);
+		const where = fire.addWhere(`${PROFILE.Info}.providerId`, info.providerId);
 
-		this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.info);
+		this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.Info);
 	}
 
 }

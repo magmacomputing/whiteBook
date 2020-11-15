@@ -7,7 +7,7 @@ import { AdminComponent } from './admin.component';
 import { auth } from '@dbase/data.define';
 
 const routes: Routes = [
-	{ path: auth.ROLE.admin, component: AdminComponent },
+	{ path: auth.ROLE.Admin, component: AdminComponent },
 ];
 
 @NgModule({

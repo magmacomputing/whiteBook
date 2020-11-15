@@ -14,7 +14,7 @@ import { asArray } from '@library/array.library';
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
 export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []) => {
 	const where: fire.Where[] = [];
-	const collection = getSlice(nextDoc[FIELD.store]);
+	const collection = getSlice(nextDoc[FIELD.Store]);
 	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
 
 	asArray(filters).forEach(field => {
@@ -33,14 +33,14 @@ export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []
 
 export const docPrep = <T>(doc: T, uid: string) => {
 	const prep = doc as unknown as FireDocument;
-	if (!prep[FIELD.store])												// every document needs a <store> field
-		throw new Error(`missing field "[${FIELD.store}]" in ${doc}]`);
+	if (!prep[FIELD.Store])												// every document needs a <store> field
+		throw new Error(`missing field "[${FIELD.Store}]" in ${doc}]`);
 
-	const collection = getSlice(prep[FIELD.store]);
+	const collection = getSlice(prep[FIELD.Store]);
 	const filters = FILTER[collection] || [];
 
-	if (filters.includes(FIELD.uid) && !prep[FIELD.uid])
-		prep[FIELD.uid] = uid;												// push the current user's uid on the document
+	if (filters.includes(FIELD.Uid) && !prep[FIELD.Uid])
+		prep[FIELD.Uid] = uid;												// push the current user's uid on the document
 
 	return prep as unknown as T;
 }
@@ -50,11 +50,11 @@ export const updPrep = async <T extends FireDocument>(currDocs: T[], tstamp: num
 	let stamp = tstamp;                           // stash the tstamp
 	const updates = await Promise.all(
 		currDocs.map(async currDoc => {             // loop through existing-docs first, to determine currEffect/currExpire range
-			const currStore = currDoc[FIELD.store];
-			const currUpdate = { [FIELD.id]: currDoc[FIELD.id], [FIELD.store]: currStore } as FireDocument;
-			const currExpire = currDoc[FIELD.expire];
-			const currEffect = currDoc[FIELD.effect]
-				|| await fire.callMeta(currStore, currDoc[FIELD.id]).then(meta => meta[FIELD.create])
+			const currStore = currDoc[FIELD.Store];
+			const currUpdate = { [FIELD.Id]: currDoc[FIELD.Id], [FIELD.Store]: currStore } as FireDocument;
+			const currExpire = currDoc[FIELD.Expire];
+			const currEffect = currDoc[FIELD.Effect]
+				|| await fire.callMeta(currStore, currDoc[FIELD.Id]).then(meta => meta[FIELD.Create])
 				|| Number.MIN_SAFE_INTEGER
 
 			switch (true) {
@@ -64,11 +64,11 @@ export const updPrep = async <T extends FireDocument>(currDocs: T[], tstamp: num
 				case tstamp > currEffect:               // expire current Doc
 					if (currExpire)                       // very rare
 						stamp = -currExpire;                // adjust new Doc's expiry
-					currUpdate[FIELD.expire] = tstamp;
+					currUpdate[FIELD.Expire] = tstamp;
 					break;
 
 				case tstamp < currEffect:               // back-date a Document
-					currUpdate[FIELD.effect] = currEffect;// ensure current Doc is effective
+					currUpdate[FIELD.Effect] = currEffect;// ensure current Doc is effective
 					stamp = -currEffect;                  // adjust new Doc's expiry
 					break;
 			}

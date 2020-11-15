@@ -4,31 +4,30 @@ import { switchMap, map } from 'rxjs/operators';
 import { fire } from '@dbase/fire/fire.library';
 import { FireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
-import { getMemberAge } from '@service/member/member.library';
+import { calcPayment, getMemberAge } from '@service/member/member.library';
 import { SLICES, SORTBY } from '@dbase/state/config.define';
 
 import type { FireDocument, Default, Class, Price, Event, Schedule, Span, ProfilePlan, Icon, Calendar, Account } from '@dbase/data.schema';
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
 import { asAt, firstRow, filterTable } from '@library/app.library';
-import { COLLECTION, STORE, TYPE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, auth } from '@dbase/data.define';
+import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, auth, PAYMENT } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { getPath } from '@library/object.library';
-import { getInstant, TInstant, Instant } from '@library/instant.library';
+import { Instant, TInstant, getInstant } from '@library/instant.library';
 import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
 /**
- * Generic Slice Observable  
- *  w/ special logic to slice 'attend' store, as it uses non-standard segmenting
+ * Generic Slice Observable
  */
-export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant, segment?: TYPE) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<FireDocument>;
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
 
 	return state.pipe(
-		map(state => asAt<T>(state[segment || store], filter, date)),
+		map(state => asAt<T>(state[store], filter, date)),
 		map(table => table.sortBy(asArray(SORTBY[store])))
 	)
 }
@@ -73,7 +72,7 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 	if (isEmpty<object>(SLICES))									// nothing in State yet, on first-time connect
 		slices.push(SLICE.client);									// special: assume 'client' slice.
 	if (!SORTBY[store])
-		SORTBY[store] = [FIELD.sort, FIELD.key];		// special: assume sort order
+		SORTBY[store] = [FIELD.Sort, FIELD.Key];		// special: assume sort order
 
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
@@ -83,10 +82,10 @@ export const getSlice = (store: STORE) => {			// determine the state-slice based
 
 /** find the default value for the requested type */
 export const getDefault = (state: ApplicationState, type: string) => {
-	const table = (state.application[STORE.default])
-		.filter(row => row[FIELD.type] === type);
+	const table = (state.application[STORE.Default])
+		.filter(row => row[FIELD.Type] === type);
 
-	return table.length && table[0][FIELD.key] || undefined;
+	return table.length && table[0][FIELD.Key] || undefined;
 }
 
 /** extract the required fields from the AuthToken object */
@@ -110,18 +109,18 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				const filters = decodeFilter(data, filter);						// loop through filters
 				parent = data;                                        // stash the original parent data state
 
-				return combineLatest(store === STORE.attend
+				return combineLatest(store === STORE.Attend
 					? [getStore<FireDocument>(states, store, filters, date)]
 					: [getCurrent<FireDocument>(states, store, filters, date)]
 				);
 			}),
 
 			map(res => {
-				if (store === STORE.calendar && !isUndefined(date)) {	// special logic to filter Calendar
+				if (store === STORE.Calendar && !isUndefined(date)) {	// special logic to filter Calendar
 					const now = getInstant(date).ts;												// because it does not generally track _effect/_expire
 					res[0] = (res[0] as Calendar[])
-						.filter(row => now < (row[FIELD.expire] || getInstant(row[FIELD.key]).endOf('day').ts))
-						.filter(row => now >= (row[FIELD.effect] || getInstant(row[FIELD.key]).ts))
+						.filter(row => now < (row[FIELD.Expire] || getInstant(row[FIELD.Key]).endOf('day').ts))
+						.filter(row => now >= (row[FIELD.Effect] || getInstant(row[FIELD.Key]).ts))
 				}
 
 				const nodes = node && node.split('.') || [];					// specific branch on node
@@ -130,12 +129,12 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				res.forEach(table => {
 					if (table.length) {
 						table.forEach(row => {
-							const type = (getSlice(store) === COLLECTION.client)
-								? (nodes[1] || row[FIELD.store])
-								: (nodes[1] || row[FIELD.type] || row[FIELD.store])
+							const type = (getSlice(store) === COLLECTION.Client)
+								? (nodes[1] || row[FIELD.Store])
+								: (nodes[1] || row[FIELD.Type] || row[FIELD.Store])
 
 							joins[type] = joins[type] || [];
-							joins[type] = joins[type].filter(item => item[FIELD.id] !== row[FIELD.id]);
+							joins[type] = joins[type].filter(item => item[FIELD.Id] !== row[FIELD.Id]);
 							joins[type].push(row);
 						})
 					} else {
@@ -146,7 +145,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
 					if (isArray(joins[table]) && joins[table].length) {
-						const store = joins[table][0][FIELD.store];
+						const store = joins[table][0][FIELD.Store];
 						joins[table] = joins[table].sortBy(asArray(SORTBY[store]));
 					}
 				})
@@ -197,8 +196,8 @@ const decodeFilter = (parent: any, filter: fire.Query["where"] = []) => {
  * Use the Observable on open Payment[] to determine current account-status (paid, pending, bank, adjusts, etc.).  
  * The Payment array is reverse-sorted by FIELD.stamp, meaning payment[0] is the earliest 'active' value.  
  * paid		: is amount from active payment, if topUp and approved  
- * adjust : is amount from active payment, if debit  
- * bank		: is any unspent funds (brought forward from previous payment)  
+ * adjust : is amount from active payment, if debit/credit  
+ * bank		: is amount from unspent funds (brought forward from previous payment)  
  * pend 	: is amount from unapproved payments (not yet 'active')    
  * funds	: is amount remaining on active payment  
  * credit	: is amount remaining overall (i.e. including <pend>)
@@ -208,15 +207,17 @@ export const sumPayment = (source: AccountState) => {
 		const sum: Account["summary"] = { paid: 0, bank: 0, adjust: 0, pend: 0, spend: 0, credit: 0, funds: 0 };
 
 		source.account.payment = asArray(source.account.payment)
-			.orderBy(FIELD.stamp)
+			.orderBy(FIELD.Stamp)
 		source.account.summary = source.account.payment
 			.reduce((sum, payment, indx) => {
+				const amounts = calcPayment(payment);
+
 				if (indx === 0) {																		// only 1st Payment
 					sum.bank += nullToZero(payment.bank)
-					sum.adjust += nullToZero(payment.adjust);
-					sum.paid += nullToZero(payment.amount);
+					sum.paid += amounts[PAYMENT.TopUp];
+					sum.adjust += amounts[PAYMENT.Adjust];
 				} else
-					sum.pend += nullToZero(payment.amount) + nullToZero(payment.adjust) + nullToZero(payment.bank);
+					sum.pend += amounts[PAYMENT.TopUp] + amounts[PAYMENT.Adjust] + nullToZero(payment.bank);
 
 				sum.credit = sum.bank + sum.paid + sum.adjust + sum.pend;
 				sum.funds = sum.bank + sum.paid + sum.adjust;
@@ -247,21 +248,21 @@ export const sumAttend = (source: AccountState) => {
 export const calendarDay = (source: TimetableState) => {
 	if (source.client.calendar) {
 		source.client.calendar = source.client.calendar
-			.map(row => ({ ...row, day: getInstant(row[FIELD.key]).dow }))
+			.map(row => ({ ...row, day: getInstant(row[FIELD.Key]).dow }))
 	}
 	return { ...source }
 }
 
 const lookupIcon = (source: any, key: string) => {
-	const dflt = firstRow<Default>(source.application[STORE.default], fire.addWhere(FIELD.type, STORE.icon))[FIELD.key];
-	return firstRow<Icon>(source.client.icon, fire.addWhere(FIELD.key, [key, dflt])).image
+	const dflt = firstRow<Default>(source.application[STORE.Default], fire.addWhere(FIELD.Type, STORE.Icon))[FIELD.Key];
+	return firstRow<Icon>(source.client.icon, fire.addWhere(FIELD.Key, [key, dflt])).image
 };
 
 /** Assemble a Provider-view */
 export const buildProvider = (source: ProviderState) => {
 	source.client.provider = source.client.provider.map(provider => {
 		if (!provider.image)
-			provider.image = lookupIcon(source, provider[FIELD.key]);
+			provider.image = lookupIcon(source, provider[FIELD.Key]);
 
 		return provider;
 	})
@@ -272,34 +273,34 @@ export const buildProvider = (source: ProviderState) => {
 /** Assemble a Plan-view */
 export const buildPlan = (source: PlanState) => {
 	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
-	const isAdmin = roles?.includes(auth.ROLE.admin);
-	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.type, STORE.plan));
-	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.type, PRICE.topUp));
+	const isAdmin = roles?.includes(auth.ROLE.Admin);
+	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.Type, STORE.Plan));
+	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.Type, PRICE.TopUp));
 	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
 
 	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
 		const planPrice = firstRow<Price>(source.client.price, [
-			fire.addWhere(FIELD.key, plan[FIELD.key]),
-			fire.addWhere(FIELD.type, PRICE.topUp),
+			fire.addWhere(FIELD.Key, plan[FIELD.Key]),
+			fire.addWhere(FIELD.Type, PRICE.TopUp),
 		])
 
 		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
-			plan[FIELD.disable] = true;
+			plan[FIELD.Hisable] = true;
 
-		if (plan[FIELD.key] === PLAN.intro)										// Special: Intro is only available to new Members
-			plan[FIELD.hidden] = (myPlan && !isAdmin) ? true : false;
+		if (plan[FIELD.Key] === PLAN.Intro)										// Special: Intro is only available to new Members
+			plan[FIELD.Hidden] = (myPlan && !isAdmin) ? true : false;
 
-		if (plan[FIELD.key] === PLAN.senior) {								// Special: Senior is only available to >=60 Member
+		if (plan[FIELD.Key] === PLAN.Senior) {								// Special: Senior is only available to >=60 Member
 			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
-			plan[FIELD.hidden] = notAllow;
-			plan[FIELD.disable] = notAllow;
+			plan[FIELD.Hidden] = notAllow;
+			plan[FIELD.Hisable] = notAllow;
 		}
 
-		if (!plan[FIELD.image])
-			plan[FIELD.image] = lookupIcon(source, plan[FIELD.key]);
+		if (!plan[FIELD.Image])
+			plan[FIELD.Image] = lookupIcon(source, plan[FIELD.Key]);
 
-		if (myPlan && myPlan.plan === plan[FIELD.key])	 			// disable their current Plan, so cannot re-select
-			plan[FIELD.disable] = true;
+		if (myPlan && myPlan.plan === plan[FIELD.Key])	 			// disable their current Plan, so cannot re-select
+			plan[FIELD.Hisable] = true;
 
 		return plan
 	});
@@ -325,9 +326,9 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 		bonus = [],																	// the bonus' for the Member
 		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
-	const attendToday = source[COLLECTION.attend].attendToday;
-	const icon = firstRow<Default>(source.application[STORE.default], fire.addWhere(FIELD.type, STORE.icon));
-	const locn = firstRow<Default>(source.application[STORE.default], fire.addWhere(FIELD.type, STORE.location));
+	const attendToday = source[COLLECTION.Attend].attendToday;
+	const icon = firstRow<Default>(source.application[STORE.Default], fire.addWhere(FIELD.Type, STORE.Icon));
+	const locn = firstRow<Default>(source.application[STORE.Default], fire.addWhere(FIELD.Type, STORE.Location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
 
 	/**
@@ -335,39 +336,39 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 	 * assume a Calendar's location overrides the usual Schedule at the location.
 	 */
 	calendar.forEach(calendarDoc => {							// merge each calendar item onto the schedule
-		const eventList = firstRow<Event>(events, fire.addWhere(FIELD.key, calendarDoc[FIELD.type]));
+		const eventList = firstRow<Event>(events, fire.addWhere(FIELD.Key, calendarDoc[FIELD.Type]));
 		let offset = 0;															// start-time offset
 
 		if (!calendarDoc.location)
-			calendarDoc.location = locn[FIELD.key];		// default Location
+			calendarDoc.location = locn[FIELD.Key];		// default Location
 		if (!eventLocations.includes(calendarDoc.location))
 			eventLocations.push(calendarDoc.location);// track the Locations at which an Event is running
 
 		asArray(eventList.agenda).forEach(className => {
-			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.key, className));
+			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.Key, className));
 			const spanClass = firstRow<Span>(spans, [
-				fire.addWhere(FIELD.key, classDoc[FIELD.key]),// is there a span keyed by the name of the Class?
-				fire.addWhere(FIELD.type, STORE.event),
+				fire.addWhere(FIELD.Key, classDoc[FIELD.Key]),// is there a span keyed by the name of the Class?
+				fire.addWhere(FIELD.Type, STORE.Event),
 			])
 			const span = firstRow<Span>(spans, [
-				fire.addWhere(FIELD.key, classDoc[FIELD.type]),// is there a span keyed by the type ('full'/'half') of the Class?
-				fire.addWhere(FIELD.type, STORE.event),
+				fire.addWhere(FIELD.Key, classDoc[FIELD.Type]),// is there a span keyed by the type ('full'/'half') of the Class?
+				fire.addWhere(FIELD.Type, STORE.Event),
 			])
 			const duration = spanClass.duration ?? span.duration;
 			const time: Partial<Schedule> = {
-				[FIELD.id]: classDoc[FIELD.id],
-				[FIELD.type]: SCHEDULE.event,
-				[FIELD.key]: className,
+				[FIELD.Id]: classDoc[FIELD.Id],
+				[FIELD.Type]: SCHEDULE.Event,
+				[FIELD.Key]: className,
 				day: calendarDoc.day,
 				location: calendarDoc.location,
 				start: getInstant(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
 				instructor: calendarDoc.instructor,
-				span: classDoc[FIELD.type],
-				image: firstRow<Icon>(icons, fire.addWhere(FIELD.key, className)).image || icon[FIELD.key],
+				span: classDoc[FIELD.Type],
+				image: firstRow<Icon>(icons, fire.addWhere(FIELD.Key, className)).image || icon[FIELD.Key],
 			}
 
 			offset += duration;												// update offset to next class start-time
-			const timeIdx = times.findIndex(doc => doc[FIELD.id] === time[FIELD.id]);
+			const timeIdx = times.findIndex(doc => doc[FIELD.Id] === time[FIELD.Id]);
 			if (timeIdx === -1)
 				times.push(time as Schedule);						// add the Event to the timetable
 		})
@@ -378,27 +379,27 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 
 	/** remove Bonus, if not entitled */
 	if (!plans[0].bonus)
-		source[COLLECTION.client][STORE.bonus] = source[COLLECTION.client][STORE.bonus]?.filter(bonus => bonus[FIELD.key] === BONUS.gift);
+		source[COLLECTION.Client][STORE.Bonus] = source[COLLECTION.Client][STORE.Bonus]?.filter(bonus => bonus[FIELD.Key] === BONUS.Gift);
 
 	source.client.schedule = times
 		.map(time => {
-			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.key, time[FIELD.key]));
-			const bonus = calcBonus(source, classDoc[FIELD.key], date, elect);
+			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.Key, time[FIELD.Key]));
+			const bonus = calcBonus(source, classDoc[FIELD.Key], date, elect);
 			time.bonus = isEmpty(bonus) ? undefined : bonus;
-			time.price = firstRow<Price>(prices, fire.addWhere(FIELD.type, classDoc[FIELD.type]));
-			time.amount = isUndefined(time.bonus?.[FIELD.id])	// no Bonus for this class
+			time.price = firstRow<Price>(prices, fire.addWhere(FIELD.Type, classDoc[FIELD.Type]));
+			time.amount = isUndefined(time.bonus?.[FIELD.Id])	// no Bonus for this class
 				? time.price.amount
 				: nullToZero(time.bonus?.amount)								// a specific-amount, else $0
 
-			time.count = attendToday.filter(row => row.timetable[FIELD.key] == time[FIELD.key]).length;
+			time.count = attendToday.filter(row => row.timetable[FIELD.Key] == time[FIELD.Key]).length;
 
-			if (!time[FIELD.image])											// if no schedule-specific icon, use class icon, else default icon
-				time[FIELD.image] =
-					firstRow<Icon>(icons, fire.addWhere(FIELD.key, classDoc[FIELD.key])).image ||
-					firstRow<Icon>(icons, fire.addWhere(FIELD.key, icon[FIELD.key])).image
+			if (!time[FIELD.Image])											// if no schedule-specific icon, use class icon, else default icon
+				time[FIELD.Image] =
+					firstRow<Icon>(icons, fire.addWhere(FIELD.Key, classDoc[FIELD.Key])).image ||
+					firstRow<Icon>(icons, fire.addWhere(FIELD.Key, icon[FIELD.Key])).image
 
 			if (!time.location)
-				time.location = locn[FIELD.key];					// ensure a default location exists
+				time.location = locn[FIELD.Key];					// ensure a default location exists
 			return time;
 		})
 
@@ -408,11 +409,11 @@ export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: 
 		 * Special Events take priority over scheduled Classes.  
 		 * remove Classes at Location, if an Event is offered there
 		 */
-		.filter(row => row[FIELD.type] === SCHEDULE.event || !eventLocations.includes(row.location!))
+		.filter(row => row[FIELD.Type] === SCHEDULE.Event || !eventLocations.includes(row.location!))
 
 	/** remove Locations that have no Schedules */
-	source[COLLECTION.client][STORE.location] = source[COLLECTION.client][STORE.location]
-		?.filter(locn => source[COLLECTION.client][STORE.schedule]?.distinct(time => time.location).includes(locn[FIELD.key]))
+	source[COLLECTION.Client][STORE.Location] = source[COLLECTION.Client][STORE.Location]
+		?.filter(locn => source[COLLECTION.Client][STORE.Schedule]?.distinct(time => time.location).includes(locn[FIELD.Key]))
 
 	return { ...source }
 }

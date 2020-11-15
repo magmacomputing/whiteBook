@@ -12,7 +12,7 @@ import { dbg } from '@library/logger.library';
 
 @Injectable()
 @State<TStateSlice<FireDocument>>({
-	name: COLLECTION.attend,
+	name: COLLECTION.Attend,
 	defaults: {}
 })
 export class AttendState implements NgxsOnInit {
@@ -32,7 +32,7 @@ export class AttendState implements NgxsOnInit {
 		let empty: Record<string, boolean> = {};
 
 		asArray<Attend>(payload as Attend[]).forEach(doc => {
-			const payment = doc.payment[FIELD.id];
+			const payment = doc.payment[FIELD.Id];
 
 			if (state[payment] && !state[payment].length)
 				empty[payment] = true;															// check the first instance
@@ -52,7 +52,7 @@ export class AttendState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload as Attend[]).forEach(doc => {
-			const payment = doc.payment[FIELD.id];
+			const payment = doc.payment[FIELD.Id];
 			state[payment] = this.filterState(state, doc);
 
 			if (state[payment].length === 0)
@@ -73,9 +73,9 @@ export class AttendState implements NgxsOnInit {
 
 	/** remove an item from the Attend Store */
 	private filterState(state: TStateSlice<FireDocument>, payload: Attend) {
-		const slice = payload.payment[FIELD.id];
+		const slice = payload.payment[FIELD.Id];
 		const curr = state && slice && state[slice] || [];
 
-		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
+		return [...curr.filter(itm => itm[FIELD.Id] !== payload[FIELD.Id])];
 	}
 }

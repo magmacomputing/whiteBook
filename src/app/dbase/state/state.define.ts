@@ -46,67 +46,67 @@ export interface UserState {
 }
 
 export interface AdminState {
-	[STORE.register]: Register[];
-	[STATUS.account]: Account[];
-	[STATUS.connect]: Connect[];
-	[STORE.sheet]: Sheet[];
+	[STORE.Register]: Register[];
+	[STATUS.Account]: Account[];
+	[STATUS.Connect]: Connect[];
+	[STORE.Sheet]: Sheet[];
 	dash: {															// align elements of each Admin Array by UID
-		[STORE.register]: Register;
-		[STATUS.account]?: Account;
-		[STATUS.connect]?: Connect;
-		[STORE.sheet]?: Sheet;
+		[STORE.Register]: Register;
+		[STATUS.Account]?: Account;
+		[STATUS.Connect]?: Connect;
+		[STORE.Sheet]?: Sheet;
 	}[]
 }
 
 export interface ApplicationState {		// application-wide settings
 	application: {
-		[STORE.default]: Default[];				// defaults to apply, if missing from Member data
-		[STORE.schema]?: Schema[];
-		[STORE.config]?: Config[];
+		[STORE.Default]: Default[];				// defaults to apply, if missing from Member data
+		[STORE.Schema]?: Schema[];
+		[STORE.Config]?: Config[];
 	}
 }
 
 export interface MemberState extends UserState, ApplicationState {
-	[COLLECTION.member]: {
-		[STORE.plan]: ProfilePlan[];      // member's effective plan
+	[COLLECTION.Member]: {
+		[STORE.Plan]: ProfilePlan[];      // member's effective plan
 		info: ProfileInfo[];             	// array of AdditionalUserInfo documents
 		pref: ProfilePref[];							// member's preferences
-		[STORE.message]: Message[];				// array of messages to a Member
-		[STORE.gift]: Gift[];							// array of gifts for a Member
+		[STORE.Message]: Message[];				// array of messages to a Member
+		[STORE.Gift]: Gift[];							// array of gifts for a Member
 	}
 }
 
 export interface ProviderState {
-	[COLLECTION.client]: {
-		[STORE.provider]: Provider[];			// array of effective Provider documents
-		[STORE.icon]: Icon[];							// array of Provider icons
+	[COLLECTION.Client]: {
+		[STORE.Provider]: Provider[];			// array of effective Provider documents
+		[STORE.Icon]: Icon[];							// array of Provider icons
 	}
 }
 export interface PlanState extends MemberState {
-	[COLLECTION.client]: {
-		[STORE.plan]: Plan[];             // array of effective Plan documents
-		[STORE.price]: Price[];						// array of effective Price documents
-		[STORE.icon]: Icon[];							// array of Plan icons
+	[COLLECTION.Client]: {
+		[STORE.Plan]: Plan[];             // array of effective Plan documents
+		[STORE.Price]: Price[];						// array of effective Price documents
+		[STORE.Icon]: Icon[];							// array of Plan icons
 	}
 }
 
 export interface BonusState extends UserState, ApplicationState {
-	[COLLECTION.client]: {
-		[STORE.bonus]: Bonus[];						// array of Bonus scheme rules
+	[COLLECTION.Client]: {
+		[STORE.Bonus]: Bonus[];						// array of Bonus scheme rules
 	}
-	[COLLECTION.member]: {
-		[STORE.gift]: Gift[];							// array of gifts to a Member
+	[COLLECTION.Member]: {
+		[STORE.Gift]: Gift[];							// array of gifts to a Member
 	}
 	track: {
-		[BONUS.gift]: Attend[];						// array of Attends against their gifts
-		[BONUS.week]: Attend[];						// array of Attends against the current week
-		[BONUS.class]: Attend[];					// array of Attends against the current week
-		[BONUS.month]: Attend[];					// array of Attends against the current month
+		[BONUS.Gift]: Attend[];						// array of Attends against their gifts
+		[BONUS.Week]: Attend[];						// array of Attends against the current week
+		[BONUS.Class]: Attend[];					// array of Attends against the current week
+		[BONUS.Month]: Attend[];					// array of Attends against the current month
 	}
 }
 
 export interface AccountState extends MemberState, PlanState {
-	[STATUS.account]: {
+	[STATUS.Account]: {
 		payment: Payment[];								// array of open payment documents, sorted by <stamp>
 		attend: Attend[];
 		summary: Account["summary"];
@@ -122,35 +122,35 @@ export interface PaymentState {
 }
 
 export interface TimetableState extends MemberState, ApplicationState {
-	[COLLECTION.client]: {
-		[STORE.schedule]?: Schedule[];
-		[STORE.class]?: Class[];
-		[STORE.event]?: Event[];
-		[STORE.calendar]?: Calendar[];
-		[STORE.diary]?: Calendar[];
-		[STORE.location]?: Location[];
-		[STORE.instructor]?: Instructor[];
-		[STORE.plan]?: Plan[];
-		[STORE.price]?: Price[];
-		[STORE.span]?: Span[];
-		[STORE.alert]?: Alert[];
-		[STORE.bonus]?: Bonus[];
-		[STORE.icon]?: Icon[];
+	[COLLECTION.Client]: {
+		[STORE.Schedule]?: Schedule[];
+		[STORE.Class]?: Class[];
+		[STORE.Event]?: Event[];
+		[STORE.Calendar]?: Calendar[];
+		[STORE.Diary]?: Calendar[];
+		[STORE.Location]?: Location[];
+		[STORE.Instructor]?: Instructor[];
+		[STORE.Plan]?: Plan[];
+		[STORE.Price]?: Price[];
+		[STORE.Span]?: Span[];
+		[STORE.Alert]?: Alert[];
+		[STORE.Bonus]?: Bonus[];
+		[STORE.Icon]?: Icon[];
 	},
-	[COLLECTION.attend]: {
+	[COLLECTION.Attend]: {
 		attendGift: Attend[];
 		attendWeek: Attend[];
 		attendClass: Attend[];
 		attendMonth: Attend[];
 		attendToday: Attend[];
 	},
-	[STORE.bonus]?: TBonus,
-	[COLLECTION.forum]?: ForumState["forum"];
+	[STORE.Bonus]?: TBonus,
+	[COLLECTION.Forum]?: ForumState["forum"];
 }
 
 export interface ForumState {
-	[COLLECTION.forum]: {
-		[STORE.comment]?: Comment[];
-		[STORE.react]?: React[];
+	[COLLECTION.Forum]: {
+		[STORE.Comment]?: Comment[];
+		[STORE.React]?: React[];
 	}
 }

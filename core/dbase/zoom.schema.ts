@@ -27,9 +27,9 @@ export enum PRESENCE {
 }
 
 export interface Event<T extends Started | Ended | Joined | Left | Status> extends FireDocument {
-	[FIELD.store]: STORE.zoom;
-	[FIELD.type]: EVENT;
-	[FIELD.stamp]: number;
+	[FIELD.Store]: STORE.Zoom;
+	[FIELD.Type]: EVENT;
+	[FIELD.Stamp]: number;
 	eventId: string;								// Cloud Functions event Id
 	hook?: number;									// number of times the webhook has been sent
 	head: Record<string, any>;
@@ -142,16 +142,16 @@ export interface Meeting {
 	meeting_id: string;
 	topic?: string;
 	start: {
-		[FIELD.id]: string;
-		[FIELD.stamp]: number;
+		[FIELD.Id]: string;
+		[FIELD.Stamp]: number;
 		start_time: Date;
 		label: string;							// to be displayed on an UI tab
 		color?: COLOR;
 		white?: White;
 	},
 	end?: {
-		[FIELD.id]: string;
-		[FIELD.stamp]: number;
+		[FIELD.Id]: string;
+		[FIELD.Stamp]: number;
 		end_time: Date;
 		label: string;							// to be displayed on an UI tab
 	}
@@ -160,8 +160,8 @@ export interface Meeting {
 		user_id: string;
 		user_name: string;
 		join: {
-			[FIELD.id]: string;
-			[FIELD.stamp]: number;
+			[FIELD.Id]: string;
+			[FIELD.Stamp]: number;
 			join_time: Date;
 			label: string;							// to be displayed on an UI tab
 			white: White;
@@ -180,8 +180,8 @@ export interface Meeting {
 			}
 		},
 		leave?: {
-			[FIELD.id]: string;
-			[FIELD.stamp]: number;
+			[FIELD.Id]: string;
+			[FIELD.Stamp]: number;
 			leave_time: Date;
 			label: string;							// to be displayed on an UI tab
 		}

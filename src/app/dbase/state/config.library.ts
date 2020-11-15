@@ -16,16 +16,16 @@ export const setSchema = (schemas: Schema[] = []) => {
 		.forEach(key => delete SORTBY[key as STORE])
 
 	schemas.forEach(schema => {
-		const { [FIELD.key]: key, [FIELD.type]: type, [FIELD.hidden]: hidden } = schema;
+		const { [FIELD.Key]: key, [FIELD.Type]: type, [FIELD.Hidden]: hidden } = schema;
 
 		if (!hidden)
-			SLICES[type] = sortInsert(SLICES[type] || [], schema[FIELD.key]);
+			SLICES[type] = sortInsert(SLICES[type] || [], schema[FIELD.Key]);
 
-		SORTBY[key] = schema[FIELD.sort]									// always use Effective Date as final sort-field
-			? asArray(schema[FIELD.sort]).concat(FIELD.effect)
-			: [FIELD.sort, FIELD.key, FIELD.effect];				// special: assume sort order
+		SORTBY[key] = schema[FIELD.Sort]									// always use Effective Date as final sort-field
+			? asArray(schema[FIELD.Sort]).concat(FIELD.Effect)
+			: [FIELD.Sort, FIELD.Key, FIELD.Effect];				// special: assume sort order
 
-		if (schema.filter && schema[FIELD.type].toString() === schema[FIELD.key].toString())
+		if (schema.filter && schema[FIELD.Type].toString() === schema[FIELD.Key].toString())
 			FILTER[type] = schema.filter;									// Collection filter
 	})
 }
@@ -36,14 +36,14 @@ export const getConfig = (config: Config[], type: string, key: string) => {
 	const placeholder: Record<string, string> = {};
 
 	config
-		.filter(row => row[FIELD.type] === 'default')		// get the placeholder values on first pass
-		.filter(row => !row[FIELD.expire])
+		.filter(row => row[FIELD.Type] === 'default')		// get the placeholder values on first pass
+		.filter(row => !row[FIELD.Expire])
 		.filter(row => isString(row.value))							// restrict string-only template placeholders
-		.forEach(row => placeholder[row[FIELD.key]] = row.value);
+		.forEach(row => placeholder[row[FIELD.Key]] = row.value);
 
 	const clone = config
-		.filter(row => row[FIELD.key] === key)					// requested Key
-		.filter(row => row[FIELD.type] === type)				// requested Type
+		.filter(row => row[FIELD.Key] === key)					// requested Key
+		.filter(row => row[FIELD.Type] === type)				// requested Type
 		.map(row => {
 			const subst: typeof placeholder = {}
 			Object.entries<string>(row.value)
@@ -64,9 +64,9 @@ export const setConfig = (config: Config[] = []) => {
 		.forEach(key => delete COMMENT[key as TComment]);
 
 	config
-		.filter(row => row[FIELD.type] === STORE.comment)
+		.filter(row => row[FIELD.Type] === STORE.Comment)
 		.forEach(row => {
-			switch (row[FIELD.key] as TComment) {
+			switch (row[FIELD.Key] as TComment) {
 				case 'words':
 					COMMENT.words = row.value;
 					break;

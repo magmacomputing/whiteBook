@@ -9,3 +9,11 @@ export enum PAY {										// Test if a Payment can accept an Attend
 	'enough_funds',										// price of class is less-than-or-equal available Payment funds
 	'not_expired',										// date of class does not exceed Payment expiry
 }
+
+export interface Chain {						// used during AttendService to determine Payment hierarchy
+	chain: {
+		child?: string;									// the child Payment
+		parent?: string;								// the parent Payment
+		index?: number;									// the Payment position
+	}
+}

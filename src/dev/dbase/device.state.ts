@@ -19,7 +19,7 @@ import { dbg } from '@library/logger.library';
  */
 @Injectable()
 @State<TStateSlice<FireDocument>>({
-	name: COLLECTION.device,
+	name: COLLECTION.Device,
 	defaults: {}
 })
 export class DeviceState implements NgxsOnInit {
@@ -38,8 +38,8 @@ export class DeviceState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
-			if (doc[FIELD.store] === STORE.config) {		// Config change detected
-				const group = '@' + doc[FIELD.store].replace(/_/g, '') + '@';
+			if (doc[FIELD.Store] === STORE.Config) {		// Config change detected
+				const group = '@' + doc[FIELD.Store].replace(/_/g, '') + '@';
 				const fix = this.fixConfig();
 
 				state[group] = this.filterState(state, doc);
@@ -54,7 +54,7 @@ export class DeviceState implements NgxsOnInit {
 	@Action(deviceAction.Del)
 	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: deviceAction.Del) {
 		const state = cloneObj(getState()) || {};
-		const segment = FIELD.store;
+		const segment = FIELD.Store;
 
 		asArray(payload).forEach(doc => {
 			const slice = doc[segment];
@@ -76,27 +76,27 @@ export class DeviceState implements NgxsOnInit {
 	}
 
 	/** remove an item from the Device Store */
-	private filterState(state: TStateSlice<FireDocument>, payload: FireDocument, segment = FIELD.store) {
+	private filterState(state: TStateSlice<FireDocument>, payload: FireDocument, segment = FIELD.Store) {
 		const group = '@' + payload[segment].replace(/_/g, '') + '@';
 		const curr = state && state[payload[group]] || [];
 
-		return [...curr.filter(itm => itm[FIELD.id] !== payload[FIELD.id])];
+		return [...curr.filter(itm => itm[FIELD.Id] !== payload[FIELD.Id])];
 	}
 
 	/** resolve some placeholder variables in IConfig[] */
 	private fixConfig = () => {
 		const placeholder: Record<string, string> = {};
 		const state = this.store.selectSnapshot(state => state);	// get existing state
-		const config = (state.client[STORE.config] as Config[])
-			.filter(row => !row[FIELD.expire]);							// slice it to get Config, skip expired
+		const config = (state.client[STORE.Config] as Config[])
+			.filter(row => !row[FIELD.Expire]);							// slice it to get Config, skip expired
 
 		config
-			.filter(row => row[FIELD.key] === 'default')		// get the placeholder values on first pass
+			.filter(row => row[FIELD.Key] === 'default')		// get the placeholder values on first pass
 			.filter(row => isString(row.value))
-			.forEach(row => placeholder[row[FIELD.type]] = row.value);
+			.forEach(row => placeholder[row[FIELD.Type]] = row.value);
 
 		return cloneObj(config)
-			.filter(row => row[FIELD.key] !== 'default')		// skip Config 'defaults'
+			.filter(row => row[FIELD.Key] !== 'default')		// skip Config 'defaults'
 			.map(row => {
 				const subst: Record<string, string> = {}
 				Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field
@@ -104,7 +104,7 @@ export class DeviceState implements NgxsOnInit {
 					subst[item[0]] = tpl(placeholder);					// evaluate the template literal against the placeholders
 				})
 
-				return { ...row, [FIELD.store]: STORE.local, [FIELD.type]: 'config', value: subst }
+				return { ...row, [FIELD.Store]: STORE.Local, [FIELD.Type]: 'config', value: subst }
 			})
 	}
 }

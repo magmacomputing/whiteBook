@@ -23,8 +23,8 @@ export class OAuthComponent implements OnInit {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.asPromise(this.state.getCurrent<Config>(STORE.config))
-				.then(config => getConfig(config, STORE.provider, 'oauth'))
+			this.state.asPromise(this.state.getCurrent<Config>(STORE.Config))
+				.then(config => getConfig(config, STORE.Provider, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;
 					this.#dbg('oauth: %s', url);

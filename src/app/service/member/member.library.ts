@@ -1,11 +1,11 @@
 import { PlanState } from '@dbase/state/state.define';
-import { FIELD } from '@dbase/data.define';
+import { FIELD, PAYMENT, PRICE } from '@dbase/data.define';
 import { ProfileInfo, Payment } from '@dbase/data.schema';
 
-import { isString, isNumber, isUndefined } from '@library/type.library';
+import { isString, isNumber, isUndefined, isDefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
-import { getStamp, getInstant, TInstant } from '@library/instant.library';
+import { getStamp, getInstant, TInstant, Instant } from '@library/instant.library';
 
 // Library of member-related functions
 
@@ -59,20 +59,21 @@ export const getMemberAge = (info: ProfileInfo[] = [], dt?: TInstant) =>
 	getInstant(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**
- * A Member's payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months.  
+ * A Member's Payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months (expiry).  
  * 1. Expiry will not be set until a Payment becomes active (all earlier Payments expired).
  * 2. When the nightly batch expires a prior Payment, it uses the Payment.stamp as the 'from' date.
  * 3. When the first Attend against a Payment is made, it uses the Attend.stamp to reset the 'from' date.  
  */
 export const calcExpiry = (stamp: number, payment: Payment, client: PlanState["client"]) => {
 	const plan = client.plan[0] || {};										// description of Member's current Plan
-	const topUp = client.price.find(row => row[FIELD.type] === 'topUp');
-	const hold = payment.hold || 0;
-	const paid = (payment.amount || 0) + (payment.adjust || 0) + (payment.bank || 0);
+	const topUp = client.price.find(row => row[FIELD.Type] === PRICE.TopUp);
+	const amounts = calcPayment(payment);
+	const hold = amounts.hold || 0;
+	const paid = amounts[PAYMENT.TopUp] + amounts[PAYMENT.Adjust] + (payment.bank || 0);
 
-	if (topUp && !isUndefined(plan.expiry)) {							// plan.expiry is usually six-months
+	if (topUp && isDefined(plan.expiry)) {								// plan.expiry is usually six-months
 		const offset = topUp.amount													// number of months to extend expiry-date
-			? Math.round(paid / (topUp.amount / plan.expiry)) || 1
+			? Math.round(paid / (topUp.amount / plan.expiry)) || 1	// never less-than one month
 			: plan.expiry;																		// allow for gratis account expiry
 		return getInstant(stamp)
 			.add(offset, 'months')														// number of months to extend expiry-date
@@ -81,4 +82,21 @@ export const calcExpiry = (stamp: number, payment: Payment, client: PlanState["c
 	}
 
 	return undefined;
+}
+
+/**
+ * A Member's Payment record contains an array of fees, all of which need an Approval stamp
+ */
+export const calcPayment = (payment?: Payment, approvedOnly = false) => {
+	const obj = {} as Record<PAYMENT, number>;
+	Object.values(PAYMENT)
+		.forEach(pay => obj[pay] = 0);											// init all Payment-types to 0
+
+	return payment
+		? payment.fee.reduce((acc, itm) => {
+			if (!approvedOnly || (approvedOnly && itm.stamp))
+				acc[itm[FIELD.Type]] = (acc[itm[FIELD.Type]] || 0) + itm.amount;
+			return acc;
+		}, obj)
+		: obj
 }
