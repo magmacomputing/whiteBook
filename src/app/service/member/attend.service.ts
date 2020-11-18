@@ -17,7 +17,7 @@ import { calcExpiry } from '@service/member/member.library';
 import { MemberService } from '@service/member/member.service';
 import { SnackService } from '@service/material/snack.service';
 
-import { getInstant, Instant, TInstant } from '@library/instant.library';
+import { getInstant, Instant } from '@library/instant.library';
 import { isUndefined, isNumber, isEmpty, nullToZero, isDefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
@@ -31,7 +31,7 @@ export class AttendService {
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.#dbg('new'); }
 
 	/** Insert an Attend document, aligned to an active Payment  */
-	public setAttend = async (schedule: Schedule, date?: TInstant) => {
+	public setAttend = async (schedule: Schedule, date?: Instant.TYPE) => {
 		const creates: FireDocument[] = [];
 		const updates: FireDocument[] = [];
 
@@ -214,7 +214,7 @@ export class AttendService {
 	}
 
 	/** look back up-to seven days to find when className was last scheduled */
-	private lkpDate = async (className: string, location?: string, date?: TInstant) => {
+	private lkpDate = async (className: string, location?: string, date?: Instant.TYPE) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
 		let now = getInstant(date);																// start with date-argument
 		let ctr = 0;

@@ -15,7 +15,7 @@ import type { FireDocument, Register, Connect, Account, Comment, React, Sheet } 
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
-import { Instant, TInstant, getInstant } from '@library/instant.library';
+import { Instant, getInstant } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -57,7 +57,7 @@ export class StateService {
 		return getCurrent<T>(this.states, store, filters);
 	}
 
-	getStore<T>(store: STORE, where?: fire.Query["where"], date?: TInstant) {
+	getStore<T>(store: STORE, where?: fire.Query["where"], date?: Instant.TYPE) {
 		return getStore<T>(this.states, store, where, date);
 	}
 
@@ -130,7 +130,7 @@ export class StateService {
 	 * 
 	 * @param date:	number	An optional as-at date to determine rows in an effective date-range
 	 */
-	getMemberData(date?: TInstant): Observable<MemberState> {
+	getMemberData(date?: Instant.TYPE): Observable<MemberState> {
 		const filterProfile = [
 			fire.addWhere(FIELD.Type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
 			fire.addWhere(FIELD.Uid, '{{auth.current.uid}}'),  								// and the <uid> is current active User
@@ -152,7 +152,7 @@ export class StateService {
 	 * client.plan  -> has an array of asAt Plan documents  
 	 * client.price -> has an array of asAt Price documents
 	 */
-	getPlanData(date?: TInstant): Observable<PlanState> {
+	getPlanData(date?: Instant.TYPE): Observable<PlanState> {
 		const filterIcon = fire.addWhere(FIELD.Type, [STORE.Plan, STORE.Default]);
 
 		return this.getMemberData(date).pipe(
@@ -168,7 +168,7 @@ export class StateService {
 	 * client.provider	-> has an array of Provider documents
 	 * client.icon			-> has an array of Provider icons
 	 */
-	getProviderData(date?: TInstant): Observable<ProviderState> {
+	getProviderData(date?: Instant.TYPE): Observable<ProviderState> {
 		const filterProvider = fire.addWhere(FIELD.Expire, 0);
 		const filterIcon = fire.addWhere(FIELD.Type, [STORE.Provider, STORE.Default]);
 
@@ -185,7 +185,7 @@ export class StateService {
 	 * account.attend	-> has an array of attendances against the <active> payment  
 	 * account.summary-> has an object summarising the Member's Account value as { paid: $, bank: $, adjust: $, spend: $, credit: $, funds: $ }
 	 */
-	getAccountData(date?: TInstant): Observable<AccountState> {
+	getAccountData(date?: Instant.TYPE): Observable<AccountState> {
 		const filterPayment = [
 			fire.addWhere(FIELD.Store, STORE.Payment),
 			fire.addWhere(FIELD.Uid, '{{auth.current.uid}}'),
@@ -206,7 +206,7 @@ export class StateService {
 	 * forum.comment	-> has an array of Comments about this date's schedule
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
-	getForumData(date?: TInstant): Observable<ForumState> {
+	getForumData(date?: Instant.TYPE): Observable<ForumState> {
 		const query: fire.Query = {
 			where: fire.addWhere('track.date', getInstant(date).format(Instant.FORMAT.yearMonthDay)),
 			orderBy: fire.addOrder(FIELD.Stamp),
@@ -240,7 +240,7 @@ export class StateService {
 	 * gift				-> has an array of active Gifts available to a Member on the date
 	 * forum			-> has an array of Forum data for the date
 	 */
-	getScheduleData(date?: TInstant, elect?: BONUS): Observable<TimetableState> {
+	getScheduleData(date?: Instant.TYPE, elect?: BONUS): Observable<TimetableState> {
 		const now = getInstant(date);
 		const isMine = fire.addWhere(FIELD.Uid, `{{auth.current.uid}}`);
 
@@ -290,7 +290,7 @@ export class StateService {
 	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
 	 * It will take the ITimetable format (described in getTimetableData)
 	 */
-	getTimetableData(date?: TInstant): Observable<TimetableState> {
+	getTimetableData(date?: Instant.TYPE): Observable<TimetableState> {
 		const now = getInstant(date);
 		const filterClass = fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
 		const filterLocation = fire.addWhere(FIELD.Key, '{{client.schedule.location}}');

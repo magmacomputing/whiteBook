@@ -11,7 +11,7 @@ import { StateService } from '@dbase/state/state.service';
 import { DialogService } from '@service/material/dialog.service';
 
 import { Instant, fmtInstant } from '@library/instant.library';
-import { setTimer } from '@library/observable.library';
+import { DayTimer } from '@library/observable.library';
 import { asCurrency } from '@library/number.library';
 import { isUndefined } from '@library/type.library';
 import { getPath } from '@library/object.library';
@@ -33,6 +33,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 
 	#stop$ = new Subject();															// notify Subscriptions to complete
+	#timer!: DayTimer;
 	#meetings: zoom.Meeting[] = [];
 	#meetingDate = new BehaviorSubject<Instant>(new Instant());
 	public meetings$!: Observable<zoom.Meeting[]>;				// the date's Meetings
@@ -41,9 +42,6 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	#colorCache!: (white: zoom.White | undefined) => COLOR
 
 	constructor(private data: DataService, private state: StateService, public dialog: DialogService) {
-		setTimer(this.#stop$)
-			.subscribe(() => this.setDate(0));							// watch for midnight, then update UI to new date
-
 		this.getMeetings();																// wire-up the Meetings Observable
 		this.setDate(0);
 		this.getColor();
@@ -55,19 +53,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 		this.#colorCache = memoize(this.setColor.bind(this));
 	}
 
-	ngOnInit() { }
-
-	ngOnDestroy() {
-		this.#stop$.next(true);
-		this.#stop$.unsubscribe();
+	ngOnInit() {
+		this.#timer = new DayTimer(this.setDate.bind(this));// watch for midnight, then update UI to new date
 	}
 
-	// onSwipe(idx: number, len: number, event: Event) {
-	// 	alert(JSON.stringify(event.target));
-	// 	this.dbg(event);
-	// 	this.firstPaint = false;                          // ok to animate
-	// 	this.selectedIndex = swipe(idx, len, event);
-	// }
+	ngOnDestroy() {
+		this.#timer.stop();
+	}
 
 	/**
 	 * Call this onInit, whenever the Admin changes the UI-date, and at midnight.  
@@ -75,13 +67,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	 * 			if  1,	show next day  
 	 * 			if  0,	show today
 	 */
-	setDate(dir: -1 | 0 | 1) {
+	setDate(dir: -1 | 0 | 1 = 0) {
 		this.offset = dir;
 		this.date = dir === 0
 			? new Instant().startOf('day')
 			: new Instant(this.date).add(dir, 'days')
 
-		this.#meetingDate.next(this.date);									// give the date to the Observable
+		this.#meetingDate.next(this.date);								// give the date to the Observable
 	}
 
 	/**
@@ -91,11 +83,12 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	 * then map everything into an IMeeting[] format for the UI to present
 	 */
 	private getMeetings() {
+
 		return this.meetings$ = this.#meetingDate					// wait on the date to change
 			.pipe(
 				takeUntil(this.#stop$),												// teardown Observables
-				tap(_ => this.#meetings = []),									// reset the assembled details
-				tap(_ => this.#dateChange = true),							// move the selectedIndex to latest meeting
+				tap(_ => this.#meetings = []),								// reset the assembled details
+				tap(_ => this.#dateChange = true),						// move the selectedIndex to latest meeting
 
 				switchMap(inst =>															// get all meeting.started events for this.date
 					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.Zoom, {

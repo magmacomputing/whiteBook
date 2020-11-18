@@ -4,7 +4,7 @@ import type { Instant } from '@library/instant.library';
 
 type TStoreAdmin = STORE.Register | STORE.Sheet;
 type TStoreConfig = STORE.Schema | STORE.Config | STORE.Default;
-type TStoreClient = STORE.Class | STORE.Event | STORE.Price | STORE.Plan | STORE.Provider | STORE.Schedule | STORE.Calendar | STORE.Location | STORE.Instructor | STORE.Bonus | STORE.Span | STORE.Alert | STORE.Icon;
+type TStoreClient = STORE.Class | STORE.Event | STORE.Price | STORE.Plan | STORE.Provider | STORE.Schedule | STORE.Calendar | STORE.Diary | STORE.Location | STORE.Instructor | STORE.Bonus | STORE.Span | STORE.Alert | STORE.Icon;
 type TStoreMember = STORE.Profile | STORE.Payment | STORE.Gift | STORE.Message | STORE.Attend | STORE.Status | STORE.Migrate | STORE.Log;
 type TStoreForum = STORE.React | STORE.Comment;
 
@@ -143,6 +143,11 @@ export interface Calendar extends ClientCollection {
 	start?: string;
 	[STORE.Location]?: string;
 	[STORE.Instructor]?: string;
+}
+
+//	/client/diary
+export interface Diary extends ClientCollection {
+	[FIELD.Store]: STORE.Diary;					// TODO: havent decided how to use this one yet
 }
 
 //	/client/schedule

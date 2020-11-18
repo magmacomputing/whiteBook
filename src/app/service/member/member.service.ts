@@ -11,10 +11,10 @@ import { DataService } from '@dbase/data/data.service';
 import { asAt } from '@library/app.library';
 import { fire } from '@dbase/fire/fire.library';
 import { AuthState } from '@dbase/state/auth.state';
-import { FIELD, STORE, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data.define';
+import { STORE, FIELD, PLAN, PRICE, PROFILE, STATUS, PAYMENT } from '@dbase/data.define';
 import type { ProfilePlan, Payment, ProfileInfo, Class, FireDocument, Account, Price } from '@dbase/data.schema';
 
-import { getStamp, TInstant } from '@library/instant.library';
+import { getStamp, Instant } from '@library/instant.library';
 import { isNull } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
@@ -45,7 +45,7 @@ export class MemberService {
 			)
 	}
 
-	async setPlan(plan: PLAN, dt?: TInstant) {
+	async setPlan(plan: PLAN, dt?: Instant.TYPE) {
 		const doc = {
 			[FIELD.Effect]: getStamp(dt),
 			[FIELD.Store]: STORE.Profile,
@@ -59,7 +59,7 @@ export class MemberService {
 	}
 
 	/** Create a new TopUp payment  */
-	async setPayment(amount?: number, stamp?: TInstant) {
+	async setPayment(amount?: number, stamp?: Instant.TYPE) {
 		const data = await this.getAccount();
 		const plan = data.member.plan[0];
 
@@ -83,7 +83,7 @@ export class MemberService {
 		} as Payment
 	}
 
-	private async upgradePlan(plan: ProfilePlan, stamp?: TInstant) {				// auto-bump 'intro' to 'member'
+	private async upgradePlan(plan: ProfilePlan, stamp?: Instant.TYPE) {				// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<Price>(STORE.Price, [
 			fire.addWhere(FIELD.Type, PRICE.TopUp),
 			fire.addWhere(FIELD.Key, plan.bump),
@@ -95,7 +95,7 @@ export class MemberService {
 	}
 
 	/** Current Account status */
-	getAccount = async (date?: TInstant) => {
+	getAccount = async (date?: Instant.TYPE) => {
 		return this.state.getAccountData(date)
 			.pipe(take(1))
 			.toPromise()

@@ -2,10 +2,10 @@ import { PlanState } from '@dbase/state/state.define';
 import { FIELD, PAYMENT, PRICE } from '@dbase/data.define';
 import { ProfileInfo, Payment } from '@dbase/data.schema';
 
-import { isString, isNumber, isUndefined, isDefined } from '@library/type.library';
+import { isString, isNumber, isDefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
-import { getStamp, getInstant, TInstant, Instant } from '@library/instant.library';
+import { getStamp, getInstant, Instant } from '@library/instant.library';
 
 // Library of member-related functions
 
@@ -55,7 +55,7 @@ export const getMemberBirthDay = (info: ProfileInfo[] = []) => {
 	return birthDates.length ? Math.min(...birthDates) : undefined;
 }
 
-export const getMemberAge = (info: ProfileInfo[] = [], dt?: TInstant) =>
+export const getMemberAge = (info: ProfileInfo[] = [], dt?: Instant.TYPE) =>
 	getInstant(getMemberBirthDay(info)).diff('years', dt);		// diff from dt (default today)
 
 /**

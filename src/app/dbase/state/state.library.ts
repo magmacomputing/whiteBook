@@ -14,13 +14,13 @@ import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, auth, PAYMENT }
 
 import { asArray } from '@library/array.library';
 import { getPath } from '@library/object.library';
-import { Instant, TInstant, getInstant } from '@library/instant.library';
+import { Instant, getInstant } from '@library/instant.library';
 import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
 
 /**
  * Generic Slice Observable
  */
-export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant) => {
+export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: Instant.TYPE) => {
 	const slice = getSlice(store);
 	const state = states[slice] as Observable<FireDocument>;
 	if (!state)
@@ -36,7 +36,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["
  * Get all documents by filter,  
  * do not exclude _expire unless <date> specified
  */
-export const getStore = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant) => {
+export const getStore = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: Instant.TYPE) => {
 	const slice = getSlice(store);
 	if (store === slice.toString())													// top-level slice (eg. Attend)
 		return getState<T>(states, store, filter, date);
@@ -52,7 +52,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: fire.Query["wh
 		map(table => table.sortBy(asArray(SORTBY[store]))),
 	)
 }
-export const getState = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: TInstant) => {
+export const getState = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: Instant.TYPE) => {
 	const state: Observable<TStateSlice<T>> = states[store] as any;
 	if (!state)
 		throw new Error(`Cannot resolve state from ${store}`);
@@ -100,7 +100,7 @@ export const getUser = (token: FireClaims) =>
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
  */
-export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: fire.Query["where"] = [], date?: TInstant, callBack?: CallableFunction) => {
+export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: fire.Query["where"] = [], date?: Instant.TYPE, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
 
@@ -312,7 +312,7 @@ export const buildPlan = (source: PlanState) => {
  * use the collected Schedule items to determine the Timetable to display.  
  * schedule type 'event' overrides 'class'; 'special' appends.  
  */
-export const buildTimetable = (source: TimetableState, date?: TInstant, elect?: BONUS) => {
+export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elect?: BONUS) => {
 	const {
 		schedule: times = [],												// the schedule for the requested date
 		class: classes = [],    										// the classes offered on that date

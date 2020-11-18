@@ -1,6 +1,7 @@
 import { asString, asNumber, toProperCase } from '@library/string.library';
 import { getType, isString, isNumber } from '@library/type.library';
 import { fix } from '@library/number.library';
+import { TmplAstTemplate } from '@angular/compiler';
 
 interface InstantVars {							// Instant values
 	yy: number;												// year[4]
@@ -16,7 +17,7 @@ interface InstantVars {							// Instant values
 	ddd: keyof typeof Instant.WEEKDAY;// short day-name
 	dow: Instant.WEEKDAY;							// weekday; Mon=1, Sun=7
 	tz: number;												// timezone offset in hours
-	value?: TInstant;									// original value passed to constructor
+	value?: Instant.TYPE;							// original value passed to constructor
 }
 
 interface DateFmt {									// pre-configured format strings
@@ -33,18 +34,18 @@ interface DateFmt {									// pre-configured format strings
 }
 
 type TArgs = string[] | number[];
+// type TPlural<T extends string> = `${T}s`;		// TODO:  needs Typescript 4.1
 type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
 type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
-
-export type TInstant = string | number | Date | Instant;
+// type TUnitDiff = TPlural<TUnitTime>;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // shortcut functions to common Instant class properties / methods.
-/** get new Instant */export const getInstant = (dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args);
-/** format Instant */	export const fmtInstant = <K extends keyof DateFmt>(fmt: K, dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args).format(fmt);
-/** get timestamp */	export const getStamp = (dt?: TInstant, ...args: TArgs) => new Instant(dt, ...args).ts;
+/** get new Instant */export const getInstant = (dt?: Instant.TYPE, ...args: TArgs) => new Instant(dt, ...args);
+/** format Instant */	export const fmtInstant = <K extends keyof DateFmt>(fmt: K, dt?: Instant.TYPE, ...args: TArgs) => new Instant(dt, ...args).format(fmt);
+/** get timestamp */	export const getStamp = (dt?: Instant.TYPE, ...args: TArgs) => new Instant(dt, ...args).ts;
 
 // NOTE: Instant does not currently handle leap-seconds
 
@@ -57,7 +58,7 @@ export type TInstant = string | number | Date | Instant;
 export class Instant {
 	#date: InstantVars;																			// Date parsed into components
 
-	constructor(dt?: TInstant, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
+	constructor(dt?: Instant.TYPE, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */		get yy() { return this.#date.yy }
@@ -79,7 +80,7 @@ export class Instant {
 	/** apply formatting*/
 	format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
 	/** calc diff Dates, default as \<years> */
-	diff = (unit: TUnitDiff = 'years', dt2?: TInstant, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
+	diff = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
 	/** add date offset, default as \<minutes> */
 	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
 
@@ -97,7 +98,7 @@ export class Instant {
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
-	#parseDate = (dt?: TInstant, args: TArgs = []) => {
+	#parseDate = (dt?: Instant.TYPE, args: TArgs = []) => {
 		const pat = {
 			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
@@ -194,7 +195,7 @@ export class Instant {
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
-		const ww = Math.floor((thu - ny) / Instant.TIMES.weeks + 1);	// ISO Week Number
+		const ww = Math.floor((thu - ny) / Instant.TIMES.week + 1);	// ISO Week Number
 
 		return {
 			yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow,
@@ -420,16 +421,22 @@ export class Instant {
 	}
 
 	/** calculate the difference between dates (past is positive, future is negative) */
-	#diffDate = (unit: TUnitDiff = 'years', dt2?: TInstant, ...args: TArgs) => {
+	#diffDate = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => {
 		const offset = this.#parseDate(dt2, args);
 		const diff = (this.#date.ts * 1000 + this.#date.ms) - (offset.ts * 1000 + offset.ms);
+		const single = unit.endsWith('s')
+			? unit.substring(0, unit.length - 1)										// remove plural units
+			: unit
+
 		return diff < 0
-			? Math.ceil(diff / Instant.TIMES[unit])
-			: Math.floor(diff / Instant.TIMES[unit])
+			? Math.ceil(diff / Instant.TIMES[single as TUnitTime])
+			: Math.floor(diff / Instant.TIMES[single as TUnitTime])
 	}
 }
 
 export namespace Instant {
+	export type TYPE = string | number | Date | Instant;
+
 	export enum WEEKDAY { All, Mon, Tue, Wed, Thu, Fri, Sat, Sun };
 	export enum WEEKDAYS { Every, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
 	export enum MONTH { All, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec };
@@ -454,23 +461,23 @@ export namespace Instant {
 
 	/** number of seconds per unit-of-time */
 	export enum TIME {
-		years = 31_536_000,
-		months = 2_628_000,
-		weeks = 604_800,
-		days = 86_400,
-		hours = 3_600,
-		minutes = 60,
-		seconds = 1,
+		year = 31_536_000,
+		month = 2_628_000,
+		week = 604_800,
+		day = 86_400,
+		hour = 3_600,
+		minute = 60,
+		second = 1,
 	}
 	/** number of milliseconds per unit-of-time */
 	export enum TIMES {
-		years = TIME.years * 1_000,
-		months = TIME.months * 1_000,
-		weeks = TIME.weeks * 1_000,
-		days = TIME.days * 1_000,
-		hours = TIME.hours * 1_000,
-		minutes = TIME.minutes * 1_000,
-		seconds = TIME.seconds * 1_000,
+		year = TIME.year * 1_000,
+		month = TIME.month * 1_000,
+		week = TIME.week * 1_000,
+		day = TIME.day * 1_000,
+		hour = TIME.hour * 1_000,
+		minute = TIME.minute * 1_000,
+		second = TIME.second * 1_000,
 	}
 
 	/**  */

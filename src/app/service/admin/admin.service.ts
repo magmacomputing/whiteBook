@@ -4,10 +4,10 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { MemberService } from '@service/member/member.service';
 
-import { FIELD, STORE } from '@dbase/data.define';
-import { FireDocument, Gift } from '@dbase/data.schema';
+import { STORE, FIELD } from '@dbase/data.define';
+import type { FireDocument, Gift } from '@dbase/data.schema';
 
-import { getStamp, TInstant, getInstant } from '@library/instant.library';
+import { getStamp, Instant } from '@library/instant.library';
 import { isDefined, TString } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
@@ -48,7 +48,7 @@ export class AdminService {
 	}
 
 	/** Create a Gift for a Member to use in future check-ins */
-	addGift = async (uid: string, limit: number, start?: TInstant, note?: TString, expiry?: TInstant) => {
+	addGift = async (uid: string, limit: number, start?: Instant.TYPE, note?: TString, expiry?: Instant.TYPE) => {
 		const gift: Partial<Gift> = {
 			[FIELD.Effect]: getStamp(start),
 			[FIELD.Store]: STORE.Gift,

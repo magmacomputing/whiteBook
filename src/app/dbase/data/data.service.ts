@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { DocumentReference } from '@angular/fire/firestore';
+import type { DocumentReference } from '@angular/fire/firestore';
 
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
 import { SnackService } from '@service/material/snack.service';
-import { auth, COLLECTION, FIELD, STORE } from '@dbase/data.define';
+import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
 import type { FireDocument } from '@dbase/data.schema';
 
@@ -20,8 +20,8 @@ import { fire } from '@dbase/fire/fire.library';
 import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
 
-import { TString } from '@library/type.library';
-import { getStamp, TInstant } from '@library/instant.library';
+import type { TString } from '@library/type.library';
+import { getStamp, Instant } from '@library/instant.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
@@ -57,7 +57,7 @@ export class DataService {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where));
 	}
 
-	getStore<T>(store: STORE, where: fire.Query["where"] = [], date?: TInstant) {
+	getStore<T>(store: STORE, where: fire.Query["where"] = [], date?: Instant.TYPE) {
 		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 

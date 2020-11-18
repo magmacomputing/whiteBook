@@ -13,8 +13,8 @@ import { DataService } from '@dbase/data/data.service';
 import type { Schedule } from '@dbase/data.schema';
 
 import { isUndefined, TString } from '@library/type.library';
-import { setTimer } from '@library/observable.library';
-import { Instant, TInstant } from '@library/instant.library';
+import { DayTimer } from '@library/observable.library';
+import { Instant } from '@library/instant.library';
 import { suffix } from '@library/number.library';
 import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
@@ -26,6 +26,8 @@ import { dbg } from '@library/logger.library';
 })
 export class AttendComponent implements OnDestroy {
 	#dbg = dbg(this);
+	#timer!: DayTimer;
+
 	public date!: Instant;															// the date for the Schedule to display
 	public offset!: number;															// the number of days before today 
 	public firstPaint = true;                           // indicate first-paint
@@ -33,19 +35,16 @@ export class AttendComponent implements OnDestroy {
 	public selectedIndex: number = 0;                   // used by UI to swipe between <tabs>
 	public locations: number = 0;                       // used by UI to swipe between <tabs>
 	public timetable$!: Observable<TimetableState>;			// the date's Schedule
-	#stop$ = new Subject<any>();												// notify Subscriptions to complete
 
 	constructor(public readonly attend: AttendService, public readonly state: StateService,
 		public readonly data: DataService, private dialog: DialogService, private forum: ForumService) { this.setDate(0); }
 
 	ngOnInit() {
-		setTimer(this.#stop$)
-			.subscribe(_ => this.setDate(0));								// watch for midnight, then update UI to new date
+		this.#timer = new DayTimer(this.setDate.bind(this));// watch for midnight, then update UI to new date
 	}
 
 	ngOnDestroy() {
-		this.#stop$.next();
-		this.#stop$.unsubscribe();
+		this.#timer.stop();
 	}
 
 	// Build info to show in a Dialog
@@ -97,13 +96,13 @@ export class AttendComponent implements OnDestroy {
 	 * 			if 1,		show next day  
 	 * 			if 0,		show today
 	 */
-	setDate(dir: -1 | 0 | 1) {
+	setDate(dir: -1 | 0 | 1 = 0) {
 		const today = new Instant();
 		const offset = dir === 0
 			? today
 			: new Instant(this.date).add(dir, 'days')
-		this.offset = today.diff('days', offset);
 
+		this.offset = today.diff('days', offset);
 		this.date = this.offset > 6												// only allow up-to 6 days in the past
 			? today																					// else reset to today
 			: offset
@@ -111,7 +110,7 @@ export class AttendComponent implements OnDestroy {
 		this.getSchedule();																// get day's Schedule
 	}
 
-	getDate(dt: TInstant) {
+	getDate(dt: Instant.TYPE) {
 		return new Instant(dt).format('ddd, dd mmm yyyy');
 	}
 

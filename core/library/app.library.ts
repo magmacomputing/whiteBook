@@ -2,7 +2,7 @@ import { FIELD } from '@dbase/data.define';
 import type { FireDocument } from '@dbase/data.schema';
 import type { fire } from '@dbase/fire/fire.library';
 
-import { getStamp, TInstant, Instant } from '@library/instant.library';
+import { getStamp, Instant } from '@library/instant.library';
 import { isString, isUndefined, isArray } from '@library/type.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
@@ -87,7 +87,7 @@ export const firstRow = <T>(table: T[] = [], filters: fire.Query["where"] = []) 
  * 	and is nearest in time to \<near>.  
  * e.g. near = {start: '19:30'}   will return the table-row whose \<start> field is nearest to '19:30'
  */
-export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date: TInstant = new Instant(), near: Partial<T>) => {
+export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date: Instant.TYPE = new Instant(), near: Partial<T>) => {
 	const [key, hhmi] = Object.entries(near)[0];		// use first key to determine which field we compare
 	const time = asTime(hhmi as string | number);		// convert HH:MM  to HHMM
 
@@ -113,7 +113,7 @@ export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date:
  * @param cond 		condition to use as filter
  * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
  */
-export const asAt = <T>(table: T[], cond: fire.Query["where"] = [], date?: TInstant) => {
+export const asAt = <T>(table: T[], cond: fire.Query["where"] = [], date?: Instant.TYPE) => {
 	const stamp = getStamp(date);
 
 	return filterTable(table as (T & FireDocument)[], cond)		// return the rows where date is between _effect and _expire

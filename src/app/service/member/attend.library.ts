@@ -1,25 +1,25 @@
-import { TimetableState } from '@dbase/state/state.define';
+import type { TimetableState } from '@dbase/state/state.define';
 import { FIELD, BONUS, COLLECTION, STORE, PLAN, CLASS } from '@dbase/data.define';
 import type { Gift, TBonus, Attend, Bonus, ProfilePlan } from '@dbase/data.schema';
 
-import { TInstant, getInstant, Instant } from '@library/instant.library';
+import { Instant, getInstant } from '@library/instant.library';
 import { TString, isUndefined, nullToZero } from '@library/type.library';
-import { asArray } from '@library/array.library';
 import { plural } from '@library/string.library';
+import { asArray } from '@library/array.library';
 
 /**
- * Determine if provided event is entitled to a Gift or a Bonus  
+ * Determine if provided event is entitled to a Gift, a Bonus  (else full-price)
  * source:	info about the effective Plans, Bonus, etc. and current Member
  * event:	  a Class name
  * date:		effective date, else today
  * elect:		Bonus override (e.g. Member may elect to *not* use one of their Gifts)
  */
-export const calcBonus = (source: TimetableState, event: CLASS, date?: TInstant, elect?: BONUS) => {
+export const calcBonus = (source: TimetableState, event: CLASS, date?: Instant.TYPE, elect?: BONUS) => {
 	const now = getInstant(date);
 	const bonus = {} as TBonus;															// calculated Bonus entitlement
 
 	const gifts = source[COLLECTION.Member][STORE.Gift];		// the active Gifts for this Member
-	const plan = source[COLLECTION.Member][STORE.Plan][0];	// the current Member plan
+	const plans = source[COLLECTION.Member][STORE.Plan];		// the current Member plan
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.Attend];
 
 	(source[COLLECTION.Client][STORE.Bonus] || [])					// current Bonus schemes to which the Member is entitled
@@ -52,7 +52,7 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: TInstant,
 					break;
 
 				case BONUS.Home:
-					bonusHome(bonus, scheme, attendToday, plan, elect, event);
+					bonusHome(bonus, scheme, attendToday, plans[0], elect, event);
 					break;
 			}
 		})
@@ -64,7 +64,7 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: TInstant,
  * Admin adds 'Gift' records to a Member's account, which will detail the start-date
  * and limit of free classes (and an optional expiry-date as 'use-by' for the Gift).  
  * 
- * Even though the Member may have an active Gift, we check all of them if they are useable.  
+ * A Member may have multiple active Gifts; check all of them if they are still useable.  
  * Any Gifts that have passed their expiry-date will be marked as closed.
  */
 const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Instant, elect = BONUS.Gift) => {
