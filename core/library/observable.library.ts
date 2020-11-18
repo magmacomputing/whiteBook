@@ -9,7 +9,7 @@ import { dbg } from '@library/logger.library';
  * init an Observable which emits at midnight everyday.   
  * provide a callback to invoke at midnight as
  * ```
- * new DayTimer(this.callback.bind(this))
+ * new DayTimer(callback.bind(this))
  * ```
  */
 export class DayTimer {
@@ -28,7 +28,7 @@ export class DayTimer {
 		this.#stop$ = new Subject<any>();					// start a new Subject
 
 		this.log('new', 0, midnight);							// show the initial Timer
-		timer(midnight.toDate(), Instant.TIMES.day)// start a Timer from midnight, refires one day later
+		timer(midnight.toDate(), Instant.TIMES.day)// start a Timer from midnight, and re-fires daily
 			.pipe(takeUntil(this.#stop$))						// until notified to stop
 			.subscribe({
 				next: (nbr) => {
