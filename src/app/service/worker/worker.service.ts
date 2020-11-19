@@ -7,7 +7,7 @@ import { dbg } from '@library/logger.library';
 @Injectable({ providedIn: 'root' })
 export class WorkerService {
 	#dbg = dbg(this, 'WorkerService');
-	#worker!: Worker;
+	#worker: Worker | undefined = undefined;
 
 	constructor() {
 		const script = './app.worker';
@@ -24,15 +24,11 @@ export class WorkerService {
 		this.send(`init: ${script}`);
 	}
 
-	start(worker: string | URL) {
-
-	}
-
-	send(msg: any) {
+	send(msg: any) {																					// send a message to the Worker
 		this.#worker?.postMessage(msg);
 	}
 
-	private recv({ data }: any) {
+	private recv({ data }: any) {															// receive a response from the Worker
 		this.#dbg(`page got message: ${data}`);
 	}
 }
