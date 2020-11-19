@@ -227,17 +227,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const match = payments.find(pay => pay[FIELD.Stamp] === row[FIELD.Stamp]);
 
 				if (isDefined(row.approved) && match) {
-					const topUp = match.fee
-						.filter(fee => fee[FIELD.Type] === PAYMENT.TopUp)				// all topUp fees on the migrated-Payment
-						.filter(fee => isUndefined(fee[FIELD.Stamp]))						// find unapproved fees
+					const topUp = match.pay
+						.filter(pay => pay[FIELD.Type] === PAYMENT.TopUp)				// all topUp pays on the migrated-Payment
+						.filter(pay => isUndefined(pay[FIELD.Stamp]))						// find unapproved pays
 					if (topUp.length) {																				// update an already-migrated Payment
-						topUp.forEach(fee => {
-							fee.stamp = row.approved!;														// stamp unapproved topUps
-							fee.uid = Migration.Instructor
-						})
+						topUp.forEach(pay => Object.assign(pay, { stamp: row.approved, uid: Migration.Instructor, note: row.note }));
 						updates.push(match);																		// update the now-approved Payment
-						return false;																						// no further checking required on this Payment
 					}
+					return false;																							// no further checking required on this Payment
 				}
 
 				if (isUndefined(match)) {
@@ -255,7 +252,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			})
 			.map(row => {
 				const payType = row.type !== 'Debit' || (row.note?.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.Adjust : PAYMENT.TopUp;
-				const fee: Payment["fee"] = [{ [FIELD.Type]: payType, amount: asNumber(row.credit) }];	// start unapproved
+				const fee: Payment["pay"] = [{ [FIELD.Type]: payType, amount: asNumber(row.credit) }];	// start unapproved
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
 					Object.assign(fee[0], {																		// then fill-in approve
@@ -292,7 +289,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.Store]: STORE.Payment,
 					[FIELD.Stamp]: row.stamp,
 					[FIELD.Note]: row.note,
-					fee,
+					pay: fee,
 					// amount: payType === PAYMENT.topUp ? asNumber(row.credit!) : undefined,
 					// adjust: row.debit && asNumber(row.debit),
 					// approve: approve.stamp && approve || undefined,
@@ -315,7 +312,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (isUndefined(payment))
 					throw new Error('Cannot locate the Payment prior to Credit Expired');
 
-				payment.fee.push({
+				payment.pay.push({
 					[FIELD.Type]: PAYMENT.Adjust,
 					[FIELD.Note]: row.note,
 					[FIELD.Uid]: Migration.Instructor,
@@ -742,8 +739,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const test3 = summary.funds < 0;
 			if (test1 || test2 || test3) {
 				const note = asArray(active.note)[asArray(active.note).length];
-				const stamp = active.fee[0][FIELD.Stamp];
-				const expired = active.fee.find(fee => asArray(fee.note).indexOf('Credit Expired') !== -1);
+				const stamp = active.pay[0][FIELD.Stamp];
+				const expired = active.pay.find(pay => asArray(pay.note).indexOf('Credit Expired') !== -1);
 				const when = expired
 					? getStamp(expired[FIELD.Stamp])
 					: stamp

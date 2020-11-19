@@ -93,7 +93,7 @@ export const calcPayment = (payment?: Payment, approvedOnly = false) => {
 		.forEach(pay => obj[pay] = 0);											// init all Payment-types to 0
 
 	return payment
-		? payment.fee.reduce((acc, itm) => {
+		? payment.pay.reduce((acc, itm) => {
 			if (!approvedOnly || (approvedOnly && itm.stamp))
 				acc[itm[FIELD.Type]] = (acc[itm[FIELD.Type]] || 0) + itm.amount;
 			return acc;

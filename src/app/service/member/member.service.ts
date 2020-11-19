@@ -76,7 +76,7 @@ export class MemberService {
 			// [FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.Store]: STORE.Payment,
 			[FIELD.Stamp]: getStamp(stamp),
-			fee: [{
+			pay: [{
 				[FIELD.Type]: PAYMENT.TopUp,
 				amount: amount ?? topUp,
 			}]

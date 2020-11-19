@@ -129,7 +129,7 @@ export class AttendService {
 			if (!tests[PAY.under_limit] && tests[PAY.enough_funds]) {
 				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
 					const payment = await this.member.setPayment(0, stamp);
-					Object.assign(payment.fee[0], { uid: ATTEND.autoApprove, stamp });
+					Object.assign(payment.pay[0], { uid: ATTEND.autoApprove, stamp });
 
 					creates.push(payment);											// stack the topUp Payment into the batch
 					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment
@@ -167,14 +167,14 @@ export class AttendService {
 		if (isUndefined(active))
 			return this.snack.error('Could not allocate an active Payment');
 
-		const expired = active.fee.find(fee => asArray(fee.note).indexOf('Credit Expired') !== -1);
+		const expired = active.pay.find(pay => asArray(pay.note).indexOf('Credit Expired') !== -1);
 		const upd: Partial<Payment> = {};									// updates to the Payment
 		if (!active[FIELD.Effect])
 			upd[FIELD.Effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
 			upd[FIELD.Expire] = expired?.stamp ?? stamp;		// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.fee[0][FIELD.Stamp] && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
-			upd.expiry = calcExpiry(active.fee[0][FIELD.Stamp]!, active, data.client);
+		if (!active.expiry && active.pay[0][FIELD.Stamp] && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
+			upd.expiry = calcExpiry(active.pay[0][FIELD.Stamp]!, active, data.client);
 
 		if (!isEmpty(upd))																// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update

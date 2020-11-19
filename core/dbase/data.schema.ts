@@ -333,7 +333,7 @@ export interface Payment extends Omit<MemberCollection, FIELD.Type> {
 	[FIELD.Store]: STORE.Payment;
 	bank?: number;										// un-used funds from previous payment
 	expiry?: number;									// usually six-months from _effect
-	fee: {
+	pay: {
 		amount: number;									// fee amount
 		[FIELD.Type]: PAYMENT;					// fee type
 		[FIELD.Stamp]?: number;					// approval timestamp
