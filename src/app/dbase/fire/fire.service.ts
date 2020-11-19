@@ -68,7 +68,7 @@ export class FireService {
 
 	get<T>(collection: COLLECTION, query?: fire.Query) {
 		return this.afs
-			.collection(collection, fire.fnQuery(query)[0])
+			.collection<T>(collection, fire.fnQuery(query)[0])
 			.get({ source: 'server' })								// get the server-data, rather than cache
 			.toPromise()
 			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))

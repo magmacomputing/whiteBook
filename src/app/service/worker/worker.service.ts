@@ -11,7 +11,7 @@ export class WorkerService {
 
 	constructor() {
 		const script = './app.worker';
-		this.#dbg('new: %s', script);
+		this.#dbg('new');
 
 		if (isUndefined(Worker)) {
 			this.#dbg('Web Workers are not supported in this environment');
@@ -21,7 +21,7 @@ export class WorkerService {
 		this.#worker = new Worker('./app.worker', { type: 'module' });	// Start a Worker
 		this.#worker.onmessage = this.recv.bind(this);					// Define a handler
 
-		this.send(`init: ${script}`);
+		this.send(`init`);
 	}
 
 	send(msg: any) {																					// send a message to the Worker
@@ -29,6 +29,6 @@ export class WorkerService {
 	}
 
 	private recv({ data }: any) {															// receive a response from the Worker
-		this.#dbg(`page got message: ${data}`);
+		this.#dbg(data);
 	}
 }
