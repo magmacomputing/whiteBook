@@ -46,6 +46,7 @@ export class Pledge<T> {
 		return this.#tag;
 	}
 }
+
 export namespace Pledge {
 	export enum Status {
 		'pending' = 'pending',

@@ -60,9 +60,10 @@ export const getMemberAge = (info: ProfileInfo[] = [], dt?: Instant.TYPE) =>
 
 /**
  * A Member's Payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months (expiry).  
- * 1. Expiry will not be set until a Payment becomes active (all earlier Payments expired).
- * 2. When the nightly batch expires a prior Payment, it uses the Payment.stamp as the 'from' date.
- * 3. When the first Attend against a Payment is made, it uses the Attend.stamp to reset the 'from' date.  
+ * 
+ * Expiry will be set when  
+ * a) a Payment becomes effective (either an Attend is first booked on it, or the prior Payment expired)  
+ * b) a Payment.pay record (like topUp, onHold, adjust) is stamped.   
  */
 export const calcExpiry = (stamp: number, payment: Payment, client: PlanState["client"]) => {
 	const plan = client.plan[0] || {};										// description of Member's current Plan
@@ -96,6 +97,19 @@ export const calcPayment = (payment?: Payment, approvedOnly = false) => {
 		? payment.pay.reduce((acc, itm) => {
 			if (!approvedOnly || (approvedOnly && itm.stamp))
 				acc[itm[FIELD.Type]] = (acc[itm[FIELD.Type]] || 0) + itm.amount;
+			return acc;
+		}, obj)
+		: obj
+}
+
+export const showPayment = (payment?: Payment) => {
+	const obj = {} as Record<PAYMENT, Payment["pay"]>;
+	Object.values(PAYMENT)
+		.forEach(pay => obj[pay] = [])										// init all Payment-types to []
+
+	return payment
+		? payment.pay.reduce((acc, itm) => {
+			acc[itm[FIELD.Type]].push(itm);
 			return acc;
 		}, obj)
 		: obj

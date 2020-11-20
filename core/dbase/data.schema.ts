@@ -62,7 +62,7 @@ interface ForumCollection extends KeyFields, UserFields {
 	[FIELD.Type]: STORE;										// allow for Forum on any Store type
 	track: {																// to use in feedback-analysis
 		date: number;													// yearMonthDay
-		[index: string]: string | number;			// additional into to assist tracking
+		[index: string]: string | number;			// additional info to assist tracking
 	}
 }
 
@@ -328,14 +328,14 @@ export interface ProfileToken extends Profile {
 }
 
 //	/member/payment
-/** fee[0].type is always the only 'topUp' */
+/** pay[0].type is generally the only 'topUp' */
 export interface Payment extends Omit<MemberCollection, FIELD.Type> {
 	[FIELD.Store]: STORE.Payment;
 	bank?: number;										// un-used funds from previous payment
 	expiry?: number;									// usually six-months from _effect
 	pay: {
-		amount: number;									// fee amount
-		[FIELD.Type]: PAYMENT;					// fee type
+		amount: number;									// pay amount
+		[FIELD.Type]: PAYMENT;					// pay type
 		[FIELD.Stamp]?: number;					// approval timestamp
 		[FIELD.Uid]?: string;						// approver UID
 		[FIELD.Note]?: TString;
