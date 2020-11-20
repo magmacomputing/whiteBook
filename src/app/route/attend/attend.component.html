@@ -16,10 +16,10 @@
 	<div [@.disabled]="firstPaint" (swipeleft)="onSwipe(selectedIndex, $event)"
 		(swiperight)="onSwipe(selectedIndex, $event)">
 		<mat-tab-group [(selectedIndex)]="selectedIndex">
-			<mat-tab label="{{ loc.key }}" *ngFor="let loc of timetable.client?.location; let sfx = index">
+			<mat-tab label="{{ loc.name }}" *ngFor="let loc of timetable.client?.location; let sfx = index">
 				<table style="width:100%;">
 					<tr>
-						<td> <strong style="font-size:20px;">{{ loc.name }}</strong></td>
+						<td> <strong style="font-size:20px;">{{ loc.note }}</strong></td>
 						<td style="float:right;" *ngIf="timetable.client?.location.length > 1">
 							{{ suffix(sfx) }} of {{ timetable.client?.location.length }} locations
 						</td>
