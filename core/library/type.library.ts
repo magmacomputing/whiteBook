@@ -14,7 +14,7 @@ export const getType = (obj?: any): string => {
 	}
 }
 
-export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, })
+export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, });
 export const isType = <T>(obj: unknown, type = 'Object'): obj is T => getType(obj) === type;
 
 /** Type-Guards: return a boolean to test \<obj> is of \<type> */
@@ -34,8 +34,8 @@ export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Und
 export const isDefined = <T>(obj: T): obj is NonNullable<T> => !isNullish(obj);
 
 export const isDate = (obj?: unknown): obj is Date => isType(obj, 'Date');
-export const isFunction = (obj?: unknown): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');
 export const isClass = (obj?: unknown): obj is Function => isType(obj, 'Class');
+export const isFunction = (obj?: unknown): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');
 export const isPromise = <T>(obj?: unknown): obj is Promise<T> => isType(obj, 'Promise');
 export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 
@@ -43,8 +43,8 @@ export const nullToZero = <T>(obj: T) => obj ?? 0;
 export const nullToEmpty = <T>(obj: T) => obj ?? '';
 export const nullToValue = <T, R>(obj: T, value: R) => obj ?? value;
 
-export const isEmpty = <T>(obj?: T) =>
-	isNull(obj)
+export const isEmpty = <T>(obj?: T) => false
+	|| isNull(obj)
 	|| isUndefined(obj)
 	|| (isString(obj) && obj.trim() === '')
 	|| (isObject(obj) && Object.keys(obj).length === 0)
