@@ -86,7 +86,7 @@ export interface PlanState extends MemberState {
 	[COLLECTION.Client]: {
 		[STORE.Plan]: Plan[];             // array of effective Plan documents
 		[STORE.Price]: Price[];						// array of effective Price documents
-		[STORE.Icon]: Icon[];							// array of Plan icons
+		[STORE.Icon]?: Icon[];						// array of Plan icons
 	}
 }
 

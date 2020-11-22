@@ -335,6 +335,7 @@ export interface Payment extends Omit<MemberCollection, FIELD.Type> {
 	expiry?: number;									// usually six-months from _effect
 	pay: {
 		amount: number;									// pay amount
+		hold?: number;									// amount of days to 'hold' expiry
 		[FIELD.Type]: PAYMENT;					// pay type
 		[FIELD.Stamp]?: number;					// approval timestamp
 		[FIELD.Uid]?: string;						// approver UID

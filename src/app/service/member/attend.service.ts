@@ -173,8 +173,8 @@ export class AttendService {
 			upd[FIELD.Effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
 			upd[FIELD.Expire] = expired?.stamp ?? stamp;		// mark Expired if no funds (except $0 classes)
-		if (!active.expiry && active.pay[0][FIELD.Stamp] && isUndefined(timetable.bonus))	// calc an Expiry for this Payment
-			upd.expiry = calcExpiry(active.pay[0][FIELD.Stamp]!, active, data.client);
+		if (!active.expiry && active.pay[0][FIELD.Stamp] && isUndefined(timetable.bonus))
+			upd.expiry = calcExpiry(active, data.client);		// calc an Expriy for the Payment
 
 		if (!isEmpty(upd))																// changes to the active Payment
 			updates.push({ ...active, ...upd });						// so, batch the Payment update

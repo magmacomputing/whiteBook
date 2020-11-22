@@ -1,9 +1,8 @@
 import { asString, asNumber, toProperCase } from '@library/string.library';
 import { getType, isString, isNumber } from '@library/type.library';
 import { fix } from '@library/number.library';
-import { TmplAstTemplate } from '@angular/compiler';
 
-interface InstantVars {							// Instant values
+interface InstantObj {							// Instant values
 	yy: number;												// year[4]
 	mm: number;												// month; Jan=1, Dec=12
 	dd: number;												// day; 1-31
@@ -56,7 +55,7 @@ type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | '
  * It has short-cut functions to work with an Instant (getInstant(), fmtInstant(), getStamp())
  */
 export class Instant {
-	#date: InstantVars;																			// Date parsed into components
+	#date: InstantObj;																			// Date parsed into components
 
 	constructor(dt?: Instant.TYPE, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
 
@@ -124,6 +123,9 @@ export class Instant {
 			dt = dt.replace(pat.ddmmyyyyHHMI, '$2-$1-$3 $4');				// convert to US format
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
+			case 'Null':																						// special case
+				return { value: null } as InstantObj;
+
 			case 'Undefined':																				// default to 'now'
 				date = new Date();
 				break;
@@ -200,7 +202,7 @@ export class Instant {
 		return {
 			yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow,
 			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
-		} as InstantVars;
+		} as InstantObj;
 	}
 
 	/** create a new offset Instant */
@@ -306,7 +308,7 @@ export class Instant {
 	}
 
 	/** compose a Date() from an Instant() */
-	#composeDate = (date: InstantVars) =>
+	#composeDate = (date: InstantObj) =>
 		new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms)
 
 	/** combine Instant components to apply some standard & free-format rules */
@@ -435,7 +437,7 @@ export class Instant {
 }
 
 export namespace Instant {
-	export type TYPE = string | number | Date | Instant;
+	export type TYPE = string | number | Date | Instant | null;
 
 	export enum WEEKDAY { All, Mon, Tue, Wed, Thu, Fri, Sat, Sun };
 	export enum WEEKDAYS { Every, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };

@@ -58,7 +58,7 @@ export class MemberService {
 			.catch(err => this.#dbg('setPlan: %j', err.message))
 	}
 
-	/** Create a new TopUp payment  */
+	/** Create a new payment TopUp */
 	async setPayment(amount?: number, stamp?: Instant.TYPE) {
 		const data = await this.getAccount();
 		const plan = data.member.plan[0];
@@ -81,6 +81,19 @@ export class MemberService {
 				amount: amount ?? topUp,
 			}]
 		} as Payment
+	}
+
+	/** Create a new payment Adjust */
+	async setAdjust(amount = 0, data?: AccountState) {
+		data ??= await this.getAccount();
+		const payment = data[STATUS.Account].payment;
+
+		payment[0].pay.push({
+			[FIELD.Type]: PAYMENT.Adjust,
+			amount: amount,
+		})
+
+		return payment[0];
 	}
 
 	private async upgradePlan(plan: ProfilePlan, stamp?: Instant.TYPE) {				// auto-bump 'intro' to 'member'
@@ -153,7 +166,7 @@ export class MemberService {
 			.filter(row => row[FIELD.Type] === classDoc[FIELD.Type] as unknown as PRICE && row[FIELD.Key] === profile.plan)[0].amount || 0;
 	}
 
-	/** Determine this member's topUp amount */
+	/** Determine this member's TopUp amount */
 	getPayPrice = async (data?: AccountState) => {
 		data = data || await this.getAccount();
 

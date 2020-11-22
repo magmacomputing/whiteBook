@@ -4,8 +4,9 @@ import * as libType from './type.library';
  * Barrel for general library functions / classes / types
  */
 export { getType, isType, asType, isIterable, isNullish } from '@library/type.library';
+export { isPrimitive, isReference } from '@library/type.library';
 export { isString, isNumber, isInteger, isBoolean, isArray, isObject, isNull, isUndefined, isDefined } from '@library/type.library';
-export { isDate, isFunction, isClass, isPromise, isBlob } from '@library/type.library';
+export { isDate, isFunction, isClass, isPromise } from '@library/type.library';
 export { nullToZero, nullToEmpty, nullToValue, isEmpty } from '@library/type.library';
 
 export type TString = libType.TString;

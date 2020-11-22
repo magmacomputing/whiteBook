@@ -14,30 +14,31 @@ export const getType = (obj?: any): string => {
 	}
 }
 
+type Primitive = string | number | bigint | boolean | symbol | undefined | null;
 export const asType = <T>(obj: unknown) => ({ type: getType(obj), value: obj as T, });
 export const isType = <T>(obj: unknown, type = 'Object'): obj is T => getType(obj) === type;
 
 /** Type-Guards: return a boolean to test \<obj> is of \<type> */
-export const isIterable = <T>(obj: T | Iterable<T>): obj is Iterable<T> => Symbol.iterator in Object(obj) && !isString(obj);
-export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
-
-export const isPrimitive = (obj?: unknown): obj is null | boolean | number | bigint | string | symbol | undefined => ['Null', 'Boolean', 'Number', 'BigInt', 'String', 'Symbol', 'Undefined'].includes(getType(obj));
+export const isPrimitive = (obj?: unknown): obj is Primitive => ['String', 'Number', 'BigInt', 'Boolean', 'Symbol', 'Undefined', 'Null'].includes(getType(obj));
 export const isReference = (obj?: unknown): obj is Object => !isPrimitive(obj);
+export const isIterable = <T>(obj: T | Iterable<T>): obj is Iterable<T> => Symbol.iterator in Object(obj) && !isString(obj);
+
 export const isString = (obj?: unknown): obj is string => isType(obj, 'String');
 export const isNumber = (obj?: unknown): obj is number => isType(obj, 'Number');
 export const isInteger = (obj?: unknown): obj is bigint => isType(obj, 'BigInt');
 export const isBoolean = (obj?: unknown): obj is boolean => isType(obj, 'Boolean');
 export const isArray = <T>(obj?: T | T[]): obj is T[] => isType(obj, 'Array');
 export const isObject = <T>(obj?: T): obj is NonNullable<typeof obj> => isType(obj, 'Object');
+export const isDate = (obj?: unknown): obj is Date => isType(obj, 'Date');
+
 export const isNull = (obj?: unknown): obj is null => isType(obj, 'Null');
 export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
+export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
 export const isDefined = <T>(obj: T): obj is NonNullable<T> => !isNullish(obj);
 
-export const isDate = (obj?: unknown): obj is Date => isType(obj, 'Date');
 export const isClass = (obj?: unknown): obj is Function => isType(obj, 'Class');
 export const isFunction = (obj?: unknown): obj is Function => isType(obj, 'Function') || isType(obj, 'AsyncFunction');
 export const isPromise = <T>(obj?: unknown): obj is Promise<T> => isType(obj, 'Promise');
-export const isBlob = (obj?: unknown): obj is Blob => isType(obj, 'Blob');
 
 export const nullToZero = <T>(obj: T) => obj ?? 0;
 export const nullToEmpty = <T>(obj: T) => obj ?? '';

@@ -7,12 +7,12 @@ import { Store } from '@ngxs/store';
 import { ForumService } from '@service/forum/forum.service';
 import { MemberService } from '@service/member/member.service';
 import { AttendService } from '@service/member/attend.service';
-import { calcPayment } from '@service/member/member.library';
+import { calcExpiry, calcPayment } from '@service/member/member.library';
 import { cleanNote } from '@route/forum/forum.library';
 import { Migration } from '@route/migrate/migrate.define';
 
 import { DataService } from '@dbase/data/data.service';
-import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE } from '@dbase/data.define';
+import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE, PROFILE } from '@dbase/data.define';
 import type { Register, Payment, Schedule, Event, Calendar, Attend, Migrate, FireDocument, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Sheet, Profile } from '@dbase/data.schema';
 import { LoginAction } from '@dbase/state/auth.action';
 import { AccountState, AdminState } from '@dbase/state/state.define';
@@ -29,6 +29,8 @@ import { Storage } from '@library/browser.library';
 import { asAt, nearAt } from '@library/app.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
+import { TYPE } from '@dbase/zoom.schema';
+import { getMatFormFieldMissingControlError } from '@angular/material/form-field';
 
 @Component({
 	selector: 'wb-migrate',
@@ -207,8 +209,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private getMember() {
 		return Promise.all([
 			this.data.getStore<Payment>(STORE.Payment, fire.addWhere(FIELD.Uid, this.#current!.uid)),
-			this.data.getStore<Profile>(STORE.Profile, fire.addWhere(FIELD.Uid, this.#current!.uid)),
 			this.data.getStore<Gift>(STORE.Gift, fire.addWhere(FIELD.Uid, this.#current!.uid)),
+			this.data.getStore<Profile>(STORE.Profile, fire.addWhere(FIELD.Uid, this.#current!.uid)),
 			this.data.getStore<Plan>(STORE.Plan),
 			this.data.getStore<Price>(STORE.Price),
 			this.data.getStore<Comment>(STORE.Comment, fire.addWhere(FIELD.Uid, this.#current!.uid)),
@@ -218,7 +220,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
-		const [payments, profiles, gifts, plans, prices, comments, hist = []] = await this.getMember();
+		const [payments, gifts, profiles, plans, prices, comments, hist = []] = await this.getMember();
 		const histMap: Migration.History[] = [];
 		const updates: FireDocument[] = [];
 		const creates: FireDocument[] = hist
@@ -252,28 +254,24 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			})
 			.map(row => {
 				const payType = row.type !== 'Debit' || (row.note?.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.Adjust : PAYMENT.TopUp;
-				const fee: Payment["pay"] = [{ [FIELD.Type]: payType, amount: asNumber(row.credit) }];	// start unapproved
+				const pay: Payment["pay"] = [{ [FIELD.Type]: payType, amount: asNumber(row.credit) }];	// start unapproved
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
-					Object.assign(fee[0], {																		// then fill-in approve
+					Object.assign(pay[0], {																		// then fill-in approve
 						stamp: row.approved!,
 						uid: Migration.Instructor,
 					})
 				}
 
-				// if (payType === PAYMENT.topUp) {														// flip debit/credit
-				// 	row.debit = undefined;
-				// } else {
-				// 	row.debit = row.credit;
-				// 	row.credit = undefined;
-				// }
-
 				if (row.hold && row.hold <= 0) {
-					fee.push({
+					const plan = asAt(profiles, fire.addWhere(FIELD.Type, PROFILE.Plan), row.stamp)[0] as ProfilePlan;
+					const price = asAt(prices, [fire.addWhere(FIELD.Key, plan.plan), fire.addWhere(FIELD.Type, PRICE.Hold)], row.stamp)[0];
+					pay.push({
 						[FIELD.Type]: PAYMENT.Hold,
 						[FIELD.Uid]: Migration.Instructor,												// assume 'Hold' requests are auto-approved
 						[FIELD.Stamp]: row.stamp,
-						amount: asString(row.hold),
+						amount: price.amount,
+						hold: asString(row.hold),
 						note: row.note,
 					})
 					// row.debit = asString(row.hold);
@@ -289,11 +287,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.Store]: STORE.Payment,
 					[FIELD.Stamp]: row.stamp,
 					[FIELD.Note]: row.note,
-					pay: fee,
-					// amount: payType === PAYMENT.topUp ? asNumber(row.credit!) : undefined,
-					// adjust: row.debit && asNumber(row.debit),
-					// approve: approve.stamp && approve || undefined,
-					expiry: this.getExpiry(row, profiles, plans, prices),
+					pay: pay,
+					expiry: this.getExpiry(row, profiles, plans, prices, { pay } as Payment),
 				}
 				return obj as FireDocument;
 			})
@@ -362,28 +357,30 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
-	private getExpiry(row: Migration.History, profiles: Profile[], plans: Plan[], prices: Price[]) {
+	private getExpiry(row: Migration.History, profiles: Profile[], plans: Plan[], prices: Price[], payment: Payment) {
 		const profile = asAt(profiles, fire.addWhere(FIELD.Type, STORE.Plan), row.stamp)[0] as ProfilePlan;
-		const plan = asAt(plans, fire.addWhere(FIELD.Key, profile.plan), row.stamp)[0];
-		const curr = asAt(prices, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
-		const topUp = curr.find(row => row[FIELD.Type] === PRICE.TopUp && row[FIELD.Key] === profile.plan);
-		const paid = asNumber(row.credit || '0') + asNumber(row.debit || '0');
-		let expiry: number | undefined = undefined;
+		const plan = asAt(plans, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
+		const price = asAt(prices, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
 
-		if (topUp && isDefined(plan.expiry)) {						// if Price has a topUp value, and Plan has expiry value
-			const offset = topUp.amount											// calc number of months before Payment will expire
-				? Math.round(paid / (topUp.amount / plan.expiry)) || 1
-				: plan.expiry;
-			expiry = getInstant(row.approved || row.stamp)
-				.add(offset, 'months')												// add calc'd months
-				.add(row.hold ?? 0, 'days')										// plus held days
-				.startOf('day')																// beginning of the day
-				.ts																						// as timestamp
-			if (row.debit && asNumber(row.debit) < 0)
-				expiry = undefined;														// but if negative, unset expiry
-		}
+		return calcExpiry(payment, { plan, price });
+		// const topUp = curr.find(row => row[FIELD.Type] === PRICE.TopUp && row[FIELD.Key] === profile.plan);
+		// const paid = asNumber(row.credit || '0') + asNumber(row.debit || '0');
+		// let expiry: number | undefined = undefined;
 
-		return expiry;
+		// if (topUp && isDefined(plan.expiry)) {						// if Price has a topUp value, and Plan has expiry value
+		// 	const offset = topUp.amount											// calc number of months before Payment will expire
+		// 		? Math.round(paid / (topUp.amount / plan.expiry)) || 1
+		// 		: plan.expiry;
+		// 	expiry = getInstant(row.approved || row.stamp)
+		// 		.add(offset, 'months')												// add calc'd months
+		// 		.add(row.hold ?? 0, 'days')										// plus held days
+		// 		.startOf('day')																// beginning of the day
+		// 		.ts																						// as timestamp
+		// 	if (row.debit && asNumber(row.debit) < 0)
+		// 		expiry = undefined;														// but if negative, unset expiry
+		// }
+
+		// return expiry;
 	}
 
 	// a Gift is effective from the start of day, unless there is a 'start: <HH:MM>' note
