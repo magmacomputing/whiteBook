@@ -1,11 +1,11 @@
-import { PlanState } from '@dbase/state/state.define';
+import type { PlanState } from '@dbase/state/state.define';
+import type { ProfileInfo, Payment } from '@dbase/data.schema';
 import { FIELD, PAYMENT, PRICE } from '@dbase/data.define';
-import { ProfileInfo, Payment } from '@dbase/data.schema';
 
-import { isString, isNumber, isDefined } from '@library/type.library';
-import { asArray } from '@library/array.library';
-import { cloneObj } from '@library/object.library';
 import { getStamp, getInstant, Instant } from '@library/instant.library';
+import { isString, isNumber, isDefined } from '@library/type.library';
+import { cloneObj } from '@library/object.library';
+import { asArray } from '@library/array.library';
 
 // Library of member-related functions
 
@@ -61,8 +61,9 @@ export const getMemberAge = (info: ProfileInfo[] = [], dt?: Instant.TYPE) =>
 /**
  * A Member's Payment will auto-expire (i.e. unused funds lapse) if not fully-used after a number of months (expiry).  
  * 
- * Expiry will be set when  
- * a) a Payment becomes effective (either an Attend is first booked on it, or the prior Payment expired)  
+ * Expiry will be first set when a Payment becomes active (i.e. when _effect is assigned).  
+ * 
+ * a) a Payment becomes effective (either an Attend is first booked on it, or a prior Payment expired)  
  * b) a Payment.pay record (like topUp, onHold, adjust) is stamped.   
  */
 export const calcExpiry = (stamp: number, payment: Payment, client: PlanState["client"]) => {
