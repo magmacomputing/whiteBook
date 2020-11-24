@@ -13,7 +13,7 @@ import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 
-import { FIELD, STORE, COLLECTION } from '@dbase/data.define';
+import { FIELD, STORE, COLLECTION, PROFILE } from '@dbase/data.define';
 import { FireDocument } from '@dbase/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
@@ -165,15 +165,15 @@ export class SyncService {
 					switch (snap.type) {
 						case 'added':
 						case 'modified':
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === 'claim' && !data[FIELD.Expire])
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === 'plan' && !data[FIELD.Expire])
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
 								this.navigate.route(ROUTE.attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === 'plan' && !data[FIELD.Expire])
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
 								this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
 							break;
 					}

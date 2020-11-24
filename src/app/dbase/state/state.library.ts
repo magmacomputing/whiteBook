@@ -272,7 +272,7 @@ export const buildProvider = (source: ProviderState) => {
 
 /** Assemble a Plan-view */
 export const buildPlan = (source: PlanState) => {
-	const roles = getPath<string[]>(source.auth, 'token.claims.claims.roles');
+	const roles = getPath<string[]>(source.auth, 'token.claims.claim.roles');
 	const isAdmin = roles?.includes(auth.ROLE.Admin);
 	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.Type, STORE.Plan));
 	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.Type, PRICE.TopUp));

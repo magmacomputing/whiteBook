@@ -48,14 +48,14 @@ export class AuthService {
 		return this.#auth$;
 	}
 
-	get claims$() {
+	get claim$() {
 		return this.user$
-			.pipe(map(user => user.auth.token?.claims?.claims as CustomClaims || {}))
+			.pipe(map(user => user.auth.token?.claims?.claim as CustomClaims || {}))
 	}
 
 	get roles$() {
-		return this.claims$
-			.pipe(map(claims => claims.roles || []))
+		return this.claim$
+			.pipe(map(claim => claim.roles || []))
 	}
 
 	get isAdmin$() {

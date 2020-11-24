@@ -239,7 +239,7 @@ export class AuthState {
 	private(ctx: StateContext<AuthSlice>, { alias }: LoginAction.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
-		const loginAlias = ctx.getState().token?.claims?.claims?.alias as string;
+		const loginAlias = ctx.getState().token?.claims?.claim?.alias as string;
 		const loginUID = loginUser?.uid as string;
 
 		if (!currUser && !alias)
@@ -300,10 +300,10 @@ export class AuthState {
 
 		if (currUser) {
 			const token = await currUser.getIdTokenResult(true)
-			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
+			const roles = getPath<string[]>({ ...token }, 'claims.claim.roles') || [];
 			ctx.patchState({ token });
 
-			this.dbg('customClaims: %j', ctx.getState().token?.claims.claims);
+			this.dbg('customClaims: %j', ctx.getState().token?.claims.claim);
 			if (roles.includes(auth.ROLE.Admin)) {
 				this.sync.on(COLLECTION.Admin, undefined,		// watch all /admin and /member/status  into one stream
 					[COLLECTION.Member, { where: fire.addWhere(FIELD.Store, STORE.Status) }]);
@@ -318,7 +318,7 @@ export class AuthState {
 		const currUser = await this.afAuth.currentUser;
 		if (currUser) {
 			const token = await currUser.getIdTokenResult(true);
-			const roles = getPath<string[]>({ ...token }, 'claims.claims.roles') || [];
+			const roles = getPath<string[]>({ ...token }, 'claims.claim.roles') || [];
 			return roles.includes(auth.ROLE.Admin);
 		}
 		return false;

@@ -89,8 +89,8 @@ export class DataService {
 			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
 
-	getClaims$() {																							// CustomClaims object
-		return this.auth.claims$;
+	getClaim$() {																							// CustomClaims object
+		return this.auth.claim$;
 	}
 
 	getRoles$() {																							// ROLE[]

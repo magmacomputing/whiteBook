@@ -6,14 +6,13 @@ import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
-import { AuthModule } from '@service/auth/auth.module';
 import { fire } from '@dbase/fire/fire.library';
+import { AuthModule } from '@service/auth/auth.module';
 import type { LState } from '@dbase/state/state.define';
 import type { ProfilePlan } from '@dbase/data.schema';
-import { sync } from '@dbase/sync/sync.define';
 import { FIELD, STORE } from '@dbase/data.define';
-import { asAt } from '@library/app.library';
 
+import { asAt } from '@library/app.library';
 import { Storage } from '@library/browser.library';
 import { getPath } from '@library/object.library';
 import { dbg } from '@library/logger.library';
