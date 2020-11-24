@@ -169,12 +169,12 @@ export class SyncService {
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
 							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
-								this.navigate.route(ROUTE.attend);			// special: initial Plan is set
+								this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
 							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
-								this.navigate.route(ROUTE.plan);				// special: Plan has been deleted
+								this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
 							break;
 					}
 				}

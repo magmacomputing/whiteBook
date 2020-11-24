@@ -17,23 +17,23 @@ import { OAuthComponent } from '@route/login/oauth.component';
 import { auth } from '@dbase/data.define';
 import { getPath } from '@library/object.library';
 
-const toLogin = () => redirectUnauthorizedTo([ROUTE.login]);
-const toAttend = () => redirectLoggedInTo([ROUTE.attend, ROUTE.zoom]);
-const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'claim.roles', [])!.includes(auth.ROLE.Admin)));
+const toLogin = () => redirectUnauthorizedTo([ROUTE.Login]);
+const toAttend = () => redirectLoggedInTo([ROUTE.Attend, ROUTE.Zoom]);
+const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom, 'customClaims.roles', [])!.includes(auth.ROLE.Admin)));
 
 const routes: Routes = [
-	{ path: ROUTE.oauth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
-	{ path: ROUTE.login, component: LoginComponent, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: toAttend } },
-	{ path: ROUTE.attend, component: AttendComponent, canActivate: [ProfileGuard], data: { authGuardPipe: toLogin } },
-	{ path: ROUTE.profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
-	{ path: ROUTE.about, loadChildren: () => import('@route/about/about.module').then(m => m.AboutModule) },
+	{ path: ROUTE.OAuth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
+	{ path: ROUTE.Login, component: LoginComponent},//, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: toAttend } },
+	{ path: ROUTE.Attend, component: AttendComponent, canActivate: [ProfileGuard], data: { authGuardPipe: toLogin } },
+	{ path: ROUTE.Profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
+	{ path: ROUTE.About, loadChildren: () => import('@route/about/about.module').then(m => m.AboutModule) },
 
-	{ path: ROUTE.zoom, loadChildren: () => import('@route/zoom/zoom.module').then(m => m.ZoomModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
-	{ path: ROUTE.admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
-	{ path: ROUTE.forum, loadChildren: () => import('@route/forum/forum.module').then(m => m.ForumModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
-	{ path: ROUTE.migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
+	{ path: ROUTE.Zoom, loadChildren: () => import('@route/zoom/zoom.module').then(m => m.ZoomModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
+	{ path: ROUTE.Admin, loadChildren: () => import('@route/admin/admin.module').then(m => m.AdminModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
+	{ path: ROUTE.Forum, loadChildren: () => import('@route/forum/forum.module').then(m => m.ForumModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
+	{ path: ROUTE.Migrate, loadChildren: () => import('@route/migrate/migrate.module').then(m => m.MigrateModule), canActivate: [AngularFireAuthGuard], data: { authGuardPipe: isAdmin } },
 
-	{ path: '**', redirectTo: ROUTE.attend, pathMatch: 'full' },
+	{ path: '**', redirectTo: ROUTE.Attend, pathMatch: 'full' },
 ]
 
 @NgModule({

@@ -48,7 +48,7 @@ export class ProfileGuard implements CanActivate {
 		if (getPath<string>(planProfile[0], STORE.Plan))
 			return true;															// found a current 'plan' in localStorage
 
-		this.navigate.route(ROUTE.plan);						// redirect to PlanComponent
+		this.navigate.route(ROUTE.Plan);						// redirect to PlanComponent
 		return false;
 	}
 }

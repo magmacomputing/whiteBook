@@ -81,7 +81,7 @@ export class AuthState {
 		this.dbg('%s', user ? `${user.displayName} is logged in` : 'not logged in');
 
 		if (isNull(user) && isNull(this.user))
-			this.navigate.route(ROUTE.login);							// redirect to LoginComponent
+			this.navigate.route(ROUTE.Login);							// redirect to LoginComponent
 
 		if (isNull(user) && !isNull(this.user))					// TODO: does this affect OAuth logins
 			ctx.dispatch(new LoginAction.Out());					// User logged-out
@@ -205,7 +205,7 @@ export class AuthState {
 
 	@Action(LoginAction.Out)																// process signOut()
 	private logout(ctx: StateContext<AuthSlice>) {
-		this.user = null;																// reset state
+		this.user = null;																			// reset state
 		this.afAuth.signOut()
 			.then(_ => ctx.dispatch(new LoginAction.Off()))
 		return;
@@ -224,8 +224,8 @@ export class AuthState {
 				.then(_ => this._memberSubject.complete())
 				.then(_ => this.isAdmin())
 				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend" or "/admin"
-					if (['/', `/${ROUTE.login}`].includes(this.navigate.url))
-						this.navigate.route(isAdmin ? ROUTE.admin : ROUTE.attend)
+					if (['/', `/${ROUTE.Login}`].includes(this.navigate.url))
+						this.navigate.route(isAdmin ? ROUTE.Admin : ROUTE.Attend)
 				})
 		}
 	}
@@ -239,7 +239,7 @@ export class AuthState {
 	private(ctx: StateContext<AuthSlice>, { alias }: LoginAction.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
-		const loginAlias = ctx.getState().token?.claims?.claim?.alias as string;
+		const loginAlias = ctx.getState().token?.claims?.customClaims?.alias as string;
 		const loginUID = loginUser?.uid as string;
 
 		if (!currUser && !alias)
@@ -300,16 +300,16 @@ export class AuthState {
 
 		if (currUser) {
 			const token = await currUser.getIdTokenResult(true)
-			const roles = getPath<string[]>({ ...token }, 'claims.claim.roles') || [];
+			const roles = getPath<string[]>({ ...token }, 'claims.customClaims.roles') || [];
 			ctx.patchState({ token });
 
-			this.dbg('customClaims: %j', ctx.getState().token?.claims.claim);
+			this.dbg('customClaims: %j', ctx.getState().token?.claims.customClaims);
 			if (roles.includes(auth.ROLE.Admin)) {
 				this.sync.on(COLLECTION.Admin, undefined,		// watch all /admin and /member/status  into one stream
 					[COLLECTION.Member, { where: fire.addWhere(FIELD.Store, STORE.Status) }]);
 			} else {
 				this.sync.off(COLLECTION.Admin);
-				this.navigate.route(ROUTE.attend);
+				this.navigate.route(ROUTE.Attend);
 			}
 		}
 	}
@@ -318,7 +318,7 @@ export class AuthState {
 		const currUser = await this.afAuth.currentUser;
 		if (currUser) {
 			const token = await currUser.getIdTokenResult(true);
-			const roles = getPath<string[]>({ ...token }, 'claims.claim.roles') || [];
+			const roles = getPath<string[]>({ ...token }, 'claims.customClaims.roles') || [];
 			return roles.includes(auth.ROLE.Admin);
 		}
 		return false;
@@ -337,6 +337,7 @@ export class AuthState {
 		}
 
 		ctx.setState({ user: null, token: null, info: null, credential: null, current: null, });
-		this.navigate.route(ROUTE.login);
+		this.dbg('about to route: ', ROUTE.Login);
+		this.navigate.route(ROUTE.Login);
 	}
 }

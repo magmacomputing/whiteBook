@@ -7,11 +7,11 @@ import { LoginAction, LoginEvent } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';
 import { getAuthProvider, isActive } from '@service/auth/auth.library';
-import { TScopes, TParams } from '@service/auth/auth.interface';
+import type { TScopes, TParams } from '@service/auth/auth.interface';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { FIELD, STORE, auth } from '@dbase/data.define';
-import { Provider, Config, CustomClaims } from '@dbase/data.schema';
+import type { Provider, Config, CustomClaims } from '@dbase/data.schema';
 
 import { asArray } from '@library/array.library';
 import { getConfig } from '@dbase/state/config.library';
@@ -50,7 +50,7 @@ export class AuthService {
 
 	get claim$() {
 		return this.user$
-			.pipe(map(user => user.auth.token?.claims?.claim as CustomClaims || {}))
+			.pipe(map(user => user.auth.token?.claims?.customClaims as CustomClaims || {}))
 	}
 
 	get roles$() {

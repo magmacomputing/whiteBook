@@ -52,7 +52,7 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: Instant.T
 					break;
 
 				case BONUS.Home:
-					bonusHome(bonus, scheme, attendToday, plans[0], elect, event);
+					bonusHome(bonus, scheme, attendToday, plans?.[0], elect, event);
 					break;
 			}
 		})
