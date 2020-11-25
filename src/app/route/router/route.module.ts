@@ -23,7 +23,7 @@ const isAdmin = () => pipe(customClaims, map(custom => getPath<string[]>(custom,
 
 const routes: Routes = [
 	{ path: ROUTE.OAuth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
-	{ path: ROUTE.Login, component: LoginComponent},//, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: toAttend } },
+	{ path: ROUTE.Login, component: LoginComponent, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: toAttend } },
 	{ path: ROUTE.Attend, component: AttendComponent, canActivate: [ProfileGuard], data: { authGuardPipe: toLogin } },
 	{ path: ROUTE.Profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [AngularFireAuthGuard] },
 	{ path: ROUTE.About, loadChildren: () => import('@route/about/about.module').then(m => m.AboutModule) },
