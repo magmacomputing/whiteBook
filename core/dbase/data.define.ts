@@ -52,13 +52,13 @@ export enum STORE {
 }
 
 export enum FIELD {								// common Field names
+	Create = '_create',							// date-time created
+	Update = '_update',							// date-time modified
+	Access = '_access',							// date-time accessed
 	Effect = '_effect',							// valid when greater-than-or-equal-to
 	Expire = '_expire',							// valid when less-than
-	Update = '_update',							// date-time modified
-	Create = '_create',							// date-time created
-	Access = '_access',							// date-time accessed
 	Hidden = '_hidden',							// valid, but not displayed to User
-	Hisable = '_disable',						// displayed, but greyed to User
+	Disable = '_disable',						// displayed, but greyed to User
 	Id = '_id',
 	Key = 'key',
 	Type = 'type',

@@ -49,7 +49,7 @@ interface AdminCollection extends KeyFields, Omit<UserFields, FIELD.Stamp> {
 }
 interface ClientCollection extends KeyFields {
 	[FIELD.Hidden]?: boolean;								// valid value, but not to be displayed to the client
-	[FIELD.Hisable]?: boolean;							// valid value, greyed-out to the client
+	[FIELD.Disable]?: boolean;							// valid value, greyed-out to the client
 	[FIELD.Store]: TStoreClient | TStoreConfig;
 	[FIELD.Image]?: string;									// an optional icon for the UI
 }

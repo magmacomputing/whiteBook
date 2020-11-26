@@ -285,7 +285,7 @@ export const buildPlan = (source: PlanState) => {
 		])
 
 		if (planPrice.amount < myTopUp.amount && !isAdmin)    // Special: dont allow downgrades in price
-			plan[FIELD.Hisable] = true;
+			plan[FIELD.Disable] = true;
 
 		if (plan[FIELD.Key] === PLAN.Intro)										// Special: Intro is only available to new Members
 			plan[FIELD.Hidden] = (myPlan && !isAdmin) ? true : false;
@@ -293,14 +293,14 @@ export const buildPlan = (source: PlanState) => {
 		if (plan[FIELD.Key] === PLAN.Senior) {								// Special: Senior is only available to >=60 Member
 			const notAllow = myAge < 60 && !isAdmin;						// check member is younger than 60 and not Admin
 			plan[FIELD.Hidden] = notAllow;
-			plan[FIELD.Hisable] = notAllow;
+			plan[FIELD.Disable] = notAllow;
 		}
 
 		if (!plan[FIELD.Image])
 			plan[FIELD.Image] = lookupIcon(source, plan[FIELD.Key]);
 
 		if (myPlan && myPlan.plan === plan[FIELD.Key])	 			// disable their current Plan, so cannot re-select
-			plan[FIELD.Hisable] = true;
+			plan[FIELD.Disable] = true;
 
 		return plan
 	});
