@@ -283,12 +283,11 @@ export class StateService {
 			joinDoc(this.states, 'attend.attendMonth', STORE.Attend, attendMonth),							// get any Attends for this month
 			joinDoc(this.states, 'attend.attendToday', STORE.Attend, attendToday),							// get any Attends for this day
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
-		) as Observable<TimetableState>																											// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
+		) as Observable<TimetableState>																												// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
 
 	/**
 	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
-	 * It will take the ITimetable format (described in getTimetableData)
 	 */
 	getTimetableData(date?: Instant.TYPE): Observable<TimetableState> {
 		const now = getInstant(date);

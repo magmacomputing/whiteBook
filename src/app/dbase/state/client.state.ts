@@ -23,7 +23,7 @@ export class ClientState implements NgxsOnInit {
 
 	constructor(private readonly store: Store) { this.init(); }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { }
 
 	private init() {
 		this.dbg('init:');
@@ -44,10 +44,10 @@ export class ClientState implements NgxsOnInit {
 		asArray(payload).forEach(doc => {
 			const store = doc[FIELD.Store];
 			state[store] = filterState(state, doc);
-			state[store].push(doc);									// push the new/changed ClientDoc into the Store
+			state[store].push(doc);															// push the new/changed ClientDoc into the Store
 
 			if (doc[FIELD.Store] === STORE.Schema && (debug || isEmpty<object>(SLICES)))
-				schema.push(doc);											// if STORE.schema changes, rebuild schema-variables
+				schema.push(doc);																	// if STORE.schema changes, rebuild schema-variables
 			if (doc[FIELD.Store] === STORE.Config && (debug || isEmpty<object>(COMMENT)))
 				config.push(doc);
 
@@ -55,9 +55,9 @@ export class ClientState implements NgxsOnInit {
 		})
 
 		if (schema.length)
-			setSchema(state[STORE.Schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
+			setSchema(state[STORE.Schema] as Schema[]);					// rebuild STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.Config] as Config[]);
+			setConfig(state[STORE.Config] as Config[]);					// rebuild COMMENT
 		setState({ ...state });
 	}
 
@@ -82,9 +82,9 @@ export class ClientState implements NgxsOnInit {
 		})
 
 		if (schema.length)
-			setSchema(state[STORE.Schema] as Schema[]);	// rebuild the STORES / SORTBY / FILTER
+			setSchema(state[STORE.Schema] as Schema[]);					// rebuild the STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.Config] as Config[]);	// rebuild the COMMENT variable
+			setConfig(state[STORE.Config] as Config[]);					// rebuild the COMMENT variable
 		setState({ ...state });
 	}
 

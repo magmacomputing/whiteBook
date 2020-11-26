@@ -52,7 +52,7 @@ export class SyncService {
 		this.off(collection, query);											// detach any prior Subscription of the same signature
 		this.#listener.set(key, {
 			key,																						// stash reference to the key
-			label,																					// stash IListen references			
+			label,																					// stash Listen references			
 			ready,
 			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
 			uid: await this.getAuthUID(),
@@ -131,10 +131,11 @@ export class SyncService {
 		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = getSource(snaps);
-		const debug = source !== 'cache' && source !== 'local' && listen.cnt !== -1;
+		const debug = (source !== 'cache' && source !== 'local' && listen.cnt !== -1)
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
+				if (source === 'server' && snap.type === 'modified')
 				cnts[idx].push(addMeta(snap))
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
@@ -154,9 +155,9 @@ export class SyncService {
 				.toPromise();
 		}
 
-		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();	// do 'additions' first
-		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();	// then 'changes'
-		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'deletes'
+		await this.store.dispatch(new setStore(snapAdd, debug)).toPromise();	// do 'added' first
+		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();	// then 'modified'
+		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'removed'
 
 		if (listen.cnt !== 0) {
 			snaps.forEach(async snap => {										// look for special actions to emit
