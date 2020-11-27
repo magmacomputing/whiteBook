@@ -1,8 +1,8 @@
 import firebase from 'firebase/app';
 
+import { isNumber, isDate, isIterable, isBoolean, isNullish, isString, nullToValue } from '@library/type.library';
 import { getPath } from '@library/object.library';
 import { asString } from '@library/string.library';
-import { isNumber, isIterable, isBoolean, isNullish, isString, nullToValue } from '@library/type.library';
 
 export const asArray = <T>(arr: T | Iterable<T> = []) => isIterable<T>(arr) ? Array.from(arr) : (isNullish(arr) || (arr as unknown as string) === '' ? [] : [arr]);
 
@@ -24,9 +24,9 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 
 /** sort Object by multiple keys */
 export interface SortOption {
-	field: string;
-	default?: any;
+	field: string | firebase.firestore.FieldPath;
 	dir?: firebase.firestore.OrderByDirection;
+	default?: any;
 }
 /** return a function that will apply a series of sort-keys */
 export const sortBy: {
@@ -43,12 +43,17 @@ export const sortBy: {
 		sortOptions.forEach(key => {
 			if (result === 0) {																			// stop looking if result != 0
 				const dir = key.dir === 'desc' ? -1 : 1;
-				const valueA = getPath(a, key.field, nullToValue(key.default, 0));
-				const valueB = getPath(b, key.field, nullToValue(key.default, 0));
+				const valueA = getPath<any>(a, key.field, nullToValue(key.default, 0));
+				const valueB = getPath<any>(b, key.field, nullToValue(key.default, 0));
 
-				result = isNumber(valueA) && isNumber(valueB)
-					? dir * (valueA - valueB)
-					: dir * asString(valueA)?.localeCompare(asString(valueB));
+				switch (true) {
+					case isNumber(valueA) && isNumber(valueB):
+					case isDate(valueA) && isDate(valueB):
+						return dir * (valueA - valueB);
+
+					default:
+						return dir * asString(valueA)?.localeCompare(asString(valueB));
+				}
 			}
 		})
 

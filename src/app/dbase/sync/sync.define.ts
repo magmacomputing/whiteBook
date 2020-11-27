@@ -22,6 +22,7 @@ export namespace sync {
 	export interface Listen {
 		key: sync.Key;												// the key to this listener
 		label: string;												// Label to display for this listener
+		streams: number;											// number of streams for this listener
 		cnt: number;													// count of snapshots received
 		uid: string | null;										// authenticated User
 		ready: Pledge<boolean>;								// indicate when snap0 is received

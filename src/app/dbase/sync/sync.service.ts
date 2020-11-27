@@ -1,20 +1,21 @@
 import { Injectable } from '@angular/core';
+import type { DocumentChangeAction } from '@angular/fire/firestore';
+
 import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
 
 import { Store, Actions, ofActionDispatched } from '@ngxs/store';
-import type { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 
-import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { sync } from '@dbase/sync/sync.define';
+import type { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
+import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
 
+import type { FireDocument } from '@dbase/data.schema';
 import { FIELD, STORE, COLLECTION, PROFILE } from '@dbase/data.define';
-import { FireDocument } from '@dbase/data.schema';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
@@ -53,6 +54,7 @@ export class SyncService {
 		this.#listener.set(key, {
 			key,																						// stash reference to the key
 			label,																					// stash Listen references			
+			streams: refs.length,														// number of listeners
 			ready,
 			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
 			uid: await this.getAuthUID(),
@@ -131,12 +133,12 @@ export class SyncService {
 		const { setStore, delStore, truncStore } = listen.method;
 
 		const source = getSource(snaps);
-		const debug = (source !== 'cache' && source !== 'local' && listen.cnt !== -1)
+		const debug = source === 'server' && (listen.cnt + 1) >= (listen.streams * 2);
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
-				if (source === 'server' && snap.type === 'modified')
-				cnts[idx].push(addMeta(snap))
+
+				cnts[idx].push(addMeta(snap));
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
