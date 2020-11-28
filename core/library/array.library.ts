@@ -49,10 +49,12 @@ export const sortBy: {
 				switch (true) {
 					case isNumber(valueA) && isNumber(valueB):
 					case isDate(valueA) && isDate(valueB):
-						return dir * (valueA - valueB);
+						result = dir * (valueA - valueB);
+						break;
 
 					default:
-						return dir * asString(valueA)?.localeCompare(asString(valueB));
+						result = dir * asString(valueA)?.localeCompare(asString(valueB));
+						break;
 				}
 			}
 		})

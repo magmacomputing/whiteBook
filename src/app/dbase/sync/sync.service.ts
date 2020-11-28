@@ -131,9 +131,10 @@ export class SyncService {
 	private async sync(key: sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
 		const listen = this.#listener.get(key)!;
 		const { setStore, delStore, truncStore } = listen.method;
-
 		const source = getSource(snaps);
-		const debug = source === 'server' && (listen.cnt + 1) >= (listen.streams * 2);
+
+		listen.cnt += 1;
+		const debug = source === 'server' && listen.cnt >= (listen.streams * 2);
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
@@ -142,11 +143,10 @@ export class SyncService {
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
-		listen.cnt += 1;
 		this.#dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
 			listen.label, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
 
-		if (listen.cnt === 0 && key.collection !== COLLECTION.Admin) {               // initial snapshot, but Admin will arrive in multiple snapshots
+		if (listen.cnt === 0 && listen.streams === 1) {   // initial snapshot, but Admin will arrive in multiple streams
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
 			if (await checkStorage(listen, snaps)) {
 				listen.ready.resolve(true);										// storage already sync'd... skip the initial snapshot
@@ -168,15 +168,15 @@ export class SyncService {
 					switch (snap.type) {
 						case 'added':
 						case 'modified':
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
+							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
+							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
 								this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
+							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
 								this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
 							break;
 					}

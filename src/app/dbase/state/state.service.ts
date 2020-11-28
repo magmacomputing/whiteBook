@@ -105,7 +105,7 @@ export class StateService {
 				[STATUS.Connect]: source[STATUS.Connect] as Connect[],
 				[STORE.Sheet]: source[STORE.Sheet] as Sheet[],
 				dash: [...(source[STORE.Register] || [])]
-					.orderBy('user.customClaims.alias', FIELD.Uid)
+					.orderBy('user.customClaims.alias')
 					.map(reg => ({
 						[STORE.Register]: reg as Register,
 						[STATUS.Account]: (source[STATUS.Account] || [])
