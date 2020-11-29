@@ -6,8 +6,8 @@ export enum COLLECTION {
 	Admin = 'admin',								// Administrator records
 	Device = 'device',							// Connected Devices (per Member)
 	Forum = 'forum',								// Comments / Reactions / Feedback
+	Stage = 'stage',								// staging area for trigger actions
 	Zoom = 'zoom',									// Zoom Meeting integration
-	Log = 'log',										// App actions
 }
 
 export enum STORE {
@@ -36,10 +36,12 @@ export enum STORE {
 	Profile = 'profile',
 	Setting = 'setting',
 	Status = 'status',							// ad-hoc member documents
+	Migrate = 'migrate',						// imported event attends from Google Apps Sheets
 	// Admin
 	Register = 'register',					// copy of Firestore Authentication object
-	Migrate = 'migrate',						// imported event attends from Google Apps Sheets
 	Sheet = 'sheet',								// imported details from Google Apps Sheets register
+	// Stage
+	Export = 'export',							// exported details from Google Apps Sheets register
 	// Forum
 	Comment = 'comment',
 	React = 'react',
