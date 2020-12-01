@@ -243,9 +243,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					if (isUndefined(row.approved))
 						this.#dbg('warn; unapproved: %j', row);									// warn that you will need to re-migrate Payment later
 
-					histMap.push(row);																				// stash payments and expirys
-					if (row.note?.startsWith('Credit Expired'))
+					histMap.push(row);																				// stash payment and expiry records
+					if (row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()))
 						return false;																						// skip Credit-Expired for now
+					if (row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
+						return false;																						// skip expiry-reversals
 
 					return true;																							// only return new Payments
 
@@ -274,11 +276,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						hold: asString(row.hold),
 						note: row.note,
 					})
-					// row.debit = asString(row.hold);
-					// row.hold = undefined;
-					// if (row.note?.toUpperCase().startsWith('Request for '.toUpperCase()))
-					// 	// row.note = 'Write-off part topUp amount';
-					// 	fee[1].note = 'Write-off part topUp amount';						// TODO: this does not belong on fee.HOLD.note
 				}
 				if (row.debit === undefined && row.credit === undefined)
 					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
@@ -293,19 +290,25 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				return obj as FireDocument;
 			})
 
-		// parse the Payments to look for 'Credit Expired' adjustments
+		// parse the Payments to look for 'Credit Expired / Restored' adjustments
 		hist
-			.filter(row => row.note?.startsWith('Credit Expired'))
+			.filter(row => row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
 			.forEach(row => {
+				const expired = row.note!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
 				const idx = histMap.findIndex(doc => row.stamp === doc.stamp);
 				if (idx === -1)
-					throw new Error('Cannot find Credit-Expired row');
+					throw new Error('Cannot find Credit adjustment row');
 				if (idx === 0)
-					throw new Error('Cannot make Credit Expired adjustment on first Payment');
+					throw new Error('Cannot make Credit adjustment on first Payment');
 
-				const payment = creates.find(doc => doc[FIELD.Stamp] === histMap[idx - 1].stamp) as Payment;
+				const reverse = histMap.slice(0, idx).reverse();
+				const topUp = reverse.find(row => !row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()));
+				if (isUndefined(topUp))
+					throw new Error('Cannot find a prior TopUp Payment');
+
+				const payment = creates.find(doc => doc[FIELD.Stamp] === topUp[FIELD.Stamp]) as Payment;
 				if (isUndefined(payment))
-					throw new Error('Cannot locate the Payment prior to Credit Expired');
+					throw new Error('Cannot locate the Payment prior to Credit adjustment');
 
 				payment.pay.push({
 					[FIELD.Type]: PAYMENT.Adjust,
@@ -314,8 +317,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.Stamp]: histMap[idx].stamp,
 					amount: asNumber(histMap[idx].credit),
 				})
-
-				// payment[FIELD.Note] = `${row.note}: ${new Instant(row.stamp).format(Instant.FORMAT.dayTime)}`;
+				payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
 			})
 
 		// parse the Attends to look for 'Gift' notes to create Gift documents
@@ -356,31 +358,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.then(_ => this.#dbg('payment: %s, %s', creates.length, updates.length))
 	}
 
-	/** Watch Out !   This routine is a copy from the MemberService.calcExpiry() */
+	/** Calculate the date the Payment will lapse */
 	private getExpiry(row: Migration.History, profiles: Profile[], plans: Plan[], prices: Price[], payment: Payment) {
 		const profile = asAt(profiles, fire.addWhere(FIELD.Type, STORE.Plan), row.stamp)[0] as ProfilePlan;
 		const plan = asAt(plans, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
 		const price = asAt(prices, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
 
 		return calcExpiry(payment, { plan, price });
-		// const topUp = curr.find(row => row[FIELD.Type] === PRICE.TopUp && row[FIELD.Key] === profile.plan);
-		// const paid = asNumber(row.credit || '0') + asNumber(row.debit || '0');
-		// let expiry: number | undefined = undefined;
-
-		// if (topUp && isDefined(plan.expiry)) {						// if Price has a topUp value, and Plan has expiry value
-		// 	const offset = topUp.amount											// calc number of months before Payment will expire
-		// 		? Math.round(paid / (topUp.amount / plan.expiry)) || 1
-		// 		: plan.expiry;
-		// 	expiry = getInstant(row.approved || row.stamp)
-		// 		.add(offset, 'months')												// add calc'd months
-		// 		.add(row.hold ?? 0, 'days')										// plus held days
-		// 		.startOf('day')																// beginning of the day
-		// 		.ts																						// as timestamp
-		// 	if (row.debit && asNumber(row.debit) < 0)
-		// 		expiry = undefined;														// but if negative, unset expiry
-		// }
-
-		// return expiry;
 	}
 
 	// a Gift is effective from the start of day, unless there is a 'start: <HH:MM>' note
@@ -400,7 +384,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			[FIELD.Store]: STORE.Gift,
 			stamp: start,
 			limit: gift,
-			note,
+			note: isEmpty(note) ? undefined : note,
 			expiry,
 		}
 

@@ -73,28 +73,33 @@ export const getMemberAge = (info: ProfileInfo[] = [], dt?: Instant.TYPE) =>
  */
 export const calcExpiry = (payment: Payment, client: PlanState["client"]) => {
 	const plan = client.plan[0];													// description of Member's current Plan
+	const pay = [...payment.pay];													// clone the Payment amounts
 
 	if (isUndefined(plan?.expiry))												// if Plan does not expire
 		return undefined;																		// then Payment does not lapse
-	if (payment[FIELD.Expire])
-		return undefined;																		// Closed Payment
-	if (payment.pay.some(pay => isUndefined(pay[FIELD.Stamp])))
+	if (pay.some(pay => isUndefined(pay[FIELD.Stamp])))
 		return undefined;																		// All pays need to be approved
+	// if (payment[FIELD.Expire])														// TODO: should we auto un-expire?
+	// 	return undefined;																		// Closed Payment
 
-	const stamps = payment.pay.map(pay => pay[FIELD.Stamp]!)
+	const stamps = pay
+		.filter(pay => pay.amount > 0)											// discard negative pay.amounts
+		.map(pay => pay[FIELD.Stamp]!)											// get list of tstamps
+	if (isDefined(payment[FIELD.Stamp]))
+		stamps.push(payment[FIELD.Stamp]);									// allow for Bought stamp
 	if (isDefined(payment[FIELD.Effect]))
 		stamps.push(payment[FIELD.Effect]!);								// allow for 1st Attend stamp
 
-	const last = payment.pay.slice(-1)[0];
+	const last = pay.slice(-1)[0];
 	if (last[FIELD.Type] === PAYMENT.Hold)								// allow additional 'hold' days after approved
 		stamps.push(getInstant(last[FIELD.Stamp]).add(last.hold ?? 0, 'days').ts);
 
 	const stamp = Math.max(...stamps);										// date of last pay-activity
-	const paid = payment.pay.reduce((acc, itm) => acc += itm.amount ?? 0,
+	const paid = pay.reduce((acc, itm) => acc += itm.amount ?? 0,
 		payment.bank ?? 0);																	// sum of all pays, plus bank
 
 	const topUp = client.price.find(row => row[FIELD.Type] === PRICE.TopUp);
-	const offset = topUp?.amount														// number of months to extend expiry-date
+	const offset = topUp?.amount													// number of months to extend expiry-date
 		? Math.round(paid / (topUp.amount / plan.expiry)) || 1	// never less-than one month
 		: plan.expiry;																			// allow for gratis account expiry
 
