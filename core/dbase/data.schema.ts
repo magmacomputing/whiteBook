@@ -130,6 +130,7 @@ export interface Class extends ClientCollection {
 //	/client/event
 export interface Event extends ClientCollection {
 	[FIELD.Store]: STORE.Event;
+	[FIELD.Key]: EVENT;
 	[FIELD.Name]: string;
 	agenda: CLASS[];									// the Classes on offer for this Event
 }

@@ -96,12 +96,12 @@ export enum MESSAGE {
 
 export enum EVENT {
 	Closed = 'closed',
-	Event2 = 'Event*2',
-	Event3 = 'Event*3',
-	Event4 = 'Event*4',
-	Holiday3 = 'Holiday*3',
-	StepIn2 = 'StepIn*2',
-	Zumba1 = 'Zumba*1',
+	Event2 = 'event*2',
+	Event3 = 'event*3',
+	Event4 = 'event*4',
+	Holiday3 = 'holiday*3',
+	StepIn2 = 'stepIn*2',
+	Zumba1 = 'zumba*1',
 }
 
 export enum SCHEDULE {

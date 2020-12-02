@@ -83,7 +83,7 @@ export const calcExpiry = (payment: Payment, client: PlanState["client"]) => {
 	// 	return undefined;																		// Closed Payment
 
 	const stamps = pay
-		.filter(pay => pay.amount > 0)											// discard negative pay.amounts
+		.filter(pay => pay.amount >= 0)											// discard negative pay.amounts
 		.map(pay => pay[FIELD.Stamp]!)											// get list of tstamps
 	if (isDefined(payment[FIELD.Stamp]))
 		stamps.push(payment[FIELD.Stamp]);									// allow for Bought stamp

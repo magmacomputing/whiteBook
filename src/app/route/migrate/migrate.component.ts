@@ -13,7 +13,7 @@ import { Migration } from '@route/migrate/migrate.define';
 
 import { DataService } from '@dbase/data/data.service';
 import { COLLECTION, FIELD, STORE, BONUS, CLASS, PRICE, PAYMENT, PLAN, SCHEDULE, PROFILE } from '@dbase/data.define';
-import type { Register, Payment, Schedule, Event, Calendar, Attend, Migrate, FireDocument, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Sheet, Profile } from '@dbase/data.schema';
+import type { FireDocument, Register, Payment, Schedule, Event, Calendar, Attend, Migrate, Gift, Plan, Price, ProfilePlan, Bonus, Comment, Sheet, Profile } from '@dbase/data.schema';
 import { LoginAction } from '@dbase/state/auth.action';
 import { AccountState, AdminState } from '@dbase/state/state.define';
 import { memberAction } from '@dbase/state/state.action';
@@ -45,13 +45,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	#check!: Pledge<boolean>;
 	#history: Pledge<Migration.History[]>;
-	#migrate!: Migrate[];
 	#current: Register | null = null;
 	#dflt!: CLASS;
 
-	#schedule!: Schedule[];																		// stash current Schedule[]
-	#calendar!: Calendar[];																		// stash current Calendar[]
-	#event!: Record<string, Event>;													// stash current Event[] as lookup
+	#migrate!: Migrate[];
+	#schedule!: Schedule[];
+	#calendar!: Calendar[];
+	#event!: Record<Event[FIELD.Key], Event>;
 
 	constructor(private http: HttpClient, private data: DataService, private state: StateService, private change: ChangeDetectorRef,
 		private member: MemberService, private store: Store, private attend: AttendService, private forum: ForumService) {
@@ -63,9 +63,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.data.getStore<Calendar>(STORE.Calendar, fire.addWhere(FIELD.Type, 'Closed', '!=')),
 			this.data.getStore<Event>(STORE.Event, fire.addWhere(FIELD.Type, 'special')),
 		]).then(([schedule, calendar, event]) => {
-			this.#schedule = schedule;
-			this.#calendar = calendar;
-			this.#event = event.groupBy(true, FIELD.Key);
+			this.#schedule = schedule;														// stash current Schedule[]
+			this.#calendar = calendar;														// stash current Calendar[]
+			this.#event = event.groupBy(true, FIELD.Key);					// stash current Event[] as lookup
 		})
 	}
 
@@ -130,11 +130,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 
 		Object.assign(admin, { migrate: { ...this.filter } });
-		WebStore.local.set(WebStore.Admin, admin);								// persist settings
+		WebStore.local.set(WebStore.Admin, admin);							// persist settings
 	}
 
 	async signIn(register: Register, sheet: Sheet) {
-		this.#history = new Pledge<Migration.History[]>();								// quickly remove previous member's History[]							
+		this.#history = new Pledge<Migration.History[]>();			// first, remove previous member's History[]							
 		if (this.#current?.user.customClaims!.alias === register.user.customClaims!.alias)
 			return this.signOut();																// <click> on picture will signIn / signOut
 		this.#current = register;																// stash current Member
@@ -263,15 +263,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					})
 				}
 
-				if (row.hold && row.hold <= 0) {
+				if (isDefined(row.hold) /**&& row.hold <= 0 */) {
 					const plan = asAt(profiles, fire.addWhere(FIELD.Type, PROFILE.Plan), row.stamp)[0] as ProfilePlan;
 					const price = asAt(prices, [fire.addWhere(FIELD.Key, plan.plan), fire.addWhere(FIELD.Type, PRICE.Hold)], row.stamp)[0];
+
 					pay.push({
 						[FIELD.Type]: PAYMENT.Hold,
-						[FIELD.Uid]: Migration.Instructor,												// assume 'Hold' requests are auto-approved
+						[FIELD.Uid]: Migration.Instructor,												// assume migrated 'Hold' requests are approved
 						[FIELD.Stamp]: row.stamp,
-						amount: price.amount,
-						hold: asString(row.hold),
+						amount: 0,//price.amount,																	// assume migrated 'Hold' requests are free
+						hold: row.hold,
 						note: row.note,
 					})
 				}
@@ -285,6 +286,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					pay: pay,
 					expiry: this.getExpiry(row, profiles, plans, prices, { pay } as Payment),
 				}
+
 				return obj as FireDocument;
 			})
 
@@ -299,6 +301,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (idx === 0)
 					throw new Error('Cannot make Credit adjustment on first Payment');
 
+				const amount = asNumber(histMap[idx].credit);
 				const reverse = histMap.slice(0, idx).reverse();
 				const topUp = reverse.find(row => !row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()));
 				if (isUndefined(topUp))
@@ -313,9 +316,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.Note]: row.note,
 					[FIELD.Uid]: Migration.Instructor,
 					[FIELD.Stamp]: histMap[idx].stamp,
-					amount: asNumber(histMap[idx].credit),
+					amount: amount,
 				})
-				payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
+				if (!expired)																												// only reset expiry on Credit Restored
+					payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
 			})
 
 		// parse the Attends to look for 'Gift' notes to create Gift documents
