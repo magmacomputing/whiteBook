@@ -13,7 +13,7 @@ import type { ProfilePlan } from '@dbase/data.schema';
 import { FIELD, STORE } from '@dbase/data.define';
 
 import { asAt } from '@library/app.library';
-import { Storage } from '@library/browser.library';
+import { WebStore } from '@library/browser.library';
 import { getPath } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -42,7 +42,7 @@ export class ProfileGuard implements CanActivate {
 	constructor(private navigate: NavigateService) { this.#dbg('new') }
 
 	async canActivate() {
-		const localState = Storage.local.get<LState>(Storage.State, {});
+		const localState = WebStore.local.get<LState>(WebStore.State, {});
 		const profile = getPath<ProfilePlan[]>(localState, 'member.profile') || [];
 		const planProfile = asAt(profile, fire.addWhere(FIELD.Type, STORE.Plan));
 		if (getPath<string>(planProfile[0], STORE.Plan))

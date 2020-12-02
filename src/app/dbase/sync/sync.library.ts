@@ -9,7 +9,7 @@ import type { LState } from '@dbase/state/state.define';
 import { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
 
 import { cryptoHash } from '@library/crypto.library';
-import { Storage } from '@library/browser.library';
+import { WebStore } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
@@ -23,7 +23,7 @@ export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
 export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAction<FireDocument>[]) => {
-	const localState = Storage.local.get<LState>(Storage.State, {});
+	const localState = WebStore.local.get<LState>(WebStore.State, {});
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: FireDocument[] = [];
 	const snapList = snaps.map(addMeta);

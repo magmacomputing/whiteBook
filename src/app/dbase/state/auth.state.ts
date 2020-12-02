@@ -20,7 +20,7 @@ import { COLLECTION, FIELD, STORE, auth } from '@dbase/data.define';
 import type { Register } from '@dbase/data.schema';
 import { fire } from '@dbase/fire/fire.library';
 
-import { Storage, prompt } from '@library/browser.library';
+import { WebStore, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { isNull, isArray } from '@library/type.library';
 import { dbg } from '@library/logger.library';
@@ -189,12 +189,10 @@ export class AuthState {
 		const localItem = 'emailForSignIn';
 
 		if (this.afAuth.isSignInWithEmailLink(link)) {
-			const email = new Storage('session').get<string>(localItem) ||
+			const email = WebStore.session.get<string>(localItem) ||
 				prompt('Please provide your email for confirmation') ||
 				'';
-
 			const response = await this.afAuth.signInWithEmailLink(email, link);
-			// storage.del(localItem);
 
 			if (credential)
 				this.authSuccess(ctx, response.user, response.credential);
@@ -203,16 +201,16 @@ export class AuthState {
 		else this.snack.error('Not a valid link-address');
 	}
 
-	@Action(LoginAction.Out)																// process signOut()
+	@Action(LoginAction.Out)												// process signOut()
 	private logout(ctx: StateContext<AuthSlice>) {
-		this.user = null;																			// reset state
+		this.user = null;															// reset state
 		this.afAuth.signOut()
 			.then(_ => ctx.dispatch(new LoginAction.Off()))
 		return;
 	}
 
 	/** Events */
-	@Action(LoginEvent.Success)														// on each LoginEvent.Success, fetch /member collection
+	@Action(LoginEvent.Success)											// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
 		const query: fire.Query = { where: fire.addWhere(FIELD.Uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;

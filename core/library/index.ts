@@ -22,5 +22,5 @@ export { toHex, suffix, fix } from '@library/number.library';
 export { getPath, cloneObj } from '@library/object.library';
 export { dbg, lprintf } from '@library/logger.library';
 export { cryptoDecrypt, cryptoEncrypt, cryptoHash, cryptoSign, cryptoVerify, decodeBase64, encodeBase64 } from '@library/crypto.library';
-export { Storage, alert, prompt } from '@library/browser.library';
+export { WebStore, alert, prompt } from '@library/browser.library';
 export { Pledge } from '@library/utility.library';

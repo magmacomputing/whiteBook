@@ -6,7 +6,7 @@ import { stringify, objectify } from '@library/string.library';
 /**
  * Wrapper around Web Storage
  */
-export class Storage {
+export class WebStore {
 	#storage: globalThis.Storage;
 
 	constructor(storage: 'local' | 'session') {
@@ -103,11 +103,12 @@ export class Storage {
 export const alert = (msg: any) => window.alert(msg);
 export const prompt = (msg: any, dflt?: any) => window.prompt(msg, dflt);
 
-export namespace Storage {
+export namespace WebStore {
 	export const State = '@@STATE';								// NGXS Store in localStorage
 	export const Admin = '@@ADMIN';								// administrator settings
 
-	export const local = new Storage('local');		// global reference to localStorage
+	export const local = new WebStore('local');		// global reference to localStorage
+	export const session = new WebStore('session');
 
 	export interface AdminStore {
 		migrate: {

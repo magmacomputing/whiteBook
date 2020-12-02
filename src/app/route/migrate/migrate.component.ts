@@ -25,12 +25,10 @@ import { cloneObj, getPath } from '@library/object.library';
 import { isUndefined, isNull, isBoolean, TString, isEmpty, isDefined } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
-import { Storage } from '@library/browser.library';
+import { WebStore } from '@library/browser.library';
 import { asAt, nearAt } from '@library/app.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
-import { TYPE } from '@dbase/zoom.schema';
-import { getMatFormFieldMissingControlError } from '@angular/material/form-field';
 
 @Component({
 	selector: 'wb-migrate',
@@ -42,7 +40,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public dash$!: Observable<AdminState["dash"]>;
 	public account$!: Observable<AccountState>;
 	public sheet: Sheet | null = null;
-	public filter = {} as Storage.AdminStore["migrate"];
+	public filter = {} as WebStore.AdminStore["migrate"];
 	public hide = 'Un';																				// prefix for the <hide> UI button
 
 	#check!: Pledge<boolean>;
@@ -97,7 +95,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	 *  'credit'	toggle shows Members with $0 credit
 	 */
 	public setFilter(key?: 'hide' | 'credit') {
-		const admin = Storage.local.get(Storage.Admin, {} as Storage.AdminStore);
+		const admin = WebStore.local.get(WebStore.Admin, {} as WebStore.AdminStore);
 		this.filter = Object.assign(												// extract the 'filter' from AdminStore
 			{ hidden: false, credit: Migration.CREDIT.all },
 			admin.migrate
@@ -132,7 +130,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 
 		Object.assign(admin, { migrate: { ...this.filter } });
-		Storage.local.set(Storage.Admin, admin);								// persist settings
+		WebStore.local.set(WebStore.Admin, admin);								// persist settings
 	}
 
 	async signIn(register: Register, sheet: Sheet) {
