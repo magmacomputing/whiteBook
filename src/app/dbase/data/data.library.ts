@@ -1,5 +1,5 @@
-import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
+import { FireService } from '@dbase/fire/fire.service';
 
 import type { FireDocument } from '@dbase/data.schema';
 import { FIELD } from '@dbase/data.define';

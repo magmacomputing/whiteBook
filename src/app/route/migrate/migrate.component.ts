@@ -81,8 +81,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const where = fire.addWhere(FIELD.Uid, this.#current!.uid);
 		const deletes = await Promise.all([
 			this.data.getFire<FireDocument>(COLLECTION.Member, { where }),
-			this.data.getFire<FireDocument>(COLLECTION.Admin, { where }),
 			this.data.getFire<FireDocument>(COLLECTION.Attend, { where }),
+			this.data.getFire<FireDocument>(COLLECTION.Admin, { where }),
 			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
