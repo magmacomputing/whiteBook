@@ -2,9 +2,9 @@ import type { auth, COLLECTION, STORE, FIELD, CLASS, EVENT, CONNECT, BONUS, REAC
 import type { TString } from '@library/type.library';
 import type { Instant } from '@library/instant.library';
 
+export type TStoreConfig = STORE.Schema | STORE.Config | STORE.Default;
+export type TStoreClient = STORE.Class | STORE.Event | STORE.Price | STORE.Plan | STORE.Provider | STORE.Schedule | STORE.Calendar | STORE.Diary | STORE.Location | STORE.Instructor | STORE.Bonus | STORE.Span | STORE.Alert | STORE.Icon;
 type TStoreAdmin = STORE.Register | STORE.Sheet;
-type TStoreConfig = STORE.Schema | STORE.Config | STORE.Default;
-type TStoreClient = STORE.Class | STORE.Event | STORE.Price | STORE.Plan | STORE.Provider | STORE.Schedule | STORE.Calendar | STORE.Diary | STORE.Location | STORE.Instructor | STORE.Bonus | STORE.Span | STORE.Alert | STORE.Icon;
 type TStoreMember = STORE.Profile | STORE.Payment | STORE.Gift | STORE.Message | STORE.Attend | STORE.Status | STORE.Migrate | STORE.Log;
 type TStoreForum = STORE.React | STORE.Comment;
 
@@ -48,7 +48,7 @@ interface UserFields extends BaseDocument {
 interface AdminCollection extends KeyFields, Omit<UserFields, FIELD.Stamp> {
 	[FIELD.Store]: TStoreAdmin;
 }
-interface ClientCollection extends KeyFields {
+export interface ClientCollection extends KeyFields {
 	[FIELD.Store]: TStoreClient | TStoreConfig;
 	[FIELD.Image]?: string;									// an optional icon for the UI
 }

@@ -5,7 +5,7 @@ import type { COLLECTION, STORE, BONUS, STATUS } from '@dbase/data.define';
 import type {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
 	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
-	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet, Diary,
+	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet, Diary, TStoreClient, ClientCollection,
 } from '@dbase/data.schema';
 
 export enum SLICE {
@@ -57,6 +57,10 @@ export interface AdminState {
 		[STORE.Sheet]?: Sheet;
 	}[]
 }
+
+export type ClientState = {
+	[store in TStoreClient | TStoreClient]: ClientCollection[];
+};
 
 export interface ApplicationState {		// application-wide settings
 	application: {
