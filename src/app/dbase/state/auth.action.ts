@@ -1,7 +1,9 @@
 import type firebase from 'firebase/app';
+
 import { LoginCredential } from '@service/auth/auth.interface';
+
 import { auth } from '@dbase/data.define';
-import { Register } from '@dbase/data.schema';
+import type { Register } from '@dbase/data.schema';
 
 export interface AuthSlice {
 	user: firebase.UserInfo | null;
