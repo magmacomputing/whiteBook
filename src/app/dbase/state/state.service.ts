@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, startWith, distinctUntilChanged } from 'rxjs/operators';
+import { map, take, startWith, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { AuthSlice } from '@dbase/state/auth.action';
@@ -10,7 +10,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data.define';
-import type { FireDocument, Register, Connect, Account, Comment, React, Sheet, TStoreConfig, TStoreClient, ClientCollection } from '@dbase/data.schema';
+import type { FireDocument, Register, Connect, Account, Comment, React, Sheet, TStoreConfig, TStoreClient } from '@dbase/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
@@ -19,6 +19,7 @@ import { Instant, getInstant } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
+import { asAt } from '@library/app.library';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -91,10 +92,16 @@ export class StateService {
 	}
 
 	/**
-	 * Cast the Ngxs Client$ store
+	 * Cast the Ngxs Client$ store, asAt provided date
 	 */
-	getClientData() {
-		return this.client$ as Observable<ClientState>;
+	getClientData(date?: Instant.TYPE): Observable<Record<TStoreClient | TStoreConfig, FireDocument[]>> {
+		const now = getInstant(date);
+
+		return this.client$.pipe(
+			switchMap(data => Object.entries(data).map(([key, store]) => {
+				return { [key]: asAt(store, undefined, date) } as Record<TStoreClient | TStoreConfig, FireDocument[]>
+			}))
+		)
 	}
 
 	/**
@@ -272,19 +279,19 @@ export class StateService {
 		return combineLatest([this.getClientData(), this.getForumData(date), this.getMemberData(date)]).pipe(
 			map(([client, forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.#states, 'application', STORE.Default, fire.addWhere(FIELD.Type, STORE.Icon)),
-			joinDoc(this.#states, 'client', STORE.Schedule, filterSchedule, date),								// whats on this weekday (or every weekday)
-			joinDoc(this.#states, 'client', STORE.Calendar, undefined, date, calendarDay),				// get calendar for this date
-			joinDoc(this.#states, 'client.diary', STORE.Calendar, filterCalendar),								// get future events
-			joinDoc(this.#states, 'client', STORE.Event, filterEvent, date),											// get event for this calendar-date
-			joinDoc(this.#states, 'client', STORE.Class, filterTypeClass, date),									// get classes for this weekday
-			joinDoc(this.#states, 'client', STORE.Class, filterTypeEvent, date),									// get agenda for this calendar-date
-			joinDoc(this.#states, 'client', STORE.Icon, filterIcon, date),												// get the Class icons
-			joinDoc(this.#states, 'client', STORE.Location, filterLocation, date),								// get location for this timetable
-			joinDoc(this.#states, 'client', STORE.Instructor, filterInstructor, date),						// get instructor for this timetable
-			joinDoc(this.#states, 'client', STORE.Span, filterSpan, date),												// get class durations
-			joinDoc(this.#states, 'client', STORE.Alert, filterAlert, date),											// get any Alert message for this date
-			joinDoc(this.#states, 'client', STORE.Bonus, undefined, date),												// get any active Bonus
-			joinDoc(this.#states, 'member', STORE.Gift, isMine, date),														// get any active Gifts
+			joinDoc(this.#states, 'client', STORE.Schedule, filterSchedule, date),							// whats on this weekday (or every weekday)
+			joinDoc(this.#states, 'client', STORE.Calendar, undefined, date, calendarDay),			// get calendar for this date
+			joinDoc(this.#states, 'client.diary', STORE.Calendar, filterCalendar),							// get future events
+			joinDoc(this.#states, 'client', STORE.Event, filterEvent, date),										// get event for this calendar-date
+			joinDoc(this.#states, 'client', STORE.Class, filterTypeClass, date),								// get classes for this weekday
+			joinDoc(this.#states, 'client', STORE.Class, filterTypeEvent, date),								// get agenda for this calendar-date
+			joinDoc(this.#states, 'client', STORE.Icon, filterIcon, date),											// get the Class icons
+			joinDoc(this.#states, 'client', STORE.Location, filterLocation, date),							// get location for this timetable
+			joinDoc(this.#states, 'client', STORE.Instructor, filterInstructor, date),					// get instructor for this timetable
+			joinDoc(this.#states, 'client', STORE.Span, filterSpan, date),											// get class durations
+			joinDoc(this.#states, 'client', STORE.Alert, filterAlert, date),										// get any Alert message for this date
+			joinDoc(this.#states, 'client', STORE.Bonus, undefined, date),											// get any active Bonus
+			joinDoc(this.#states, 'member', STORE.Gift, isMine, date),													// get any active Gifts
 			joinDoc(this.#states, 'attend.attendGift', STORE.Attend, attendGift),								// get any Attends against active Gifts
 			joinDoc(this.#states, 'attend.attendWeek', STORE.Attend, attendWeek),								// get any Attends for this week
 			joinDoc(this.#states, 'attend.attendMonth', STORE.Attend, attendMonth),							// get any Attends for this month
@@ -294,7 +301,7 @@ export class StateService {
 	}
 
 	/**
-	 * Assemble a standalone Object describing the Schedule for the week (Mon-Sun) that matches the supplied date.  
+	 * Assemble a standalone Object describing the Timetable for the week (Mon-Sun) that matches the supplied date.  
 	 */
 	getTimetableData(date?: Instant.TYPE): Observable<TimetableState> {
 		const now = getInstant(date);
@@ -306,7 +313,7 @@ export class StateService {
 		]
 		const filterEvent = fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
 
-		return this.getClientData().pipe(																						// start with an empty Object
+		return this.getClientData(now).pipe(
 			joinDoc(this.#states, 'application', STORE.Default, undefined, date),
 			joinDoc(this.#states, 'client', STORE.Schedule, undefined, date),
 			joinDoc(this.#states, 'client', STORE.Class, filterClass, date),
