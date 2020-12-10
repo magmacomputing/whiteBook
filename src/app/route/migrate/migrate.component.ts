@@ -60,7 +60,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		Promise.all([																						// fetch required Stores
 			this.data.getStore<Schedule>(STORE.Schedule),
-			this.data.getStore<Calendar>(STORE.Calendar, fire.addWhere(FIELD.Type, 'Closed', '!=')),
+			this.data.getStore<Calendar>(STORE.Calendar, fire.addWhere(FIELD.Type, 'closed', '!=')),
 			this.data.getStore<Event>(STORE.Event, fire.addWhere(FIELD.Type, 'special')),
 		]).then(([schedule, calendar, event]) => {
 			this.#schedule = schedule;														// stash current Schedule[]
@@ -81,8 +81,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const where = fire.addWhere(FIELD.Uid, this.#current!.uid);
 		const deletes = await Promise.all([
 			this.data.getFire<FireDocument>(COLLECTION.Member, { where }),
-			this.data.getFire<FireDocument>(COLLECTION.Admin, { where }),
 			this.data.getFire<FireDocument>(COLLECTION.Attend, { where }),
+			this.data.getFire<FireDocument>(COLLECTION.Admin, { where }),
 			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 

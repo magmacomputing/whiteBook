@@ -58,6 +58,12 @@ export interface AdminState {
 	}[]
 }
 
+export interface ClientState {
+	[STORE.Default]: Default[];
+	[STORE.Config]: Config[];
+	[STORE.Schema]: Schema[];
+}
+
 export interface ApplicationState {		// application-wide settings
 	application: {
 		[STORE.Default]: Default[];				// defaults to apply, if missing from Member data
