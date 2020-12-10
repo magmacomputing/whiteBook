@@ -118,6 +118,6 @@ export const checkDiscard = (discards: TString, nextDoc: FireDocument, currDocs:
 				})
 				.every(bool => bool === true)							// is a match if *all* fields are equal
 		)
-
+if (!isMatch.includes(true)) debugger;
 	return isMatch.includes(true)                 	// at least one currDoc matches every field
 }

@@ -3,7 +3,6 @@ import type { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
-
 import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 
 import { ROUTE } from '@route/router/route.define';
@@ -49,7 +48,7 @@ export class SyncService {
 		const stream = this.fire.merge(refs, 'stateChanges');
 		const sync = this.sync.bind(this, key);
 		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
-
+		
 		this.off(collection, query);											// detach any prior Subscription of the same signature
 		this.#listener.set(key, {
 			key,																						// stash reference to the key
@@ -172,12 +171,14 @@ export class SyncService {
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
 							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
-								this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
+							this.#dbg('sync: Profile.Plan, reroute to Attend');
+								// this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
-							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
-								this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
+							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])4
+							this.#dbg('sync: Profile.Plan, reroute to Plan');
+								// this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
 							break;
 					}
 				}

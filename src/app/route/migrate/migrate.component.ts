@@ -218,7 +218,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	// Analyze all the 'debit' rows, in order to build a corresponding Payment record
 	async addPayment() {
-		const [payments, gifts, profiles, plans, prices, comments, hist = []] = await this.getMember();
+		const [payments, gifts, profiles, plans, prices, comments, hist] = await this.getMember();
 		const histMap: Migration.History[] = [];
 		const updates: FireDocument[] = [];
 		const creates: FireDocument[] = hist
@@ -270,7 +270,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					pay.push({
 						[FIELD.Type]: PAYMENT.Hold,
 						[FIELD.Uid]: Migration.Instructor,												// assume migrated 'Hold' requests are approved
-						[FIELD.Stamp]: row.stamp,
+						[FIELD.Stamp]: row.stamp,																	// assume migrated 'Hold' requests are same time as bought
 						amount: 0,//price.amount,																	// assume migrated 'Hold' requests are free
 						hold: row.hold,
 						note: row.note,
@@ -291,8 +291,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			})
 
 		// parse the Payments to look for 'Credit Expired / Restored' adjustments
+		// filter out any Credit that is already migrated into another Payment
 		hist
 			.filter(row => row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
+			.filter(row => !payments.some(pay => pay.pay.filter(doc => doc[FIELD.Stamp] === row[FIELD.Stamp])))
 			.forEach(row => {
 				const expired = row.note!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
 				const idx = histMap.findIndex(doc => row.stamp === doc.stamp);
@@ -429,10 +431,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			table.splice(0, offset);
 		}
 
-		// const endAt = new Instant('2019-Dec-31').format(Instant.FORMAT.yearMonthDay);
+		// const endAt = new Instant('2016-Apr-04').format(Instant.FORMAT.yearMonthDay);
 		// const endPos = table.filter(row => row.date >= endAt).length;
 		// table.splice(table.length - endPos);							// up-to, but not including endAt
-		// this.dbg('endAt: %s, %j', endAt, table.length);
+		// this.#dbg('endAt: %s, %j', endAt, table.length);
 
 		if (table.length) {
 			this.#check = new Pledge();
