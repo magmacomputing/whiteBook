@@ -270,7 +270,7 @@ export class StateService {
 		]
 
 		return combineLatest([this.getClientData(), this.getForumData(date), this.getMemberData(date)]).pipe(
-			map(([client, forum, member]) => ({ ...client, ...forum, ...member })),
+			map(([client, forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.#states, 'application', STORE.Default, fire.addWhere(FIELD.Type, STORE.Icon)),
 			joinDoc(this.#states, 'client', STORE.Schedule, filterSchedule, date),								// whats on this weekday (or every weekday)
 			joinDoc(this.#states, 'client', STORE.Calendar, undefined, date, calendarDay),				// get calendar for this date
