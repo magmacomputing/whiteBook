@@ -53,8 +53,8 @@ export class DataService {
 			.toPromise()
 	}
 
-	getCurrent<T>(store: STORE, where: fire.Query["where"] = []) {
-		return this.state.asPromise(this.state.getCurrent<T>(store, where));
+	getCurrent<T>(store: STORE, where: fire.Query["where"] = [], isHidden = false) {
+		return this.state.asPromise(this.state.getCurrent<T>(store, where, isHidden));
 	}
 
 	getStore<T>(store: STORE, where: fire.Query["where"] = [], date?: Instant.TYPE) {

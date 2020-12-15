@@ -49,11 +49,14 @@ export class StateService {
 		}
 	}
 
-	/** Fetch the current, useable values for a supplied store */
-	getCurrent<T>(store: STORE, where?: fire.Query["where"]) {
+	/**
+	 * Fetch the current, useable values for a supplied store.  
+	 * (optional 'isHidden' to include hidden documents)
+	 */
+	getCurrent<T>(store: STORE, where?: fire.Query["where"], isHidden = false) {
 		const filters = asArray(where);
 		filters.push(fire.addWhere(FIELD.Expire, 0));
-		filters.push(fire.addWhere(FIELD.Hidden, false));
+		filters.push(fire.addWhere(FIELD.Hidden, isHidden));
 
 		return getCurrent<T>(this.#states, store, filters);
 	}
