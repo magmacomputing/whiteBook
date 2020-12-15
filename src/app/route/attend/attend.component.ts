@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 import { ForumService } from '@service/forum/forum.service';
@@ -7,10 +7,10 @@ import { AttendService } from '@service/member/attend.service';
 import { DialogService } from '@service/material/dialog.service';
 
 import type { TimetableState } from '@dbase/state/state.define';
-import { StateService } from '@dbase/state/state.service';
+import type { Schedule } from '@dbase/data.schema';
 import { FIELD, REACT } from '@dbase/data.define';
 import { DataService } from '@dbase/data/data.service';
-import type { Schedule } from '@dbase/data.schema';
+import { StateService } from '@dbase/state/state.service';
 
 import { isUndefined, TString } from '@library/type.library';
 import { DayTimer } from '@library/observable.library';

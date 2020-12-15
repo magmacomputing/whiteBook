@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, startWith, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { map, take, startWith, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { AuthSlice } from '@dbase/state/auth.action';
@@ -297,7 +297,7 @@ export class StateService {
 			joinDoc(this.#states, 'attend.attendMonth', STORE.Attend, attendMonth),							// get any Attends for this month
 			joinDoc(this.#states, 'attend.attendToday', STORE.Attend, attendToday),							// get any Attends for this day
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
-		) as Observable<TimetableState>																												// declare Type (to override pipe()'s artificial limit of 'nine' declarations)
+		) as Observable<TimetableState>																												// assert type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
 
 	/**

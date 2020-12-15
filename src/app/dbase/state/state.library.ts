@@ -103,7 +103,6 @@ export const getUser = (token: FireClaims) =>
 export const joinDoc = (states: IState, node: string | undefined, store: STORE, filter: fire.Query["where"] = [], date?: Instant.TYPE, callBack?: CallableFunction) => {
 	return (source: Observable<any>) => defer(() => {
 		let parent: any;
-
 		return source.pipe(
 			switchMap(data => {
 				const filters = decodeFilter(data, filter);						// loop through filters
@@ -364,7 +363,7 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 				start: getInstant(calendarDoc.start).add(offset, 'minutes').format(Instant.FORMAT.HHMI),
 				instructor: calendarDoc.instructor,
 				span: classDoc[FIELD.Type],
-				image: firstRow<Icon>(icons, fire.addWhere(FIELD.Key, className)).image || icon[FIELD.Key],
+				[FIELD.Image]: firstRow<Icon>(icons, fire.addWhere(FIELD.Key, className))[FIELD.Image] || icon[FIELD.Key],
 			}
 
 			offset += duration;												// update offset to next class start-time
@@ -374,16 +373,17 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 		})
 	})
 
-	// for each item on the schedule, poke in 'price' and 'icon',
-	// override plan-price if entitled to bonus
-
-	/** remove Bonus, if not entitled */
+	/** remove Bonus types (except Gift), if not entitled to Bonuses (Plan.bonus: boolean)*/
 	if (!plans[0].bonus)
 		source[COLLECTION.Client][STORE.Bonus] = source[COLLECTION.Client][STORE.Bonus]?.filter(bonus => bonus[FIELD.Key] === BONUS.Gift);
 
+	// for each item on the schedule, poke in 'price' and 'icon',
+	// override plan-price if entitled to bonus
 	source.client.schedule = times
 		.map(time => {
 			const classDoc = firstRow<Class>(classes, fire.addWhere(FIELD.Key, time[FIELD.Key]));
+			if (isEmpty(classDoc))
+				throw new Error(`Class scheduled, but not available: ${time[FIELD.Key]} @${time.start}`);
 			const bonus = calcBonus(source, classDoc[FIELD.Key], date, elect);
 			time.bonus = isEmpty(bonus) ? undefined : bonus;
 			time.price = firstRow<Price>(prices, fire.addWhere(FIELD.Type, classDoc[FIELD.Type]));
