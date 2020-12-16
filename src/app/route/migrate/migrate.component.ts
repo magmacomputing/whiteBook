@@ -676,12 +676,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 	}
 
-	private lookupMigrate(key: string | number, type: string = STORE.Event) {
+	private lookupMigrate(key: string | number, type: STORE.Class | STORE.Event = STORE.Event) {
 		return this.#migrate
 			.find(row => row[FIELD.Key] === asString(key)) || {
 				[FIELD.Id]: this.data.newId,
 				[FIELD.Store]: STORE.Migrate,
-				[FIELD.Type]: type as STORE.Class | STORE.Event,
+				[FIELD.Type]: type ,
 				[FIELD.Key]: asString(key),
 				[FIELD.Uid]: this.#current!.uid,
 				attend: {}
@@ -857,11 +857,5 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				])
 			}
 		})
-	}
-
-	public parseNote() {
-		const { comment, note } = cleanNote(window.prompt('Enter a note') ?? '');
-		this.#dbg('comment: %s', comment);
-		this.#dbg('note: %s', note);
 	}
 }

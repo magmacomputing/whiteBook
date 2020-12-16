@@ -271,13 +271,14 @@ export const buildProvider = (source: ProviderState) => {
 
 /** Assemble a Plan-view */
 export const buildPlan = (source: PlanState) => {
-	const roles = getPath<string[]>(source.auth, 'token.claims.customClaims.roles');
-	const isAdmin = roles?.includes(auth.ROLE.Admin);
+	const roles = getPath<auth.ROLE[]>(source.auth, 'token.claims.customClaims.roles', []);
+	const isAdmin = roles.includes(auth.ROLE.Admin);
 	const myPlan = firstRow<ProfilePlan>(source.member.plan, fire.addWhere(FIELD.Type, STORE.Plan));
 	const myTopUp = firstRow<Price>(source.client.price, fire.addWhere(FIELD.Type, PRICE.TopUp));
 	const myAge = getMemberAge(source.member.info);					// use birthDay from provider, if available
 
-	source.client.plan = source.client.plan.map(plan => {   // array of available Plans
+	// source.client.plan = source.client.plan.map(plan => {   // array of available Plans
+	source.client.plan.forEach(plan => {										// array of available Plans
 		const planPrice = firstRow<Price>(source.client.price, [
 			fire.addWhere(FIELD.Key, plan[FIELD.Key]),
 			fire.addWhere(FIELD.Type, PRICE.TopUp),
@@ -301,8 +302,8 @@ export const buildPlan = (source: PlanState) => {
 		if (myPlan && myPlan.plan === plan[FIELD.Key])	 			// disable their current Plan, so cannot re-select
 			plan[FIELD.Disable] = true;
 
-		return plan
-	});
+		// return plan
+	})
 
 	return { ...source }
 }
@@ -373,11 +374,11 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 		})
 	})
 
-	/** remove Bonus types (except Gift), if not entitled to Bonuses (Plan.bonus: boolean)*/
+	/** remove Bonus types (except Gift), if not entitled to Bonuses (Plan.bonus: boolean=false) */
 	if (!plans[0].bonus)
 		source[COLLECTION.Client][STORE.Bonus] = source[COLLECTION.Client][STORE.Bonus]?.filter(bonus => bonus[FIELD.Key] === BONUS.Gift);
 
-	// for each item on the schedule, poke in 'price' and 'icon',
+	// for each item on the schedule, poke in 'price' and 'icon',  
 	// override plan-price if entitled to bonus
 	source.client.schedule = times
 		.map(time => {
@@ -385,6 +386,7 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 			if (isEmpty(classDoc))
 				throw new Error(`Class scheduled, but not available: ${time[FIELD.Key]} @${time.start}`);
 			const bonus = calcBonus(source, classDoc[FIELD.Key], date, elect);
+
 			time.bonus = isEmpty(bonus) ? undefined : bonus;
 			time.price = firstRow<Price>(prices, fire.addWhere(FIELD.Type, classDoc[FIELD.Type]));
 			time.amount = isUndefined(time.bonus?.[FIELD.Id])	// no Bonus for this class

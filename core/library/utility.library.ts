@@ -1,7 +1,7 @@
 /** General utility functions */
 
 /**
- * store a Promise, its status and its callbacks for later fulfilment  
+ * store a Promise<T>, its status and callbacks for later fulfilment  
  * new Pledge<T>(tag?: any)  
  * input:  tag, simply to label a Pledge
  */
@@ -22,9 +22,9 @@ export class Pledge<T> {
 		})
 	}
 
-	resolve(value?: any) {
+	resolve(value?: T) {
 		this.#status = Pledge.Status.fulfilled;
-		this.#resolve(value);
+		this.#resolve(value!);
 		return this;
 	}
 

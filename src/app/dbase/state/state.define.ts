@@ -28,7 +28,7 @@ export enum SLICE {
  * >		...  
  * >	},  
  * >member: {																	// Member slice, keyed by User.uid  
- * > 	profile: [ {profile documents} ],   		// Plan, Claims, User, etc.  
+ * > 	profile: [ {profile documents} ],   		// Plan, CustomClaim, Info, etc.  
  * >	payment: [ {payment documents} ],   		// describe payments  
  * > },  
  * >attend: {																	// Attend slice, keyed by User.uid, linked to /member/payment documents  

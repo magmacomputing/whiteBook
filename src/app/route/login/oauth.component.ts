@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
 import { AuthService } from '@service/auth/auth.service';
-import { StateService } from '@dbase/state/state.service';
+import { DataService } from '@dbase/data/data.service';
 import { getConfig } from '@dbase/state/config.library';
 
 import { STORE } from '@dbase/data.define';
@@ -17,13 +17,13 @@ import { dbg } from '@library/logger.library';
 export class OAuthComponent implements OnInit {
 	#dbg = dbg(this);
 
-	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService, private state: StateService) { }
+	constructor(private http: HttpClient, private route: ActivatedRoute, private auth: AuthService, private data: DataService) { }
 
 	ngOnInit() {
 		const { code, state } = this.route.snapshot.queryParams;
 
 		if (code) {
-			this.state.asPromise(this.state.getCurrent<Config>(STORE.Config))
+			this.data.getCurrent<Config>(STORE.Config)
 				.then(config => getConfig(config, STORE.Provider, 'oauth'))
 				.then(oauth => {
 					const url = `${oauth.value.access_url}?code=${code}&state=${state}`;

@@ -3,6 +3,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
+import { DataService } from '@dbase/data/data.service';
 import { LoginAction, LoginEvent } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';
@@ -131,7 +132,9 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: Provider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const oauth = await this.state.asPromise(this.state.getCurrent<Config>(STORE.Config))
+		const oauth = await this.state.getCurrent<Config>(STORE.Config)
+			.pipe(take(1))
+			.toPromise()
 			.then(config => getConfig(config, STORE.Provider, 'oauth'))
 			.then(oauth => oauth.value)
 
