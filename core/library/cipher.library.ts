@@ -9,9 +9,9 @@ enum CRYPTO {
 }
 
 export class Cipher {
-	static cryptoKey = crypto.subtle.generateKey({ name: CRYPTO.TypeKey, length: 128 }, false, ['encrypt', 'decrypt']);
-	static vector = crypto.getRandomValues(new Uint8Array(16));
-	static asymmetricKey = crypto.subtle.generateKey({
+	private static cryptoKey = crypto.subtle.generateKey({ name: CRYPTO.TypeKey, length: 128 }, false, ['encrypt', 'decrypt']);
+	private static vector = crypto.getRandomValues(new Uint8Array(16));
+	private static asymmetricKey = crypto.subtle.generateKey({
 		name: CRYPTO.SignKey,
 		modulusLength: 2048,
 		publicExponent: new Uint8Array([1, 0, 1]),
