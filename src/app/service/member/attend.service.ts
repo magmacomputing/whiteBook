@@ -58,7 +58,7 @@ export class AttendService {
 			: FIELD.Key																			// compare requested event to class's Key
 		const timetable = source.client.schedule!.find(row => row[field] === schedule[field]);
 		if (!timetable)																		// this schedule is not actually offered on this date!
-			return this.snack.error(`This schedule item not available today: ${schedule[FIELD.Id]}`);
+			return this.snack.error(`This schedule item not available today: ${schedule[field]}`);
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScheduleTime

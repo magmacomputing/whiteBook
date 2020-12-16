@@ -246,6 +246,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						return false;																						// skip Credit-Expired for now
 					if (row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
 						return false;																						// skip expiry-reversals
+					if (row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
+						return false;																						// skip write-off reversals
 
 					return true;																							// only return new Payments
 
@@ -290,10 +292,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				return obj as FireDocument;
 			})
 
-		// parse the Payments to look for 'Credit Expired / Restored' adjustments
+		// parse the Payments to look for 'Credit Expired / Restored / Write-off' adjustments
 		// filter out any Credit that is already migrated into another Payment
 		hist
-			.filter(row => row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
+			.filter(row => row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) || row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
 			.filter(row => !payments.some(pay => pay.pay.filter(doc => doc[FIELD.Stamp] === row[FIELD.Stamp])))
 			.forEach(row => {
 				const expired = row.note!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
@@ -305,7 +307,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				const amount = asNumber(histMap[idx].credit);
 				const reverse = histMap.slice(0, idx).reverse();
-				const topUp = reverse.find(row => !row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()));
+				const topUp = reverse.find(row => !row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
 				if (isUndefined(topUp))
 					throw new Error('Cannot find a prior TopUp Payment');
 
@@ -613,11 +615,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					? row.note.substring('elect false'.length).trim()
 					: undefined;
 			} else {
-				const obj = cleanNote(sched.note);				// split the row.note into sched.note and forum.comment
-				comment = obj.comment;
-				sched.note = obj.note;										// replace note with cleaned note
+				if (this.#current!.uid !== 'PatriciaC') {		// she makes 'notes', not 'comments'
+					const obj = cleanNote(sched.note);				// split the row.note into sched.note and forum.comment
+					comment = obj.comment;
+					sched.note = obj.note;										// replace note with cleaned note
+				}
 			}
-
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
