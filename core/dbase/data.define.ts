@@ -36,11 +36,11 @@ export enum STORE {
 	Profile = 'profile',
 	Setting = 'setting',
 	Status = 'status',							// ad-hoc member documents
-	Migrate = 'migrate',						// imported event attends from Google Apps Sheets
 	// Admin
 	Register = 'register',					// copy of Firestore Authentication object
 	Sheet = 'sheet',								// imported details from Google Apps Sheets register
 	// Stage
+	Migrate = 'migrate',						// imported event attends from Google Apps Sheets
 	Export = 'export',							// exported details from Google Apps Sheets register
 	// Forum
 	Comment = 'comment',
@@ -167,7 +167,6 @@ export enum COLOR {
 	ZumbaStep = '#7700ee',
 	'3Pack' = '#9ba602',							// old way of recording multiple Sunday Bonus attends
 	'Step@Home' = '#77aaff',
-	// 'Rumba@Home' = '#bf9000',
 	'Rumba@Home' = '#ac716e',
 	Collection = '#4a86e8',
 	Store = '#980000',
@@ -242,6 +241,12 @@ export enum BONUS {
 	Month = 'month',
 	Sunday = 'sunday',
 	Home = 'home',
+}
+
+export enum GENDER {
+	None = 'none',
+	Male = 'male',
+	Female = 'female',
 }
 
 export enum REACT {

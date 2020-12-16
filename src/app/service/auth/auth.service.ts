@@ -23,7 +23,7 @@ export class AuthService {
 	#dbg = dbg(this, 'AuthService');
 	#auth$ = this.state.getAuthData();
 
-	constructor(private readonly store: Store, private data: DataService, private state: StateService, private fire: FireService) { this.#dbg('new'); }
+	constructor(private readonly store: Store, private state: StateService, private fire: FireService) { this.#dbg('new'); }
 
 	get active() {
 		return this.#auth$.pipe(
@@ -132,7 +132,9 @@ export class AuthService {
 	/** This runs in the main thread */
 	private async signInOAuth(provider: Provider) {
 		const urlQuery = `prefix=${provider.prefix}`;
-		const oauth = await this.data.getCurrent<Config>(STORE.Config)
+		const oauth = await this.state.getCurrent<Config>(STORE.Config)
+			.pipe(take(1))
+			.toPromise()
 			.then(config => getConfig(config, STORE.Provider, 'oauth'))
 			.then(oauth => oauth.value)
 
