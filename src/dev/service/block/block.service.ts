@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { DBaseModule } from '@dbase/dbase.module';
 import { BlockPrev, BlockBase, Block } from '../block/block.interface';
 
-import { cryptoHash } from '@library/crypto.library';
+import { Cipher } from '@library/cipher.library';
 import { dbg } from '@library/logger.library';
 
 /**
@@ -50,7 +50,7 @@ export class BlockService {
   }
 
   private hash(block: BlockBase) {
-    return cryptoHash(`${block.index}.${block.data}.${block.prior}`);
+    return Cipher.hash(`${block.index}.${block.data}.${block.prior}`);
   }
 
   private last() {

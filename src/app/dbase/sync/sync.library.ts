@@ -8,7 +8,7 @@ import type { sync } from '@dbase/sync/sync.define';
 import type { LState } from '@dbase/state/state.define';
 import { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
 
-import { cryptoHash } from '@library/crypto.library';
+import { Cipher } from '@library/cipher.library';
 import { WebStore } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
@@ -32,8 +32,8 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 	const localSort = localList.sortBy(FIELD.Store, FIELD.Id);
 	const snapSort = snapList.sortBy(FIELD.Store, FIELD.Id);
 	const [localHash, storeHash] = await Promise.all([
-		cryptoHash(localSort),
-		cryptoHash(snapSort),
+		Cipher.hash(localSort),
+		Cipher.hash(snapSort),
 	]);
 
 	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
