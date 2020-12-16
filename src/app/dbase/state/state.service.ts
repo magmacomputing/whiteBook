@@ -32,6 +32,7 @@ export class StateService {
 	@Select() member$!: OState;
 	@Select() attend$!: OState;
 	@Select() admin$!: OState;
+	@Select() stage$!: OState;
 	@Select() local$!: Observable<TStateSlice<FireDocument>>;
 	private forum$: OState = of({ forum: [] });
 
@@ -46,6 +47,7 @@ export class StateService {
 			'admin': this.admin$,
 			'local': this.local$,
 			'forum': this.forum$,
+			'stage': this.stage$,
 		}
 	}
 

@@ -88,8 +88,8 @@ export class ClientState implements NgxsOnInit {
 		setState({ ...state });
 	}
 
-	@Action(clientAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: clientAction.Trunc) {
+	@Action(clientAction.Clear)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: clientAction.Clear) {
 		if (debug) this.dbg('truncClient');
 		setState({});
 	}

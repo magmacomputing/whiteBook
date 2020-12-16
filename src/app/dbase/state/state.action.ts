@@ -12,8 +12,8 @@ export namespace clientAction {
 		static readonly type = '[Sync Service] Delete Client';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
 	}
-	export class Trunc {								// Truncate a Client object from the Store
-		static readonly type = '[Sync Service] Truncate Client';
+	export class Clear {								// Truncate a Client object from the Store
+		static readonly type = '[Sync Service] Clear Client';
 		constructor(public debug: boolean = true) { }
 	}
 }
@@ -27,8 +27,8 @@ export namespace deviceAction {
 		static readonly type = '[Sync Service] Delete Device';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
 	}
-	export class Trunc {
-		static readonly type = '[Sync Service] Truncate Device';
+	export class Clear {
+		static readonly type = '[Sync Service] Clear Device';
 		constructor(public debug: boolean = true) { }
 	}
 }
@@ -42,8 +42,8 @@ export namespace memberAction {
 		static readonly type = '[Sync Service] Delete Member';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
 	}
-	export class Trunc {								// Truncate a Member object from the Store
-		static readonly type = '[Sync Service] Truncate Member';
+	export class Clear {								// Truncate a Member object from the Store
+		static readonly type = '[Sync Service] Clear Member';
 		constructor(public debug: boolean = true) { }
 	}
 }
@@ -57,8 +57,8 @@ export namespace attendAction {
 		static readonly type = '[Sync Service] Delete Attend';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
 	}
-	export class Trunc {								// Truncate Attend object from the Store
-		static readonly type = '[Sync Service] Truncate Attend';
+	export class Clear {								// Truncate Attend object from the Store
+		static readonly type = '[Sync Service] Clear Attend';
 		constructor(public debug: boolean = true) { }
 	}
 	export class Sync {									// new Attend written
@@ -76,26 +76,26 @@ export namespace adminAction {
 		static readonly type = '[Sync Service] Delete Admin';
 		constructor(public payload: FireDocument[], public debug: boolean = true) { }
 	}
-	export class Trunc {									// Truncate Admin object from the Store
-		static readonly type = '[Sync Service] Truncate Admin';
+	export class Clear {									// Truncate Admin object from the Store
+		static readonly type = '[Sync Service] Clear Admin';
 		constructor(public debug: boolean = true) { }
 	}
 }
 
-// export namespace ForumAction {
-// export class Set {
-// 	static readonly type = '[Sync Service] Set Forum';
-// 	constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
-// }
-// export class Det {
-// 	static readonly type = '[Sync Service] Delete Forum';
-// 	constructor(public payload: IStoreMeta[], public debug: boolean = true) { }
-// }
-// export class Trunc {
-// 	static readonly type = '[Sync Service] Truncate Forum';
-// 	constructor(public debug: boolean = true) { }
-// }
-// }
+export namespace stageAction {
+	export class Set {
+		static readonly type = '[Sync Service] Set Stage';
+		constructor(public payload: FireDocument[], public debug: boolean = true) { }
+	}
+	export class Del {
+		static readonly type = '[Sync Service] Delete Stage';
+		constructor(public payload: FireDocument[], public debug: boolean = true) { }
+	}
+	export class Clear {
+		static readonly type = '[Sync Service] Clear Stage';
+		constructor(public debug: boolean = true) { }
+	}
+}
 
 /** helper function to return all except nominated document */
 export const filterState = (state: TStateSlice<FireDocument>, payload: FireDocument, segment = FIELD.Store) => {

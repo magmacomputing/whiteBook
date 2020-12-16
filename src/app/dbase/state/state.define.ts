@@ -5,7 +5,7 @@ import type { COLLECTION, STORE, BONUS, STATUS } from '@dbase/data.define';
 import type {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
 	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
-	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet, Diary,
+	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet, Diary, Migrate,
 } from '@dbase/data.schema';
 
 export enum SLICE {
@@ -17,6 +17,7 @@ export enum SLICE {
 	admin = 'admin',
 	device = 'device',
 	forum = 'forum',
+	stage = 'stage',
 }
 
 /**
@@ -158,5 +159,11 @@ export interface ForumState {
 	[COLLECTION.Forum]: {
 		[STORE.Comment]?: Comment[];
 		[STORE.React]?: React[];
+	}
+}
+
+export interface StageState {
+	[COLLECTION.Stage]: {
+		[STORE.Migrate]: Migrate[];
 	}
 }

@@ -305,8 +305,10 @@ export class AuthState {
 			if (roles.includes(auth.ROLE.Admin)) {
 				this.sync.on(COLLECTION.Admin, undefined,		// watch all /admin and /member/status  into one stream
 					[COLLECTION.Member, { where: fire.addWhere(FIELD.Store, STORE.Status) }]);
+				this.sync.on(COLLECTION.Stage);
 			} else {
 				this.sync.off(COLLECTION.Admin);
+				this.sync.off(COLLECTION.Stage);
 				this.navigate.route(ROUTE.Attend);
 			}
 		}

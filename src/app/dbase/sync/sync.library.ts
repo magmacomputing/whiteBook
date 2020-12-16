@@ -6,7 +6,7 @@ import type { FireDocument } from '@dbase/data.schema';
 import type { sync } from '@dbase/sync/sync.define';
 
 import type { LState } from '@dbase/state/state.define';
-import { clientAction, memberAction, attendAction, adminAction, deviceAction } from '@dbase/state/state.action';
+import { clientAction, memberAction, attendAction, adminAction, deviceAction, stageAction } from '@dbase/state/state.action';
 
 import { Cipher } from '@library/cipher.library';
 import { WebStore } from '@library/browser.library';
@@ -45,18 +45,6 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 	return false;
 }
 
-// TODO: call to meta introduces an unacceptable delay (for payback, at this time)
-// export const buildDoc = async (snap: DocumentChangeAction<FireDocument>, fire: FireService) => {//FireService) => {
-// 	const meta = await fire.callMeta(snap.payload.doc.get(FIELD.store), snap.payload.doc.id);
-// 	return {
-// 		...snap.payload.doc.data(),
-// 		[FIELD.id]: meta[FIELD.id],
-// 		[FIELD.create]: meta[FIELD.create],
-// 		[FIELD.update]: meta[FIELD.update],
-// 		[FIELD.access]: meta[FIELD.access],
-// 	} as FireDocument
-// }
-
 /** These fields do not exist in the snapshot data() */
 const remMeta = (doc: FireDocument) => {
 	const { [FIELD.Create]: c, [FIELD.Update]: u, [FIELD.Access]: a, ...rest } = doc;
@@ -70,19 +58,22 @@ export const addMeta = (snap: DocumentChangeAction<FireDocument>) =>
 export const getMethod = (slice: COLLECTION) => {
 	switch (slice) {                           				// TODO: can we merge these?
 		case COLLECTION.Client:
-			return { setStore: clientAction.Set, delStore: clientAction.Del, truncStore: clientAction.Trunc }
+			return { setStore: clientAction.Set, delStore: clientAction.Del, clearStore: clientAction.Clear }
 
 		case COLLECTION.Member:
-			return { setStore: memberAction.Set, delStore: memberAction.Del, truncStore: memberAction.Trunc }
+			return { setStore: memberAction.Set, delStore: memberAction.Del, clearStore: memberAction.Clear }
 
 		case COLLECTION.Attend:
-			return { setStore: attendAction.Set, delStore: attendAction.Del, truncStore: attendAction.Trunc }
+			return { setStore: attendAction.Set, delStore: attendAction.Del, clearStore: attendAction.Clear }
 
 		case COLLECTION.Device:
-			return { setStore: deviceAction.Set, delStore: deviceAction.Del, truncStore: deviceAction.Trunc }
+			return { setStore: deviceAction.Set, delStore: deviceAction.Del, clearStore: deviceAction.Clear }
 
 		case COLLECTION.Admin:
-			return { setStore: adminAction.Set, delStore: adminAction.Del, truncStore: adminAction.Trunc }
+			return { setStore: adminAction.Set, delStore: adminAction.Del, clearStore: adminAction.Clear }
+
+		case COLLECTION.Stage:
+			return { setStore: stageAction.Set, delStore: stageAction.Del, clearStore: stageAction.Clear }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

@@ -65,8 +65,8 @@ export class AttendState implements NgxsOnInit {
 		dispatch(new attendAction.Sync(payload));								// tell any listener we have sync'd
 	}
 
-	@Action(attendAction.Trunc)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: attendAction.Trunc) {
+	@Action(attendAction.Clear)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: attendAction.Clear) {
 		if (debug) this.dbg('truncAttend');
 		setState({});
 	}

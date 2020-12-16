@@ -681,7 +681,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.find(row => row[FIELD.Key] === asString(key)) || {
 				[FIELD.Id]: this.data.newId,
 				[FIELD.Store]: STORE.Migrate,
-				[FIELD.Type]: type ,
+				[FIELD.Type]: type,
 				[FIELD.Key]: asString(key),
 				[FIELD.Uid]: this.#current!.uid,
 				attend: {}

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
 
-import { adminAction, filterState } from '@dbase/state/state.action';
+import { stageAction, filterState } from '@dbase/state/state.action';
 import type { TStateSlice } from '@dbase/state/state.define';
 
 import { FIELD, COLLECTION } from '@dbase/data.define';
@@ -12,14 +12,14 @@ import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 /**
- * AdminState is for items that only Admin Users (with roles['admin'] in their customClaims) can see
+ * StageState is for items that only Admin Users (with roles['admin'] in their customClaims) can see
  */
 @Injectable()
 @State<TStateSlice<FireDocument>>({
-	name: COLLECTION.Admin,
+	name: COLLECTION.Stage,
 	defaults: {}
 })
-export class AdminState implements NgxsOnInit {
+export class StageState implements NgxsOnInit {
 	private dbg = dbg(this);
 
 	constructor() { this.init(); }
@@ -28,8 +28,8 @@ export class AdminState implements NgxsOnInit {
 
 	private init() { this.dbg('init:'); }
 
-	@Action(adminAction.Set)
-	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: adminAction.Set) {
+	@Action(stageAction.Set)
+	setStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: stageAction.Set) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -37,16 +37,16 @@ export class AdminState implements NgxsOnInit {
 			const segment = doc[FIELD.Type] ? FIELD.Type : FIELD.Store;
 
 			state[store] = filterState(state, doc, segment);
-			state[store].push(doc);							// push the changed AdminDoc into the Store
+			state[store].push(doc);							// push the changed StageDoc into the Store
 
-			if (debug) this.dbg('setAdmin: %j', doc);
+			if (debug) this.dbg('setStage: %j', doc);
 		})
 
 		setState({ ...state });
 	}
 
-	@Action(adminAction.Del)
-	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: adminAction.Del) {
+	@Action(stageAction.Del)
+	delStore({ getState, setState }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: stageAction.Del) {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
@@ -57,15 +57,15 @@ export class AdminState implements NgxsOnInit {
 			if (state[store].length === 0)
 				delete state[store]
 
-			if (debug) this.dbg('delAdmin: %s, %j', doc[segment], doc);
+			if (debug) this.dbg('delStage: %s, %j', doc[segment], doc);
 		})
 
 		setState({ ...state });
 	}
 
-	@Action(adminAction.Clear)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: adminAction.Clear) {
-		if (debug) this.dbg('truncAdmin');
+	@Action(stageAction.Clear)
+	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: stageAction.Clear) {
+		if (debug) this.dbg('clearStage');
 		setState({});
 	}
 }

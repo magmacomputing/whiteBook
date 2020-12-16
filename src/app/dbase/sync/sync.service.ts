@@ -5,13 +5,11 @@ import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
 import { Store, Actions, ofActionDispatched } from '@ngxs/store';
 
-import { ROUTE } from '@route/router/route.define';
-import { NavigateService } from '@route/router/navigate.service';
-
 import type { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
+import { NavigateService } from '@route/router/navigate.service';
 
 import type { FireDocument } from '@dbase/data.schema';
 import { FIELD, STORE, COLLECTION, PROFILE } from '@dbase/data.define';
@@ -119,7 +117,7 @@ export class SyncService {
 
 				listen.subscribe.unsubscribe();
 				if (trunc)
-					this.store.dispatch(new listen.method.truncStore());
+					this.store.dispatch(new listen.method.clearStore());
 
 				this.#listener.delete(key);
 			}
@@ -129,7 +127,7 @@ export class SyncService {
 	/** handler for snapshot listeners */
 	private async sync(key: sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
 		const listen = this.#listener.get(key)!;
-		const { setStore, delStore, truncStore } = listen.method;
+		const { setStore, delStore, clearStore } = listen.method;
 		const source = getSource(snaps);
 
 		listen.cnt += 1;
@@ -152,7 +150,7 @@ export class SyncService {
 				return true;
 			}
 			await this.store
-				.dispatch(new truncStore(debug))							// suspected tampering, reset Store
+				.dispatch(new clearStore(debug))							// suspected tampering, reset Store
 				.toPromise();
 		}
 
