@@ -303,7 +303,7 @@ export class AuthState {
 
 			this.dbg('customClaims: %j', ctx.getState().token?.claims.customClaims);
 			if (roles.includes(auth.ROLE.Admin)) {
-				this.sync.on(COLLECTION.Admin, undefined,		// watch all /admin and /member/status  into one stream
+				this.sync.on(COLLECTION.Admin, undefined,		// merge all /admin and /member/status  into one stream
 					[COLLECTION.Member, { where: fire.addWhere(FIELD.Store, STORE.Status) }]);
 				this.sync.on(COLLECTION.Stage);
 			} else {

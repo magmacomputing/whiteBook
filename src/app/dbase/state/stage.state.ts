@@ -33,10 +33,9 @@ export class StageState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.Type] || doc[FIELD.Store];
-			const segment = doc[FIELD.Type] ? FIELD.Type : FIELD.Store;
+			const store = doc[FIELD.Store];
 
-			state[store] = filterState(state, doc, segment);
+			state[store] = filterState(state, doc, FIELD.Store);
 			state[store].push(doc);							// push the changed StageDoc into the Store
 
 			if (debug) this.dbg('setStage: %j', doc);
@@ -50,14 +49,13 @@ export class StageState implements NgxsOnInit {
 		const state = cloneObj(getState()) || {};
 
 		asArray(payload).forEach(doc => {
-			const store = doc[FIELD.Type] || doc[FIELD.Store];
-			const segment = doc[FIELD.Type] ? FIELD.Type : FIELD.Store;
+			const store = doc[FIELD.Store];
 
-			state[store] = filterState(state, doc, segment);
+			state[store] = filterState(state, doc, FIELD.Store);
 			if (state[store].length === 0)
 				delete state[store]
 
-			if (debug) this.dbg('delStage: %s, %j', doc[segment], doc);
+			if (debug) this.dbg('delStage: %s, %j', doc[FIELD.Store], doc);
 		})
 
 		setState({ ...state });
