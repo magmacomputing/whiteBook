@@ -855,10 +855,4 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			}
 		})
 	}
-
-	public parseNote() {
-		const { comment, note } = cleanNote(window.prompt('Enter a note') ?? '');
-		this.#dbg('comment: %s', comment);
-		this.#dbg('note: %s', note);
-	}
 }

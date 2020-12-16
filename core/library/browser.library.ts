@@ -4,7 +4,7 @@ import { getType, isUndefined } from '@library/type.library';
 import { stringify, objectify } from '@library/string.library';
 
 /**
- * Wrapper around Web Storage
+ * Wrapper around local / session  Web Storage
  */
 export class WebStore {
 	#storage: globalThis.Storage;
