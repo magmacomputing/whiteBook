@@ -97,7 +97,7 @@ export class AuthState {
 	 * Users are identifiable by the same Firebase User ID regardless of the authentication provider they used to signIn.  
 	 * For example, a user who signed-in with a password can link a Google account and signIn with either method in the future.  
 	 */
-	@Action(LoginAction.Credential)													// attempt to link multiple providers
+	@Action(LoginAction.Credential)										// attempt to link multiple providers
 	private async loginCredential(ctx: StateContext<AuthSlice>, { link }: LoginAction.Credential) {
 		const methods = await this.afAuth.fetchSignInMethodsForEmail(link.email);
 
@@ -123,7 +123,7 @@ export class AuthState {
 	}
 
 	/** Attempt to signIn User via authentication by a federated identity provider */
-	@Action(LoginAction.Identity)														// process signInWithPopup()
+	@Action(LoginAction.Identity)											// process signInWithPopup()
 	private async loginIdentity(ctx: StateContext<AuthSlice>, { authProvider, credential }: LoginAction.Identity) {
 		try {
 			const response = await this.afAuth.signInWithPopup(authProvider);
@@ -153,7 +153,7 @@ export class AuthState {
 	}
 
 	/** Attempt to signIn User via an emailAddress / Password combination. */
-	@Action(LoginAction.Email)															// process signInWithEmailAndPassword
+	@Action(LoginAction.Email)												// process signInWithEmailAndPassword
 	private loginEmail(ctx: StateContext<AuthSlice>, { email, password, method, credential }: LoginAction.Email) {
 		type TEmailMethod = 'signInWithEmailAndPassword' | 'createUserWithEmailAndPassword';
 		const thisMethod = `${method}WithEmailAndPassword` as TEmailMethod;
@@ -164,7 +164,7 @@ export class AuthState {
 				.then(response => this.authSuccess(ctx, response.user, credential))
 				.catch(async error => {
 					switch (error.code) {
-						case 'auth/user-not-found':				// need to 'create' first
+						case 'auth/user-not-found':							// need to 'create' first
 							return ctx.dispatch(new LoginAction.Email(email, password, 'createUser'));
 
 						default:
@@ -201,27 +201,27 @@ export class AuthState {
 		else this.snack.error('Not a valid link-address');
 	}
 
-	@Action(LoginAction.Out)												// process signOut()
+	@Action(LoginAction.Out)													// process signOut()
 	private logout(ctx: StateContext<AuthSlice>) {
-		this.user = null;															// reset state
+		this.user = null;																// reset state
 		this.afAuth.signOut()
 			.then(_ => ctx.dispatch(new LoginAction.Off()))
 		return;
 	}
 
 	/** Events */
-	@Action(LoginEvent.Success)											// on each LoginEvent.Success, fetch /member collection
+	@Action(LoginEvent.Success)												// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
 		const query: fire.Query = { where: fire.addWhere(FIELD.Uid, user.uid) };
 		const currUser = await this.afAuth.currentUser;
 
 		if (currUser) {
 			this.sync.on(COLLECTION.Attend, query);
-			this.sync.on(COLLECTION.Member, query)			// wait for /member snap0 
+			this.sync.on(COLLECTION.Member, query)				// wait for /member snap0 
 				.then(_ => this._memberSubject.next(ctx.getState().info))
 				.then(_ => this._memberSubject.complete())
 				.then(_ => this.isAdmin())
-				.then(isAdmin => {												// if on "/" or "/login", redirect to "/attend" or "/admin"
+				.then(isAdmin => {													// if on "/" or "/login", redirect to "/attend" or "/admin"
 					if (['/', `/${ROUTE.Login}`].includes(this.navigate.url))
 						this.navigate.route(isAdmin ? ROUTE.Admin : ROUTE.Attend)
 				})
@@ -233,7 +233,7 @@ export class AuthState {
 		ctx.patchState(info);
 	}
 
-	@Action(LoginAction.Other)											// behalf of another User
+	@Action(LoginAction.Other)												// behalf of another User
 	private(ctx: StateContext<AuthSlice>, { alias }: LoginAction.Other) {
 		const currUser = ctx.getState().current;
 		const loginUser = ctx.getState().user;
@@ -241,12 +241,12 @@ export class AuthState {
 		const loginUID = loginUser?.uid as string;
 
 		if (!currUser && !alias)
-			return;																			// nothing to do
+			return;																				// nothing to do
 		if (alias && alias === loginAlias)
-			return;																			// already auth'd
+			return;																				// already auth'd
 
 		if (!alias) {
-			this.syncUID(loginUID);											// reset /member and /attend listeners
+			this.syncUID(loginUID);												// reset /member and /attend listeners
 			return;
 		}
 
@@ -256,7 +256,7 @@ export class AuthState {
 		 */
 		this.store.selectOnce<TStateSlice<Register>>(state => state[SLICE.admin])
 			.pipe(
-				map(admin => admin[STORE.Register]),			// get the Register segment
+				map(admin => admin[STORE.Register]),				// get the Register segment
 				map(table => table.find(row => getPath(row, 'user.customClaims.alias') === alias)),
 			)
 			.subscribe(reg => {
@@ -269,19 +269,19 @@ export class AuthState {
 
 	private syncUID(uids?: string | string[] | null) {
 		if (uids) {
-			this.sync.off(COLLECTION.Member);						// unsubscribe from /member
-			this.sync.off(COLLECTION.Attend);						// unsubscribe from /attend
+			this.sync.off(COLLECTION.Member);							// unsubscribe from /member
+			this.sync.off(COLLECTION.Attend);							// unsubscribe from /attend
 
 			const where = fire.addWhere(FIELD.Uid, uids, isArray(uids) ? 'in' : '==');
-			this.sync.on(COLLECTION.Member, { where });	// re-subscribe to /member, with supplied UIDs
-			this.sync.on(COLLECTION.Attend, { where });	// re-subscribe to /attend, with supplied UIDs
+			this.sync.on(COLLECTION.Member, { where });		// re-subscribe to /member, with supplied UIDs
+			this.sync.on(COLLECTION.Attend, { where });		// re-subscribe to /attend, with supplied UIDs
 		}
 	}
 
 	@Action([LoginEvent.Setup, LoginEvent.Success])
 	private setUserStateOnSuccess(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Setup) {
 		if (this.afAuth.currentUser) {
-			const clone = cloneObj(user);								// safe copy of User
+			const clone = cloneObj(user);									// safe copy of User
 
 			if (!clone.email) {
 				this.snack.error('Must have a valid email address');
@@ -292,7 +292,7 @@ export class AuthState {
 		}
 	}
 
-	@Action(LoginEvent.Token)															// fetch latest IdToken
+	@Action(LoginEvent.Token)													// fetch latest IdToken
 	private async setToken(ctx: StateContext<AuthSlice>) {
 		const currUser = await this.afAuth.currentUser;
 
@@ -326,7 +326,7 @@ export class AuthState {
 
 	@Action([LoginEvent.Failed, LoginAction.Off])
 	private notLogin(ctx: StateContext<AuthSlice>, { error }: LoginEvent.Failed) {
-		this.sync.off();												// disconnect all Listeners
+		this.sync.off();																// disconnect all Listeners
 
 		if (error) {
 			this.dbg('logout: %j', error);

@@ -27,20 +27,23 @@ export class DayTimer {
 		this.stop();															// stop the previous Subject
 		this.#stop$ = new Subject<any>();					// start a new Subject
 
-		this.log('new', 0, midnight);							// show the initial Timer
-		timer(midnight.toDate(), Instant.TIMES.day)// start a Timer from midnight, and re-fires daily
+		this.log('new', 0, midnight);							// show the initial DayTimer
+		timer(midnight.toDate(), Instant.TIMES.day)// start a DayTimer from midnight, and re-fires daily
 			.pipe(takeUntil(this.#stop$))						// until notified to stop
 			.subscribe({
 				next: (nbr) => {
-					this.log('set', nbr);								// show the next Timer
+					this.log('set', nbr);								// show the next DayTimer
 					callback?.()												// do callback at midnight
 				},
-				complete: () => this.log('end')
+				complete: () => {
+					this.stop();												// tear-down Subject
+					this.log('end')
+				}
 			})
 	}
 
 	stop(callback?: Function) {
-		this.#stop$?.next();											// notify Timer to stop
+		this.#stop$?.next();											// notify DayTimer to stop
 		this.#stop$?.unsubscribe();								// tear-down Subject
 
 		callback?.();															// an optional final callback
