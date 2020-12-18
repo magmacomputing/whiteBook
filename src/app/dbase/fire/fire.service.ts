@@ -17,6 +17,7 @@ import { isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
+import { isObject } from '@ngxs/store/src/internal/internals';
 
 type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
@@ -98,18 +99,24 @@ export class FireService {
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private removeMeta(doc: DocumentData, opts: Record<string, boolean> = {}) {
+	private removeMeta(doc: DocumentData, opts?: Record<string, boolean>) {
 		const { [FIELD.Id]: a, [FIELD.Create]: b, [FIELD.Update]: c, [FIELD.Access]: d, ...rest } = doc;
 
-		Object.entries(rest).forEach(([key, value]) => {
-			if (isUndefined(value)) {
-				if (opts.setUndefined)
-					delete rest[key]										// remove the field if 'set'
-				else rest[key] = firebase.firestore.FieldValue.delete(); // delete the target field if 'update'
-			}
-		})
+		this.fieldValue(rest, opts);								// start recursion into Document
 
 		return rest;
+	}
+
+	private fieldValue(obj: Record<string, any>, opts: Record<string, boolean> = {}) {
+		Object.entries(obj)
+			.forEach(([key, value]) => {
+				if (isObject(value))
+					return this.fieldValue(value, opts);
+				if (isUndefined(value))
+					if (opts.setUndefined)
+						delete obj[key]
+					else obj[key] = firebase.firestore.FieldValue.delete();
+			})
 	}
 
 	/**
