@@ -183,7 +183,7 @@ export class DataService {
 			})
 			.then(_ => this.fire.batch(creates, updates, deletes))// batch the writes
 			.then(_ => sync)																			// wait for callback to resolve
-			.catch(err => this.#dbg('err: %s', err.message))
+			.catch(err => { this.#dbg('err: %s', err.message); throw new Error(err) })
 	}
 
 	/** Wrap writes in a Transaction */

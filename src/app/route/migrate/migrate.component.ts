@@ -231,7 +231,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						.filter(pay => pay[FIELD.Type] === PAYMENT.TopUp)				// all topUp pays on the migrated-Payment
 						.filter(pay => isUndefined(pay[FIELD.Stamp]))						// find unapproved pays
 					if (topUp.length) {																				// update an already-migrated Payment
-						topUp.forEach(pay => Object.assign(pay, { stamp: row.approved, uid: Migration.Instructor, note: row.note }));
+						topUp.forEach(pay => Object.assign(pay, { stamp: row.approved, uid: Migration.Instructor }, row.note ? { note: row.note } : {}));
 						updates.push(match);																		// update the now-approved Payment
 					}
 					return false;																							// no further checking required on this Payment
@@ -275,8 +275,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						[FIELD.Stamp]: row.stamp,																	// assume migrated 'Hold' requests are same time as bought
 						amount: 0,//price.amount,																	// assume migrated 'Hold' requests are free
 						hold: row.hold,
-						note: row.note,
+						// note: row.note,
 					})
+					if (row.note)
+						pay[pay.length - 1].note = row.note;
 				}
 				if (row.debit === undefined && row.credit === undefined)
 					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
@@ -284,7 +286,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const obj: Partial<Payment> = {
 					[FIELD.Store]: STORE.Payment,
 					[FIELD.Stamp]: row.stamp,
-					[FIELD.Note]: row.note,
+					// [FIELD.Note]: row.note,
 					pay: pay,
 					expiry: this.getExpiry(row, profiles, plans, prices, { pay } as Payment),
 				}
@@ -317,11 +319,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				payment.pay.push({
 					[FIELD.Type]: PAYMENT.Adjust,
-					[FIELD.Note]: row.note,
+					// [FIELD.Note]: row.note,
 					[FIELD.Uid]: Migration.Instructor,
 					[FIELD.Stamp]: histMap[idx].stamp,
 					amount: amount,
 				})
+				if (row.note)
+					payment.pay[payment.pay.length - 1].note = row.note;
 				if (!expired)																												// only reset expiry on Credit Restored
 					payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
 			})
