@@ -13,11 +13,10 @@ import { fire } from '@dbase/fire/fire.library';
 import { FireDocument } from '@dbase/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
-import { isUndefined } from '@library/type.library';
+import { isObject, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
-import { isObject } from '@ngxs/store/src/internal/internals';
 
 type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
@@ -107,6 +106,8 @@ export class FireService {
 		return rest;
 	}
 
+	// TODO: what about Array?
+	/** Replace 'undefined' with FieldValue.delete() */
 	private fieldValue(obj: Record<string, any>, opts: Record<string, boolean> = {}) {
 		Object.entries(obj)
 			.forEach(([key, value]) => {
