@@ -225,6 +225,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.filter(row => (row.type === 'Debit' && !(row.note?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
 			.filter(row => {
 				const match = payments.find(pay => pay[FIELD.Stamp] === row[FIELD.Stamp]);
+				histMap.push(row);																					// stash payment and expiry records
 
 				if (isDefined(row.approved) && match) {
 					const topUp = match.pay
@@ -241,7 +242,6 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					if (isUndefined(row.approved))
 						this.#dbg('warn; unapproved: %j', row);									// warn that you will need to re-migrate Payment later
 
-					histMap.push(row);																				// stash payment and expiry records
 					if (row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()))
 						return false;																						// skip Credit-Expired for now
 					if (row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
@@ -298,7 +298,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		// filter out any Credit that is already migrated into another Payment
 		hist
 			.filter(row => row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) || row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
-			.filter(row => !payments.some(pay => pay.pay.filter(doc => doc[FIELD.Stamp] === row[FIELD.Stamp])))
+			.filter(row => !payments.some(doc => doc.pay.filter(pay => pay[FIELD.Stamp] === row[FIELD.Stamp]).length !== 0))
 			.forEach(row => {
 				const expired = row.note!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
 				const idx = histMap.findIndex(doc => row.stamp === doc.stamp);
@@ -313,19 +313,25 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (isUndefined(topUp))
 					throw new Error('Cannot find a prior TopUp Payment');
 
-				const payment = creates.find(doc => doc[FIELD.Stamp] === topUp[FIELD.Stamp]) as Payment;
+				let payment = creates.find(doc => doc[FIELD.Stamp] === topUp[FIELD.Stamp]) as Payment;
+				if (isUndefined(payment))
+					payment = updates.find(doc => doc[FIELD.Stamp] === topUp[FIELD.Stamp]) as Payment;
+				if (isUndefined(payment)) {
+					payment = payments.find(doc => doc[FIELD.Stamp] === topUp[FIELD.Stamp]) as Payment;
+					updates.push(payment);																						// stack a new Payment update
+				}
 				if (isUndefined(payment))
 					throw new Error('Cannot locate the Payment prior to Credit adjustment');
 
 				payment.pay.push({
 					[FIELD.Type]: PAYMENT.Adjust,
-					// [FIELD.Note]: row.note,
+					[FIELD.Note]: row.note,
 					[FIELD.Uid]: Migration.Instructor,
 					[FIELD.Stamp]: histMap[idx].stamp,
 					amount: amount,
 				})
-				if (row.note)
-					payment.pay[payment.pay.length - 1].note = row.note;
+				// if (row.note)
+				// 	payment.pay[payment.pay.length - 1].note = row.note;
 				if (!expired)																												// only reset expiry on Credit Restored
 					payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
 			})
