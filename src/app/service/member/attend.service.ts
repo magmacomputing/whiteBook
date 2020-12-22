@@ -9,7 +9,7 @@ import { attendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
 
 import { DataService } from '@dbase/data/data.service';
-import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION, PAYMENT } from '@dbase/data.define';
+import { STORE, FIELD, BONUS, PLAN, SCHEDULE, COLLECTION } from '@dbase/data.define';
 import type { FireDocument, Attend, Schedule, Payment, Gift, React, Comment } from '@dbase/data.schema';
 
 import { PAY, ATTEND, Chain } from '@service/member/attend.define';
@@ -67,8 +67,22 @@ export class AttendService {
 			fire.addWhere(`track.${FIELD.Date}`, when),
 			fire.addWhere(`timetable.${FIELD.Key}`, schedule[FIELD.Key]),
 			fire.addWhere(`timetable.${FIELD.Id}`, schedule[FIELD.Id]),// schedule has <location>, <instructor>, <startTime>
-			fire.addWhere('note', schedule[FIELD.Note]),					// a different 'note' will allow us to re-book same Class
+			fire.addWhere('note', schedule[FIELD.Note]),		// a different 'note' will allow us to re-book same Class
 		])
+
+		// if no Note, then check if same Class / date / startTime / comment is already booked
+		if (bookAttend.length && isUndefined(schedule[FIELD.Note]) && isDefined(schedule[COLLECTION.Forum]?.[STORE.Comment])) {
+			const bookForum = await this.data.getStore<Comment>(STORE.Comment, [
+				fire.addWhere(FIELD.Uid, data.auth.current!.uid),
+				fire.addWhere(FIELD.Type, schedule[FIELD.Store]),
+				fire.addWhere(`track.${FIELD.Date}`, when),
+				fire.addWhere(`track.${STORE.Class}`, schedule[FIELD.Key]),
+				fire.addWhere('start', schedule.start),
+				fire.addWhere(STORE.Comment, schedule[COLLECTION.Forum]?.[STORE.Comment]),
+			])
+			if (!bookForum.length)													// if no booking for this Comment
+				bookAttend.truncate();												// then allow this Attend
+		}
 
 		if (bookAttend.length) {													// disallow same Class, same Note
 			const noNote = !schedule[FIELD.Note] && bookAttend.some(row => isUndefined(row[FIELD.Note]));
@@ -177,7 +191,7 @@ export class AttendService {
 			upd.expiry = calcExpiry(active, data.client);		// calc an Expriy for the Payment
 
 		if (!isEmpty(upd))																// changes to the active Payment
-			updates.push({ ...active, ...upd });						// so, batch the Payment update
+			updates.push({ ...active, ...upd });						// so, batch the Paymenmt update
 
 		if (data.member.plan[0].plan === PLAN.Intro && (data.account.summary.funds - schedule.amount) <= 0)
 			this.member.setPlan(PLAN.Member, stamp + 1);		// auto-bump 'intro' to 'member' Plan

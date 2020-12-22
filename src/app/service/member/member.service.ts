@@ -73,7 +73,7 @@ export class MemberService {
 			: await this.getPayPrice(data)
 
 		return {
-			// [FIELD.id]: this.data.newId,									// in case we need to update a Payment within a Batch
+			[FIELD.Id]: this.data.newId,									// in case we need to update a Payment within a Batch
 			[FIELD.Store]: STORE.Payment,
 			[FIELD.Stamp]: getStamp(stamp),
 			pay: [{

@@ -592,7 +592,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched = nearAt(this.#schedule, fire.addWhere(FIELD.Key, className), row.stamp, { start: hhmi });
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
-				sched.amount = price;											// to allow AttendService to check what was charged
+				sched.amount = price;												// to allow AttendService to check what was charged
 				sched.note = row.note;
 				break;
 
@@ -609,7 +609,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					this.getElect(row);
 				// if (row.note?.includes('Bonus: Week Level reached'))
 				// 	row.elect = BONUS.week;
-				sched.amount = price;											// to allow AttendService to check what was charged
+				sched.amount = price;												// to allow AttendService to check what was charged
 				sched.note = row.note;
 				sched.elect = row.elect;
 				break;
@@ -620,7 +620,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (flag) {
 			let comment: TString | undefined;
 			if (row.note?.includes('elect false')) {
-				sched.elect = BONUS.None;									// Member elected to not receive a Bonus
+				sched.elect = BONUS.None;										// Member elected to not receive a Bonus
 				sched.note = (row.note.length > 'elect false'.length)
 					? row.note.substring('elect false'.length).trim()
 					: undefined;
@@ -629,8 +629,10 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					const obj = cleanNote(sched.note);				// split the row.note into sched.note and forum.comment
 					comment = obj.comment;
 					sched.note = obj.note;										// replace note with cleaned note
+					sched.forum = { comment };								// stash the comment
 				}
 			}
+
 			this.attend.setAttend(sched, row.stamp)
 				.then(res => {
 					if (isBoolean(res) && res === false)
