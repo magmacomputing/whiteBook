@@ -191,7 +191,7 @@ export class AttendService {
 			upd.expiry = calcExpiry(active, data.client);		// calc an Expriy for the Payment
 
 		if (!isEmpty(upd))																// changes to the active Payment
-			updates.push({ ...active, ...upd });						// so, batch the Paymenmt update
+			updates.push({ ...active, ...upd });						// so, batch the Payment update
 
 		if (data.member.plan[0].plan === PLAN.Intro && (data.account.summary.funds - schedule.amount) <= 0)
 			this.member.setPlan(PLAN.Member, stamp + 1);		// auto-bump 'intro' to 'member' Plan

@@ -60,22 +60,21 @@ export class Instant {
 	constructor(dt?: Instant.TYPE, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** 4-digit year */		get yy() { return this.#date.yy }
-	/** month number */		get mm() { return this.#date.mm }
-	/** day number */			get dd() { return this.#date.dd }
-	/** 24-hour format */	get hh() { return this.#date.hh }
-	/** minutes */				get mi() { return this.#date.mi }
-	/** seconds */				get ss() { return this.#date.ss }
-	/** timestamp */			get ts() { return this.#date.ts }
-	/** milliseconds */		get ms() { return this.#date.ms }
-	/** timezone offset */get tz() { return this.#date.tz }
-	/** number of weeks*/	get ww() { return this.#date.ww }
-	/** short month name*/get mmm() { return this.#date.mmm }
-	/** short day name */	get ddd() { return this.#date.ddd }
-	/** weekday number */	get dow() { return this.#date.dow }
+	/** 4-digit year */			get yy() { return this.#date.yy }
+	/** month number */			get mm() { return this.#date.mm }
+	/** day number */				get dd() { return this.#date.dd }
+	/** 24-hour format */		get hh() { return this.#date.hh }
+	/** minutes */					get mi() { return this.#date.mi }
+	/** seconds */					get ss() { return this.#date.ss }
+	/** timestamp */				get ts() { return this.#date.ts }
+	/** milliseconds */			get ms() { return this.#date.ms }
+	/** timezone offset */	get tz() { return this.#date.tz }
+	/** number of weeks */	get ww() { return this.#date.ww }
+	/** short month name*/	get mmm() { return this.#date.mmm }
+	/** short day name */		get ddd() { return this.#date.ddd }
+	/** weekday number */		get dow() { return this.#date.dow }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 	/** apply formatting*/
 	format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
 	/** calc diff Dates, default as \<years> */
@@ -85,15 +84,17 @@ export class Instant {
 
 	/** start offset, default as \<week> */
 	startOf = (unit: TUnitTime = 'week') => this.#setDate('start', unit);
-	/** middle offset, default as \<week> */
 	midOf = (unit: TUnitTime = 'week') => this.#setDate('mid', unit);
-	/** ending offset, default as \<week> */
 	endOf = (unit: TUnitTime = 'week') => this.#setDate('end', unit);
 
-	/** valid Instant */	isValid = () => !isNaN(this.#date.ts);
-	/** get raw object */	toJSON = () => ({ ...this.#date });
-	/** as Date object */	toDate = () => this.#composeDate(this.#date);
-	/** as String object*/toString = () => this.#formatDate(Instant.FORMAT.dayTime);
+	/** valid Instant */
+	isValid = () => !isNaN(this.#date.ts);
+	/** get raw properties */
+	toJSON = () => ({ ...this.#date });
+	/** as Date object */
+	toDate = () => this.#composeDate(this.#date);
+	/** as formatted String object */
+	toString = () => this.#formatDate(Instant.FORMAT.dayTime);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
@@ -165,16 +166,7 @@ export class Instant {
 				date = (dt as Instant).toDate();
 				break;
 
-			// case 'Timestamp':																				// instance of Timestamp
-			// 	date = (dt as Timestamp).toDate();
-			// 	break;
-
 			case 'Object':
-				// const tstamp = dt as Timestamp;												// shape of Timestamp
-				// if (isNumber(tstamp.seconds) && isNumber(tstamp.nanoseconds)) {
-				// 	date = new Timestamp(tstamp.seconds, tstamp.nanoseconds).toDate();
-				// 	break;
-				// }
 				const inst = dt as Instant;														// shape of Instant
 				if (isNumber(inst.yy) && isNumber(inst.mm) && isNumber(inst.dd)) {
 					date = this.#composeDate(inst);
@@ -186,7 +178,7 @@ export class Instant {
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
-			console.error('Invalid Date: ', dt, date);							// TODO: log the Invalid Date
+			console.error('Invalid Date: ', dt, date);							// TODO: throw the Invalid Date?
 
 		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, dow] = [
 			date.getFullYear(), date.getMonth() + 1, date.getDate(),

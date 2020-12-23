@@ -46,7 +46,7 @@ export class SyncService {
 		const stream = this.fire.merge(refs, 'stateChanges');
 		const sync = this.sync.bind(this, key);
 		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
-		
+
 		this.off(collection, query);											// detach any prior Subscription of the same signature
 		this.#listener.set(key, {
 			key,																						// stash reference to the key
@@ -140,8 +140,8 @@ export class SyncService {
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
-		this.#dbg('sync: %s #%s detected from %s (ins:%s, upd:%s, del:%s)',
-			listen.label, listen.cnt, source, snapAdd.length, snapMod.length, snapDel.length);
+		this.#dbg('sync: %s #%s (ins:%s, upd:%s, del:%s) #%s detected from %s',
+			listen.label, listen.cnt, snapAdd.length, snapMod.length, snapDel.length, source);
 
 		if (listen.cnt === 0 && listen.streams === 1) {   // initial snapshot, but Admin will arrive in multiple streams
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
@@ -169,14 +169,14 @@ export class SyncService {
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 
 							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
-							this.#dbg('sync: Profile.Plan, reroute to Attend');
-								// this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
+								this.#dbg('sync: Profile.Plan, reroute to Attend');
+							// this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
-							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])4
+							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire]) 4
 							this.#dbg('sync: Profile.Plan, reroute to Plan');
-								// this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
+							// this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
 							break;
 					}
 				}

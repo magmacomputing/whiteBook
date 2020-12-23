@@ -12,8 +12,8 @@ const regDate = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12
 export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | number): T => {
 	if (!isObject(obj) && !isArray(obj))
 		return dflt || undefined;
-	if (isNullish(obj))
-		return dflt || undefined;
+	// if (isNullish(obj))
+	// 	return dflt || undefined;
 
 	const [word, ...rest] = isString(path)						// first word in the index-path, and the rest
 		? path.replace(' ', '').split('.')							// remove readability-spaces
@@ -34,6 +34,24 @@ export const getPath = <T>(obj: any, path: TString, dflt?: any, indx?: string | 
 	return rest.length
 		? getPath(clone, rest, dflt, matchIdx)					// recurse into object
 		: clone || dflt
+}
+export const getPath1 = <T>(obj: any, path: string, dflt?: T, idx?: string | number) => {
+	const words = path.replace(' ', '').split('.');
+
+	if (isArray(obj)) {
+		const { matchWord, matchIdx } = regex.exec(words[0])?.groups || { matchWord: words[0], matchIdx: '*' };
+	} else {
+		if (!isObject(obj))
+			return dflt;
+	}
+	
+	let res = obj;
+	path
+		.replace(' ', '')
+		.split('.')
+		.forEach(word => res = res?.[word])
+
+	return res ?? dflt;
 }
 
 /**

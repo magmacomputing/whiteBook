@@ -255,7 +255,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				else return false;																					// already migrated this Payment
 			})
 			.map(row => {
-				const payType = row.type !== 'Debit' || (row.note?.toUpperCase().startsWith('Write-off'.toUpperCase())) ? PAYMENT.Adjust : PAYMENT.TopUp;
+				const payType = row.type !== 'Debit' || row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()) || row.note?.toUpperCase().startsWith('Adjust'.toUpperCase())
+					? PAYMENT.Adjust : PAYMENT.TopUp;
 				const pay: Payment["pay"] = [{ [FIELD.Type]: payType, amount: asNumber(row.credit) }];	// start unapproved
 
 				if (row.title.toUpperCase().startsWith('Approved: '.toUpperCase())) {
@@ -275,18 +276,18 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						[FIELD.Stamp]: row.stamp,																	// assume migrated 'Hold' requests are same time as bought
 						amount: 0,//price.amount,																	// assume migrated 'Hold' requests are free
 						hold: row.hold,
-						// note: row.note,
+						note: row.note,
 					})
 					if (row.note)
 						pay[pay.length - 1].note = row.note;
 				}
-				if (row.debit === undefined && row.credit === undefined)
+				if (isUndefined(row.debit) && isUndefined(row.credit))
 					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
 
 				const obj: Partial<Payment> = {
 					[FIELD.Store]: STORE.Payment,
 					[FIELD.Stamp]: row.stamp,
-					// [FIELD.Note]: row.note,
+					[FIELD.Note]: row.note,
 					pay: pay,
 					expiry: this.getExpiry(row, profiles, plans, prices, { pay } as Payment),
 				}
@@ -330,8 +331,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.Stamp]: histMap[idx].stamp,
 					amount: amount,
 				})
-				// if (row.note)
-				// 	payment.pay[payment.pay.length - 1].note = row.note;
+				
 				if (!expired)																												// only reset expiry on Credit Restored
 					payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
 			})
@@ -630,6 +630,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					comment = obj.comment;
 					sched.note = obj.note;										// replace note with cleaned note
 					sched.forum = { comment };								// stash the comment
+					if (this.#current!.uid === 'EdwinG' && sched.note)
+						sched.elect = BONUS.None;
 				}
 			}
 
