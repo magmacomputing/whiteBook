@@ -344,7 +344,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
 			.filter(row => row.note && row.debit && asNumber(row.debit) === 0 && row.note.includes('Gift #'))
 			.forEach(row => {
-				const search = (row.note && row.note.lastIndexOf('Gift #') + 6) || 0;		// find the start of the pattern
+				const search = (row.note!.lastIndexOf('Gift #') + 6) || 0;					// find the start of the pattern
 				const match = search && row.note!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
 				if (match) {
 					const nbr = parseInt(match[0]);																		// TODO: this should be the last element?
