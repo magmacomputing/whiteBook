@@ -140,8 +140,8 @@ export class SyncService {
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
-		this.#dbg('sync: %s #%s (ins:%s, upd:%s, del:%s) #%s detected from %s',
-			listen.label, listen.cnt, snapAdd.length, snapMod.length, snapDel.length, source);
+		this.#dbg('sync: %s %s #%s (ins:%s, upd:%s, del:%s)',
+			listen.label, source, listen.cnt, snapAdd.length, snapMod.length, snapDel.length);
 
 		if (listen.cnt === 0 && listen.streams === 1) {   // initial snapshot, but Admin will arrive in multiple streams
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
