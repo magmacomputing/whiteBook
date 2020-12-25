@@ -17,7 +17,6 @@ import { asArray } from '@library/array.library';
 export const calcBonus = (source: TimetableState, event: CLASS, date?: Instant.TYPE, elect?: BONUS) => {
 	const now = getInstant(date);
 	const bonus = {} as TBonus;															// calculated Bonus entitlement
-
 	const gifts = source[COLLECTION.Member][STORE.Gift];		// the active Gifts for this Member
 	const plans = source[COLLECTION.Member][STORE.Plan];		// the current Member plan
 	const { attendGift = [], attendWeek = [], attendMonth = [], attendToday = [] } = source[COLLECTION.Attend];
@@ -68,6 +67,7 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: Instant.T
  * Any Gifts that have passed their expiry-date will be marked as closed.
  */
 const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Instant, elect = BONUS.Gift) => {
+	debugger;
 	const upd: Gift[] = [];																			// an array of updates for calling-function to apply on /member/gift
 	let curr = -1;																							// the Gift to use in determining eligibility
 

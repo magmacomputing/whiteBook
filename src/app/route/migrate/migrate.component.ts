@@ -222,7 +222,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const histMap: Migration.History[] = [];
 		const updates: FireDocument[] = [];
 		const creates: FireDocument[] = hist
-			.filter(row => (row.type === 'Debit' && !(row.note?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row.type === 'Credit'))
+			.filter(row => (row[FIELD.Type] === 'Debit' && !(row[FIELD.Note]?.toUpperCase().startsWith('Auto-Approve Credit '.toUpperCase())) || row[FIELD.Type] === 'Credit'))
 			.filter(row => {
 				const match = payments.find(pay => pay[FIELD.Stamp] === row[FIELD.Stamp]);
 				histMap.push(row);																					// stash payment and expiry records
@@ -232,7 +232,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						.filter(pay => pay[FIELD.Type] === PAYMENT.TopUp)				// all topUp pays on the migrated-Payment
 						.filter(pay => isUndefined(pay[FIELD.Stamp]))						// find unapproved pays
 					if (topUp.length) {																				// update an already-migrated Payment
-						topUp.forEach(pay => Object.assign(pay, { stamp: row.approved, uid: Migration.Instructor }, row.note ? { note: row.note } : {}));
+						topUp.forEach(pay => Object.assign(pay, { stamp: row.approved, uid: Migration.Instructor }, row[FIELD.Note] ? { note: row[FIELD.Note] } : {}));
 						updates.push(match);																		// update the now-approved Payment
 					}
 					return false;																							// no further checking required on this Payment
@@ -242,11 +242,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					if (isUndefined(row.approved))
 						this.#dbg('warn; unapproved: %j', row);									// warn that you will need to re-migrate Payment later
 
-					if (row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()))
+					if (row[FIELD.Note]?.toUpperCase().startsWith('Credit Expired'.toUpperCase()))
 						return false;																						// skip Credit-Expired for now
-					if (row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
+					if (row[FIELD.Note]?.toUpperCase().startsWith('Credit Restored'.toUpperCase()))
 						return false;																						// skip expiry-reversals
-					if (row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
+					if (row[FIELD.Note]?.toUpperCase().startsWith('Write-off'.toUpperCase()))
 						return false;																						// skip write-off reversals
 
 					return true;																							// only return new Payments
@@ -255,7 +255,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				else return false;																					// already migrated this Payment
 			})
 			.map(row => {
-				const payType = row.type !== 'Debit' || row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()) || row.note?.toUpperCase().startsWith('Adjust'.toUpperCase())
+				const payType = row[FIELD.Type] !== 'Debit' || row[FIELD.Note]?.toUpperCase().startsWith('Write-off'.toUpperCase()) || row[FIELD.Note]?.toUpperCase().startsWith('Adjust'.toUpperCase())
 					? PAYMENT.Adjust : PAYMENT.TopUp;
 				const pay: Payment["pay"] = [{ [FIELD.Type]: payType, amount: asNumber(row.credit) }];	// start unapproved
 
@@ -267,27 +267,27 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				}
 
 				if (isDefined(row.hold) /**&& row.hold <= 0 */) {
-					const plan = asAt(profiles, fire.addWhere(FIELD.Type, PROFILE.Plan), row.stamp)[0] as ProfilePlan;
-					const price = asAt(prices, [fire.addWhere(FIELD.Key, plan.plan), fire.addWhere(FIELD.Type, PRICE.Hold)], row.stamp)[0];
+					const plan = asAt(profiles, fire.addWhere(FIELD.Type, PROFILE.Plan), row[FIELD.Stamp])[0] as ProfilePlan;
+					const price = asAt(prices, [fire.addWhere(FIELD.Key, plan.plan), fire.addWhere(FIELD.Type, PRICE.Hold)], row[FIELD.Stamp])[0];
 
 					pay.push({
 						[FIELD.Type]: PAYMENT.Hold,
 						[FIELD.Uid]: Migration.Instructor,												// assume migrated 'Hold' requests are approved
-						[FIELD.Stamp]: row.stamp,																	// assume migrated 'Hold' requests are same time as bought
+						[FIELD.Stamp]: row[FIELD.Stamp],													// assume migrated 'Hold' requests are same time as approved/bought
 						amount: 0,//price.amount,																	// assume migrated 'Hold' requests are free
 						hold: row.hold,
-						note: row.note,
+						note: row[FIELD.Note],
 					})
-					if (row.note)
-						pay[pay.length - 1].note = row.note;
+					if (row[FIELD.Note])
+						pay[pay.length - 1].note = row[FIELD.Note];
 				}
 				if (isUndefined(row.debit) && isUndefined(row.credit))
 					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
 
 				const obj: Partial<Payment> = {
 					[FIELD.Store]: STORE.Payment,
-					[FIELD.Stamp]: row.stamp,
-					[FIELD.Note]: row.note,
+					[FIELD.Stamp]: row[FIELD.Stamp],
+					[FIELD.Note]: row[FIELD.Note],
 					pay: pay,
 					expiry: this.getExpiry(row, profiles, plans, prices, { pay } as Payment),
 				}
@@ -298,11 +298,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		// parse the Payments to look for 'Credit Expired / Restored / Write-off' adjustments
 		// filter out any Credit that is already migrated into another Payment
 		hist
-			.filter(row => row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) || row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
+			.filter(row => row[FIELD.Note]?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) || row[FIELD.Note]?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) || row[FIELD.Note]?.toUpperCase().startsWith('Write-off'.toUpperCase()))
 			.filter(row => !payments.some(doc => doc.pay.filter(pay => pay[FIELD.Stamp] === row[FIELD.Stamp]).length !== 0))
 			.forEach(row => {
-				const expired = row.note!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
-				const idx = histMap.findIndex(doc => row.stamp === doc.stamp);
+				const expired = row[FIELD.Note]!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
+				const idx = histMap.findIndex(doc => row[FIELD.Stamp] === doc.stamp);
 				if (idx === -1)
 					throw new Error('Cannot find Credit adjustment row');
 				if (idx === 0)
@@ -310,7 +310,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				const amount = asNumber(histMap[idx].credit);
 				const reverse = histMap.slice(0, idx).reverse();
-				const topUp = reverse.find(row => !row.note?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) && !row.note?.toUpperCase().startsWith('Write-off'.toUpperCase()))
+				const topUp = reverse.find(row => !row[FIELD.Note]?.toUpperCase().startsWith('Credit Expired'.toUpperCase()) && !row[FIELD.Note]?.toUpperCase().startsWith('Credit Restored'.toUpperCase()) && !row[FIELD.Note]?.toUpperCase().startsWith('Write-off'.toUpperCase()))
 				if (isUndefined(topUp))
 					throw new Error('Cannot find a prior TopUp Payment');
 
@@ -326,12 +326,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				payment.pay.push({
 					[FIELD.Type]: PAYMENT.Adjust,
-					[FIELD.Note]: row.note,
+					[FIELD.Note]: row[FIELD.Note],
 					[FIELD.Uid]: Migration.Instructor,
 					[FIELD.Stamp]: histMap[idx].stamp,
 					amount: amount,
 				})
-				
+
 				if (!expired)																												// only reset expiry on Credit Restored
 					payment.expiry = this.getExpiry(row, profiles, plans, prices, payment);
 			})
@@ -341,11 +341,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		let start = 0;
 		let rest: string | undefined = undefined;
 		hist
-			.filter(row => row.type !== 'Debit' && row.type !== 'Credit')
-			.filter(row => row.note && row.debit && asNumber(row.debit) === 0 && row.note.includes('Gift #'))
+			.filter(row => row[FIELD.Type] !== 'Debit' && row[FIELD.Type] !== 'Credit')
+			.filter(row => row[FIELD.Note] && row.debit && asNumber(row.debit) === 0 && row[FIELD.Note]!.includes('Gift #'))
 			.forEach(row => {
-				const search = (row.note!.lastIndexOf('Gift #') + 6) || 0;					// find the start of the pattern
-				const match = search && row.note!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
+				const search = (row[FIELD.Note]!.lastIndexOf('Gift #') + 6) || 0;					// find the start of the pattern
+				const match = search && row[FIELD.Note]!.substring(search).match(/\d+/g);	// array of the 'digits' at the pattern
 				if (match) {
 					const nbr = parseInt(match[0]);																		// TODO: this should be the last element?
 					if (nbr === 1) {
@@ -353,13 +353,13 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							creates.push(this.setGift(giftCnt, start, rest));
 
 						giftCnt = 0;
-						rest = row.note!
+						rest = row[FIELD.Note]!
 							.substring(search + match[0].length)
 							// .replace(/[^\x20-\x7E]/g, '')
 							.trim();
 						if (rest && (rest.startsWith(':') || rest.startsWith(',')))
 							rest = rest.substring(1).trim();
-						start = row.stamp;
+						start = row[FIELD.Stamp];
 					}
 					if (nbr > giftCnt)
 						giftCnt = nbr;
@@ -376,9 +376,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 	/** Calculate the date the Payment will lapse */
 	private getExpiry(row: Migration.History, profiles: Profile[], plans: Plan[], prices: Price[], payment: Payment) {
-		const profile = asAt(profiles, fire.addWhere(FIELD.Type, STORE.Plan), row.stamp)[0] as ProfilePlan;
-		const plan = asAt(plans, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
-		const price = asAt(prices, fire.addWhere(FIELD.Key, profile.plan), row.stamp);
+		const profile = asAt(profiles, fire.addWhere(FIELD.Type, STORE.Plan), row[FIELD.Stamp])[0] as ProfilePlan;
+		const plan = asAt(plans, fire.addWhere(FIELD.Key, profile.plan), row[FIELD.Stamp]);
+		const price = asAt(prices, fire.addWhere(FIELD.Key, profile.plan), row[FIELD.Stamp]);
 
 		return calcExpiry(payment, { plan, price });
 	}
@@ -431,7 +431,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			this.data.getStore<Attend>(STORE.Attend, fire.addWhere(FIELD.Uid, this.#current!.uid)),
 		])
 		this.#migrate = migrate;
-		const table = history.filter(row => row.type !== 'Debit' && row.type !== 'Credit');
+		const table = history.filter(row => row[FIELD.Type] !== 'Debit' && row[FIELD.Type] !== 'Credit');
 		const start = attend.orderBy({ field: 'track.date', dir: 'desc' });		// attendance, by descending date
 		const preprocess = cloneObj(table);
 
@@ -439,7 +439,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const startFrom = start[0].track.date;
 			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.Key]);
 			this.#dbg('startFrom: %s, %j', startFrom, startAttend);
-			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migration.LOOKUP[row.type] || row.type)))).length;
+			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migration.LOOKUP[row[FIELD.Type]] || row[FIELD.Type])))).length;
 			table.splice(0, offset);
 		}
 
@@ -465,9 +465,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 		if (flag) this.#dbg('hist: %j', row);
 
-		let what: CLASS = Migration.LOOKUP[row.type] ?? row.type;
+		let what: CLASS = Migration.LOOKUP[row[FIELD.Type]] ?? row[FIELD.Type];
 		const now = getInstant(row.date);
-		const hhmi = getInstant(row.stamp).format(Instant.FORMAT.HHMI);
+		const hhmi = getInstant(row[FIELD.Stamp]).format(Instant.FORMAT.HHMI);
 
 		let price = parseInt(row.debit || '0') * -1;				// the price that was charged
 		const caldr = asAt(this.#calendar, [fire.addWhere(FIELD.Key, row.date), fire.addWhere(STORE.Location, 'norths', '!=')], row.date)[0];
@@ -483,9 +483,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		if (Migration.SPECIAL.includes(prefix) && suffix && parseInt(sfx).toString() === sfx && !sfx.startsWith('-')) {
 			if (flag) this.#dbg(`${prefix}: need to resolve ${sfx} class`);
 			for (let nbr = parseInt(sfx); nbr > 1; nbr--) {			// insert additional attends
-				row.type = prefix + `*-${nbr}.${sfx}`;
-				rest.splice(0, 0, { ...row, [FIELD.Stamp]: row.stamp + nbr - 1 });
-				if (flag) this.#dbg('splice: %j', row.type);
+				row[FIELD.Type] = prefix + `*-${nbr}.${sfx}`;
+				rest.splice(0, 0, { ...row, [FIELD.Stamp]: row[FIELD.Stamp] + nbr - 1 });
+				if (flag) this.#dbg('splice: %j', row[FIELD.Type]);
 			}
 			sfx = `-1.${sfx}`;
 		}
@@ -513,8 +513,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				row.elect = BONUS.Sunday;										// dont elect to skip Bonus on a Pack
 			}
 
-			rest.splice(0, 0, { ...row, [FIELD.Stamp]: row.stamp + 2, [FIELD.Type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
-			rest.splice(0, 0, { ...row, [FIELD.Stamp]: row.stamp + 1, [FIELD.Type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.Stamp]: row[FIELD.Stamp] + 2, [FIELD.Type]: CLASS.Zumba, debit: '-' + (free.includes(CLASS.Zumba) ? 0 : Math.abs(price)).toString() });
+			rest.splice(0, 0, { ...row, [FIELD.Stamp]: row[FIELD.Stamp] + 1, [FIELD.Type]: CLASS.ZumbaStep, debit: '-' + (free.includes(CLASS.ZumbaStep) ? 0 : Math.abs(price)).toString() });
 			what = CLASS.MultiStep;
 			price = obj.full.amount;											// set this row's price to MultiStep
 		}
@@ -542,7 +542,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 				sched = {
 					[FIELD.Store]: STORE.Calendar, [FIELD.Type]: SCHEDULE.Event, [FIELD.Id]: caldr[FIELD.Id], [FIELD.Key]: what,
-					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: row.note,
+					day: calDate.dow, start: '00:00', location: caldr.location, instructor: caldr.instructor, note: row[FIELD.Note],
 				}
 				break;
 
@@ -571,7 +571,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				sched = {
 					[FIELD.Store]: STORE.Calendar, [FIELD.Type]: SCHEDULE.Event, [FIELD.Id]: caldr[FIELD.Id], [FIELD.Key]: what,
 					day: getInstant(caldr[FIELD.Key]).dow, start: '00:00', location: caldr.location, instructor: caldr.instructor,
-					note: row.note, amount: price,
+					note: row[FIELD.Note], amount: price,
 				}
 				break;
 
@@ -589,11 +589,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					await this.writeMigrate(migrate);
 				}
 
-				sched = nearAt(this.#schedule, fire.addWhere(FIELD.Key, className), row.stamp, { start: hhmi });
+				sched = nearAt(this.#schedule, fire.addWhere(FIELD.Key, className), row[FIELD.Stamp], { start: hhmi });
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;												// to allow AttendService to check what was charged
-				sched.note = row.note;
+				sched.note = row[FIELD.Note];
 				break;
 
 			default:
@@ -602,15 +602,15 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					fire.addWhere('day', [Instant.WEEKDAY.All, now.dow]),
 				];
 
-				sched = nearAt(this.#schedule, where, row.stamp, { start: hhmi })
+				sched = nearAt(this.#schedule, where, row[FIELD.Stamp], { start: hhmi })
 				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (isUndefined(row.elect))
 					this.getElect(row);
-				// if (row.note?.includes('Bonus: Week Level reached'))
+				// if (row[FIELD.Note]?.includes('Bonus: Week Level reached'))
 				// 	row.elect = BONUS.week;
 				sched.amount = price;												// to allow AttendService to check what was charged
-				sched.note = row.note;
+				sched.note = row[FIELD.Note];
 				sched.elect = row.elect;
 				break;
 		}
@@ -619,14 +619,14 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		if (flag) {
 			let comment: TString | undefined;
-			if (row.note?.includes('elect false')) {
+			if (row[FIELD.Note]?.includes('elect false')) {
 				sched.elect = BONUS.None;										// Member elected to not receive a Bonus
-				sched.note = (row.note.length > 'elect false'.length)
-					? row.note.substring('elect false'.length).trim()
+				sched.note = (row[FIELD.Note]!.length > 'elect false'.length)
+					? row[FIELD.Note]!.substring('elect false'.length).trim()
 					: undefined;
 			} else {
 				if (this.#current!.uid !== 'PatriciaC') {		// she makes 'notes', not 'comments'
-					const obj = cleanNote(sched.note);				// split the row.note into sched.note and forum.comment
+					const obj = cleanNote(sched.note);				// split the row[FIELD.Note] into sched.note and forum.comment
 					comment = obj.comment;
 					sched.note = obj.note;										// replace note with cleaned note
 					sched.forum = { comment };								// stash the comment
@@ -635,7 +635,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				}
 			}
 
-			this.attend.setAttend(sched, row.stamp)
+			this.attend.setAttend(sched, row[FIELD.Stamp])
 				.then(res => {
 					if (isBoolean(res) && res === false)
 						throw new Error('stopping');
@@ -646,12 +646,12 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						const where = [
 							fire.addWhere(FIELD.Uid, this.#current!.uid),
 							fire.addWhere('track.class', sched[FIELD.Key]),
-							fire.addWhere('track.date', new Instant(row.stamp).format(Instant.FORMAT.yearMonthDay)),
+							fire.addWhere('track.date', new Instant(row[FIELD.Stamp]).format(Instant.FORMAT.yearMonthDay)),
 						]
 						this.data.getFire<Comment>(COLLECTION.Forum, { where })
 							.then(list => {
 								if (!list.length)
-									this.forum.setComment({ [FIELD.Key]: sched[FIELD.Id], [FIELD.Type]: sched[FIELD.Store], [FIELD.Date]: row.stamp, track: { class: caldr && caldr.name || sched[FIELD.Key] }, comment })
+									this.forum.setComment({ [FIELD.Key]: sched[FIELD.Id], [FIELD.Type]: sched[FIELD.Store], [FIELD.Date]: row[FIELD.Stamp], track: { class: caldr && caldr.name || sched[FIELD.Key] }, comment })
 								resolve(true);
 							})
 					}
@@ -669,23 +669,23 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	}
 
 	private getElect(row: Migration.History) {
-		if (!row.note)
+		if (!row[FIELD.Note])
 			return;
-		if (row.note.includes('elect false')) {
+		if (row[FIELD.Note]?.includes('elect false')) {
 			row.elect = BONUS.None;
-		} else if (row.note.includes('elect none')) {
+		} else if (row[FIELD.Note]?.includes('elect none')) {
 			row.elect = BONUS.None;
-		} else if (row.note.includes('Gift #')) {
+		} else if (row[FIELD.Note]?.includes('Gift #')) {
 			row.elect = BONUS.Gift;
-		} else if (row.note.toUpperCase().includes('Bonus: Week Level reached'.toUpperCase())) {
+		} else if (row[FIELD.Note]?.toUpperCase().includes('Bonus: Week Level reached'.toUpperCase())) {
 			row.elect = BONUS.Week;											// Week bonus takes precedence
-		} else if (row.note.toUpperCase().includes('Bonus: Class Level reached'.toUpperCase())) {
+		} else if (row[FIELD.Note]?.toUpperCase().includes('Bonus: Class Level reached'.toUpperCase())) {
 			row.elect = BONUS.Class;
-		} else if (row.note.toUpperCase().includes('Bonus: Month Level reached'.toUpperCase())) {
+		} else if (row[FIELD.Note]?.toUpperCase().includes('Bonus: Month Level reached'.toUpperCase())) {
 			row.elect = BONUS.Month;
-		} else if (row.note.toUpperCase().includes('Bonus: Sunday Level reached'.toUpperCase())) {
+		} else if (row[FIELD.Note]?.toUpperCase().includes('Bonus: Sunday Level reached'.toUpperCase())) {
 			row.elect = BONUS.Sunday;
-		} else if (row.note.toUpperCase().includes('Multiple @Home classes today'.toUpperCase())) {
+		} else if (row[FIELD.Note]?.toUpperCase().includes('Multiple @Home classes today'.toUpperCase())) {
 			row.elect = BONUS.Home;
 		}
 	}

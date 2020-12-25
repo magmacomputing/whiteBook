@@ -13,7 +13,7 @@ import { fire } from '@dbase/fire/fire.library';
 import { FireDocument } from '@dbase/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
-import { isObject, isUndefined } from '@library/type.library';
+import { isArray, isObject, isUndefined } from '@library/type.library';
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
@@ -106,17 +106,25 @@ export class FireService {
 		return rest;
 	}
 
-	// TODO: what about Array?
 	/** Replace 'undefined' with FieldValue.delete() */
 	private fieldValue(obj: Record<string, any>, opts: Record<string, boolean> = {}) {
 		Object.entries(obj)
-			.forEach(([key, value]) => {
+			.forEach(([key, value], idx) => {
 				if (isObject(value))
 					return this.fieldValue(value, opts);
-				if (isUndefined(value))
-					if (opts.setUndefined)
-						delete obj[key]
-					else obj[key] = firebase.firestore.FieldValue.delete();
+				if (isArray(value) && (value as any[]).some(itm => isUndefined(itm)))
+					return this.fieldValue(value, { splice: true });
+
+				if (isUndefined(value)) {
+					switch (true) {
+						case opts.setUndefined:
+							return delete obj[key];
+						case opts.splice:
+							return obj.splice(idx, 1);
+						default:
+							return obj[key] = firebase.firestore.FieldValue.delete();
+					}
+				}
 			})
 	}
 
