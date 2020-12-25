@@ -67,7 +67,6 @@ export const calcBonus = (source: TimetableState, event: CLASS, date?: Instant.T
  * Any Gifts that have passed their expiry-date will be marked as closed.
  */
 const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Instant, elect = BONUS.Gift) => {
-	debugger;
 	const upd: Gift[] = [];																			// an array of updates for calling-function to apply on /member/gift
 	let curr = -1;																							// the Gift to use in determining eligibility
 

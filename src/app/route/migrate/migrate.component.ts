@@ -520,7 +520,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		}
 
 		switch (true) {
-			case Migration.SPECIAL.includes(prefix):								// special event match by <colour>, so we need to prompt for the 'class'
+			case Migration.SPECIAL.includes(prefix):			// special event match by <colour>, so we need to prompt for the 'class'
 				if (!caldr)
 					throw new Error(`Cannot determine calendar: ${row.date}`);
 
@@ -607,8 +607,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					throw new Error(`Cannot determine schedule: ${JSON.stringify(row)}`);
 				if (isUndefined(row.elect))
 					this.getElect(row);
-				// if (row[FIELD.Note]?.includes('Bonus: Week Level reached'))
-				// 	row.elect = BONUS.week;
+
 				sched.amount = price;												// to allow AttendService to check what was charged
 				sched.note = row[FIELD.Note];
 				sched.elect = row.elect;
