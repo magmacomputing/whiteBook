@@ -65,7 +65,7 @@ export const getMemberAge = (info: ProfileInfo[] = [], dt?: Instant.TYPE) =>
  * 
  * Even though 'expiry' is a calculated-field, it is stored on the Payment to allow search / display
  * 
- * expiry will be first set when a topUp is approved (stamped).  (never approved means never expires!)
+ * expiry will be first set when a topUp is first created.  
  * After that, it will be updated when:  
  * *> the first Attend is recorded against it,  
  * *> a pay-Adjust is approved, or  

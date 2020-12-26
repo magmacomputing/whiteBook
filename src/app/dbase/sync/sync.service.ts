@@ -45,7 +45,7 @@ export class SyncService {
 			refs.push(...this.fire.colRef<FireDocument>(collection, query)));
 		const stream = this.fire.merge(refs, 'stateChanges');
 		const sync = this.sync.bind(this, key);
-		const label = `${collection} ${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
+		const label = `${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
 
 		this.off(collection, query);											// detach any prior Subscription of the same signature
 		this.#listener.set(key, {
@@ -59,7 +59,7 @@ export class SyncService {
 			subscribe: stream.subscribe(sync)
 		})
 
-		this.#dbg('on: %s', label);
+		this.#dbg('on: %s %s', key.collection, label);
 		return ready.promise;                             // indicate when snap0 is complete
 	}
 
@@ -130,6 +130,9 @@ export class SyncService {
 		const { setStore, delStore, clearStore } = listen.method;
 		const source = getSource(snaps);
 
+		if (snaps.length === 0)
+			return;																					// bail-out
+
 		listen.cnt += 1;
 		const debug = source === 'server' && listen.cnt >= (listen.streams * 2);
 		const [snapAdd, snapMod, snapDel] = snaps
@@ -140,8 +143,8 @@ export class SyncService {
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
-		this.#dbg('sync: %s %s #%s (ins:%s, upd:%s, del:%s)',
-			listen.label, source, listen.cnt, snapAdd.length, snapMod.length, snapDel.length);
+		this.#dbg('sync: %s %s #%s (ins:%s, upd:%s, del:%s) %s',
+			key.collection, source, listen.cnt, snapAdd.length, snapMod.length, snapDel.length, listen.label);
 
 		if (listen.cnt === 0 && listen.streams === 1) {   // initial snapshot, but Admin will arrive in multiple streams
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID

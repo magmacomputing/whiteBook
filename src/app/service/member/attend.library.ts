@@ -85,6 +85,9 @@ const bonusGift = (bonus: TBonus, gifts: Gift[], attendGift: Attend[], now: Inst
 			case elect !== BONUS.Gift:															// Member elected to not use a Gift
 				break;																								// (e.g. BONUS.none, BONUS.class, ...)
 
+			case now.ts < nullToZero(gift[FIELD.Effect]):						// every Gift has an effective-date
+				break;																								// Gift not valid yet
+
 			case curr === -1:																				// found the first useable Gift
 				curr = idx;																						// to stop further checking
 				upd.push({																						// stack a Gift update
@@ -129,7 +132,7 @@ const bonusWeek = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Inst
 		(weekCnt[0] === today && weekCnt.length < scheme.free)	// same day, and within scheme.free limit
 	const okElect = elect === BONUS.Week;												// if not skipped, then Bonus will apply
 
-	if (okLevel && okFree && okElect)
+	if (okLevel && okFree && okElect) {
 		Object.assign(bonus, isUndefined(scheme.amount) ? undefined : { amount: scheme.amount },
 			{
 				[FIELD.Id]: scheme[FIELD.Id],
@@ -137,6 +140,7 @@ const bonusWeek = (bonus: TBonus, scheme: Bonus, attendWeek: Attend[], now: Inst
 				note: scheme.note,
 				count: attendWeek.filter(row => row.bonus?.[FIELD.Type] === BONUS.Week).length + 1,
 			})
+	}
 
 	return;
 }

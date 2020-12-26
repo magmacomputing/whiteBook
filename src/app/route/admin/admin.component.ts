@@ -18,7 +18,7 @@ export class AdminComponent implements OnInit {
 	ngOnInit(): void { }
 
 	onClick() {
-		this.state.getScheduleData('03-Apr-2020')
+		this.state.getScheduleData('28-Dec-2020')
 			.pipe(take(1))
 			.subscribe(console.log);
 	}

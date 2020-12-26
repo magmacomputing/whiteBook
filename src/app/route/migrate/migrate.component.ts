@@ -389,7 +389,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 
 		let offset = day.ts;
 		if (note?.includes('start: '))
-			offset = this.matchTime(note, day, 'end');
+			offset = this.matchTime(note, day, 'start');
 
 		let expiry: number | undefined;
 		if (note?.includes('end: '))
@@ -435,31 +435,32 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const start = attend.orderBy({ field: 'track.date', dir: 'desc' });		// attendance, by descending date
 		const preprocess = cloneObj(table);
 
-		if (start[0]) {																	// this is not fool-proof.   SpecialEvent, 3Pack
-			const startFrom = start[0].track.date;
-			const startAttend = start.filter(row => row.track.date === startFrom).map(row => row.timetable[FIELD.Key]);
-			this.#dbg('startFrom: %s, %j', startFrom, startAttend);
-			const offset = table.filter(row => row.date < startFrom || (row.date === startFrom && startAttend.includes((Migration.LOOKUP[row[FIELD.Type]] || row[FIELD.Type])))).length;
+		if (start[0]) {																	// this is not fool-proof, esp if the last Attend was SpecialEvent, 3Pack
+			const startAfter = start[0].track.date;
+			const startAttend = start.filter(row => row.track.date === startAfter).map(row => row.timetable[FIELD.Key]);
+			this.#dbg('startAfter: %s, %j', startAfter, startAttend);
+			const offset = table.filter(row => row.date < startAfter || (row.date === startAfter && startAttend.includes((Migration.LOOKUP[row[FIELD.Type]] || row[FIELD.Type])))).length;
 			table.splice(0, offset);
 		}
 
-		// const endAt = new Instant('2016-Apr-04').format(Instant.FORMAT.yearMonthDay);
-		// const endPos = table.filter(row => row.date >= endAt).length;
-		// table.splice(table.length - endPos);							// up-to, but not including endAt
-		// this.#dbg('endAt: %s, %j', endAt, table.length);
+		const endBefore = new Instant('2015-Feb-02').format(Instant.FORMAT.yearMonthDay);
+		const endPos = table.filter(row => row.date >= endBefore).length;
+		table.splice(table.length - endPos);							// up-to, but not including endAt
+		this.#dbg('endBefore: %s, %j', endBefore, table.length);
 
 		if (table.length) {
 			this.#check = new Pledge();
-			this.nextAttend(false, preprocess[0], ...preprocess.slice(1));
+			this.nextAttend(0, preprocess[0], ...preprocess.slice(1));
 			this.#check.promise														// wait for pre-process to complete
 				.then(_ready => this.#dbg('ready: %j', _ready))
-				.then(_ready => this.nextAttend(true, table[0], ...table.slice(1)))	// fire initial Attend
+				.then(_ready => this.nextAttend(endPos ? 2 : 1, table[0], ...table.slice(1)))	// fire initial Attend
 		} else this.#dbg('nothing to load');
 	}
 
-	private async nextAttend(flag: boolean, row: Migration.History, ...rest: Migration.History[]) {
+	/** flag=false means pre-process Events, flag=true means process Attends */
+	private async nextAttend(flag: number, row: Migration.History, ...rest: Migration.History[]) {
 		if (!row) {
-			if (flag)
+			if (flag === 1)
 				this.lastAttend();
 			return this.#dbg('done: %s', flag);
 		}
@@ -614,7 +615,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 		}
 
-		const p = new Pledge<boolean>();
+		const p = new Pledge<number>();
 
 		if (flag) {
 			let comment: TString | undefined;
@@ -818,7 +819,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const res = await this.http
 				.get(urlParams, { responseType: 'text' })
 				.pipe(retry(2))
-				.toPromise();
+				.toPromise()
+
 			const json = res.substring(0, res.length - 1).substring(Migration.SHEET_PREFIX.length + 1, res.length);
 			this.#dbg('fetch: %j', urlParams);
 			try {
