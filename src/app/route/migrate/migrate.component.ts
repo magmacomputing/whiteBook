@@ -443,10 +443,11 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			table.splice(0, offset);
 		}
 
-		const endBefore = new Instant('2015-Feb-02').format(Instant.FORMAT.yearMonthDay);
-		const endPos = table.filter(row => row.date >= endBefore).length;
-		table.splice(table.length - endPos);							// up-to, but not including endAt
-		this.#dbg('endBefore: %s, %j', endBefore, table.length);
+		// const endBefore = new Instant('2017-Aug-31').format(Instant.FORMAT.yearMonthDay);
+		// const endPos = table.filter(row => row.date >= endBefore).length;
+		// table.splice(table.length - endPos);							// up-to, but not including endAt
+		// this.#dbg('endBefore: %s, %j', endBefore, table.length);
+		const endPos = 0;
 
 		if (table.length) {
 			this.#check = new Pledge();
