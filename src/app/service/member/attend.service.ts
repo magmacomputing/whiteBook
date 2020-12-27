@@ -99,7 +99,7 @@ export class AttendService {
 		if (timetable.bonus?.gift) {
 			updates.push(...timetable.bonus.gift);					// batch any Gift updates
 			delete timetable.bonus.gift;										// not needed
-			delete timetable.bonus.note;										// not needed
+			delete timetable.bonus[FIELD.Note];							// not needed
 			if (isEmpty(timetable.bonus))
 				delete timetable.bonus;												// not needed
 		}
@@ -141,7 +141,7 @@ export class AttendService {
 			// If over-limit (100+ Attends per Payment) but still have sufficient funds to cover this Class price,
 			// 	insert an auto-approved $0 Payment (only if the next Attend is earlier than any future Payments)
 			if (!tests[PAY.under_limit] && tests[PAY.enough_funds]) {
-				if (data.account.payment.length <= 1 || stamp < data.account.payment[1].stamp) {
+				if (data.account.payment.length <= 1 || stamp < data.account.payment[1][FIELD.Stamp]) {
 					const payment = await this.member.setPayment(0, stamp);
 					Object.assign(payment.pay[0], { uid: ATTEND.autoApprove, stamp });
 
@@ -181,12 +181,12 @@ export class AttendService {
 		if (isUndefined(active))
 			return this.snack.error('Could not allocate an active Payment');
 
-		const expired = active.pay.find(pay => asArray(pay.note).indexOf('Credit Expired') !== -1);
+		const expired = active.pay.find(pay => asArray(pay[FIELD.Note]).indexOf('Credit Expired') !== -1);
 		const upd: Partial<Payment> = {};									// updates to the Payment
 		if (!active[FIELD.Effect])
 			upd[FIELD.Effect] = stamp;											// mark Effective on first check-in
 		if ((data.account.summary.funds === schedule.amount) && schedule.amount)
-			upd[FIELD.Expire] = expired?.stamp ?? stamp;		// mark Expired if no funds (except $0 classes)
+			upd[FIELD.Expire] = expired?.[FIELD.Stamp] ?? stamp;		// mark Expired if no funds (except $0 classes)
 		if (!active.expiry && active.pay[0][FIELD.Stamp] && isUndefined(timetable.bonus))
 			upd.expiry = calcExpiry(active, data.client);		// calc an Expriy for the Payment
 

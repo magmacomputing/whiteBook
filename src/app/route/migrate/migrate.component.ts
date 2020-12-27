@@ -279,7 +279,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 						note: row[FIELD.Note],
 					})
 					if (row[FIELD.Note])
-						pay[pay.length - 1].note = row[FIELD.Note];
+						pay[pay.length - 1][FIELD.Note] = row[FIELD.Note];
 				}
 				if (isUndefined(row.debit) && isUndefined(row.credit))
 					throw new Error(`cannot find amount: ${JSON.stringify(row)}`)
@@ -302,7 +302,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			.filter(row => !payments.some(doc => doc.pay.filter(pay => pay[FIELD.Stamp] === row[FIELD.Stamp]).length !== 0))
 			.forEach(row => {
 				const expired = row[FIELD.Note]!.toUpperCase().startsWith('Credit Expired'.toUpperCase());
-				const idx = histMap.findIndex(doc => row[FIELD.Stamp] === doc.stamp);
+				const idx = histMap.findIndex(doc => row[FIELD.Stamp] === doc[FIELD.Stamp]);
 				if (idx === -1)
 					throw new Error('Cannot find Credit adjustment row');
 				if (idx === 0)
@@ -328,7 +328,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					[FIELD.Type]: PAYMENT.Adjust,
 					[FIELD.Note]: row[FIELD.Note],
 					[FIELD.Uid]: Migration.Instructor,
-					[FIELD.Stamp]: histMap[idx].stamp,
+					[FIELD.Stamp]: histMap[idx][FIELD.Stamp],
 					amount: amount,
 				})
 
@@ -595,7 +595,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				if (!sched)
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;												// to allow AttendService to check what was charged
-				sched.note = row[FIELD.Note];
+				sched[FIELD.Note] = row[FIELD.Note];
 				break;
 
 			default:
@@ -611,7 +611,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					this.getElect(row);
 
 				sched.amount = price;												// to allow AttendService to check what was charged
-				sched.note = row[FIELD.Note];
+				sched[FIELD.Note] = row[FIELD.Note];
 				sched.elect = row.elect;
 				break;
 		}
@@ -622,16 +622,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			let comment: TString | undefined;
 			if (row[FIELD.Note]?.includes('elect false')) {
 				sched.elect = BONUS.None;										// Member elected to not receive a Bonus
-				sched.note = (row[FIELD.Note]!.length > 'elect false'.length)
+				sched[FIELD.Note] = (row[FIELD.Note]!.length > 'elect false'.length)
 					? row[FIELD.Note]!.substring('elect false'.length).trim()
 					: undefined;
 			} else {
 				if (this.#current!.uid !== 'PatriciaC') {		// she makes 'notes', not 'comments'
-					const obj = cleanNote(sched.note);				// split the row[FIELD.Note] into sched.note and forum.comment
+					const obj = cleanNote(sched[FIELD.Note]);				// split the row[FIELD.Note] into sched[FIELD.Note] and forum.comment
 					comment = obj.comment;
-					sched.note = obj.note;										// replace note with cleaned note
+					sched[FIELD.Note] = obj[FIELD.Note];										// replace note with cleaned note
 					sched.forum = { comment };								// stash the comment
-					if (this.#current!.uid === 'EdwinG' && sched.note)
+					if (this.#current!.uid === 'EdwinG' && sched[FIELD.Note])
 						sched.elect = BONUS.None;
 				}
 			}
@@ -741,16 +741,16 @@ export class MigrateComponent implements OnInit, OnDestroy {
 			const test2 = summary.pend < 0;			// closed account
 			const test3 = summary.funds < 0;
 			if (test1 || test2 || test3) {
-				const note = asArray(active.note)[asArray(active.note).length];
+				const note = asArray(active[FIELD.Note])[asArray(active[FIELD.Note]).length];
 				const stamp = active.pay[0][FIELD.Stamp];
-				const expired = active.pay.find(pay => asArray(pay.note).indexOf('Credit Expired') !== -1);
+				const expired = active.pay.find(pay => asArray(pay[FIELD.Note]).indexOf('Credit Expired') !== -1);
 				const when = expired
 					? getStamp(expired[FIELD.Stamp])
 					: stamp
 
 				this.#dbg('closed: %j, %s', when, fmtInstant(Instant.FORMAT.display, when));
-				updates.push({ ...active, [FIELD.Effect]: active.stamp, [FIELD.Expire]: when, chain: undefined, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
-				updates.push({ ...payments[1], [FIELD.Expire]: active.stamp, chain: undefined });
+				updates.push({ ...active, [FIELD.Effect]: active[FIELD.Stamp], [FIELD.Expire]: when, chain: undefined, bank: summary.adjust === summary.funds ? -summary.funds : summary.funds });
+				updates.push({ ...payments[1], [FIELD.Expire]: active[FIELD.Stamp], chain: undefined });
 			}
 		}
 
@@ -844,7 +844,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const uid = 'BronwynH';
 		const filter = [
 			fire.addWhere(FIELD.Uid, uid),
-			// fire.addWhere(FIELD.note, '', '>'),
+			// fire.addWhere(FIELD[FIELD.Note], '', '>'),
 			fire.addWhere('track.date', 20200127),
 		]
 		const list = await this.data.getFire<Attend>(COLLECTION.Attend, { where: filter });
@@ -865,7 +865,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 					this.forum.setComment({															// add Comment to /forum
 						type: STORE.Schedule,
 						key: doc.timetable[FIELD.Id],
-						date: doc.stamp,
+						date: doc[FIELD.Stamp],
 						track: { class: doc.timetable[FIELD.Key] },
 						uid,
 						comment,
