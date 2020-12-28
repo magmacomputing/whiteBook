@@ -202,8 +202,6 @@ export class AttendService {
 			this.member.setPlan(PLAN.Member, stamp + 1);		// auto-bump 'intro' to 'member' Plan
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
-
 		const attendDoc = {
 			[FIELD.Store]: STORE.Attend,
 			[FIELD.Stamp]: stamp,														// createDate
@@ -226,8 +224,9 @@ export class AttendService {
 			},
 			bonus: timetable.bonus,													// <id>/<type>/<count> of Bonus
 		} as Attend
+		creates.push(attendDoc);													// batch the new Attend
 
-		creates.push(attendDoc);						// batch the new Attend
+		// got everything we need; insert an Attend document and update any Payment, Gift, Forum documents
 		return this.data.batch(creates, updates, undefined, attendAction.Sync)
 			.then(_ => this.member.setAccount(creates, updates, data))
 	}
@@ -263,38 +262,40 @@ export class AttendService {
 	 * Removing Attends is a tricky business...  
 	 * it may need to walk back a couple of related Documents.  
 	 * Avoid deleting a non-latest Attend,
-	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.
+	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.  
+	 * Safer instead to delete all Attends from a given date.
 	 */
 	public delAttend = async (where: fire.Query["where"]) => {
 		const memberUid = fire.addWhere(FIELD.Uid, (await this.data.getUID()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.Uid))
-			filter.push(memberUid);																// ensure UID is present in where-clause
+			filter.push(memberUid);															// ensure UID is present in where-clause
 
 		const updates: FireDocument[] = [];
-		const deletes: FireDocument[] = await this.data.getStore<Attend>(STORE.Attend, filter);
+		const deletes: FireDocument[] = [];
 
-		if (deletes.length === 0) {
+		const list = await this.data.getStore<Attend>(STORE.Attend, filter);
+		if (list.length === 0) {
 			this.#dbg('No items to delete');
-			return;
+			return;																							// bail-out
 		}
 
-		const payIds = (deletes as Attend[])									// the Payment IDs related to this reversal
+		const payIds = list																		// the Payment IDs related to this reversal
 			.map(attend => attend.payment[FIELD.Id])
 			.distinct();
-		const giftIds = (deletes as Attend[])									// the Gift IDs related to this reversal
+		const giftIds = list																	// the Gift IDs related to this reversal
 			.filter(attend => attend.bonus?.[FIELD.Type] === BONUS.Gift)
 			.map(row => row.bonus![FIELD.Id])
 			.distinct();
-		const scheduleIds = (deletes as Attend[])							// the Schedule IDs that may have Forum content
+		const scheduleIds = list															// the Schedule IDs that may have Forum content
 			.map(attend => attend.timetable[FIELD.Id])
 			.distinct();
-		const dates = (deletes as Attend[])										// the Dates these Attends have Forum content
+		const dates = list																		// the Dates these Attends might have Forum content
 			.map(attend => attend.track.date)
 			.distinct();
 
 		/**
-		 * attends:	a	ll the Attends that relate to the payIDs (even those about to be deleted)
+		 * attends:		all the Attends that relate to the payIDs (even those about to be deleted)
 		 * payments:	all the Payments related to this Member
 		 * gifts:			all the Gifts related to this reversal
 		 * forum:			all the Forum content related to this reversal
@@ -308,7 +309,7 @@ export class AttendService {
 					memberUid,
 					fire.addWhere(FIELD.Type, STORE.Schedule),
 					fire.addWhere(FIELD.Key, scheduleIds, '=='),			// TODO: this workaround for FireStore limit
-					fire.addWhere('track.date', dates, '=='),					// on number of 'in' clauses in a Query
+					fire.addWhere('track.date', dates, '=='),					//			on number of 'in' clauses in a Query
 				]
 			}),
 		])
@@ -329,13 +330,13 @@ export class AttendService {
 			.reduce((acc, itm) => {
 				acc[itm] = nullToZero(acc[itm]) + 1;
 				return acc;
-			}, {} as Record<any, number>)
+			}, {} as Record<string, number>)
 
 		const chg = new Set<string>();
-		deletes.forEach(attend => {
+		list.forEach(attend => {
 			let idx: number;
 
-			if (attend.bonus && attend.bonus[FIELD.Type] === BONUS.Gift) {
+			if (attend.bonus?.[FIELD.Type] === BONUS.Gift) {
 				idx = gifts.findIndex(row => row[FIELD.Id] === attend.bonus![FIELD.Id]);
 				const gift = gifts[idx];
 				if (gift) {
@@ -369,7 +370,7 @@ export class AttendService {
 			}
 		})
 
-		deletes.push(...forum);																	// delete Forum content as well
+		deletes.push(...list, ...forum);												// delete Forum content as well
 		updates.push(...gifts);																	// batch the updates to Gifts
 		updates.push(...payments
 			.filter(row => chg.has(row[FIELD.Id]))								// only those that have changed

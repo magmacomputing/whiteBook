@@ -4,7 +4,7 @@ import { FIELD } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
-import { isUndefined, isArray } from '@library/type.library';
+import { isUndefined, isArray, isIterable } from '@library/type.library';
 
 /** shortcuts to FireService static properties and types */
 export namespace fire {
@@ -22,7 +22,9 @@ export namespace fire {
 					if (split.where)
 						asArray(split.where)
 							.filter(where => !isUndefined(where.value))	// discard queries for 'undefined' value; not supported
-							.forEach(where => colRef = colRef.where(where.fieldPath, (where.opStr || (isArray(where.value) ? 'in' : '==')), where.value));
+							.forEach(where => colRef = colRef.where(where.fieldPath,
+								(where.opStr || (isIterable(where.value) ? 'in' : '==')),
+								isIterable(where.value) ? asArray(where.value) : where.value));			// coerce Set to Array
 
 					if (split.orderBy)
 						asArray(split.orderBy)
@@ -100,7 +102,7 @@ export namespace fire {
 	export interface Where {
 		fieldPath: string | firebase.default.firestore.FieldPath;
 		opStr?: firebase.default.firestore.WhereFilterOp;
-		value: any | any[];
+		value: any | any[] | Set<any>;
 	}
 
 	/** Query.orderBy */

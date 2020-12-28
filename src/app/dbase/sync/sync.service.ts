@@ -3,7 +3,7 @@ import type { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
-import { Store, Actions, ofActionDispatched } from '@ngxs/store';
+import { Store, Actions, ofActionDispatched, ActionType } from '@ngxs/store';
 
 import type { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
@@ -84,7 +84,7 @@ export class SyncService {
 	 * Wait for an NGXS-event to occur,  
 	 * and optionally provide a callback function to process after the event
 	 */
-	public wait<T>(event: any, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
+	public wait<T>(event: ActionType, callBack?: (payload: T) => Promise<any>) {			// TODO: replace <any> with correct Action Type
 		const timeOut = 10_000;															// wait up-to 10 seconds
 
 		return new Promise<T>((resolve, reject) => {
@@ -102,7 +102,7 @@ export class SyncService {
 					},
 					err => {
 						reject(err);
-						this.#dbg('timeOut: %s', event.name);				// log the event not detected
+						this.#dbg('timeOut: %s', event.type);				// log the event not detected
 					}
 				)
 		})
@@ -131,7 +131,7 @@ export class SyncService {
 		const source = getSource(snaps);
 
 		if (snaps.length === 0)
-			return;																					// bail-out
+			return;																					// bail-out; empty snapshot
 
 		listen.cnt += 1;
 		const debug = source === 'server' && listen.cnt >= (listen.streams * 2);
