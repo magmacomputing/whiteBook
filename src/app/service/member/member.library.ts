@@ -1,5 +1,5 @@
 import type { PlanState } from '@dbase/state/state.define';
-import type { ProfileInfo, Payment, Price } from '@dbase/data.schema';
+import type { ProfileInfo, Payment } from '@dbase/data.schema';
 import { FIELD, PAYMENT, PRICE } from '@dbase/data.define';
 
 import { getStamp, getInstant, Instant } from '@library/instant.library';
@@ -109,7 +109,7 @@ export const calcExpiry = (payment: Payment, client: PlanState["client"]) => {
 }
 
 /**
- * A Member's Payment record contains an array of pays, all of which need an Approval stamp
+ * A Member's Payment record contains an array of pays, all of which need an approval stamp
  */
 export const calcPayment = (payment?: Payment, approvedOnly = false) => {
 	const obj = {} as Record<PAYMENT, number>;

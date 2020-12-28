@@ -63,7 +63,7 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScheduleTime
 		const bookAttend = await this.data.getStore<Attend>(STORE.Attend, [
-			fire.addWhere(FIELD.Uid, data.auth.current!.uid),
+			fire.addWhere(FIELD.Uid, data.auth.current![FIELD.Uid]),
 			fire.addWhere(`track.${FIELD.Date}`, when),
 			fire.addWhere(`timetable.${FIELD.Key}`, schedule[FIELD.Key]),
 			fire.addWhere(`timetable.${FIELD.Id}`, schedule[FIELD.Id]),// schedule has <location>, <instructor>, <startTime>
@@ -73,7 +73,7 @@ export class AttendService {
 		// if no Note, then check if same Class / date / startTime / comment is already booked
 		if (bookAttend.length && isUndefined(schedule[FIELD.Note]) && isDefined(schedule[COLLECTION.Forum]?.[STORE.Comment])) {
 			const bookForum = await this.data.getStore<Comment>(STORE.Comment, [
-				fire.addWhere(FIELD.Uid, data.auth.current!.uid),
+				fire.addWhere(FIELD.Uid, data.auth.current![FIELD.Uid]),
 				fire.addWhere(FIELD.Type, schedule[FIELD.Store]),
 				fire.addWhere(`track.${FIELD.Date}`, when),
 				fire.addWhere(`track.${STORE.Class}`, schedule[FIELD.Key]),
@@ -92,7 +92,7 @@ export class AttendService {
 		}
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-		// work out the actual price to charge
+		// work out the Price to charge
 		if (isUndefined(timetable.price))
 			return this.snack.error(`price: No pricing information for this Plan: ${source.member.plan[0].plan}`);
 
@@ -119,14 +119,18 @@ export class AttendService {
 		let active: Payment | undefined;									// Payment[0] is assumed active, by default
 		let ctr = 0;																			// prevent endless loop
 
+		// TODO: if data.account.payment.length === 0 and schedule.amount === 0
+		// then attach the Attend against the latest, closed Payment (if exists, and is same Plan)
+
 		while (ctr <= ATTEND.maxPayment) {								// only attempt to match limited number of Payments
 			ctr++;																					// increment
 			data = sumPayment(data);												// calc Payment summary
 			data = sumAttend(data);													// deduct Attends against this Payment
 			active = data.account.payment[0];								// current Payment
-			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 
+			const expiry = getPath<number>(active, 'expiry') || Number.MAX_SAFE_INTEGER;
 			const tests: boolean[] = [];										// array of test results
+
 			tests[PAY.under_limit] = data.account.attend.length < ATTEND.maxColumn;
 			tests[PAY.enough_funds] = schedule.amount <= data.account.summary.funds;
 			tests[PAY.not_expired] = now.ts <= expiry;
@@ -143,7 +147,7 @@ export class AttendService {
 			if (!tests[PAY.under_limit] && tests[PAY.enough_funds]) {
 				if (data.account.payment.length <= 1 || stamp < data.account.payment[1][FIELD.Stamp]) {
 					const payment = await this.member.setPayment(0, stamp);
-					Object.assign(payment.pay[0], { uid: ATTEND.autoApprove, stamp });
+					Object.assign(payment.pay[0], { [FIELD.Uid]: ATTEND.autoApprove, stamp });
 
 					creates.push(payment);											// stack the topUp Payment into the batch
 					data.account.payment.splice(1, 0, payment);	// make this the 'next' Payment
@@ -178,6 +182,7 @@ export class AttendService {
 			if (isUndefined(next))
 				return this.snack.error('Could not allocate a new Payment');
 		}																									// repeat the loop to test if this now-Active Payment is useable
+
 		if (isUndefined(active))
 			return this.snack.error('Could not allocate an active Payment');
 

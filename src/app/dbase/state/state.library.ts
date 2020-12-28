@@ -95,7 +95,7 @@ export const getUser = (token: FireClaims) =>
 /**
  * Join a document to other documents referenced by a supplied string of key fields  
  * states:  an object of States (eg. member$) which contains the to-be-referenced documents
- * node:   	the name of the node (eg. 'member') under which we place the documents on the Observable Object  
+ * node:   	the name of the node (eg. 'member') under which we place the documents on the Observable object  
  * store:   the parent documents in the State with the supplied <store> field  
  * filter:  the Where-criteria to narrow down the document list  
  * date:    the as-at Date, to determine which documents are in the effective-range.
@@ -214,9 +214,9 @@ export const sumPayment = (source: AccountState) => {
 				if (indx === 0) {																		// only 1st Payment
 					sum.bank += nullToZero(payment.bank)
 					sum.paid += amounts[PAYMENT.TopUp];
-					sum.adjust += amounts[PAYMENT.Adjust];
+					sum.adjust += amounts[PAYMENT.Adjust] + amounts[PAYMENT.Hold];
 				} else
-					sum.pend += amounts[PAYMENT.TopUp] + amounts[PAYMENT.Adjust] + nullToZero(payment.bank);
+					sum.pend += amounts[PAYMENT.TopUp] + amounts[PAYMENT.Adjust] + amounts[PAYMENT.Hold] + nullToZero(payment.bank);
 
 				sum.credit = sum.bank + sum.paid + sum.adjust + sum.pend;
 				sum.funds = sum.bank + sum.paid + sum.adjust;
