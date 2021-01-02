@@ -30,7 +30,7 @@ export class AttendService {
 
 	constructor(private member: MemberService, private state: StateService, private data: DataService, private snack: SnackService) { this.#dbg('new'); }
 
-	/** Insert an Attend document, aligned to an active Payment  */
+	/** Insert an Attend document, aligned to an active Payment, Schedule, Bonus, Member  */
 	public setAttend = async (schedule: Schedule, date?: Instant.TYPE) => {
 		const creates: FireDocument[] = [];
 		const updates: FireDocument[] = [];
@@ -308,7 +308,7 @@ export class AttendService {
 				where: [
 					memberUid,
 					fire.addWhere(FIELD.Type, STORE.Schedule),
-					fire.addWhere(FIELD.Key, scheduleIds, '=='),			// TODO: this workaround for FireStore limit
+					fire.addWhere(FIELD.Key, scheduleIds, '=='),			// TODO: this workaround for FireStore's limit
 					fire.addWhere('track.date', dates, '=='),					//			on number of 'in' clauses in a Query
 				]
 			}),
