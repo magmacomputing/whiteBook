@@ -266,7 +266,7 @@ export class AttendService {
 	 * Safer instead to delete all Attends from a given date.
 	 */
 	public delAttend = async (where: fire.Query["where"]) => {
-		const memberUid = fire.addWhere(FIELD.Uid, (await this.data.getUID()));
+		const memberUid = fire.addWhere(FIELD.Uid, (await this.data.getCurrentUser()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.Uid))
 			filter.push(memberUid);															// ensure UID is present in where-clause

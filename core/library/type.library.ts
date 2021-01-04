@@ -32,8 +32,8 @@ export const isObject = <T>(obj?: T): obj is NonNullable<typeof obj> => isType(o
 export const isDate = (obj?: unknown): obj is Date => isType(obj, 'Date');
 
 export const isNull = (obj?: unknown): obj is null => isType(obj, 'Null');
-export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
 export const isNullish = <T>(obj: T | null | undefined): obj is null => ['Null', 'Undefined'].includes(getType(obj));
+export const isUndefined = (obj?: unknown): obj is undefined => isType(obj, 'Undefined');
 export const isDefined = <T>(obj: T): obj is NonNullable<T> => !isNullish(obj);
 
 export const isClass = (obj?: unknown): obj is Function => isType(obj, 'Class');

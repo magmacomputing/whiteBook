@@ -144,7 +144,7 @@ export const objectify = <T>(str: T | null) => {
 			return JSON.parse(val.substring(pos)) as T;
 
 		case val.startsWith('Map:[[') && val.endsWith(']]'):
-			return new Map(JSON.parse(val?.substring(pos))) as Map<any, T>;
+			return new Map(JSON.parse(val.substring(pos))) as Map<any, T>;
 
 		case val.startsWith('Set:["') && val.endsWith('"]'):
 			return new Set(JSON.parse(val.substring(pos))) as Set<T>;

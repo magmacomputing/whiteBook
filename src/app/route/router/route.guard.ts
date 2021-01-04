@@ -8,12 +8,9 @@ import { LoginModule } from '@route/login/login.module';
 
 import { fire } from '@dbase/fire/fire.library';
 import { AuthModule } from '@service/auth/auth.module';
-import type { LState } from '@dbase/state/state.define';
-import type { ProfilePlan } from '@dbase/data.schema';
-import { FIELD, STORE } from '@dbase/data.define';
+import { DataService } from '@dbase/data/data.service';
+import { FIELD, PROFILE, STORE } from '@dbase/data.define';
 
-import { asAt } from '@library/app.library';
-import { WebStore } from '@library/browser.library';
 import { getPath } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -39,14 +36,13 @@ export class OAuthGuard implements CanActivate {
 export class ProfileGuard implements CanActivate {
 	#dbg = dbg(this);
 
-	constructor(private navigate: NavigateService) { this.#dbg('new') }
+	constructor(private navigate: NavigateService, private data: DataService) { this.#dbg('new') }
 
 	async canActivate() {
-		const localState = WebStore.local.get<LState>(WebStore.State, {});
-		const profile = getPath<ProfilePlan[]>(localState, 'member.profile') || [];
-		const planProfile = asAt(profile, fire.addWhere(FIELD.Type, STORE.Plan));
-		if (getPath<string>(planProfile[0], STORE.Plan))
-			return true;															// found a current 'plan' in localStorage
+		const profile = await this.data.getProfileUser();
+
+		if (profile[PROFILE.Plan])
+			return true;
 
 		this.navigate.route(ROUTE.Plan);						// redirect to PlanComponent
 		return false;

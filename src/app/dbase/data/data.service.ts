@@ -5,24 +5,24 @@ import type { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
-import { SnackService } from '@service/material/snack.service';
-import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
+import { DBaseModule } from '@dbase/dbase.module';
+import { COLLECTION, STORE, FIELD, PROFILE } from '@dbase/data.define';
 import { getWhere, updPrep, docPrep, checkDiscard } from '@dbase/data/data.library';
-import type { FireDocument } from '@dbase/data.schema';
+import type { FireDocument, Profile } from '@dbase/data.schema';
 
 import { AuthService } from '@service/auth/auth.service';
-
-import { DBaseModule } from '@dbase/dbase.module';
-import { asAt } from '@library/app.library';
-import { getSlice } from '@dbase/state/state.library';
-import { StateService } from '@dbase/state/state.service';
-import { fire } from '@dbase/fire/fire.library';
-import { FireService } from '@dbase/fire/fire.service';
 import { SyncService } from '@dbase/sync/sync.service';
+import { StateService } from '@dbase/state/state.service';
+import { SnackService } from '@service/material/snack.service';
+import { FireService } from '@dbase/fire/fire.service';
+
+import { fire } from '@dbase/fire/fire.library';
+import { getSlice } from '@dbase/state/state.library';
 
 import type { TString } from '@library/type.library';
 import { getStamp, Instant } from '@library/instant.library';
 import { asArray } from '@library/array.library';
+import { asAt } from '@library/app.library';
 import { dbg } from '@library/logger.library';
 
 /**
@@ -79,12 +79,12 @@ export class DataService {
 		return this.fire.authToken(token, user);
 	}
 
-	getUID() {
+	getCurrentUser() {
 		return this.auth.current
 			.then(current => current!.uid);												// get the impersonate UserID
 	}
 
-	getActiveID() {
+	getActiveUser() {
 		return this.auth.user
 			.then(state => state.auth.user?.uid);									// get the signIn UserID
 	}
@@ -99,6 +99,18 @@ export class DataService {
 
 	isAdmin$() {
 		return this.auth.isAdmin$;
+	}
+
+	async getProfileUser() {																	// get the signIn User's Profile
+		const uid = await this.getActiveUser();
+		const profile = await this.getCurrent<Profile>(STORE.Profile, fire.addWhere(FIELD.Uid, uid));
+
+		return profile.reduce((acc, itm) => {
+			const type = itm[FIELD.Type];
+			const doc = itm as FireDocument;
+			acc[type] = doc[type];
+			return acc;
+		}, {} as Record<PROFILE, any>)
 	}
 
 	getFire<T>(collection: COLLECTION, query?: fire.Query) {	// direct access to collection, rather than via state
@@ -120,7 +132,7 @@ export class DataService {
 	}
 
 	async setDoc<T>(store: STORE, doc: T) {
-		const set = docPrep(doc, await this.getUID())									// make sure we have a <key/uid> field
+		const set = docPrep(doc, await this.getCurrentUser())									// make sure we have a <key/uid> field
 		return this.fire.setDoc(store, set);
 	}
 
@@ -133,7 +145,7 @@ export class DataService {
 		const creates: FireDocument[] = [];											// array of documents to Create
 		const updates: FireDocument[] = [];											// array of documents to Update
 		const stamp = getStamp();																// the timestamp of the Insert
-		const uid = await this.getUID();
+		const uid = await this.getCurrentUser();
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.Effect] || stamp;
@@ -175,7 +187,7 @@ export class DataService {
 			? this.sync.wait(event, callBack)											// start a listener for 1st emit of Event
 			: Promise.resolve()																		// else, no need to wait
 
-		return this.getUID()
+		return this.getCurrentUser()
 			.then(uid => {																				// ensure we have a <store>/<uid> in all Member-releated documents
 				creates = creates.map(doc => docPrep(doc, uid));
 				updates = updates.map(doc => docPrep(doc, uid));

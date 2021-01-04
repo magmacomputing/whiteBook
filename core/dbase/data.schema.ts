@@ -316,7 +316,7 @@ export interface ProfileInfo extends Profile {
 		gender?: string;
 		photoURL?: string;
 		birthDate?: number;
-	};
+	}
 }
 export interface ProfilePref extends Profile {
 	[FIELD.Type]: PROFILE.Pref;

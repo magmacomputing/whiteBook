@@ -9,8 +9,8 @@ import { stringify, objectify } from '@library/string.library';
 export class WebStore {
 	#storage: globalThis.Storage;
 
-	constructor(storage: 'local' | 'session') {
-		this.#storage = (storage ?? 'local') === 'local'			// default to localStorage
+	constructor(storage: 'local' | 'session' = 'local') {
+		this.#storage = storage === 'local'										// default to localStorage
 			? globalThis.localStorage
 			: globalThis.sessionStorage
 	}
@@ -115,6 +115,5 @@ export namespace WebStore {
 			hidden: boolean;
 			credit: Migration.CREDIT;
 		}
-
 	}
 }

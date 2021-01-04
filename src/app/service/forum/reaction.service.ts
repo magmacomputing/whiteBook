@@ -15,7 +15,7 @@ export class ReactionService {
 	emojiList = Object.values(REACT).filter(isString)
 
 	constructor(private data: DataService) {
-		this.data.getUID()
+		this.data.getCurrentUser()
 			.then(uid => this.userId = uid);
 	}
 

@@ -122,7 +122,7 @@ export class MemberService {
 	// create / update accountDoc and stash into creates[]/updates[]
 	setAccount = async (creates: FireDocument[] = [], updates: FireDocument[] = [], data?: AccountState) => {
 		data = data || await this.getAccount();
-		const uid = await this.data.getUID();
+		const uid = await this.data.getCurrentUser();
 		const [summary, account] = await Promise.all([
 			this.getAmount(data),
 			this.data.getStore<Account>(STORE.Status, [fire.addWhere(FIELD.Uid, uid), fire.addWhere(FIELD.Type, STATUS.Account)]),
@@ -185,7 +185,7 @@ export class MemberService {
 			[FIELD.Store]: STORE.Profile,
 			[FIELD.Type]: PROFILE.Info,
 			[FIELD.Effect]: getStamp(),										// TODO: remove this when API supports local getMeta()
-			[FIELD.Uid]: uid || (await this.data.getActiveID()),
+			[FIELD.Uid]: uid || (await this.data.getActiveUser()),
 			[PROFILE.Info]: { ...memberInfo },						// spread the conformed member info
 		}
 		const where = fire.addWhere(`${PROFILE.Info}.providerId`, info.providerId);

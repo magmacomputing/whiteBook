@@ -18,8 +18,8 @@ import { fire } from '@dbase/fire/fire.library';
 import { Instant, getInstant } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
-import { dbg } from '@library/logger.library';
 import { asAt } from '@library/app.library';
+import { dbg } from '@library/logger.library';
 
 /**
  * StateService will wire-up Observables on the NGXS Store.  
@@ -33,21 +33,20 @@ export class StateService {
 	@Select() attend$!: OState;
 	@Select() admin$!: OState;
 	@Select() stage$!: OState;
-	// @Select() local$!: Observable<TStateSlice<FireDocument>>;
+
 	private forum$: OState = of({ forum: [] });
 
 	#dbg = dbg(this);
 	#states: IState;
 
 	constructor(private fire: FireService) {
-		this.#states = {                   // a Lookup map for Slice-to-State
+		this.#states = {                   									// a Lookup map for Slice-to-State
 			[COLLECTION.Client]: this.client$,
 			[COLLECTION.Member]: this.member$,
 			[COLLECTION.Attend]: this.attend$,
 			[COLLECTION.Admin]: this.admin$,
-			[COLLECTION.Forum]: this.forum$,
 			[COLLECTION.Stage]: this.stage$,
-			// 'local': this.local$,
+			[COLLECTION.Forum]: this.forum$,
 		}
 	}
 
@@ -284,23 +283,23 @@ export class StateService {
 		return combineLatest([this.getClientData(), this.getForumData(date), this.getMemberData(date)]).pipe(
 			map(([client, forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.#states, 'application', STORE.Default, fire.addWhere(FIELD.Type, STORE.Icon)),
-			joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, filterSchedule, date),							// whats on this weekday (or every weekday)
+			joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, filterSchedule, date),			// whats on this weekday (or every weekday)
 			joinDoc(this.#states, COLLECTION.Client, STORE.Calendar, undefined, date, calendarDay),			// get calendar for this date
-			joinDoc(this.#states, 'client.diary', STORE.Calendar, filterCalendar),							// get future events
-			joinDoc(this.#states, COLLECTION.Client, STORE.Event, filterEvent, date),										// get event for this calendar-date
-			joinDoc(this.#states, COLLECTION.Client, STORE.Class, filterTypeClass, date),								// get classes for this weekday
-			joinDoc(this.#states, COLLECTION.Client, STORE.Class, filterTypeEvent, date),								// get agenda for this calendar-date
-			joinDoc(this.#states, COLLECTION.Client, STORE.Icon, filterIcon, date),											// get the Class icons
-			joinDoc(this.#states, COLLECTION.Client, STORE.Location, filterLocation, date),							// get location for this timetable
-			joinDoc(this.#states, COLLECTION.Client, STORE.Instructor, filterInstructor, date),					// get instructor for this timetable
-			joinDoc(this.#states, COLLECTION.Client, STORE.Span, filterSpan, date),											// get class durations
-			joinDoc(this.#states, COLLECTION.Client, STORE.Alert, filterAlert, date),										// get any Alert message for this date
-			joinDoc(this.#states, COLLECTION.Client, STORE.Bonus, undefined, date),											// get any active Bonus
-			joinDoc(this.#states, 'member', STORE.Gift, isMine, date),													// get any active Gifts
-			joinDoc(this.#states, 'attend.attendGift', STORE.Attend, attendGift),								// get any Attends against active Gifts
-			joinDoc(this.#states, 'attend.attendWeek', STORE.Attend, attendWeek),								// get any Attends for this week
-			joinDoc(this.#states, 'attend.attendMonth', STORE.Attend, attendMonth),							// get any Attends for this month
-			joinDoc(this.#states, 'attend.attendToday', STORE.Attend, attendToday),							// get any Attends for this day
+			joinDoc(this.#states, `${COLLECTION.Client}.${STORE.Diary}`, STORE.Calendar, filterCalendar),// get future events
+			joinDoc(this.#states, COLLECTION.Client, STORE.Event, filterEvent, date),						// get event for this calendar-date
+			joinDoc(this.#states, COLLECTION.Client, STORE.Class, filterTypeClass, date),				// get classes for this weekday
+			joinDoc(this.#states, COLLECTION.Client, STORE.Class, filterTypeEvent, date),				// get agenda for this calendar-date
+			joinDoc(this.#states, COLLECTION.Client, STORE.Icon, filterIcon, date),							// get the Class icons
+			joinDoc(this.#states, COLLECTION.Client, STORE.Location, filterLocation, date),			// get location for this timetable
+			joinDoc(this.#states, COLLECTION.Client, STORE.Instructor, filterInstructor, date),	// get instructor for this timetable
+			joinDoc(this.#states, COLLECTION.Client, STORE.Span, filterSpan, date),							// get class durations
+			joinDoc(this.#states, COLLECTION.Client, STORE.Alert, filterAlert, date),						// get any Alert message for this date
+			joinDoc(this.#states, COLLECTION.Client, STORE.Bonus, undefined, date),							// get any active Bonus
+			joinDoc(this.#states, COLLECTION.Member, STORE.Gift, isMine, date),									// get any active Gifts
+			joinDoc(this.#states, `${COLLECTION.Attend}.attendGift`, STORE.Attend, attendGift),	// get any Attends against active Gifts
+			joinDoc(this.#states, `${COLLECTION.Attend}.attendWeek`, STORE.Attend, attendWeek),	// get any Attends for this week
+			joinDoc(this.#states, `${COLLECTION.Attend}.attendMonth`, STORE.Attend, attendMonth),// get any Attends for this month
+			joinDoc(this.#states, `${COLLECTION.Attend}.attendToday`, STORE.Attend, attendToday),// get any Attends for this day
 			map(table => buildTimetable(table, date, elect)),																		// assemble the Timetable
 		) as Observable<TimetableState>																												// assert type (to override pipe()'s artificial limit of 'nine' declarations)
 	}
