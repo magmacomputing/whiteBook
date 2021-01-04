@@ -170,16 +170,9 @@ export class SyncService {
 						case 'modified':
 							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
-
-							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire])
-								this.#dbg('sync: Profile.Plan, reroute to Attend');
-							// this.navigate.route(ROUTE.Attend);			// special: initial Plan is set
 							break;
 
 						case 'removed':
-							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Plan && !data[FIELD.Expire]) 4
-							this.#dbg('sync: Profile.Plan, reroute to Plan');
-							// this.navigate.route(ROUTE.Plan);				// special: Plan has been deleted
 							break;
 					}
 				}
