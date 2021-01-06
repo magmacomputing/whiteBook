@@ -40,7 +40,7 @@ export const docPrep = <T>(doc: T, uid: string) => {
 	const filters = FILTER[collection] || [];
 
 	if (filters.includes(FIELD.Uid) && !prep[FIELD.Uid])
-		prep[FIELD.Uid] = uid;												// push the current user's uid on the document
+		prep[FIELD.Uid] = uid;											// push the current user's uid on the document
 
 	return prep as unknown as T;
 }
