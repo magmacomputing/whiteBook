@@ -84,26 +84,31 @@ export const firstRow = <T>(table: T[] = [], filters: fire.Query["where"] = []) 
 /**
  * Search an array, returning a single row that matches the cond,  
  * 	and was in-effect on date,  
- * 	and is nearest in time to \<near>.  
+ * 	and is nearest in time to \<near>  
+ *  else isEmpty().  
  * e.g. near = {start: '19:30'}   will return the table-row whose \<start> field is nearest to '19:30'
  */
 export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date: Instant.TYPE = new Instant(), near: Partial<T>) => {
 	const [key, hhmi] = Object.entries(near)[0];		// use first key to determine which field we compare
 	const time = asTime(hhmi as string | number);		// convert HH:MM  to HHMM
 
+	if (isUndefined(key))
+		throw new Error(`No key-field detected: (eg. {[key]: '19:30'})`);
+	if (isUndefined(hhmi))
+		throw new Error(`No time-field detected: (eg. {[key]: '19:30'})`);
+
 	return asAt<T>(table, cond, date)
 		.reduce((prev, curr, idx, arr) => {
 			if (arr.length <= 1)
 				return curr;															// no 'near' comparison needed
 
-			const fld1 = (curr as T & FireDocument)[key];
-			const fld2 = (prev as T & Record<string, string | number>)[key];
+			const fld1 = getPath<string | number>(prev, key, 0);
+			const fld2 = getPath<string | number>(curr, key, 0);
 
 			return Math.abs(asTime(fld1) - time) < Math.abs(asTime(fld2) - time)
-				? curr
-				: prev
-		},
-			{ [key]: 0 } as T & Record<string, number>)
+				? prev
+				: curr
+		}, {} as T)
 }
 
 /**

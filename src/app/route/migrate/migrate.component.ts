@@ -592,7 +592,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				}
 
 				sched = nearAt(this.#schedule, fire.addWhere(FIELD.Key, className), row[FIELD.Stamp], { start: hhmi });
-				if (!sched)
+				if (isEmpty(sched))
 					throw new Error(`Cannot determine schedule: ${className}`);
 				sched.amount = price;												// to allow AttendService to check what was charged
 				sched[FIELD.Note] = row[FIELD.Note];

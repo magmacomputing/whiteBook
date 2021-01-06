@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, startWith, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { map, take, startWith, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { AuthSlice } from '@dbase/state/auth.action';
@@ -281,7 +281,8 @@ export class StateService {
 		]
 
 		return combineLatest([this.getClientData(), this.getForumData(date), this.getMemberData(date)]).pipe(
-			map(([client, forum, member]) => ({ ...forum, ...member })),
+			map(([client, forum, member]) => ({ ...client, ...forum, ...member })),
+			tap(console.log),
 			joinDoc(this.#states, 'application', STORE.Default, fire.addWhere(FIELD.Type, STORE.Icon)),
 			joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, filterSchedule, date),			// whats on this weekday (or every weekday)
 			joinDoc(this.#states, COLLECTION.Client, STORE.Calendar, undefined, date, calendarDay),			// get calendar for this date

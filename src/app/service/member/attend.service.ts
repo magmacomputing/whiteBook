@@ -22,6 +22,7 @@ import { isUndefined, isNumber, isEmpty, nullToZero, isDefined } from '@library/
 import { getPath } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
+import { nearAt } from '@library/app.library';
 
 /** Add/Delete to the Attend collection */
 @Injectable({ providedIn: DBaseModule })
@@ -232,28 +233,34 @@ export class AttendService {
 	}
 
 	/** look back up-to seven days to find when className was last scheduled */
-	private lkpDate = async (className: string, location?: string, date?: Instant.TYPE) => {
+	private lkpDate = async (className?: string, location?: string, date?: Instant.TYPE) => {
 		const timetable = await this.state.getTimetableData(date).toPromise();
-		let now = getInstant(date);																// start with date-argument
+		let now = getInstant(date);															// start with date-argument
+		const hhmi = now.format(Instant.FORMAT.HHMI);						// the time of the check-in
 		let ctr = 0;
 
+		if (!className)
+			className = this.state.getDefault(timetable, STORE.Class);
 		if (!location)
 			location = this.state.getDefault(timetable, STORE.Location);
 
 		for (ctr; ctr < 7; ctr++) {
-			const classes = timetable.client.schedule!						// loop through schedule
-				.filter(row => row.day === now.dow)									// finding a match in 'day'
-				.filter(row => row[FIELD.Key] === className)				// and match in 'class'
-				.filter(row => row.location === location)						// and match in 'location'
-			// .filter(row => row.start === now.format(Instant.FORMAT.HHMI)),	// TODO: match by time, in case offered multiple times in a day
+			const where: fire.Where[] = [													// loop through schedule
+				fire.addWhere('day', now.dow),											// finding a match in 'day-of-week'
+				fire.addWhere(FIELD.Key, className),								// and match in 'class'
+				fire.addWhere('location', location),								// and match in 'location'
+			]
 
-			if (classes.length)																		// is this class offered on this 'day'   
+			const match = nearAt(timetable.client.schedule!, where, now,
+				{ start: hhmi })																		// match by time, in case offered multiple times in a day
+
+			if (!isEmpty(match))																	// found a class offered on this day
 				break;
 			now = now.add(-1, 'day');															// else move pointer to previous day
 		}
 
 		if (ctr >= 7)																						// cannot find className on timetable
-			now = getInstant(date);																	// so default back to today's date	
+			now = getInstant(date);																// so default back to today's date	
 
 		return now.ts;																					// timestamp
 	}

@@ -48,7 +48,7 @@
 	</mat-toolbar>
 
 	<div *ngFor="let message of app.member.message">
-		<div *ngIf="message.type == MESSAGE.alert">
+		<div *ngIf="message.type == MESSAGE.Alert">
 			<p>{{ message.note }}</p>
 		</div>
 	</div>

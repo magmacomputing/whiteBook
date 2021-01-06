@@ -16,18 +16,17 @@
 				<button (click)="addPayment()" [disabled]="1 == 0 && !!data.account.payment?.length">Add Payments</button>
 				<button (click)="addAttend()" [disabled]="1 === 0 && !data.account.payment?.length">Add Attends</button>
 				<br>
-				<button (click)="delPayment()" [disabled]="!data.account.payment?.length">Del Payments</button>
-				<button (click)="delAttend()" [disabled]="!data.account.attend?.length">Del Attends</button>
+				<button (click)="delPayment()" [disabled]="data.account.payment?.length === 0">Del Payments</button>
+				<button (click)="delAttend()" [disabled]="data.account.attend?.length === 0">Del Attends</button>
 				<br>
-				<button (click)="revPayment()" [disabled]="!data.account.payment?.length">Rev Payments</button>
-				<button (click)="revAttend()" [disabled]="!!data.account.attend?.length">Rev Attend</button>
+				<button (click)="revPayment()" [disabled]="data.account.payment?.length === 0">Rev Payments</button>
+				<button (click)="revAttend()" [disabled]="data.account.attend?.length === 0">Rev Attend</button>
 				<br>
 				<button (click)="setAccount()" [disabled]="1 == 0">Set Account</button>
 				<button (click)="delPayment(true)">Reset Account</button>
 				<br>
 				<button (click)="delUser()">Delete User</button>
 				<button (click)="hideUser()">{{hide}}Hide User</button>
-				<!-- <button (click)="parseNote()">Test</button> -->
 				<p *ngIf="dash.account"> {{ dash.account?.summary | json }} </p>
 			</div>
 		</div>
