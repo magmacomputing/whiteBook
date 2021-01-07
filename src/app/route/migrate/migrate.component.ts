@@ -22,7 +22,7 @@ import { fire } from '@dbase/fire/fire.library';
 
 import { Instant, getInstant, getStamp, fmtInstant } from '@library/instant.library';
 import { cloneObj, getPath } from '@library/object.library';
-import { isUndefined, isNull, isBoolean, TString, isEmpty, isDefined } from '@library/type.library';
+import { isUndefined, isNull, isBoolean, TString, isEmpty, isDefined, getEnumKeys, getEnumCount } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
 import { WebStore } from '@library/browser.library';
@@ -124,7 +124,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				break;
 			case 'credit':
 				this.filter.credit += 1;
-				if (this.filter.credit >= Object.keys(Migration.CREDIT).length / 2)
+				if (this.filter.credit >= getEnumCount(Migration.CREDIT))
 					this.filter.credit = 0;
 				break;
 		}

@@ -5,7 +5,7 @@ import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
 import { Store, Actions, ofActionDispatched, ActionType } from '@ngxs/store';
 
-import type { sync } from '@dbase/sync/sync.define';
+import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
@@ -18,7 +18,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
-import { isFunction, isUndefined } from '@library/type.library';
+import { getEnumKeys, isFunction, isUndefined } from '@library/type.library';
 import { quoteObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -130,14 +130,11 @@ export class SyncService {
 		const { setStore, delStore, clearStore } = listen.method;
 		const source = getSource(snaps);
 
-		if (snaps.length === 0)
-			return;																					// bail-out; empty snapshot
-
 		listen.cnt += 1;
-		const debug = source === 'server' && listen.cnt >= (listen.streams * 2);
+		const debug = source === sync.SOURCE.Server && listen.cnt >= (listen.streams * 2);
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
-				const idx = ['added', 'modified', 'removed'].indexOf(snap.type);
+				const idx = getEnumKeys(sync.CHANGE).indexOf(snap.type);
 
 				cnts[idx].push(addMeta(snap));
 				return cnts;
@@ -166,13 +163,13 @@ export class SyncService {
 				const data = addMeta(snap);
 				if (data[FIELD.Uid] === listen.uid) {					// but only for authenticated User
 					switch (snap.type) {
-						case 'added':
-						case 'modified':
-							if (debug && data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
+						case sync.CHANGE.Added:
+						case sync.CHANGE.Modified:
+							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
 								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
 							break;
 
-						case 'removed':
+						case sync.CHANGE.Removed:
 							break;
 					}
 				}

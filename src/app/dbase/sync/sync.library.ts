@@ -3,7 +3,7 @@ import type { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FIELD, COLLECTION } from '@dbase/data.define';
 import type { FireDocument } from '@dbase/data.schema';
-import type { sync } from '@dbase/sync/sync.define';
+import { sync } from '@dbase/sync/sync.define';
 
 import type { LState } from '@dbase/state/state.define';
 import { clientAction, memberAction, attendAction, adminAction, deviceAction, stageAction } from '@dbase/state/state.action';
@@ -13,12 +13,15 @@ import { WebStore } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
 export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
-	const meta = snaps.length ? snaps[0].payload.doc.metadata : {} as firebase.firestore.SnapshotMetadata;
+	const meta = snaps.length
+		? snaps[0].payload.doc.metadata
+		: {} as firebase.firestore.SnapshotMetadata;
+
 	return meta.fromCache
-		? 'cache'
+		? sync.SOURCE.Cache
 		: meta.hasPendingWrites
-			? 'local'
-			: 'server'
+			? sync.SOURCE.Local
+			: sync.SOURCE.Server
 }
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */

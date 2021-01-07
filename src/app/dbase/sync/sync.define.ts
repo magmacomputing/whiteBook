@@ -19,6 +19,18 @@ export namespace sync {
 		promise: Pledge.Status;
 	}
 
+	export enum CHANGE {
+		Added = 'added',
+		Modified = 'modified',
+		Removed = 'removed',
+	}
+
+	export enum SOURCE {
+		Cache = 'cache',
+		Local = 'local',
+		Server = 'server',
+	}
+
 	export interface Listen {
 		key: sync.Key;												// the key to this listener
 		label: string;												// Label to display for this listener
