@@ -1,16 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, combineLatest } from 'rxjs';
-import { map, take, startWith, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
+import { map, take, startWith, distinctUntilChanged, tap } from 'rxjs/operators';
 import { Select } from '@ngxs/store';
 
 import { AuthSlice } from '@dbase/state/auth.action';
-import type { TStateSlice, ApplicationState, AdminState, ProviderState, ForumState } from '@dbase/state/state.define';
+import type { ApplicationState, AdminState, ProviderState, ForumState, ClientState } from '@dbase/state/state.define';
 import type { MemberState, PlanState, TimetableState, IState, OState, AccountState, UserState } from '@dbase/state/state.define';
 import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan, getDefault, getCurrent, getStore, getState, buildProvider } from '@dbase/state/state.library';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data.define';
-import type { FireDocument, Register, Connect, Account, Comment, React, Sheet, TStoreConfig, TStoreClient } from '@dbase/data.schema';
+import type { Register, Connect, Account, Comment, React, Sheet, Config, Schema, Default, Diary, Instructor, Plan, Price, Span, Alert, Bonus, Icon, Location, Class, Event, Calendar, Schedule } from '@dbase/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
@@ -95,15 +95,39 @@ export class StateService {
 		)
 	}
 
+	getApplicationData(date?: Instant.TYPE): Observable<ApplicationState> {
+		return this.client$.pipe(
+			map(data => ({
+				application: {
+					[STORE.Default]: asAt(data[STORE.Default] as Default[], undefined, date),
+					[STORE.Schema]: asAt(data[STORE.Schema] as Schema[], undefined, date),
+					[STORE.Config]: asAt(data[STORE.Config] as Config[], undefined, date),
+				}
+			}))
+		)
+	}
+
 	/**
 	 * Cast the Ngxs Client$ store, asAt provided date
 	 */
-	getClientData(date?: Instant.TYPE): Observable<Record<TStoreClient | TStoreConfig, FireDocument[]>> {
-		const now = getInstant(date);
-
+	getClientData(date?: Instant.TYPE): Observable<ClientState> {
 		return this.client$.pipe(
-			switchMap(data => Object.entries(data).map(([key, store]) => {
-				return { [key]: asAt(store, undefined, date) } as Record<TStoreClient | TStoreConfig, FireDocument[]>
+			map(data => ({
+				[COLLECTION.Client]: {
+					[STORE.Class]: asAt(data[STORE.Class] as Class[], undefined, date),
+					[STORE.Calendar]: asAt(data[STORE.Calendar] as Calendar[], undefined, date),
+					[STORE.Event]: asAt(data[STORE.Event] as Event[], undefined, date),
+					[STORE.Schedule]: asAt(data[STORE.Schedule] as Schedule[], undefined, date),
+					[STORE.Diary]: asAt(data[STORE.Diary] as Diary[], undefined, date),
+					[STORE.Location]: asAt(data[STORE.Location] as Location[], undefined, date),
+					[STORE.Instructor]: asAt(data[STORE.Instructor] as Instructor[], undefined, date),
+					[STORE.Plan]: asAt(data[STORE.Plan] as Plan[], undefined, date),
+					[STORE.Price]: asAt(data[STORE.Price] as Price[], undefined, date),
+					[STORE.Span]: asAt(data[STORE.Span] as Span[], undefined, date),
+					[STORE.Alert]: asAt(data[STORE.Alert] as Alert[], undefined, date),
+					[STORE.Bonus]: asAt(data[STORE.Bonus] as Bonus[], undefined, date),
+					[STORE.Icon]: asAt(data[STORE.Icon] as Icon[], undefined, date),
+				}
 			}))
 		)
 	}
@@ -138,7 +162,7 @@ export class StateService {
 	}
 
 	/**
-	 * Extend AuthState with an Object describing a Member returned as MemberState, where:  
+	 * an Object describing a Member returned as MemberState, where:  
 	 * application._default -> has the current defaults to be used where join-fields are undefined  
 	 * member.plan  -> has the asAt ProfilePlan for the user.uid  
 	 * member.info  -> has the additionalUserInfo ProfileUser documents for the user.uid  
@@ -280,9 +304,8 @@ export class StateService {
 			fire.addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
 		]
 
-		return combineLatest([this.getClientData(), this.getForumData(date), this.getMemberData(date)]).pipe(
-			map(([client, forum, member]) => ({ ...client, ...forum, ...member })),
-			tap(console.log),
+		return combineLatest([this.getClientData(date), this.getForumData(date), this.getMemberData(date)]).pipe(
+			map(([client, forum, member]) => ({ ...forum, ...member })),
 			joinDoc(this.#states, 'application', STORE.Default, fire.addWhere(FIELD.Type, STORE.Icon)),
 			joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, filterSchedule, date),			// whats on this weekday (or every weekday)
 			joinDoc(this.#states, COLLECTION.Client, STORE.Calendar, undefined, date, calendarDay),			// get calendar for this date
@@ -308,7 +331,7 @@ export class StateService {
 	/**
 	 * Assemble a standalone Object describing the Timetable for the week (Mon-Sun) that matches the supplied date.  
 	 */
-	getTimetableData(date?: Instant.TYPE): Observable<TimetableState> {
+	getTimetableData(date?: Instant.TYPE): Observable<ApplicationState & ClientState> {
 		const now = getInstant(date);
 		const filterClass = fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
 		const filterLocation = fire.addWhere(FIELD.Key, '{{client.schedule.location}}');
@@ -318,14 +341,29 @@ export class StateService {
 		]
 		const filterEvent = fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
 
-		return this.getClientData(now).pipe(
-			joinDoc(this.#states, 'application', STORE.Default, undefined, date),
-			joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, undefined, date),
-			joinDoc(this.#states, COLLECTION.Client, STORE.Class, filterClass, date),
-			joinDoc(this.#states, COLLECTION.Client, STORE.Location, filterLocation, date),
-			joinDoc(this.#states, COLLECTION.Client, STORE.Calendar, filterCalendar, date, calendarDay),
-			joinDoc(this.#states, COLLECTION.Client, STORE.Event, filterEvent, date),
-			take(1),
-		)
+		return combineLatest([this.getApplicationData(now), this.getClientData(now)]).pipe(
+			map(([application, client]) => {
+				return { ...application, ...client }
+			}),
+			tap(data => console.log('TIMETABLE: ', data)),
+		);
+
+		// return combineLatest([this.getApplicationData(now), this.getClientData(now)]).pipe(
+		// 	map(([application, client]) => {
+		// 		return {
+		// 			application,
+		// 			[COLLECTION.Client]: {
+
+		// 			}
+		// }
+		// joinDoc(this.#states, 'application', STORE.Default, undefined, date),
+		// joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, undefined, date),
+		// joinDoc(this.#states, COLLECTION.Client, STORE.Class, filterClass, date),
+		// joinDoc(this.#states, COLLECTION.Client, STORE.Location, filterLocation, date),
+		// joinDoc(this.#states, COLLECTION.Client, STORE.Calendar, filterCalendar, date, calendarDay),
+		// joinDoc(this.#states, COLLECTION.Client, STORE.Event, filterEvent, date),
+		// take(1),
+		// tap(console.log),
+		// }))
 	}
 }

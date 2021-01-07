@@ -190,7 +190,7 @@ export class MemberService {
 		}
 		const where = fire.addWhere(`${PROFILE.Info}.providerId`, info.providerId);
 
-		this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.Info);
+		// this.data.insDoc(profileInfo as ProfileInfo, where, PROFILE.Info);
 	}
 
 }

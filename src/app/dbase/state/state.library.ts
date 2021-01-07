@@ -326,7 +326,7 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 		bonus = [],																	// the bonus' for the Member
 		icon: icons = [],														// the icons for classes offered on that date
 	} = source.client;
-	const attendToday = source[COLLECTION.Attend].attendToday;
+	const attendToday = source[COLLECTION.Attend]?.attendToday;
 	const icon = firstRow<Default>(source.application[STORE.Default], fire.addWhere(FIELD.Type, STORE.Icon));
 	const locn = firstRow<Default>(source.application[STORE.Default], fire.addWhere(FIELD.Type, STORE.Location));
 	const eventLocations: string[] = [];					// the locations at which a Special Event is running
@@ -374,8 +374,8 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 		})
 	})
 
-	/** remove Bonus types (except Gift), if not entitled to Bonuses (Plan.bonus: boolean=false) */
-	if (!plans[0].bonus)
+	/** remove Bonus types (except Gift), if not entitled to Bonuses (ie. Plan.bonus: false) */
+	if (!plans[0]?.bonus)
 		source[COLLECTION.Client][STORE.Bonus] = source[COLLECTION.Client][STORE.Bonus]?.filter(bonus => bonus[FIELD.Key] === BONUS.Gift);
 
 	// for each item on the schedule, poke in 'price' and 'icon',  
@@ -393,7 +393,7 @@ export const buildTimetable = (source: TimetableState, date?: Instant.TYPE, elec
 				? time.price.amount
 				: nullToZero(time.bonus?.amount)								// a specific-amount, else $0
 
-			time.count = attendToday.filter(row => row.timetable[FIELD.Key] == time[FIELD.Key]).length;
+			time.count = attendToday?.filter(row => row.timetable[FIELD.Key] == time[FIELD.Key]).length;
 
 			if (!time[FIELD.Image])											// if no schedule-specific icon, use class icon, else default icon
 				time[FIELD.Image] =

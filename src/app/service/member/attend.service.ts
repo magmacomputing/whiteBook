@@ -251,7 +251,7 @@ export class AttendService {
 				fire.addWhere('location', location),								// and match in 'location'
 			]
 
-			const match = nearAt(timetable.client.schedule!, where, now,
+			const match = nearAt(timetable[COLLECTION.Client][STORE.Schedule]!, where, now,
 				{ start: hhmi })																		// match by time, in case offered multiple times in a day
 
 			if (!isEmpty(match))																	// found a class offered on this day

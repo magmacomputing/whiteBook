@@ -1,11 +1,11 @@
 import { Observable } from 'rxjs';
 
 import type { AuthSlice } from './auth.action';
-import type { COLLECTION, STORE, BONUS, STATUS } from '@dbase/data.define';
+import type { COLLECTION, STORE, BONUS, STATUS, PROFILE } from '@dbase/data.define';
 import type {
 	Default, ProfilePlan, ProfilePref, Price, Plan, Payment, Attend, Schedule, Class, Event, Calendar,
 	Location, Instructor, ProfileInfo, FireDocument, Span, Alert, Message, Register, Schema, Config, Gift, Bonus,
-	Connect, Account, TBonus, Icon, Provider, React, Comment, Sheet, Diary, Migrate,
+	Connect, Account, Icon, Provider, React, Comment, Sheet, Diary, Migrate, ProfileClaim,
 } from '@dbase/data.schema';
 
 export enum SLICE {
@@ -60,11 +60,24 @@ export interface AdminState {
 }
 
 export interface ClientState {
-	[STORE.Default]: Default[];
-	[STORE.Config]: Config[];
-	[STORE.Schema]: Schema[];
-}
+	[COLLECTION.Client]: {
+		[STORE.Class]?: Class[];
+		[STORE.Calendar]?: Calendar[];
+		[STORE.Event]?: Event[];
+		[STORE.Schedule]?: Schedule[];
+		[STORE.Provider]?: Provider[];
+		[STORE.Diary]?: Diary[];
+		[STORE.Location]?: Location[];
+		[STORE.Instructor]?: Instructor[];
+		[STORE.Plan]?: Plan[];
+		[STORE.Price]?: Price[];
+		[STORE.Span]?: Span[];
+		[STORE.Alert]?: Alert[];
+		[STORE.Bonus]?: Bonus[];
+		[STORE.Icon]?: Icon[];
+	}
 
+}
 export interface ApplicationState {		// application-wide settings
 	application: {
 		[STORE.Default]: Default[];				// defaults to apply, if missing from Member data
@@ -75,9 +88,10 @@ export interface ApplicationState {		// application-wide settings
 
 export interface MemberState extends UserState, ApplicationState {
 	[COLLECTION.Member]: {
-		[STORE.Plan]: ProfilePlan[];      // member's effective plan
-		info: ProfileInfo[];             	// array of AdditionalUserInfo documents
-		pref: ProfilePref[];							// member's preferences
+		[PROFILE.Plan]: ProfilePlan[];    // member's effective plan
+		[PROFILE.Info]: ProfileInfo[];    // array of AdditionalUserInfo documents
+		[PROFILE.Pref]: ProfilePref[];		// member's preferences
+		[PROFILE.Claim]: ProfileClaim[];	// member's CustomClaims
 		[STORE.Message]: Message[];				// array of messages to a Member
 		[STORE.Gift]: Gift[];							// array of gifts for a Member
 	}
@@ -128,22 +142,7 @@ export interface PaymentState {
 	[payment: string]: Payment[];
 }
 
-export interface TimetableState extends MemberState, ApplicationState {
-	[COLLECTION.Client]: {
-		[STORE.Schedule]?: Schedule[];
-		[STORE.Class]?: Class[];
-		[STORE.Event]?: Event[];
-		[STORE.Calendar]?: Calendar[];
-		[STORE.Diary]?: Diary[];
-		[STORE.Location]?: Location[];
-		[STORE.Instructor]?: Instructor[];
-		[STORE.Plan]?: Plan[];
-		[STORE.Price]?: Price[];
-		[STORE.Span]?: Span[];
-		[STORE.Alert]?: Alert[];
-		[STORE.Bonus]?: Bonus[];
-		[STORE.Icon]?: Icon[];
-	},
+export interface TimetableState extends ApplicationState, ClientState, MemberState, ForumState {
 	[COLLECTION.Attend]: {
 		attendGift: Attend[];
 		attendWeek: Attend[];
@@ -151,8 +150,6 @@ export interface TimetableState extends MemberState, ApplicationState {
 		attendMonth: Attend[];
 		attendToday: Attend[];
 	},
-	[STORE.Bonus]?: TBonus,
-	[COLLECTION.Forum]?: ForumState["forum"];
 }
 
 export interface ForumState {
