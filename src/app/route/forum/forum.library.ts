@@ -1,4 +1,4 @@
-import { COMMENT } from '@dbase/state/config.define';
+import { outline } from '@dbase/state/config.define';
 
 import { TString } from '@library/type.library';
 import { asArray } from '@library/array.library';
@@ -16,13 +16,13 @@ export const cleanNote = (note?: TString) => {
 	if (note && !note.toString().replace(' ', '').includes('xZS')) {
 		clean = asArray(note)
 			.map(note => {														// first, clean the Note of noise-words
-				COMMENT.patterns
+				outline.COMMENTS.patterns
 					.filter(row => row.sort === 0)
 					.forEach(obj => note = note.replace(new RegExp(obj.pat, obj.flag), obj.repl))
 				return note;
 			})
 			.map(note => {
-				COMMENT.words.forEach(word => {					// look for trigger-words, or emoji
+				outline.COMMENTS.words.forEach(word => {					// look for trigger-words, or emoji
 					if (note.toLowerCase().includes(word.toLowerCase()) || /[^\u0000-\u00ff]/.test(note)) {
 						comment.push(note);									// move Note text to Comment
 						note = '\n';												// discard Note
@@ -31,7 +31,7 @@ export const cleanNote = (note?: TString) => {
 				return note;
 			})
 			.map(note => {														// final tidy-up on parsed Note
-				COMMENT.patterns
+				outline.COMMENTS.patterns
 					.filter(row => row.sort === 1)
 					.forEach(obj => note = note.replace(new RegExp(obj.pat, obj.flag), obj.repl))
 				return note.trim();

@@ -3,7 +3,7 @@ import type { ProfileInfo, Payment } from '@dbase/data.schema';
 import { FIELD, PAYMENT, PRICE } from '@dbase/data.define';
 
 import { getStamp, getInstant, Instant } from '@library/instant.library';
-import { isString, isNumber, isDefined, isUndefined } from '@library/type.library';
+import { isString, isNumber, isDefined, isUndefined, getEnumValues } from '@library/type.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 
@@ -113,7 +113,7 @@ export const calcExpiry = (payment: Payment, client: PlanState["client"]) => {
  */
 export const calcPayment = (payment?: Payment, approvedOnly = false) => {
 	const obj = {} as Record<PAYMENT, number>;
-	Object.values(PAYMENT)
+	getEnumValues(PAYMENT)
 		.forEach(pay => obj[pay] = 0);											// init all Payment-types to 0
 
 	return payment
@@ -127,7 +127,7 @@ export const calcPayment = (payment?: Payment, approvedOnly = false) => {
 
 export const showPayment = (payment?: Payment) => {
 	const obj = {} as Record<PAYMENT, Payment["pay"]>;
-	Object.values(PAYMENT)
+	getEnumValues(PAYMENT)
 		.forEach(pay => obj[pay] = [])										// init all Payment-types to []
 
 	return payment

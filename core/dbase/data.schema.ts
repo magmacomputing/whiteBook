@@ -85,9 +85,9 @@ export interface Schema extends ClientCollection {
 	[FIELD.Store]: STORE.Schema;
 	[FIELD.Type]: COLLECTION;
 	[FIELD.Key]: STORE;
-	[FIELD.Sort]?: TString;
+	[FIELD.Sort]?: FIELD | FIELD[];
+	filter?: FIELD | FIELD[];
 	rules: { read: 'isAdmin' | 'isMine' | 'isAuth' | boolean }
-	filter?: TString;
 }
 
 //	/client/price

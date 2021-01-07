@@ -5,7 +5,7 @@ import { fire } from '@dbase/fire/fire.library';
 import { FireClaims } from '@service/auth/auth.interface';
 import { calcBonus } from '@service/member/attend.library';
 import { calcPayment, getMemberAge } from '@service/member/member.library';
-import { SLICES, SORTBY } from '@dbase/state/config.define';
+import { outline } from '@dbase/state/config.define';
 
 import type { FireDocument, Default, Class, Price, Event, Schedule, Span, ProfilePlan, Icon, Calendar, Account } from '@dbase/data.schema';
 import { IState, AccountState, TimetableState, PlanState, SLICE, TStateSlice, ApplicationState, ProviderState } from '@dbase/state/state.define';
@@ -15,7 +15,7 @@ import { COLLECTION, STORE, FIELD, BONUS, PRICE, PLAN, SCHEDULE, auth, PAYMENT }
 import { asArray } from '@library/array.library';
 import { getPath } from '@library/object.library';
 import { Instant, getInstant } from '@library/instant.library';
-import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero } from '@library/type.library';
+import { isString, isArray, isFunction, isUndefined, isEmpty, nullToZero, getEnumKeys } from '@library/type.library';
 
 /**
  * Generic Slice Observable
@@ -28,7 +28,7 @@ export const getCurrent = <T>(states: IState, store: STORE, filter: fire.Query["
 
 	return state.pipe(
 		map(state => asAt<T>(state[store], filter, date)),
-		map(table => table.sortBy(asArray(SORTBY[store])))
+		map(table => table.sortBy(asArray(outline.SORTBY[store])))
 	)
 }
 
@@ -49,7 +49,7 @@ export const getStore = <T>(states: IState, store: STORE, filter: fire.Query["wh
 		map(obs => isUndefined(date)
 			? filterTable<T>(obs[store], filter)
 			: asAt<T>(obs[store], filter, date)),
-		map(table => table.sortBy(asArray(SORTBY[store]))),
+		map(table => table.sortBy(asArray(outline.SORTBY[store]))),
 	)
 }
 export const getState = <T>(states: IState, store: STORE, filter: fire.Query["where"] = [], date?: Instant.TYPE) => {
@@ -61,18 +61,18 @@ export const getState = <T>(states: IState, store: STORE, filter: fire.Query["wh
 	return state.pipe(
 		map(obs => Object.keys(obs).map(list => res.concat(Object.values(obs[list]))).flat()),
 		map(table => isUndefined(date) ? filterTable<T>(table, filter) : asAt<T>(table, filter, date)),
-		map(table => table.sortBy(asArray(SORTBY[store]))),
+		map(table => table.sortBy(asArray(outline.SORTBY[store]))),
 	)
 }
 
 export const getSlice = (store: STORE) => {			// determine the state-slice based on the <store> field
-	const slices = Object.keys(SLICES)
-		.filter(key => SLICES[key as COLLECTION]!.includes(store));// find which slice holds the requested store
+	const slices = getEnumKeys(outline.SLICES)
+		.filter(key => outline.SLICES[key]?.includes(store));// find which slice holds the requested store
 
-	if (isEmpty<object>(SLICES))									// nothing in State yet, on first-time connect
-		slices.push(SLICE.client);									// special: assume 'client' slice.
-	if (!SORTBY[store])
-		SORTBY[store] = [FIELD.Sort, FIELD.Key];		// special: assume sort order
+	if (isEmpty<object>(outline.SLICES))									// nothing in State yet, on first-time connect
+		slices.push(COLLECTION.Client);							// special: assume 'client' slice.
+	if (!outline.SORTBY[store])
+		outline.SORTBY[store] = [FIELD.Sort, FIELD.Key];		// special: assume sort order
 
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
@@ -145,7 +145,7 @@ export const joinDoc = (states: IState, node: string | undefined, store: STORE, 
 				Object.keys(joins).map(table => {                     // apply any provided sortBy criteria
 					if (isArray(joins[table]) && joins[table].length) {
 						const store = joins[table][0][FIELD.Store];
-						joins[table] = joins[table].sortBy(asArray(SORTBY[store]));
+						joins[table] = joins[table].sortBy(asArray(outline.SORTBY[store]));
 					}
 				})
 

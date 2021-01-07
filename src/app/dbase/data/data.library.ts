@@ -3,7 +3,7 @@ import { FireService } from '@dbase/fire/fire.service';
 
 import type { FireDocument } from '@dbase/data.schema';
 import { FIELD } from '@dbase/data.define';
-import { FILTER } from '@dbase/state/config.define';
+import { outline } from '@dbase/state/config.define';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isObject, TString, isString } from '@library/type.library';
@@ -15,7 +15,7 @@ import { asArray } from '@library/array.library';
 export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []) => {
 	const where: fire.Where[] = [];
 	const collection = getSlice(nextDoc[FIELD.Store]);
-	const filters = FILTER[collection] || [];			// get the standard list of fields on which to filter
+	const filters = outline.FILTER[collection] || [];			// get the standard list of fields on which to filter
 
 	asArray(filters).forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
@@ -37,7 +37,7 @@ export const docPrep = <T>(doc: T, uid: string) => {
 		throw new Error(`missing field "[${FIELD.Store}]" in ${doc}]`);
 
 	const collection = getSlice(prep[FIELD.Store]);
-	const filters = FILTER[collection] || [];
+	const filters = outline.FILTER[collection] || [];
 
 	if (filters.includes(FIELD.Uid) && !prep[FIELD.Uid])
 		prep[FIELD.Uid] = uid;											// push the current user's uid on the document

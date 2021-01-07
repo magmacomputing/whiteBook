@@ -64,7 +64,7 @@ export type TString = string | string[];
 export type TNumber = number | number[];
 export type valueOf<T> = T[keyof T];
 
-export const getEnumKeys = (enumType: Record<string | number, any>) => Object.keys(enumType).filter(key => isNaN(Number(key)));
+export const getEnumKeys = <T>(enumType: T) => Object.keys(enumType).filter(key => isNaN(Number(key))) as (keyof T)[];
 export const getEnumCount = (enumType: Record<string | number, any>) => getEnumKeys(enumType).length;
-export const getEnumValues = (enumType: Record<string | number, any>) => getEnumKeys(enumType).map(key => enumType[key]);
-export const getEnumEntries = (enumType: Record<string | number, any>) => getEnumKeys(enumType).map(key => [key, enumType[key]]);
+export const getEnumValues = <T>(enumType: T) => getEnumKeys<T>(enumType).map(key => enumType[key]);
+export const getEnumEntries = <T>(enumType: T) => getEnumKeys(enumType).map(key => [key, enumType[key]]);

@@ -18,7 +18,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
-import { getEnumKeys, isFunction, isUndefined } from '@library/type.library';
+import { getEnumValues, isFunction, isUndefined } from '@library/type.library';
 import { quoteObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -134,7 +134,7 @@ export class SyncService {
 		const debug = source === sync.SOURCE.Server && listen.cnt >= (listen.streams * 2);
 		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
-				const idx = getEnumKeys(sync.CHANGE).indexOf(snap.type);
+				const idx = getEnumValues(sync.CHANGE).indexOf(snap.type as sync.CHANGE);
 
 				cnts[idx].push(addMeta(snap));
 				return cnts;

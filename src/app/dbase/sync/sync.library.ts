@@ -31,7 +31,7 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 	const localList: FireDocument[] = [];
 	const snapList = snaps.map(addMeta);
 
-	Object.entries(localSlice).forEach(([_key, value]) => localList.push(...value.map(remMeta)));
+	Object.values(localSlice).forEach(value => localList.push(...value.map(remMeta)));
 	const localSort = localList.sortBy(FIELD.Store, FIELD.Id);
 	const snapSort = snapList.sortBy(FIELD.Store, FIELD.Id);
 	const [localHash, storeHash] = await Promise.all([

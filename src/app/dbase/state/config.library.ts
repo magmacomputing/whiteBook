@@ -1,32 +1,32 @@
-import { STORE, FIELD, COLLECTION } from '@dbase/data.define';
-import { FILTER, SLICES, SORTBY, COMMENT } from '@dbase/state/config.define';
-import { Schema, Config } from '@dbase/data.schema';
+import { STORE, FIELD } from '@dbase/data.define';
+import type { Schema, Config } from '@dbase/data.schema';
+import { outline } from '@dbase/state/config.define';
 
-import { isString } from '@library/type.library';
+import { getEnumKeys, isString } from '@library/type.library';
 import { sortInsert, asArray } from '@library/array.library';
 import { makeTemplate } from '@library/string.library';
 
 /** rebuild values for SLICES / SORTBY / FILTER objects */
 export const setSchema = (schemas: Schema[] = []) => {
-	Object.keys(FILTER)
-		.forEach(key => delete FILTER[key as COLLECTION])
-	Object.keys(SLICES)
-		.forEach(key => delete SLICES[key as COLLECTION])
-	Object.keys(SORTBY)
-		.forEach(key => delete SORTBY[key as STORE])
+	getEnumKeys(outline.FILTER)
+		.forEach(key => delete outline.FILTER[key])
+	getEnumKeys(outline.SLICES)
+		.forEach(key => delete outline.SLICES[key])
+	getEnumKeys(outline.SORTBY)
+		.forEach(key => delete outline.SORTBY[key])
 
 	schemas.forEach(schema => {
 		const { [FIELD.Key]: key, [FIELD.Type]: type, [FIELD.Hidden]: hidden } = schema;
 
 		if (!hidden)
-			SLICES[type] = sortInsert(SLICES[type] || [], schema[FIELD.Key]);
+			outline.SLICES[type] = sortInsert(outline.SLICES[type] || [], schema[FIELD.Key]);
 
-		SORTBY[key] = schema[FIELD.Sort]									// always use Effective Date as final sort-field
-			? asArray(schema[FIELD.Sort]).concat(FIELD.Effect)
-			: [FIELD.Sort, FIELD.Key, FIELD.Effect];				// special: assume sort order
+		outline.SORTBY[key] = schema[FIELD.Sort]									// always use Effective Date as final sort-field
+			? asArray<FIELD>(schema[FIELD.Sort]).concat(FIELD.Effect)
+			: [FIELD.Sort, FIELD.Key, FIELD.Effect];							// special: assume sort order
 
 		if (schema.filter && schema[FIELD.Type].toString() === schema[FIELD.Key].toString())
-			FILTER[type] = schema.filter;									// Collection filter
+			outline.FILTER[type] = asArray<FIELD>(schema.filter);	// Collection filter
 	})
 }
 
@@ -54,24 +54,23 @@ export const getConfig = (config: Config[], type: string, key: string) => {
 			return { ...row, value: subst }               // override with substitute value
 		})
 
-	return clone[0] || { value: {} } as Config;			// first element, else empty value
+	return clone[0] || { value: {} } as Config;				// first element, else empty value
 }
 
-/** Rebuild global COMMENT variable */
+/** Rebuild global COMMENTS variable */
 export const setConfig = (config: Config[] = []) => {
-	type TComment = keyof typeof COMMENT;							// restrict to known Comment-types
-	Object.keys(COMMENT)
-		.forEach(key => delete COMMENT[key as TComment]);
+	getEnumKeys(outline.COMMENTS)
+		.forEach(key => delete outline.COMMENTS[key]);
 
 	config
 		.filter(row => row[FIELD.Type] === STORE.Comment)
 		.forEach(row => {
-			switch (row[FIELD.Key] as TComment) {
+			switch (row[FIELD.Key]) {
 				case 'words':
-					COMMENT.words = row.value;
+					outline.COMMENTS.words = row.value;
 					break;
 				case 'patterns':
-					COMMENT.patterns = row.value;
+					outline.COMMENTS.patterns = row.value;
 					break;
 			}
 		})

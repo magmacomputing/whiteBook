@@ -3,7 +3,7 @@ import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
 import { clientAction, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
-import { SLICES, COMMENT } from '@dbase/state/config.define';
+import { outline } from '@dbase/state/config.define';
 import { setSchema, setConfig } from '@dbase/state/config.library';
 import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
 import type { FireDocument, Schema, Config } from '@dbase/data.schema';
@@ -46,9 +46,9 @@ export class ClientState implements NgxsOnInit {
 			state[store] = filterState(state, doc);
 			state[store].push(doc);															// push the new/changed ClientDoc into the Store
 
-			if (doc[FIELD.Store] === STORE.Schema && (debug || isEmpty<object>(SLICES)))
+			if (doc[FIELD.Store] === STORE.Schema && (debug || isEmpty(outline.SLICES)))
 				schema.push(doc);																	// if STORE.schema changes, rebuild schema-variables
-			if (doc[FIELD.Store] === STORE.Config && (debug || isEmpty<object>(COMMENT)))
+			if (doc[FIELD.Store] === STORE.Config && (debug || isEmpty(outline.COMMENTS)))
 				config.push(doc);
 
 			if (debug) this.dbg('setClient: %s, %j', doc[FIELD.Store], doc);
@@ -57,7 +57,7 @@ export class ClientState implements NgxsOnInit {
 		if (schema.length)
 			setSchema(state[STORE.Schema] as Schema[]);					// rebuild STORES / SORTBY / FILTER
 		if (config.length)
-			setConfig(state[STORE.Config] as Config[]);					// rebuild COMMENT
+			setConfig(state[STORE.Config] as Config[]);					// rebuild COMMENTS
 		setState({ ...state });
 	}
 

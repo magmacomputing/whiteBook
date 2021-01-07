@@ -4,7 +4,7 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { DataService } from '@dbase/data/data.service';
 import { STORE, REACT } from '@dbase/data.define';
 
-import { isString } from '@library/type.library';
+import { getEnumKeys } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable({ providedIn: DBaseModule })
@@ -12,7 +12,7 @@ export class ReactionService {
 	#dbg = dbg(this);
 
 	userId!: string;
-	emojiList = Object.values(REACT).filter(isString)
+	emojiList = getEnumKeys(REACT);
 
 	constructor(private data: DataService) {
 		this.data.getCurrentUser()
