@@ -95,40 +95,27 @@ export class StateService {
 		)
 	}
 
-	getApplicationData(date?: Instant.TYPE): Observable<ApplicationState> {
-		return this.client$.pipe(
-			map(data => ({
-				application: {
-					[STORE.Default]: asAt(data[STORE.Default] as Default[], undefined, date),
-					[STORE.Schema]: asAt(data[STORE.Schema] as Schema[], undefined, date),
-					[STORE.Config]: asAt(data[STORE.Config] as Config[], undefined, date),
-				}
-			}))
-		)
-	}
-
 	/**
 	 * Cast the Ngxs Client$ store, asAt provided date
 	 */
-	getClientData(date?: Instant.TYPE): Observable<ClientState> {
+	getClientData(date?: Instant.TYPE) {
 		return this.client$.pipe(
-			map(data => ({
-				[COLLECTION.Client]: {
-					[STORE.Class]: asAt(data[STORE.Class] as Class[], undefined, date),
-					[STORE.Calendar]: asAt(data[STORE.Calendar] as Calendar[], undefined, date),
-					[STORE.Event]: asAt(data[STORE.Event] as Event[], undefined, date),
-					[STORE.Schedule]: asAt(data[STORE.Schedule] as Schedule[], undefined, date),
-					[STORE.Diary]: asAt(data[STORE.Diary] as Diary[], undefined, date),
-					[STORE.Location]: asAt(data[STORE.Location] as Location[], undefined, date),
-					[STORE.Instructor]: asAt(data[STORE.Instructor] as Instructor[], undefined, date),
-					[STORE.Plan]: asAt(data[STORE.Plan] as Plan[], undefined, date),
-					[STORE.Price]: asAt(data[STORE.Price] as Price[], undefined, date),
-					[STORE.Span]: asAt(data[STORE.Span] as Span[], undefined, date),
-					[STORE.Alert]: asAt(data[STORE.Alert] as Alert[], undefined, date),
-					[STORE.Bonus]: asAt(data[STORE.Bonus] as Bonus[], undefined, date),
-					[STORE.Icon]: asAt(data[STORE.Icon] as Icon[], undefined, date),
-				}
-			}))
+			map(data => {
+				const obj = {
+					application: {},
+					[COLLECTION.Client]: {}
+				} as ApplicationState & ClientState;
+
+				Object.entries(data)
+					.forEach(([store, table]) => {
+						const key = (store.startsWith('_') && store.endsWith('_'))
+							? 'application'
+							: COLLECTION.Client
+						Object.assign(obj[key], { [store]: asAt(table, undefined, date) })
+					})
+
+				return obj;
+			}),
 		)
 	}
 
@@ -331,7 +318,7 @@ export class StateService {
 	/**
 	 * Assemble a standalone Object describing the Timetable for the week (Mon-Sun) that matches the supplied date.  
 	 */
-	getTimetableData(date?: Instant.TYPE): Observable<ApplicationState & ClientState> {
+	getTimetableData(date?: Instant.TYPE) {
 		const now = getInstant(date);
 		const filterClass = fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
 		const filterLocation = fire.addWhere(FIELD.Key, '{{client.schedule.location}}');
@@ -341,12 +328,15 @@ export class StateService {
 		]
 		const filterEvent = fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
 
-		return combineLatest([this.getApplicationData(now), this.getClientData(now)]).pipe(
-			map(([application, client]) => {
-				return { ...application, ...client }
-			}),
+		return this.getClientData(date).pipe(
 			tap(data => console.log('TIMETABLE: ', data)),
-		);
+		)
+		// return combineLatest([this.getApplicationData(now), this.getClientData(now)]).pipe(
+		// 	map(([application, client]) => {
+		// 		return { ...application, ...client }
+		// 	}),
+		// 	tap(data => console.log('TIMETABLE: ', data)),
+		// );
 
 		// return combineLatest([this.getApplicationData(now), this.getClientData(now)]).pipe(
 		// 	map(([application, client]) => {

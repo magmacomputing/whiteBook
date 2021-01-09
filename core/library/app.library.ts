@@ -2,8 +2,8 @@ import { FIELD } from '@dbase/data.define';
 import type { FireDocument } from '@dbase/data.schema';
 import type { fire } from '@dbase/fire/fire.library';
 
-import { getStamp, Instant } from '@library/instant.library';
-import { isString, isUndefined, isArray } from '@library/type.library';
+import { getInstant, getStamp, Instant } from '@library/instant.library';
+import { isString, isUndefined, isArray, isNullish, isDefined } from '@library/type.library';
 import { getPath, cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { toLower } from '@library/string.library';
@@ -116,14 +116,21 @@ export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date:
  * (i.e. where the rows are greater-than-or-equal to the date, or less-than the date)
  * @param table		The table-array to search
  * @param cond 		condition to use as filter
- * @param date 		The date to use when determining which table-rows were effective at that time, default 'today'
+ * @param effect	The date to use when determining which table-rows were effective at that time, default 'today'
+ * @param expire	The date to use when determining upper-limit of effective dates, default 'effect'
  */
-export const asAt = <T>(table: T[], cond: fire.Query["where"] = [], date?: Instant.TYPE) => {
-	const stamp = getStamp(date);
+export const asAt = <T>(table: T[], cond: fire.Query["where"] = [], effect?: Instant.TYPE, expire?: Instant.TYPE) => {
+	const stampStart = getStamp(effect);
+	const stampUntil = isNullish(expire) ? stampStart : getStamp(expire);
 
 	return filterTable(table as (T & FireDocument)[], cond)		// return the rows where date is between _effect and _expire
-		.filter(row => stamp < (row[FIELD.Expire] || Number.MAX_SAFE_INTEGER) + Number(row[FIELD.Effect] === row[FIELD.Expire]))
-		.filter(row => stamp >= (row[FIELD.Effect] || Number.MIN_SAFE_INTEGER))
+		.map(row => {
+			if (isDefined(row[FIELD.Expire]) && row[FIELD.Expire] === row[FIELD.Effect])
+				row[FIELD.Expire] = getInstant(row[FIELD.Effect]).add(1, 'day').startOf('day').ts;
+			return row;
+		})
+		.filter(row => stampUntil < (row[FIELD.Expire] || Number.MAX_SAFE_INTEGER))
+		.filter(row => stampStart >= (row[FIELD.Effect] || Number.MIN_SAFE_INTEGER))
 		.filter(row => !row[FIELD.Hidden])											// discard rows that should not be visible
 		.map(row => row as T)
 }
