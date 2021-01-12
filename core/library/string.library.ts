@@ -115,6 +115,10 @@ export const stringify = (obj: any) => {
 		case 'String':											// return as-is
 			return obj;
 
+		case 'Number':
+		case 'BigInt':
+			return obj.toString();
+
 		case 'Map':													// special treatment
 			val += JSON.stringify(Array.from((obj as any).entries()));
 			return val;

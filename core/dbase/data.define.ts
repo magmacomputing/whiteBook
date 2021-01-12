@@ -47,6 +47,7 @@ export enum STORE {
 	React = 'react',
 	// Attend
 	Attend = 'attend',
+	Booking = 'booking',
 	// misc
 	Local = '@config@',
 	Log = 'log',

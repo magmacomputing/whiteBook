@@ -5,7 +5,8 @@ import type { Instant } from '@library/instant.library';
 export type TStoreConfig = STORE.Schema | STORE.Config | STORE.Default;
 export type TStoreClient = STORE.Class | STORE.Event | STORE.Price | STORE.Plan | STORE.Provider | STORE.Schedule | STORE.Calendar | STORE.Diary | STORE.Location | STORE.Instructor | STORE.Bonus | STORE.Span | STORE.Alert | STORE.Icon;
 type TStoreAdmin = STORE.Register | STORE.Sheet | STORE.Migrate;
-type TStoreMember = STORE.Profile | STORE.Payment | STORE.Gift | STORE.Message | STORE.Attend | STORE.Status | STORE.Log;
+type TStoreMember = STORE.Profile | STORE.Payment | STORE.Gift | STORE.Message | STORE.Status | STORE.Log;
+type TStoreAttend = STORE.Attend | STORE.Booking;
 type TStoreForum = STORE.React | STORE.Comment;
 
 // These are the meta- and common-fields for a standard Firestore document
@@ -54,6 +55,9 @@ export interface ClientCollection extends KeyFields {
 interface MemberCollection extends UserFields {			// this is the base for Member-related documents
 	[FIELD.Store]: TStoreMember;
 	[FIELD.Type]: PROFILE | STATUS | TRACK | MESSAGE | STORE.Event | STORE.Class;
+}
+interface AttendCollection extends Omit<UserFields, FIELD.Type> {
+	[FIELD.Store]: TStoreAttend;
 }
 interface AdminCollection extends KeyFields, Omit<UserFields, FIELD.Stamp> {
 	[FIELD.Store]: TStoreAdmin;
@@ -356,7 +360,7 @@ export interface Gift extends Omit<MemberCollection, FIELD.Type> {
 }
 
 // /attend/attend
-export interface Attend extends Omit<MemberCollection, FIELD.Type> {
+export interface Attend extends AttendCollection {
 	[FIELD.Store]: STORE.Attend;
 	payment: {
 		[FIELD.Id]: string;							// the /member/payment _id
@@ -378,6 +382,20 @@ export interface Attend extends Omit<MemberCollection, FIELD.Type> {
 		day: Instant.WEEKDAY;						// weekDay attended (1-7, 1=Mon)
 		week: number;										// yearWeek attended
 		month: number;									// yearMonth attended
+	},
+}
+//	/attend/booking
+export interface Booking extends AttendCollection {
+	[FIELD.Store]: STORE.Booking;
+	timetable: {
+		[FIELD.Id]: string							// the /client/schedule or /client/event _id to pre-book
+		[FIELD.Store]: STORE.Schedule | STORE.Calendar;
+		[FIELD.Type]: SCHEDULE;
+		[FIELD.Key]: CLASS;
+	},
+	track: {
+		date: number;										// the date to reserve
+		day: Instant.WEEKDAY;
 	},
 }
 
