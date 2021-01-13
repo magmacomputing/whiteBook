@@ -384,6 +384,7 @@ export interface Attend extends AttendCollection {
 		month: number;									// yearMonth attended
 	},
 }
+
 //	/attend/booking
 export interface Booking extends AttendCollection {
 	[FIELD.Store]: STORE.Booking;
@@ -397,6 +398,7 @@ export interface Booking extends AttendCollection {
 		date: number;										// the date to reserve
 		day: Instant.WEEKDAY;
 	},
+	count?: number;										// the count of bookings for this Attend
 }
 
 //	/forum/comment
