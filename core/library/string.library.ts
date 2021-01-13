@@ -1,4 +1,5 @@
-import { getType, isString, isObject, assertCondition, assertString, isNullish } from '@library/type.library';
+import { getType, isString, isObject, assertCondition, assertString, isNullish, isDate } from '@library/type.library';
+import { fmtInstant, Instant } from './instant.library';
 
 // Prototype extensions
 
@@ -103,6 +104,7 @@ export const strlen = <Min extends number, Max extends number>(str: unknown, min
 	return str as StrLen<Min, Max>;
 }
 
+/** Encode an object for safe-storage in LocalStorage */
 export const stringify = (obj: any) => {
 	const type = getType(obj);
 	let val = `${type}:`;
@@ -116,7 +118,6 @@ export const stringify = (obj: any) => {
 			return obj;
 
 		case 'Number':
-		case 'BigInt':
 			return obj.toString();
 
 		case 'Map':													// special treatment
@@ -128,39 +129,49 @@ export const stringify = (obj: any) => {
 			return val;
 
 		default:
-			val += obj as string;
+			val += type === 'Date'
+				? obj.valueOf()
+				: obj
 			return val;
 	}
 }
 
-export const objectify = <T>(str: T | null) => {
-	const val = isString(str) ? str.trim() : '';								// easier to work with trimmed string
-	const pos = val.indexOf(':') + 1;
+/** Decode as string to rebuild the original Object-type */
+export const objectify = <T>(obj: T & any) => {
+	const ifString = isString(obj);
+	const str = ifString ? (obj as unknown as string).trim() : '';				// easier to work with trimmed string
+	const segment = str.substring(str.indexOf(':') + 1);									// qualified-type
 
 	switch (true) {
-		case val.startsWith('{"') && val.endsWith('}'):
-		case val.startsWith('[') && val.endsWith(']'):
-		case val === '{}':
-			return JSON.parse(val) as T;
+		case ifString && str.startsWith('{"') && str.endsWith('}'):
+		case ifString && str.startsWith('[') && str.endsWith(']'):
+		case ifString && str === '{}':
+			return JSON.parse(str) as T;
 
-		case val.startsWith('Object:{"') && val.endsWith('}'):
-		case val.startsWith('Array:[') && val.endsWith(']'):
-			return JSON.parse(val.substring(pos)) as T;
+		case ifString && str.startsWith('Object:{"') && str.endsWith('}'):
+		case ifString && str.startsWith('Array:[') && str.endsWith(']'):
+			return JSON.parse(segment) as T;
 
-		case val.startsWith('Map:[[') && val.endsWith(']]'):
-			return new Map(JSON.parse(val.substring(pos))) as Map<any, T>;
+		case ifString && str.startsWith('Map:[[') && str.endsWith(']]'):
+			return new Map(JSON.parse(segment)) as Map<any, T>;
 
-		case val.startsWith('Set:["') && val.endsWith('"]'):
-			return new Set(JSON.parse(val.substring(pos))) as Set<T>;
+		case ifString && str.startsWith('Set:["') && str.endsWith('"]'):
+			return new Set(JSON.parse(segment)) as Set<T>;
 
-		case val.startsWith('Date:"') && val.endsWith('"'):
-			return new Date(JSON.parse(val.substring(pos)));
+		case ifString && str.startsWith('Date:') && isNumeric(segment):
+			return new Date(asNumber(segment));
 
-		case isNullish(str):
-		case val === '':
-			return null;
+		case ifString && str.startsWith('BigInt:') && isNumeric(segment):
+			return BigInt(segment);
+
+		case ifString:
+		case isNullish(obj):
+			return obj as T;
+
+		case isDate(obj):
+			return fmtInstant(Instant.FORMAT.dayTime, obj) as unknown as T;
 
 		default:
-			return ifNumeric(str as unknown as string);
+			return ifNumeric(obj!) as unknown as T;
 	}
 }
