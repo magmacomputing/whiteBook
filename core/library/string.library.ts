@@ -159,17 +159,17 @@ export const objectify = <T>(obj: T & any) => {
 			return new Set(JSON.parse(segment)) as Set<T>;
 
 		case ifString && str.startsWith('Date:') && isNumeric(segment):
-			return new Date(asNumber(segment));
+			return new Date(asNumber(segment)) as unknown as T;
 
 		case ifString && str.startsWith('BigInt:') && isNumeric(segment):
-			return BigInt(segment);
+			return BigInt(segment) as unknown as T;
 
 		case ifString:
 		case isNullish(obj):
 			return obj as T;
 
 		case isDate(obj):
-			return fmtInstant(Instant.FORMAT.dayTime, obj) as unknown as T;
+			return new Date(obj) as unknown as T;
 
 		default:
 			return ifNumeric(obj!) as unknown as T;
