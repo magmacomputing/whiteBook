@@ -22,7 +22,7 @@ import { fire } from '@dbase/fire/fire.library';
 
 import { WebStore, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
-import { isNull, isArray } from '@library/type.library';
+import { isNull, isArray, TString } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 @Injectable()
@@ -267,7 +267,7 @@ export class AuthState {
 			})
 	}
 
-	private syncUID(uids?: string | string[] | null) {
+	private syncUID(uids?: TString | null) {
 		if (uids) {
 			this.sync.off(COLLECTION.Member);							// unsubscribe from /member
 			this.sync.off(COLLECTION.Attend);							// unsubscribe from /attend

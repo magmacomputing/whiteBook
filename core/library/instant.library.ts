@@ -7,15 +7,16 @@ interface InstantObj {							// Instant values
 	mm: number;												// month; Jan=1, Dec=12
 	dd: number;												// day; 1-31
 	hh: number;												// hour[24]
-	mi: number;												// minute
-	ss: number;												// second
-	ts: number;												// seconds since epoch
-	ms: number;												// milliseconds
+	mi: number;												// minutes
+	ss: number;												// seconds
+	ts: number;												// seconds since Unix epoch
+	ms: number;												// milliseconds since last second
 	ww: number;												// number of weeks
+	tz: number;												// timezone offset in hours
 	mmm: keyof typeof Instant.MONTH;	// short month-name
 	ddd: keyof typeof Instant.WEEKDAY;// short day-name
 	dow: Instant.WEEKDAY;							// weekday; Mon=1, Sun=7
-	tz: number;												// timezone offset in hours
+	time: number;											// milliseconds since Unix epoch
 	value?: Instant.TYPE;							// original value passed to constructor
 }
 
@@ -73,6 +74,7 @@ export class Instant {
 	/** short month name*/	get mmm() { return this.#date.mmm }
 	/** short day name */		get ddd() { return this.#date.ddd }
 	/** weekday number */		get dow() { return this.#date.dow }
+	/** milliseconds epoch*/get time() { return this.#date.time }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting*/
@@ -180,19 +182,19 @@ export class Instant {
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.error('Invalid Date: ', dt, date);							// TODO: throw the Invalid Date?
 
-		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, dow] = [
+		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, dow, time] = [
 			date.getFullYear(), date.getMonth() + 1, date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
 			Math.floor(date.getTime() / 1000), date.getMilliseconds(),
-			date.getTimezoneOffset(), date.getDay() || Instant.WEEKDAY.Sun,
+			date.getTimezoneOffset(), date.getDay() || Instant.WEEKDAY.Sun, date.getTime(),
 		]
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
-		const ny = new Date(date.getFullYear(), 0, 1).valueOf();	// NewYears Day
+		const ny = new Date(date.getFullYear(), 0, 1).getTime();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.TIMES.week + 1);	// ISO Week Number
 
 		return {
-			yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow,
+			yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow, time,
 			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
 		} as InstantObj;
 	}
@@ -301,7 +303,8 @@ export class Instant {
 
 	/** compose a Date() from an Instant() */
 	#composeDate = (date: InstantObj) =>
-		new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms)
+		new Date(date.time)
+	// new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms)
 
 	/** combine Instant components to apply some standard & free-format rules */
 	#formatDate = <K extends keyof DateFmt>(fmt: K): DateFmt[K] => {
@@ -417,7 +420,7 @@ export class Instant {
 	/** calculate the difference between dates (past is positive, future is negative) */
 	#diffDate = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => {
 		const offset = this.#parseDate(dt2, args);
-		const diff = (this.#date.ts * 1000 + this.#date.ms) - (offset.ts * 1000 + offset.ms);
+		const diff = this.#date.time - offset.time;
 		const single = unit.endsWith('s')
 			? unit.substring(0, unit.length - 1)										// remove plural units
 			: unit
@@ -476,8 +479,8 @@ export namespace Instant {
 
 	/**  */
 	export enum DATE {
-		maxStamp = new Date('9999-12-31').valueOf() / 1_000,
-		minStamp = new Date('1000-01-01').valueOf() / 1_000,
+		maxStamp = new Date('9999-12-31').getTime() / 1_000,
+		minStamp = new Date('1000-01-01').getTime() / 1_000,
 	}
 }
 
