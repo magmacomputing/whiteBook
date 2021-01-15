@@ -303,49 +303,48 @@ export class Instant {
 
 	/** compose a Date() from an Instant() */
 	#composeDate = (date: InstantObj) =>
-		new Date(date.time)
-	// new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms)
+		new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms)
 
 	/** combine Instant components to apply some standard & free-format rules */
 	#formatDate = <K extends keyof DateFmt>(fmt: K): DateFmt[K] => {
-		const date = { ...this.#date };													// clone current Instant
+	const date = { ...this.#date };													// clone current Instant
 
-		switch (fmt) {
-			case Instant.FORMAT.yearWeek:
-				const offset = date.ww === 1 && date.mm === Instant.MONTH.Dec;			// if late-Dec, add 1 to yy
-				return asNumber(`${date.yy + Number(offset)}${fix(date.ww)}`);
+	switch (fmt) {
+		case Instant.FORMAT.yearWeek:
+			const offset = date.ww === 1 && date.mm === Instant.MONTH.Dec;			// if late-Dec, add 1 to yy
+			return asNumber(`${date.yy + Number(offset)}${fix(date.ww)}`);
 
-			case Instant.FORMAT.yearMonth:
-				return asNumber(`${fix(date.yy)}${fix(date.mm)}`);
+		case Instant.FORMAT.yearMonth:
+			return asNumber(`${fix(date.yy)}${fix(date.mm)}`);
 
-			case Instant.FORMAT.yearMonthDay:
-				return asNumber(`${date.yy}${fix(date.mm)}${fix(date.dd)}`);
+		case Instant.FORMAT.yearMonthDay:
+			return asNumber(`${date.yy}${fix(date.mm)}${fix(date.dd)}`);
 
-			default:
-				const am = date.hh >= 12 ? 'pm' : 'am';							// noon is considered 'pm'
+		default:
+			const am = date.hh >= 12 ? 'pm' : 'am';							// noon is considered 'pm'
 
-				return asString(fmt)
-					.replace(/y{4}/g, fix(date.yy))
-					.replace(/y{2}/g, fix(date.yy).substring(2, 4))
-					.replace(/m{3}/g, date.mmm)
-					.replace(/m{2}/g, fix(date.mm))
-					.replace(/d{3}/g, date.ddd)
-					.replace(/d{2}/g, fix(date.dd))
-					.replace(/H{2}/g, fix(date.hh))
-					.replace(/h{2}/g, fix(date.hh))
-					.replace(/M{2}/g, fix(date.mi))
-					.replace(/MI/g, fix(date.mi))
-					.replace(/h{2}/g, fix(date.hh >= 13 ? date.hh % 12 : date.hh))
-					.replace(/m{2}/g, fix(date.mi) + am)
-					.replace(/mi/g, fix(date.mi) + am)
-					.replace(/S{2}/g, fix(date.ss))
-					.replace(/s{2}/g, fix(date.ss))
-					.replace(/ts/g, asString(date.ts))
-					.replace(/ms/g, asString(date.ms))
-					.replace(/w{2}/g, asString(date.ww))
-					.replace(/dow/g, asString(date.dow))
-		}
+			return asString(fmt)
+				.replace(/y{4}/g, fix(date.yy))
+				.replace(/y{2}/g, fix(date.yy).substring(2, 4))
+				.replace(/m{3}/g, date.mmm)
+				.replace(/m{2}/g, fix(date.mm))
+				.replace(/d{3}/g, date.ddd)
+				.replace(/d{2}/g, fix(date.dd))
+				.replace(/H{2}/g, fix(date.hh))
+				.replace(/h{2}/g, fix(date.hh))
+				.replace(/M{2}/g, fix(date.mi))
+				.replace(/MI/g, fix(date.mi))
+				.replace(/h{2}/g, fix(date.hh >= 13 ? date.hh % 12 : date.hh))
+				.replace(/m{2}/g, fix(date.mi) + am)
+				.replace(/mi/g, fix(date.mi) + am)
+				.replace(/S{2}/g, fix(date.ss))
+				.replace(/s{2}/g, fix(date.ss))
+				.replace(/ts/g, asString(date.ts))
+				.replace(/ms/g, asString(date.ms))
+				.replace(/w{2}/g, asString(date.ww))
+				.replace(/dow/g, asString(date.dow))
 	}
+}
 
 	/**
 	 * a fmt string contains '%' markers plus Instant components.  
@@ -354,81 +353,81 @@ export class Instant {
 	 * e.g. ('%dd-%mmm', 20, 'May') will return new Date() for 20-May in current year.
 	 */
 	#formatString = (fmt: string, ...args: TArgs) => {
-		const date = new Instant().startOf('day').toJSON()	// date components
-		let argCnt = 0;
+	const date = new Instant().startOf('day').toJSON()	// date components
+	let argCnt = 0;
 
-		fmt.split('%')
-			.forEach(word => {
-				const word4 = word.substring(0, 4),
-					word3 = word.substring(0, 3),
-					word2 = word.substring(0, 2);
-				let param = args[argCnt];
-				const str = asString(param);
-				const num = asNumber(param);
+	fmt.split('%')
+		.forEach(word => {
+			const word4 = word.substring(0, 4),
+				word3 = word.substring(0, 3),
+				word2 = word.substring(0, 2);
+			let param = args[argCnt];
+			const str = asString(param);
+			const num = asNumber(param);
 
-				switch (true) {
-					case word2 === 'yy' && word4 !== 'yyyy':
-						date.yy = (2000 + num) < (date.yy + 10)
-							? 2000 + num								// if less than ten-years, assume this century
-							: 1900 + num								// if more than ten-years, assume last century
-						break;
-					case word4 === 'yyyy':
-						date.yy = num;
-						break;
+			switch (true) {
+				case word2 === 'yy' && word4 !== 'yyyy':
+					date.yy = (2000 + num) < (date.yy + 10)
+						? 2000 + num								// if less than ten-years, assume this century
+						: 1900 + num								// if more than ten-years, assume last century
+					break;
+				case word4 === 'yyyy':
+					date.yy = num;
+					break;
 
-					case word3 === 'mmm':						// change the month-name into a month-number
-						param = Instant.MONTH[param as Instant.MONTH];
-					case word2 === 'mm':
-						date.mm = num;
-						break;
+				case word3 === 'mmm':						// change the month-name into a month-number
+					param = Instant.MONTH[param as Instant.MONTH];
+				case word2 === 'mm':
+					date.mm = num;
+					break;
 
-					case word3 === 'ddd':						// set the day to the last occurrence of %ddd
-						let weekDay = Instant.WEEKDAY[param as Instant.WEEKDAY];
-						param = (date.dd - date.dow + weekDay).toString();
-					case word2 === 'dd':
-						date.dd = num;
-						break;
+				case word3 === 'ddd':						// set the day to the last occurrence of %ddd
+					let weekDay = Instant.WEEKDAY[param as Instant.WEEKDAY];
+					param = (date.dd - date.dow + weekDay).toString();
+				case word2 === 'dd':
+					date.dd = num;
+					break;
 
-					case word2 === 'hh' && str.endsWith('pm'):	// special case to coerce am/pm to pm
-					case word2 === 'hh' && str.endsWith('am'):
-						const hour = asNumber(str.substring(0, str.length - 2).trim());
-						date.hh = hour % 12 + (str.endsWith('pm') || hour > 12 ? 1 : 0);
-						break;
-					case word2 === 'HH':
-					case word2 === 'hh':
-						date.hh = num;
-						break;
-					case word2 === 'MM':
-					case word2 === 'MI':
-					case word2 === 'mi':
-						date.mi = num;
-						break;
-					case word2 === 'SS':
-					case word2 === 'ss':
-						date.ss = num;
-						break;
+				case word2 === 'hh' && str.endsWith('pm'):	// special case to coerce am/pm to pm
+				case word2 === 'hh' && str.endsWith('am'):
+					const hour = asNumber(str.substring(0, str.length - 2).trim());
+					date.hh = hour % 12 + (str.endsWith('pm') || hour > 12 ? 1 : 0);
+					break;
+				case word2 === 'HH':
+				case word2 === 'hh':
+					date.hh = num;
+					break;
+				case word2 === 'MM':
+				case word2 === 'MI':
+				case word2 === 'mi':
+					date.mi = num;
+					break;
+				case word2 === 'SS':
+				case word2 === 'ss':
+					date.ss = num;
+					break;
 
-					default:
-						argCnt -= 1;
-				}
-				argCnt += 1;
-			})
+				default:
+					argCnt -= 1;
+			}
+			argCnt += 1;
+		})
 
-		return this.#composeDate(date);
-	}
+	return this.#composeDate(date);
+}
 
 	/** calculate the difference between dates (past is positive, future is negative) */
 	#diffDate = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => {
-		const offset = this.#parseDate(dt2, args);
-		const diff = this.#date.time - offset.time;
-		const single = unit.endsWith('s')
-			? unit.substring(0, unit.length - 1)										// remove plural units
-			: unit
+	const offset = this.#parseDate(dt2, args);
+	const diff = this.#date.time - offset.time;
+	const single = unit.endsWith('s')
+		? unit.substring(0, unit.length - 1)										// remove plural units
+		: unit
 
-		return diff < 0
-			? Math.ceil(diff / Instant.TIMES[single as TUnitTime])
-			: Math.floor(diff / Instant.TIMES[single as TUnitTime])
-	}
+	return diff < 0
+		? Math.ceil(diff / Instant.TIMES[single as TUnitTime])
+		: Math.floor(diff / Instant.TIMES[single as TUnitTime])
+}
 }
 
 export namespace Instant {
