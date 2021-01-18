@@ -385,20 +385,9 @@ export interface Attend extends AttendCollection {
 	},
 }
 
-//	/attend/booking
-export interface Booking extends AttendCollection {
+//	/attend/booking									// intent to Attend
+export interface Booking extends Omit<Attend, FIELD.Store> {
 	[FIELD.Store]: STORE.Booking;
-	timetable: {
-		[FIELD.Id]: string							// the /client/schedule or /client/event _id to pre-book
-		[FIELD.Store]: STORE.Schedule | STORE.Calendar;
-		[FIELD.Type]: SCHEDULE;
-		[FIELD.Key]: CLASS;
-	},
-	track: {
-		date: number;										// the date to reserve
-		day: Instant.WEEKDAY;
-	},
-	count?: number;										// the count of bookings for this Attend
 }
 
 //	/forum/comment

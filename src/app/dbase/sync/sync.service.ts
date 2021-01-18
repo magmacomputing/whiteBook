@@ -1,25 +1,22 @@
 import { Injectable } from '@angular/core';
-import type { DocumentChangeAction } from '@angular/fire/firestore';
-
 import { timer } from 'rxjs';
 import { map, debounce, timeout, take } from 'rxjs/operators';
 import { Store, Actions, ofActionDispatched, ActionType } from '@ngxs/store';
 
 import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
-import { LoginEvent, AuthSlice } from '@dbase/state/auth.action';
+import { AuthSlice } from '@dbase/state/auth.action';
 import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
-import { NavigateService } from '@route/router/navigate.service';
 
 import type { FireDocument } from '@dbase/data.schema';
-import { FIELD, STORE, COLLECTION, PROFILE } from '@dbase/data.define';
+import { COLLECTION } from '@dbase/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
 import { getEnumValues, isFunction, isUndefined } from '@library/type.library';
-import { quoteObj } from '@library/object.library';
+import { isEqual, quoteObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
 /**
@@ -30,7 +27,7 @@ export class SyncService {
 	#dbg = dbg(this);
 	#listener: Map<sync.Key, sync.Listen> = new Map();
 
-	constructor(private fire: FireService, private store: Store, private navigate: NavigateService, private actions: Actions) { this.#dbg('new'); }
+	constructor(private fire: FireService, private store: Store, private actions: Actions) { this.#dbg('new'); }
 
 	/**
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
@@ -38,25 +35,27 @@ export class SyncService {
 	 */
 	public async on(collection: COLLECTION, query?: fire.Query, ...additional: [COLLECTION, fire.Query?][]) {
 		const ready = new Pledge<boolean>();
-		const refs = this.fire.colRef<FireDocument>(collection, query);
 		const key: sync.Key = { collection, query };
+		const off: (() => void)[] = [];										// array of listener unsubscribe functions
 
-		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
-			refs.push(...this.fire.colRef<FireDocument>(collection, query)));
-		const stream = this.fire.merge(refs, 'stateChanges');
-		const sync = this.sync.bind(this, key);
 		const label = `${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
+		const sync = this.sync.bind(this, key);
+		const uid = await this.getAuthUID();
 
-		this.off(collection, query);											// detach any prior Subscription of the same signature
+		this.off(collection, query);											// detach any prior subscription of the same signature
+		off.push(this.fire.on(collection, query, sync));	// start primary collection listener
+		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
+			off.push(this.fire.on(collection, query, sync)))
+
 		this.#listener.set(key, {
 			key,																						// stash reference to the key
-			label,																					// stash Listen references			
-			streams: refs.length,														// number of listeners
+			label,																					// stash Listen references
+			streams: off.length,
 			ready,
 			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
-			uid: await this.getAuthUID(),
+			uid,
+			off,
 			method: getMethod(collection),
-			subscribe: stream.subscribe(sync)
 		})
 
 		this.#dbg('on: %s %s', key.collection, label);
@@ -111,11 +110,12 @@ export class SyncService {
 	/** detach an existing snapshot listener */
 	public off(collection?: COLLECTION, query?: fire.Query, trunc?: boolean) {
 		for (const [key, listen] of this.#listener.entries()) {
-			if ((collection ?? key.collection) === key.collection
-				&& JSON.stringify((query ?? key.query)) === JSON.stringify(key.query)) {
+			if ((collection ?? key.collection) === key.collection && isEqual(query ?? key.query, key.query)) {
 				this.#dbg('off: %s %j', key.collection, key.query || {});
 
-				listen.subscribe.unsubscribe();
+				listen.off
+					.forEach(off => off());												// detach all listeners
+
 				if (trunc)
 					this.store.dispatch(new listen.method.clearStore());
 
@@ -124,31 +124,34 @@ export class SyncService {
 		}
 	}
 
-	/** handler for snapshot listeners */
-	private async sync(key: sync.Key, snaps: DocumentChangeAction<FireDocument>[]) {
+	/** handler for snapshot listener */
+	private async sync(key: sync.Key, snaps: firebase.default.firestore.QuerySnapshot<FireDocument>) {
 		const listen = this.#listener.get(key)!;
 		const { setStore, delStore, clearStore } = listen.method;
 		const source = getSource(snaps);
 
-		listen.cnt += 1;
-		const debug = source === sync.SOURCE.Server && listen.cnt >= (listen.streams * 2);
-		const [snapAdd, snapMod, snapDel] = snaps
-			.reduce((cnts, snap) => {
-				const idx = getEnumValues(sync.CHANGE).indexOf(snap.type as sync.CHANGE);
+		if (snaps.empty)
+			return listen.ready.resolve(false);							// bail-out
 
-				cnts[idx].push(addMeta(snap));
+		listen.cnt += 1;
+		const debug = source === sync.SOURCE.Server && listen.cnt >= listen.streams;
+		const changes = getEnumValues(sync.CHANGE);
+		const [snapAdd, snapMod, snapDel] = snaps.docChanges()
+			.reduce((cnts, snap) => {
+				const idx = changes.indexOf(snap.type as sync.CHANGE);
+
+				cnts[idx].push(addMeta(snap.doc));
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
 		this.#dbg('sync: %s %s #%s (ins:%s, upd:%s, del:%s) %s',
 			key.collection, source, listen.cnt, snapAdd.length, snapMod.length, snapDel.length, listen.label);
 
-		if (listen.cnt === 0 && listen.streams === 1) {   // initial snapshot, but Admin will arrive in multiple streams
+		if (listen.cnt === 0) {   												// initial snapshot from cache
 			listen.uid = await this.getAuthUID();						// override with now-settled Auth UID
-			if (await checkStorage(listen, snaps)) {
-				listen.ready.resolve(true);										// storage already sync'd... skip the initial snapshot
-				return true;
-			}
+			if (await checkStorage(listen, snapAdd))				// check the cache against localStorage
+				return listen.ready.resolve(true);						// storage already sync'd... skip the initial snapshot
+
 			await this.store
 				.dispatch(new clearStore(debug))							// suspected tampering, reset Store
 				.toPromise();
@@ -158,25 +161,17 @@ export class SyncService {
 		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();	// then 'modified'
 		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'removed'
 
-		if (listen.cnt !== 0) {
-			snaps.forEach(async snap => {										// look for special actions to emit
-				const data = addMeta(snap);
-				if (data[FIELD.Uid] === listen.uid) {					// but only for authenticated User
-					switch (snap.type) {
-						case sync.CHANGE.Added:
-						case sync.CHANGE.Modified:
-							if (data[FIELD.Store] === STORE.Profile && data[FIELD.Type] === PROFILE.Claim && !data[FIELD.Expire])
-								this.store.dispatch(new LoginEvent.Token()); // special: access-level has changed
-							break;
+		if (listen.cnt === 0) {
+			// 	snapAdd.concat(snapMod).forEach(doc => {				// special processing logic
+			// 		if (doc[FIELD.Uid] === listen.uid) {					// but only docs for the currently authenticated User
 
-						case sync.CHANGE.Removed:
-							break;
-					}
-				}
-			})
+			// 			if (doc[FIELD.Store] === STORE.Profile && doc[FIELD.Type] === PROFILE.Claim && !doc[FIELD.Expire])
+			// 				this.store.dispatch(new LoginEvent.Token());// access-level has changed
+			// 		}
+			// 	})
 		}
+		else listen.ready.resolve(true);
 
-		if (listen.cnt === 0)
-			listen.ready.resolve(true);
+		return listen.ready.promise;
 	}
 }

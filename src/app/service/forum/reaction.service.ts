@@ -11,7 +11,7 @@ import { dbg } from '@library/logger.library';
 export class ReactionService {
 	#dbg = dbg(this);
 
-	userId!: string;
+	userId!: string | undefined;
 	emojiList = getEnumKeys(REACT);
 
 	constructor(private data: DataService) {
@@ -24,7 +24,7 @@ export class ReactionService {
 	}
 
 	updateReaction(itemId: string, reaction: REACT = REACT.Like) {
-		const data = { [this.userId]: reaction }
+		// const data = { [this.userId]: reaction }
 		// this.db.object(`reactions/${itemId}`).update(data)
 	}
 

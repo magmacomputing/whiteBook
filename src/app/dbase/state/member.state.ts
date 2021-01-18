@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
-import { State, Action, StateContext, NgxsOnInit } from '@ngxs/store';
+import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
+
+import { COLLECTION, FIELD, PROFILE, STORE } from '@dbase/data.define';
+import type { FireDocument } from '@dbase/data.schema';
+import { FireService } from '@dbase/fire/fire.service';
 
 import type { TStateSlice } from '@dbase/state/state.define';
-import type { FireDocument } from '@dbase/data.schema';
+import { LoginEvent } from '@dbase/state/auth.action';
 import { memberAction, filterState } from '@dbase/state/state.action';
-import { COLLECTION, FIELD } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { cloneObj } from '@library/object.library';
@@ -18,7 +21,7 @@ import { dbg } from '@library/logger.library';
 export class MemberState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor() { this.init(); }
+	constructor(private store: Store) { this.init(); }
 
 	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { /** this.init(); */ }
 

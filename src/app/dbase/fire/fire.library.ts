@@ -1,6 +1,6 @@
 import { FieldPath, QueryFn } from '@angular/fire/firestore';
 
-import { FIELD } from '@dbase/data.define';
+import { COLLECTION, FIELD } from '@dbase/data.define';
 
 import { asArray } from '@library/array.library';
 import { isNumeric } from '@library/string.library';
@@ -15,7 +15,7 @@ export namespace fire {
 	 * and needs to be split into separate Queries, as Firestore does not currently
 	 * allow 'or' in a complex Query
 	 */
-	export const fnQuery = (query: fire.Query = {}) => {
+	export const fnQuery = (collection: COLLECTION, query: fire.Query = {}) => {
 		return splitQuery(query)
 			.map<QueryFn>(split =>
 				(colRef: firebase.default.firestore.Query) => {															// map a Query-function

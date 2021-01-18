@@ -1,6 +1,6 @@
 import firebase from 'firebase/app';
 
-import { isObject, isArray, isString, TString, isNull, isUndefined, isNullish, isReference } from '@library/type.library';
+import { isObject, isArray, isString, TString, isNull, isUndefined, isReference, isFunction } from '@library/type.library';
 
 const regex = /(?<matchWord>.*)\[(?<matchIdx>.)\]$/;// a pattern to find array-references
 const regDate = /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/;
@@ -44,7 +44,7 @@ export const getPath1 = <T>(obj: any, path: string, dflt?: T, idx?: string | num
 		if (!isObject(obj))
 			return dflt;
 	}
-	
+
 	let res = obj;
 	path
 		.replace(' ', '')
@@ -56,9 +56,9 @@ export const getPath1 = <T>(obj: any, path: string, dflt?: T, idx?: string | num
 
 /**
  * I like the idea of passing a value=\<undefined> in a Firestore document to indicate an update should delete a field from the back-end.  
- * This is cleaner than adding FieldValue.delete() as an allowable type on every field.  
- * JSON.stringify.replacer will stash these fields with a substitute value, and  
- * JSON.parse.reviver will replace the substitute with firestore.FieldValue.delete()
+ * This is cleaner than adding firestore.FieldValue.delete() as an allowable type on every field.  
+ * JSON.stringify.replacer() will stash these fields with a substitute value, and  
+ * JSON.parse.reviver() will replace the substitute with firestore.FieldValue.delete()
  */
 export const cloneObj = <T>(obj: T, subst?: any): T => {
 	try {
@@ -100,9 +100,9 @@ export const quoteObj = (obj: any) => {
 }
 
 /** deep-compare Objects for equality */
-export const isEqual = (obj1: any, obj2: any): boolean => {
-	const keys1 = obj1?.keys ? Array.from<string>(obj1.keys()) : Object.keys(obj1);
-	const keys2 = obj2?.keys ? Array.from<string>(obj2.keys()) : Object.keys(obj2);
+export const isEqual = (obj1: any = {}, obj2: any = {}): boolean => {
+	const keys1 = isFunction(obj1.keys) ? Array.from<string>(obj1.keys()) : Object.keys(obj1);
+	const keys2 = isFunction(obj2.keys) ? Array.from<string>(obj2.keys()) : Object.keys(obj2);
 	const keys = new Set<string>();
 
 	keys1.forEach(key => keys.add(key));
@@ -114,6 +114,7 @@ export const isEqual = (obj1: any, obj2: any): boolean => {
 
 		if (!isReference(val1) && val1 !== val2)
 			console.log('change: <', key, '> ', val1, ' => ', val2);
+
 		return isReference(val1) && isReference(val2)
 			? isEqual(val1, val2)											// recurse into object
 			: val1 === val2

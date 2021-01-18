@@ -38,7 +38,7 @@ export namespace sync {
 		cnt: number;													// count of snapshots received
 		uid: string | null;										// authenticated User
 		ready: Pledge<boolean>;								// indicate when snap0 is received
-		subscribe: Subscription;							// used for turning off Subscription
+		off: (() => void)[];									// used for turning off listener
 		method: {
 			setStore: typeof clientAction.Set | typeof memberAction.Set | typeof attendAction.Set | typeof deviceAction.Set | typeof adminAction.Set | typeof stageAction.Set;
 			delStore: typeof clientAction.Del | typeof memberAction.Del | typeof attendAction.Del | typeof deviceAction.Del | typeof adminAction.Del | typeof stageAction.Del;

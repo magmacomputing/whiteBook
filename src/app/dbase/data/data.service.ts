@@ -81,7 +81,7 @@ export class DataService {
 
 	getCurrentUser() {
 		return this.auth.current
-			.then(current => current!.uid);												// get the impersonate UserID
+			.then(current => current?.uid);												// get the impersonate UserID
 	}
 
 	getActiveUser() {
@@ -132,7 +132,7 @@ export class DataService {
 	}
 
 	async setDoc<T>(store: STORE, doc: T) {
-		const set = docPrep(doc, await this.getCurrentUser())									// make sure we have a <key/uid> field
+		const set = docPrep(doc, await this.getCurrentUser())		// make sure we have a <key/uid> field
 		return this.fire.setDoc(store, set);
 	}
 

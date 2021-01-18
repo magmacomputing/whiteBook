@@ -17,8 +17,8 @@ export class AppComponent implements OnInit {
 	public ROLE = auth.ROLE;
 
 	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService, readonly worker: WorkerService) {
-		this.state.getTimetableData()
-			.toPromise()
+		// this.state.getTimetableData()
+		// 	.toPromise()
 			// .then(console.log)
 	}
 

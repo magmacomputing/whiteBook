@@ -3,7 +3,6 @@ import { map, switchMap, take } from 'rxjs/operators';
 
 import { Store } from '@ngxs/store';
 import { StateService } from '@dbase/state/state.service';
-import { DataService } from '@dbase/data/data.service';
 import { LoginAction, LoginEvent } from '@dbase/state/auth.action';
 
 import { AuthModule } from '@service/auth/auth.module';

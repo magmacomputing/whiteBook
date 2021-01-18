@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, CanDeactivate } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, CanDeactivate, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { ROUTE } from '@route/router/route.define';
 import { NavigateService } from '@route/router/navigate.service';
 import { LoginModule } from '@route/login/login.module';
 
-import { fire } from '@dbase/fire/fire.library';
 import { AuthModule } from '@service/auth/auth.module';
 import { DataService } from '@dbase/data/data.service';
-import { FIELD, PROFILE, STORE } from '@dbase/data.define';
+import { PROFILE } from '@dbase/data.define';
 
-import { getPath } from '@library/object.library';
+import { isDefined } from '@library/type.library';
 import { dbg } from '@library/logger.library';
+import { take } from 'rxjs/operators';
 
 /**
  * TODO: The ROUTE.oauth should not be accessible by the Member.
@@ -28,6 +28,32 @@ export class OAuthGuard implements CanActivate {
 	async canActivate() {
 		this.#dbg('oauth: %s', this.navigate.url);
 		return true;
+	}
+}
+
+@Injectable({ providedIn: AuthModule })
+export class LoginGuard implements CanActivate {
+	#dbg = dbg(this, 'LoginGuard');
+
+	constructor(private data: DataService) { this.#dbg('new') }
+
+	async canActivate(route: ActivatedRouteSnapshot) {
+		const currUser = await this.data.getCurrentUser();
+
+		this.#dbg('LOGIN: ', route.data);
+		return isDefined(currUser);
+	}
+}
+
+@Injectable({ providedIn: AuthModule })
+export class AdminGuard implements CanActivate {
+	#dbg = dbg(this, 'AdminGuard');
+
+	constructor(private data: DataService) { this.#dbg('new') }
+
+	async canActivate(route: ActivatedRouteSnapshot) {
+		const isAdmin = await this.data.isAdmin$().pipe(take(1)).toPromise();
+		return isAdmin;
 	}
 }
 

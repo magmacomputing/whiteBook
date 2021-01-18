@@ -31,7 +31,7 @@ export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []
 	return where;
 }
 
-export const docPrep = <T>(doc: T, uid: string) => {
+export const docPrep = <T>(doc: T, uid?: string) => {
 	const prep = doc as unknown as FireDocument;
 	if (!prep[FIELD.Store])												// every document needs a <store> field
 		throw new Error(`missing field "[${FIELD.Store}]" in ${doc}]`);

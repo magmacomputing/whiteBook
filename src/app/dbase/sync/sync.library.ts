@@ -12,24 +12,18 @@ import { Cipher } from '@library/cipher.library';
 import { WebStore } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
-export const getSource = (snaps: DocumentChangeAction<FireDocument>[]) => {
-	const meta = snaps.length
-		? snaps[0].payload.doc.metadata
-		: {} as firebase.firestore.SnapshotMetadata;
-
-	return meta.fromCache
+export const getSource = (snaps: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>) =>
+	snaps.metadata.fromCache
 		? sync.SOURCE.Cache
-		: meta.hasPendingWrites
+		: snaps.metadata.hasPendingWrites
 			? sync.SOURCE.Local
 			: sync.SOURCE.Server
-}
 
 /** check for uncollected changes on remote database, or tampering on the localStorage object */
-export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAction<FireDocument>[]) => {
+export const checkStorage = async (listen: sync.Listen, snapList: FireDocument[] = []) => {
 	const localState = WebStore.local.get<LState>(WebStore.State, {});
 	const localSlice = localState[listen.key.collection] || {};
 	const localList: FireDocument[] = [];
-	const snapList = snaps.map(addMeta);
 
 	Object.values(localSlice).forEach(value => localList.push(...value.map(remMeta)));
 	const localSort = localList.sortBy(FIELD.Store, FIELD.Id);
@@ -37,12 +31,10 @@ export const checkStorage = async (listen: sync.Listen, snaps: DocumentChangeAct
 	const [localHash, storeHash] = await Promise.all([
 		Cipher.hash(localSort),
 		Cipher.hash(snapSort),
-	]);
+	])
 
-	if (localHash === storeHash) {                  // compare what is in snap0 with localStorage
-		listen.ready.resolve(true);                   // indicate snap0 is ready
-		return true;                                  // ok, already sync'd
-	}
+	if (localHash === storeHash)                  		// compare what is in snap0 with localStorage
+		return true;                                  	// ok, already sync'd
 
 	lprintf('SyncLibrary', '%s: %s / %s', listen.key.collection, localHash.slice(-7), storeHash.slice(-7));
 	return false;
@@ -54,8 +46,8 @@ const remMeta = (doc: FireDocument) => {
 	return rest;
 }
 
-export const addMeta = (snap: DocumentChangeAction<FireDocument>) =>
-	({ ...snap.payload.doc.data(), [FIELD.Id]: snap.payload.doc.id } as FireDocument)
+export const addMeta = (snap: firebase.firestore.QueryDocumentSnapshot<FireDocument>) =>
+	({ ...snap.data(), [FIELD.Id]: snap.id } as FireDocument)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: COLLECTION) => {

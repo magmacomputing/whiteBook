@@ -146,15 +146,17 @@ export class MigrateComponent implements OnInit, OnDestroy {
 				const action = 'history,status';
 				const { id, provider } = sheet.providers![0];
 				let status: Record<string, any> = {};
+
 				this.fetch(action, `provider=${provider}&id=${id}`)
 					.then((resp: { history: Migration.History[], status: {} }) => {
 						status = resp.status;
 						return (resp.history || []).orderBy(FIELD.Stamp);
 					})
 					.then(history => this.#history.resolve(history))
+
 				this.#history.promise
 					.then(hist => this.#dbg('history: %s, %j', hist.length, status))
-					.catch(err => this.#dbg('err: %j', err.message))
+					.catch(error => this.#dbg('error: %j', error.message))
 
 				this.account$ = this.state.getAccountData();
 				this.#dflt = CLASS.Zumba;

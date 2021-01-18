@@ -22,16 +22,16 @@ export class Pledge<T> {
 		})
 	}
 
-	resolve(value?: T) {
+	resolve(value: T) {
 		this.#status = Pledge.Status.fulfilled;
-		this.#resolve(value!);
-		return this;
+		this.#resolve(value);
+		return value;
 	}
 
 	reject(error?: any) {
 		this.#status = Pledge.Status.rejected;
 		this.#reject(error);
-		return this;
+		return error;
 	}
 
 	get promise() {

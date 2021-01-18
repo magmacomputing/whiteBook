@@ -3,6 +3,7 @@ import { Observable, combineLatest, merge, concat } from 'rxjs';
 import { tap, take, map } from 'rxjs/operators';
 
 import firebase from 'firebase/app';
+import { environment } from '@env/environment';
 import { AngularFirestore, AngularFirestoreCollection, DocumentReference, DocumentChangeAction, DocumentData } from '@angular/fire/firestore';
 import { AngularFireFunctions, } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
@@ -13,24 +14,28 @@ import { fire } from '@dbase/fire/fire.library';
 import { FireDocument } from '@dbase/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
-import { isArray, isObject, isUndefined } from '@library/type.library';
-import { asArray } from '@library/array.library';
+import { isArray, isDefined, isIterable, isObject, isUndefined } from '@library/type.library';
+import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
+import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
 
 type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
 
 /**
- * This private service will communicate with the FireStore database,
+ * This private service will communicate with the FireStore database,  
  * and is intended to be invoked via the DataService only
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
+	#app: firebase.app.App;
 	#dbg = dbg(this);
 
 	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
 		private zone: NgZone, private snack: SnackService) {
 		this.#dbg('new');
+		this.#app = firebase.initializeApp(environment.firebase.prod);
+		this.#app.firestore().enablePersistence({ synchronizeTabs: environment.firebase.config.synchronizeTabs });
 	}
 
 	/**
@@ -39,9 +44,42 @@ export class FireService {
 	 */
 	colRef<T>(collection: COLLECTION, query?: fire.Query) {
 		return isUndefined(query)
-			? [this.afs.collection<T>(collection)]		// reference against the entire collection
-			: fire.fnQuery(query)													// else register an array of Querys over a collection reference
+			? [this.afs.collection<T>(collection)]			// reference against the entire collection
+			: fire.fnQuery(collection, query)						// else register an array of Querys over a collection reference
 				.map(qry => this.afs.collection<T>(collection, qry));
+	}
+
+	private queryRef(collection: COLLECTION, query: fire.Query = {}) {
+		let colRef: firebase.firestore.Query = firebase.firestore().collection(collection);
+
+		asArray(query.where)
+			.filter(where => isDefined(where.value))												// discard queries for 'undefined' value; not supported
+			.forEach(where => colRef = colRef.where(
+				where.fieldPath,
+				(where.opStr || (isIterable(where.value) ? 'in' : '==')),
+				isIterable(where.value) ? asArray(where.value) : where.value)	// coerce Set to Array
+			);
+
+		if (query.orderBy)
+			asArray(query.orderBy)
+				.forEach(order => colRef = colRef.orderBy(order.fieldPath, order.directionStr));
+
+		if (isNumeric(query.limit))
+			colRef = colRef.limit(query.limit);
+
+		if (query.startAt)
+			colRef = colRef.startAt(query.startAt);
+
+		if (query.startAfter)
+			colRef = colRef.startAfter(query.startAfter);
+
+		if (query.endAt)
+			colRef = colRef.endAt(query.endAt);
+
+		if (query.endBefore)
+			colRef = colRef.endBefore(query.endBefore);
+
+		return colRef as firebase.firestore.CollectionReference<FireDocument>;
 	}
 
 	private subRef<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
@@ -66,9 +104,14 @@ export class FireService {
 			.pipe(map(snap => snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.Id]: docs.payload.doc.id, } as T))))
 	}
 
+	on(collection: COLLECTION, query: fire.Query = {}, callBack: (arg: firebase.firestore.QuerySnapshot<FireDocument>) => void) {
+		return this.queryRef(collection, query)
+			.onSnapshot(callBack)
+	}
+
 	get<T>(collection: COLLECTION, query?: fire.Query) {
 		return this.afs
-			.collection<T>(collection, fire.fnQuery(query)[0])
+			.collection<T>(collection, fire.fnQuery(collection, query)[0])
 			.get({ source: 'server' })								// get the server-data, rather than cache
 			.toPromise()
 			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
