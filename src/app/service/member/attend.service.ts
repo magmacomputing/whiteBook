@@ -311,7 +311,7 @@ export class AttendService {
 			this.data.getStore<Attend>(STORE.Attend, fire.addWhere(`payment.${FIELD.Id}`, payIds)),
 			this.data.getStore<Payment & Chain>(STORE.Payment, memberUid),
 			this.data.getStore<Gift>(STORE.Gift, [memberUid, fire.addWhere(FIELD.Id, giftIds)]),
-			this.data.getFire<React | Comment>(COLLECTION.Forum, {
+			this.data.select<React | Comment>(COLLECTION.Forum, {
 				where: [
 					memberUid,
 					fire.addWhere(FIELD.Type, STORE.Schedule),

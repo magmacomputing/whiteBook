@@ -1,5 +1,4 @@
 import firebase from 'firebase/app';
-import type { DocumentChangeAction } from '@angular/fire/firestore';
 
 import { FIELD, COLLECTION } from '@dbase/data.define';
 import type { FireDocument } from '@dbase/data.schema';

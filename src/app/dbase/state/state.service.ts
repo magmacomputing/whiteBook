@@ -10,7 +10,7 @@ import { joinDoc, sumPayment, sumAttend, calendarDay, buildTimetable, buildPlan,
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data.define';
-import type { Register, Connect, Account, Comment, React, Sheet, Config, Schema, Default, Diary, Instructor, Plan, Price, Span, Alert, Bonus, Icon, Location, Class, Event, Calendar, Schedule } from '@dbase/data.schema';
+import type { Register, Connect, Account, Comment, React, Sheet } from '@dbase/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';

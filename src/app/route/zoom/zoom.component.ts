@@ -91,7 +91,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				tap(_ => this.#dateChange = true),						// move the selectedIndex to latest meeting
 
 				switchMap(inst =>															// get all meeting.started events for this.date
-					this.data.getLive<zoom.Event<zoom.Started>>(COLLECTION.Zoom, {
+					this.data.listen<zoom.Event<zoom.Started>>(COLLECTION.Zoom, {
 						where: [
 							fire.addWhere(FIELD.Type, zoom.EVENT.started),
 							fire.addWhere('track.date', inst.format(Instant.FORMAT.yearMonthDay)),
@@ -101,7 +101,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 				),
 
 				mergeMap(track => {														// merge all documents per meeting.started event
-					return this.data.getLive<zoom.Event<zoom.Started | zoom.Ended | zoom.Joined | zoom.Left>>(COLLECTION.Zoom, {
+					return this.data.listen<zoom.Event<zoom.Started | zoom.Ended | zoom.Joined | zoom.Left>>(COLLECTION.Zoom, {
 						where: [
 							fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
 							fire.addWhere('hook', 0),
@@ -232,7 +232,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 			fire.addWhere('track.week', this.date.format(Instant.FORMAT.yearWeek)),
 		]
 		const [join, sheet] = await Promise.all([
-			this.data.getLive<zoom.Event<zoom.Joined>>(COLLECTION.Zoom, { where }),
+			this.data.listen<zoom.Event<zoom.Joined>>(COLLECTION.Zoom, { where }),
 			this.state.getSingle<Sheet>(STORE.Sheet, fire.addWhere(FIELD.Uid, white.alias))
 		])
 

@@ -59,6 +59,6 @@ export class AdminService {
 			note: note,
 		}
 
-		return this.data.setDoc(STORE.Gift, gift);
+		return this.data.setDoc(gift as Gift);
 	}
 }

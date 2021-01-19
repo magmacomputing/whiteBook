@@ -73,7 +73,7 @@ export class MemberService {
 			: await this.getPayPrice(data)
 
 		return {
-			[FIELD.Id]: this.data.newId,									// in case we need to update a Payment within a Batch
+			[FIELD.Id]: this.data.newId(STORE.Payment),												// in case we need to update a Payment within a Batch
 			[FIELD.Store]: STORE.Payment,
 			[FIELD.Stamp]: getStamp(stamp),
 			pay: [{
@@ -96,7 +96,7 @@ export class MemberService {
 		return payment[0];
 	}
 
-	private async upgradePlan(plan: ProfilePlan, stamp?: Instant.TYPE) {				// auto-bump 'intro' to 'member'
+	private async upgradePlan(plan: ProfilePlan, stamp?: Instant.TYPE) {	// auto-bump 'intro' to 'member'
 		const prices = await this.data.getStore<Price>(STORE.Price, [
 			fire.addWhere(FIELD.Type, PRICE.TopUp),
 			fire.addWhere(FIELD.Key, plan.bump),

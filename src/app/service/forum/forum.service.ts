@@ -47,7 +47,7 @@ export class ForumService {
 		return comment === ''
 			? undefined
 			: this.newForum<Comment>({ store: STORE.Comment, key, type, track, date, uid })
-				.then(forum => this.data.setDoc(STORE.Comment, { ...forum, comment }))
+				.then(forum => this.data.setDoc({ ...forum, comment }))
 	}
 
 	/** create a Forum base */
@@ -87,7 +87,7 @@ export class ForumService {
 		if (type)
 			forumFilter.push(fire.addWhere(FIELD.Type, type));
 
-		return this.data.getFire<T>(COLLECTION.Forum, { where: forumFilter });
+		return this.data.select<T>(COLLECTION.Forum, { where: forumFilter });
 	}
 
 	private getUid() {

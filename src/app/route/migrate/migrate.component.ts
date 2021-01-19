@@ -80,9 +80,9 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	async delUser() {
 		const where = fire.addWhere(FIELD.Uid, this.#current!.uid);
 		const deletes = await Promise.all([
-			this.data.getFire<FireDocument>(COLLECTION.Member, { where }),
-			this.data.getFire<FireDocument>(COLLECTION.Attend, { where }),
-			this.data.getFire<FireDocument>(COLLECTION.Admin, { where }),
+			this.data.select<FireDocument>(COLLECTION.Member, { where }),
+			this.data.select<FireDocument>(COLLECTION.Attend, { where }),
+			this.data.select<FireDocument>(COLLECTION.Admin, { where }),
 			// this.data.getFire<IStoreMeta>(COLLECTION.forum, { where }),
 		]);
 
@@ -186,7 +186,8 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		this.hide = reg[FIELD.Hidden]
 			? 'Un'
 			: ''
-		return this.data.updDoc(STORE.Register, reg[FIELD.Id], { ...reg });
+
+		return this.data.updDoc(reg);
 	}
 
 	/**
@@ -651,7 +652,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 							fire.addWhere('track.class', sched[FIELD.Key]),
 							fire.addWhere('track.date', new Instant(row[FIELD.Stamp]).format(Instant.FORMAT.yearMonthDay)),
 						]
-						this.data.getFire<Comment>(COLLECTION.Forum, { where })
+						this.data.select<Comment>(COLLECTION.Forum, { where })
 							.then(list => {
 								if (!list.length)
 									this.forum.setComment({ [FIELD.Key]: sched[FIELD.Id], [FIELD.Type]: sched[FIELD.Store], [FIELD.Date]: row[FIELD.Stamp], track: { class: caldr && caldr.name || sched[FIELD.Key] }, comment })
@@ -696,7 +697,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private lookupMigrate(key: string | number, type: STORE.Class | STORE.Event = STORE.Event) {
 		return this.#migrate
 			.find(row => row[FIELD.Key] === asString(key)) || {
-				[FIELD.Id]: this.data.newId,
+				[FIELD.Id]: this.data.newId(STORE.Migrate),
 				[FIELD.Store]: STORE.Migrate,
 				[FIELD.Type]: type,
 				[FIELD.Key]: asString(key),
@@ -708,7 +709,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	private writeMigrate(migrate: Migrate) {
 		const where = fire.addWhere(FIELD.Uid, this.#current!.uid);
 
-		return this.data.setDoc(STORE.Migrate, migrate)
+		return this.data.setDoc(migrate)
 			.then(_ => this.data.getStore<Migrate>(STORE.Migrate, where))
 			.then(res => this.#migrate = res);
 	}
@@ -846,24 +847,23 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const uid = 'BronwynH';
 		const filter = [
 			fire.addWhere(FIELD.Uid, uid),
-			// fire.addWhere(FIELD[FIELD.Note], '', '>'),
 			fire.addWhere('track.date', 20200127),
 		]
-		const list = await this.data.getFire<Attend>(COLLECTION.Attend, { where: filter });
-
-		// const deletes = await this.data.getFire<IComment>(COLLECTION.forum, { where: fire.addWhere(FIELD.uid, uid) });
-		// await this.data.batch(undefined, undefined, deletes);
+		const list = await this.data.select<Attend>(COLLECTION.Attend, { where: filter });
 
 		this.#dbg('list: %j', list.length);
 		this.#dbg('list: %j', list);
+
 		list.forEach(async doc => {
 			const { comment, note } = cleanNote(doc[FIELD.Note]);
+
 			this.#dbg('note: <%s> => clean: <%s>', doc[FIELD.Note], note);
 			if (doc[FIELD.Note] !== note) {
 				this.#dbg('comment: %j', comment);
 				doc[FIELD.Note] = note;																// replace with cleaned Note
+
 				await Promise.all([
-					this.data.updDoc(STORE.Attend, doc[FIELD.Id], doc),	// update Attend with cleansed Note
+					this.data.updDoc(doc),															// update Attend with cleansed Note
 					this.forum.setComment({															// add Comment to /forum
 						type: STORE.Schedule,
 						key: doc.timetable[FIELD.Id],

@@ -1,11 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
-import { Observable, combineLatest, merge, concat } from 'rxjs';
-import { tap, take, map } from 'rxjs/operators';
-
 import firebase from 'firebase/app';
+
 import { environment } from '@env/environment';
-import { AngularFirestore, AngularFirestoreCollection, DocumentReference, DocumentChangeAction, DocumentData } from '@angular/fire/firestore';
-import { AngularFireFunctions, } from '@angular/fire/functions';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
@@ -19,8 +15,7 @@ import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
-
-type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChanges';
+import { from } from 'rxjs';
 
 /**
  * This private service will communicate with the FireStore database,  
@@ -29,28 +24,19 @@ type TChanges = 'stateChanges' | 'snapshotChanges' | 'auditTrail' | 'valueChange
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
 	#app: firebase.app.App;
+	#fire: firebase.firestore.Firestore;
 	#dbg = dbg(this);
 
-	constructor(private readonly afs: AngularFirestore, private readonly aff: AngularFireFunctions,
-		private zone: NgZone, private snack: SnackService) {
+	constructor(private zone: NgZone, private snack: SnackService) {
 		this.#dbg('new');
+
 		this.#app = firebase.initializeApp(environment.firebase.prod);
-		this.#app.firestore().enablePersistence({ synchronizeTabs: environment.firebase.config.synchronizeTabs });
+		this.#fire = this.#app.firestore();
+		this.#fire.enablePersistence({ synchronizeTabs: environment.firebase.config.synchronizeTabs });
 	}
 
-	/**
-	 * return Collection References (limited by an optional query).  
-	 * If a 'logical-or' is detected in the 'value' of any query's Where-clause, multiple Collection References are returned.
-	 */
-	colRef<T>(collection: COLLECTION, query?: fire.Query) {
-		return isUndefined(query)
-			? [this.afs.collection<T>(collection)]			// reference against the entire collection
-			: fire.fnQuery(collection, query)						// else register an array of Querys over a collection reference
-				.map(qry => this.afs.collection<T>(collection, qry));
-	}
-
-	private queryRef(collection: COLLECTION, query: fire.Query = {}) {
-		let colRef: firebase.firestore.Query = firebase.firestore().collection(collection);
+	private queryRef<T>(collection: COLLECTION, query: fire.Query = {}) {
+		let colRef: firebase.firestore.Query = this.#fire.collection(collection);
 
 		asArray(query.where)
 			.filter(where => isDefined(where.value))												// discard queries for 'undefined' value; not supported
@@ -79,74 +65,52 @@ export class FireService {
 		if (query.endBefore)
 			colRef = colRef.endBefore(query.endBefore);
 
-		return colRef as firebase.firestore.CollectionReference<FireDocument>;
+		return colRef as firebase.firestore.CollectionReference<T>;
 	}
 
-	private subRef<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
-		return colRefs.map(colRef => colRef[type]()) as Observable<U extends 'valueChanges' ? T[] : DocumentChangeAction<T>[]>[];
-	}
-
-	merge<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
-		return merge(...this.subRef(colRefs, type));
-	}
-
-	concat<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
-		return concat([...this.subRef(colRefs, type)]);
-	}
-
-	combine<T, U extends TChanges>(colRefs: AngularFirestoreCollection<T>[], type: U) {
-		return combineLatest([...this.subRef<T, U>(colRefs, type)])
-			.pipe(map(obs => obs.flat()))								// flatten the array-of-values results
-	}
-
-	listen<T>(collection: COLLECTION, query?: fire.Query) {
-		return this.combine<T, 'snapshotChanges'>(this.colRef<T>(collection, query), 'snapshotChanges')
-			.pipe(map(snap => snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.Id]: docs.payload.doc.id, } as T))))
-	}
-
-	on(collection: COLLECTION, query: fire.Query = {}, callBack: (arg: firebase.firestore.QuerySnapshot<FireDocument>) => void) {
-		return this.queryRef(collection, query)
+	on<T>(collection: COLLECTION, query: fire.Query = {}, callBack: (snapshot: firebase.firestore.QuerySnapshot<T>) => any) {
+		return this.queryRef<T>(collection, query)
 			.onSnapshot(callBack)
 	}
 
-	get<T>(collection: COLLECTION, query?: fire.Query) {
-		return this.afs
-			.collection<T>(collection, fire.fnQuery(collection, query)[0])
+	select<T>(collection: COLLECTION, query?: fire.Query) {
+		return this.queryRef<T>(collection, query)
 			.get({ source: 'server' })								// get the server-data, rather than cache
-			.toPromise()
 			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
 	}
 
+	listen<T>(collection: COLLECTION, query?: fire.Query) {
+		return from(this.select<T>(collection, query));
+	}
+
 	/** Document Reference, for existing or new */
-	docRef(store: STORE, docId?: string) {
-		const col = store.includes('/')
-			? store																		// already a '/{collection}' path
-			: getSlice(store)													// lookup parent collection name for a 'store'
+	private docRef<T>(doc: FireDocument) {
+		const collection = getSlice(doc[FIELD.Store]);
+		const docId = doc[FIELD.Id] ?? this.newId(doc[FIELD.Store]);
 
-		docId = isUndefined(docId) ? this.newId() : docId;	// use supplied Id, else generate a new Id
-
-		return this.afs.firestore.collection(col).doc(docId);
+		return this.queryRef<T>(collection).doc(docId);
 	}
 
 	/** manage connectivity */
 	connect(onOff: boolean) {
 		return onOff
-			? this.afs.firestore.enableNetwork()			// disconnect Cloud Firestore
-			: this.afs.firestore.disableNetwork()			// reconnect Cloud Firestore
+			? this.#fire.enableNetwork()							// reconnect Cloud Firestore
+			: this.#fire.disableNetwork()							// disconnect Cloud Firestore
 	}
 
 	/** allocate a new meta-field _id */
-	newId() {
-		return this.afs.createId();
+	newId(store: COLLECTION | STORE) {
+		const collection = getSlice(store);
+		return this.queryRef(collection).doc().id;
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
-	private removeMeta(doc: DocumentData, opts?: Record<string, boolean>) {
+	private removeMeta<T extends FireDocument>(doc: T, opts?: Record<string, boolean>) {
 		const { [FIELD.Id]: a, [FIELD.Create]: b, [FIELD.Update]: c, [FIELD.Access]: d, ...rest } = doc;
 
 		this.fieldValue(rest, opts);								// start recursion into Document
 
-		return rest;
+		return rest as Exclude<T, FIELD.Id | FIELD.Create | FIELD.Update | FIELD.Access>;
 	}
 
 	/** Replace 'undefined' with FieldValue.delete() */
@@ -189,10 +153,10 @@ export class FireService {
 			const u = cloneUpdate.splice(0, limit - c.length);
 			const d = cloneDelete.splice(0, limit - c.length - u.length);
 
-			const bat = this.afs.firestore.batch();
-			c.forEach(ins => bat.set(this.docRef(ins[FIELD.Store], ins[FIELD.Id]), this.removeMeta(ins, { setUndefined: true })));
-			u.forEach(upd => bat.update(this.docRef(upd[FIELD.Store], upd[FIELD.Id]), this.removeMeta(upd)));
-			d.forEach(del => bat.delete(this.docRef(del[FIELD.Store], del[FIELD.Id])));
+			const bat = this.#fire.batch();
+			c.forEach(ins => bat.set(this.docRef(ins), this.removeMeta(ins, { setUndefined: true })));
+			u.forEach(upd => bat.update(this.docRef(upd), this.removeMeta(upd)));
+			d.forEach(del => bat.delete(this.docRef(del)));
 			commits.push(bat.commit());
 		}
 
@@ -201,7 +165,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
-	runTxn(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = [], selects: DocumentReference[] = []) {
+	runTxn(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = [], selects: firebase.firestore.DocumentReference[] = []) {
 		const cloneCreate = asArray(cloneObj(creates));
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));
@@ -214,11 +178,11 @@ export class FireService {
 				const u = cloneUpdate.splice(0, limit - c.length);
 				const d = cloneDelete.splice(0, limit - c.length - u.length);
 
-				this.afs.firestore.runTransaction(txn => {
+				this.#fire.runTransaction(txn => {
 					asArray(selects).forEach(ref => txn.get(ref));
-					c.forEach(ins => txn = txn.set(this.docRef(ins[FIELD.Store], ins[FIELD.Id]), this.removeMeta(ins)));
-					u.forEach(upd => txn = txn.update(this.docRef(upd[FIELD.Store], upd[FIELD.Id]), this.removeMeta(upd)));
-					d.forEach(del => txn = txn.delete(this.docRef(del[FIELD.Store], del[FIELD.Id])));
+					c.forEach(ins => txn = txn.set(this.docRef(ins), this.removeMeta(ins, { setUndefined: true })));
+					u.forEach(upd => txn = txn.update(this.docRef(upd), this.removeMeta(upd)));
+					d.forEach(del => txn = txn.delete(this.docRef(del)));
 
 					return Promise.resolve(true);					// if any change fails, the Transaction rejects
 				})
@@ -227,28 +191,23 @@ export class FireService {
 		})
 	}
 
-	async setDoc(store: STORE, doc: DocumentData) {
-		const docId: string = doc[FIELD.Id] || this.newId();
+	insert(data: FireDocument) {
+		const docId = data[FIELD.Id] || this.newId(data[FIELD.Store]);
 
-		doc = this.removeMeta(doc);									// remove the meta-fields from the document
-		await this.docRef(store, docId).set(doc);
-		return docId;
+		data = this.removeMeta(data);																// remove the meta-fields from the document
+		return this.docRef(data).set(data)
+			.then(() => docId);
 	}
 
-	async updDoc(store: STORE, docId: string, data: DocumentData) {
+	update(data: FireDocument) {
+		const docId = data[FIELD.Id];
+
 		data = this.removeMeta(data);
-		await this.docRef(store, docId).update(data)
-		return docId;
+		return this.docRef(data).update(data)
 	}
 
-	/** get all Documents, optionally with a supplied Query */
-	async getAll<T>(collection: COLLECTION, query?: fire.Query) {
-		const snap = await this.colRef<T>(collection, query)[0]	// TODO: allow for logical-or, merge of snapshotChanges
-			.snapshotChanges()
-			.pipe(take(1))
-			.toPromise()
-
-		return snap.map(docs => ({ ...docs.payload.doc.data(), [FIELD.Id]: docs.payload.doc.id }));
+	delete(data: FireDocument) {
+		return this.docRef(data).delete();
 	}
 
 	callMeta(store: STORE, docId: string) {
@@ -267,7 +226,7 @@ export class FireService {
 
 	/** Call a server Cloud Function */
 	private callHttps<T>(fnName: string, args: Object, msg?: string) {
-		const fn = this.aff.httpsCallable(fnName);
+		const fn = this.#app.functions().httpsCallable(fnName);
 		let snack = true;																				// set a snackbar flag
 
 		setTimeout(() => {																			// if no response in one-second, show the snackbar
@@ -278,7 +237,7 @@ export class FireService {
 		}, 1000);
 
 		return fn(args)
-			.pipe(tap(_ => { snack = false; this.snack.dismiss(); }))
-			.toPromise<T>()
+			.then(res => res.data as T)
+			.finally(() => { snack = false; this.snack.dismiss() })
 	}
 }

@@ -1,7 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { DocumentReference } from '@angular/fire/firestore';
-
-import type { Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 
@@ -46,7 +44,7 @@ export class DataService {
 		const slice = getSlice(store);
 
 		if (query)
-			return this.getFire<T>(slice, query);
+			return this.select<T>(slice, query);
 
 		return this.store
 			.selectOnce<T[]>(state => state[slice][store])
@@ -66,9 +64,7 @@ export class DataService {
 	}
 
 	getMeta(store: STORE, docId: string) {
-		return store
-			? this.fire.callMeta(store, docId)										// get server to respond with document meta-data
-			: Promise.reject(`Cannot determine slice: ${store}`)
+		return this.fire.callMeta(store, docId)									// get server to respond with document meta-data
 	}
 
 	createToken(uid: string) {
@@ -113,12 +109,12 @@ export class DataService {
 		}, {} as Record<PROFILE, any>)
 	}
 
-	getFire<T>(collection: COLLECTION, query?: fire.Query) {	// direct access to collection, rather than via state
-		return this.fire.get<T>(collection, query)
+	select<T>(collection: COLLECTION, query?: fire.Query) {	// direct access to collection, rather than via state
+		return this.fire.select<T>(collection, query);
 	}
 
-	getLive<T>(collection: COLLECTION, query?: fire.Query) {	// direct access to collection as observable
-		return this.fire.listen<T>(collection, query);
+	listen<T>(collection: COLLECTION, query?: fire.Query) {	// observable access to collection
+		return from(this.select<T>(collection, query));
 	}
 
 	asPromise<T>(obs: Observable<T[]>) {
@@ -127,17 +123,17 @@ export class DataService {
 			.toPromise()
 	}
 
-	get newId() {
-		return this.fire.newId();                       				// get Firebase to generate a new Key
+	newId(store: COLLECTION | STORE) {
+		return this.fire.newId(store);              				// get Firebase to generate a new Key
 	}
 
-	async setDoc<T>(store: STORE, doc: T) {
+	async setDoc(doc: FireDocument) {
 		const set = docPrep(doc, await this.getCurrentUser())		// make sure we have a <key/uid> field
-		return this.fire.setDoc(store, set);
+		return this.fire.insert(set);
 	}
 
-	updDoc(store: STORE, docId: string, data: FireDocument) {
-		return this.fire.updDoc(store, docId, data);
+	updDoc(data: FireDocument) {
+		return this.fire.update(data);
 	}
 
 	/** Expire any current matching docs, and Create new doc */
@@ -160,7 +156,7 @@ export class DataService {
 				return;                                             // abort the Create/Update
 			}
 
-			const currDocs = await this.getFire<FireDocument>(collection, { where })
+			const currDocs = await this.select<FireDocument>(collection, { where })
 				.then(table => asAt(table, where, tstamp))          // find where to create new doc (generally one-prevDoc expected)
 				.then(table => updPrep(table, tstamp, this.fire))   // prepare the update's <effect>/<expire>
 
@@ -199,7 +195,7 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Transaction */
-	runTxn(creates?: FireDocument[], updates?: FireDocument[], deletes?: FireDocument[], selects?: DocumentReference[]) {
+	runTxn(creates?: FireDocument[], updates?: FireDocument[], deletes?: FireDocument[], selects?: firebase.default.firestore.DocumentReference[]) {
 		return this.fire.runTxn(creates, updates, deletes, selects);
 	}
 

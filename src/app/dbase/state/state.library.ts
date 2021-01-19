@@ -65,19 +65,25 @@ export const getState = <T>(states: IState, store: STORE, filter: fire.Query["wh
 	)
 }
 
-export const getSlice = (store: STORE) => {			// determine the state-slice based on the <store> field
-	const slices = getEnumKeys(outline.SLICES)
-		.filter(key => outline.SLICES[key]?.includes(store));// find which slice holds the requested store
+const isCollection = (store: COLLECTION | STORE): store is COLLECTION =>
+	outline.SLICES[store as COLLECTION]?.length !== 0;
 
-	if (isEmpty<object>(outline.SLICES))									// nothing in State yet, on first-time connect
-		slices.push(COLLECTION.Client);							// special: assume 'client' slice.
+export const getSlice = (store: COLLECTION | STORE) => {	// determine the state-slice based on the <store> field
+	if (isCollection(store))
+		return store;																					// already a collection-name
+
+	const slices = getEnumKeys(outline.SLICES)
+		.filter(key => outline.SLICES[key]?.includes(store));	// find which slice holds the requested store
+
+	if (isEmpty(outline.SLICES))														// nothing in State yet, on first-time connect
+		slices.push(COLLECTION.Client);												// special: assume 'client' slice.
 	if (!outline.SORTBY[store])
-		outline.SORTBY[store] = [FIELD.Sort, FIELD.Key];		// special: assume sort order
+		outline.SORTBY[store] = [FIELD.Sort, FIELD.Key];			// special: assume sort order
 
 	if (!slices.length)
 		alert(`Unexpected store: ${store}`)
 
-	return slices[0] as COLLECTION;
+	return slices[0];
 }
 
 /** find the default value for the requested type */
