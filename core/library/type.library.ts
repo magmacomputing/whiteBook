@@ -45,8 +45,7 @@ export const nullToEmpty = <T>(obj: T) => obj ?? '';
 export const nullToValue = <T, R>(obj: T, value: R) => obj ?? value;
 
 export const isEmpty = <T>(obj?: T) => false
-	|| isNull(obj)
-	|| isUndefined(obj)
+	|| isNullish(obj)
 	|| (isString(obj) && obj.trim() === '')
 	|| (isObject(obj) && Object.keys(obj).length === 0)
 	|| (isArray(obj) && obj.length === 0)

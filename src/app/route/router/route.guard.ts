@@ -40,7 +40,6 @@ export class LoginGuard implements CanActivate {
 	async canActivate(route: ActivatedRouteSnapshot) {
 		const currUser = await this.data.getCurrentUser();
 
-		this.#dbg('LOGIN: ', route.data);
 		return isDefined(currUser);
 	}
 }

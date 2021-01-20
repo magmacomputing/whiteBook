@@ -36,7 +36,7 @@ export class SyncService {
 	public async on(collection: COLLECTION, query?: fire.Query, ...additional: [COLLECTION, fire.Query?][]) {
 		const ready = new Pledge<boolean>();
 		const key: sync.Key = { collection, query };
-		const off: (() => void)[] = [];										// array of listener unsubscribe functions
+		const off: firebase.default.Unsubscribe[] = [];		// array of listener unsubscribe functions
 
 		const label = `${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
 		const sync = this.sync.bind(this, key);
@@ -161,17 +161,7 @@ export class SyncService {
 		await this.store.dispatch(new setStore(snapMod, debug)).toPromise();	// then 'modified'
 		await this.store.dispatch(new delStore(snapDel, debug)).toPromise();	// then 'removed'
 
-		if (listen.cnt === 0) {
-			// 	snapAdd.concat(snapMod).forEach(doc => {				// special processing logic
-			// 		if (doc[FIELD.Uid] === listen.uid) {					// but only docs for the currently authenticated User
-
-			// 			if (doc[FIELD.Store] === STORE.Profile && doc[FIELD.Type] === PROFILE.Claim && !doc[FIELD.Expire])
-			// 				this.store.dispatch(new LoginEvent.Token());// access-level has changed
-			// 		}
-			// 	})
-		}
-		else listen.ready.resolve(true);
-
-		return listen.ready.promise;
+		if (listen.cnt !== 0)
+			listen.ready.resolve(true);
 	}
 }

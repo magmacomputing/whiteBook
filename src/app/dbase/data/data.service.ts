@@ -114,7 +114,7 @@ export class DataService {
 	}
 
 	listen<T>(collection: COLLECTION, query?: fire.Query) {	// observable access to collection
-		return from(this.select<T>(collection, query));
+		return this.fire.listen<T>(collection, query);
 	}
 
 	asPromise<T>(obs: Observable<T[]>) {
@@ -195,8 +195,8 @@ export class DataService {
 	}
 
 	/** Wrap writes in a Transaction */
-	runTxn(creates?: FireDocument[], updates?: FireDocument[], deletes?: FireDocument[], selects?: firebase.default.firestore.DocumentReference[]) {
-		return this.fire.runTxn(creates, updates, deletes, selects);
+	transact(creates?: FireDocument[], updates?: FireDocument[], deletes?: FireDocument[], selects?: firebase.default.firestore.DocumentReference[]) {
+		return this.fire.transact(creates, updates, deletes, selects);
 	}
 
 	connect(onOff: boolean) {

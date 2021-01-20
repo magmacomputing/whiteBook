@@ -1,38 +1,51 @@
-import { Injectable, NgZone } from '@angular/core';
 import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
+import 'firebase/functions';
+
+import { Injectable, NgZone } from '@angular/core';
+import { Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 import { environment } from '@env/environment';
 import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { FIELD, COLLECTION, STORE } from '@dbase/data.define';
+import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
 import { fire } from '@dbase/fire/fire.library';
 import { FireDocument } from '@dbase/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
-import { isArray, isDefined, isIterable, isObject, isUndefined } from '@library/type.library';
+import { isArray, isIterable, isObject, isDefined, isUndefined } from '@library/type.library';
 import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
-import { from } from 'rxjs';
 
 /**
- * This private service will communicate with the FireStore database,  
- * and is intended to be invoked via the DataService only
+ * This private service will communicate with Firebase and the FireStore database,  
+ * It is intended to be invoked via the DataService only
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
-	#app: firebase.app.App;
+	#auth: firebase.auth.Auth;
 	#fire: firebase.firestore.Firestore;
+	#functions: firebase.functions.Functions;
 	#dbg = dbg(this);
 
 	constructor(private zone: NgZone, private snack: SnackService) {
 		this.#dbg('new');
 
-		this.#app = firebase.initializeApp(environment.firebase.prod);
-		this.#fire = this.#app.firestore();
+		const app = firebase.initializeApp(environment.firebase.prod, environment.firebase.config.name);
+		this.#auth = firebase.auth(app);
+		this.#fire = firebase.firestore(app);
+		this.#functions = firebase.functions(app);
+
 		this.#fire.enablePersistence({ synchronizeTabs: environment.firebase.config.synchronizeTabs });
+	}
+
+	get auth() {
+		return this.#auth;
 	}
 
 	private queryRef<T>(collection: COLLECTION, query: fire.Query = {}) {
@@ -71,16 +84,6 @@ export class FireService {
 	on<T>(collection: COLLECTION, query: fire.Query = {}, callBack: (snapshot: firebase.firestore.QuerySnapshot<T>) => any) {
 		return this.queryRef<T>(collection, query)
 			.onSnapshot(callBack)
-	}
-
-	select<T>(collection: COLLECTION, query?: fire.Query) {
-		return this.queryRef<T>(collection, query)
-			.get({ source: 'server' })								// get the server-data, rather than cache
-			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
-	}
-
-	listen<T>(collection: COLLECTION, query?: fire.Query) {
-		return from(this.select<T>(collection, query));
 	}
 
 	/** Document Reference, for existing or new */
@@ -165,7 +168,7 @@ export class FireService {
 	}
 
 	/** Wrap a set of database-writes within a Transaction */
-	runTxn(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = [], selects: firebase.firestore.DocumentReference[] = []) {
+	transact(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = [], selects: firebase.firestore.DocumentReference[] = []) {
 		const cloneCreate = asArray(cloneObj(creates));
 		const cloneUpdate = asArray(cloneObj(updates));
 		const cloneDelete = asArray(cloneObj(deletes));
@@ -191,10 +194,50 @@ export class FireService {
 		})
 	}
 
+	/**
+	 * listen directly to FireStore (not via State)  
+	 * this is useful for Collections that are not sync'd to State
+	 */
+	listen<T>(collection: COLLECTION, query?: fire.Query) {
+		let listener: firebase.Unsubscribe;
+
+		return new Observable<T[]>(observer => {
+			listener = this.queryRef<T>(collection, query)
+				.onSnapshot(
+					snap => observer.next(snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))),
+					error => observer.error(error),				// snapshot failed
+					() => observer.complete()							// snapshot completed itself (ie no more data)
+				)
+		}).pipe(
+			finalize(() => listener?.())							// when unsubscribe Observable, complete the onShapshot listener
+		)
+	}
+
+	listen1<T>(collection: COLLECTION, query?: fire.Query) {
+		let listener: () => void;
+
+		return new Observable<T[]>(observer => {
+			listener = this.queryRef<T>(collection, query)
+				.onSnapshot(
+					snap => { this.#dbg('NEXT'); observer.next(snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))) },
+					error => { this.#dbg('ERROR'); observer.error(error) },				// snapshot failed
+					() => { this.#dbg('COMPLETE'); observer.complete() }										// snapshot completed itself (ie no more data)
+				)
+		}).pipe(
+			finalize(() => this.#dbg('FINALIZE'))							// when unsubscribe Observable, complete the onShapshot listener
+		)
+	}
+
+	select<T>(collection: COLLECTION, query?: fire.Query) {
+		return this.queryRef<T>(collection, query)
+			.get({ source: 'server' })								// get the server-data, rather than cache
+			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
+	}
+
 	insert(data: FireDocument) {
 		const docId = data[FIELD.Id] || this.newId(data[FIELD.Store]);
 
-		data = this.removeMeta(data);																// remove the meta-fields from the document
+		data = this.removeMeta(data);								// remove the meta-fields from the document
 		return this.docRef(data).set(data)
 			.then(() => docId);
 	}
@@ -211,22 +254,22 @@ export class FireService {
 	}
 
 	callMeta(store: STORE, docId: string) {
-		return this.callHttps<fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.Id]: docId }, `checking ${store}`);
+		return this.http<fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.Id]: docId }, `checking ${store}`);
 	}
 
 	/** This helps an Admin impersonate another Member */
 	createToken(uid: string) {
-		return this.callHttps<string>('createToken', { uid }, `creating token for ${uid}`);
+		return this.http<string>('createToken', { uid }, `creating token for ${uid}`);
 	}
 
 	/** Useful when Member is already authenticated elsewhere (eg. helloJS) */
 	authToken(access_token: string, user: firebase.UserInfo) {
-		return this.callHttps<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
+		return this.http<string>('authToken', { access_token, ...user }, `creating token for ${user.uid}`);
 	}
 
 	/** Call a server Cloud Function */
-	private callHttps<T>(fnName: string, args: Object, msg?: string) {
-		const fn = this.#app.functions().httpsCallable(fnName);
+	private http<T>(fnName: string, args: Object, msg?: string) {
+		const fn = this.#functions.httpsCallable(fnName);
 		let snack = true;																				// set a snackbar flag
 
 		setTimeout(() => {																			// if no response in one-second, show the snackbar

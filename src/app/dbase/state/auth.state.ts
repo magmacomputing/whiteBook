@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import firebase from 'firebase/app';
-import 'firebase/auth';
 
 import { State, StateContext, Action, Store } from '@ngxs/store';
 import { BehaviorSubject } from 'rxjs';
@@ -18,6 +17,8 @@ import { NavigateService } from '@route/router/navigate.service';
 import { SyncService } from '@dbase/sync/sync.service';
 import { COLLECTION, FIELD, STORE, auth } from '@dbase/data.define';
 import type { Register } from '@dbase/data.schema';
+
+import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
 import { WebStore, prompt } from '@library/browser.library';
@@ -42,10 +43,10 @@ export class AuthState {
 	#memberSubject: BehaviorSubject<AuthSlice["info"]> = this.newSubject();
 	#dbg = dbg(this);
 
-	constructor(private sync: SyncService, private store: Store, private snack: SnackService, private navigate: NavigateService) {
+	constructor(private sync: SyncService, private store: Store, private fire: FireService, private snack: SnackService, private navigate: NavigateService) {
 		this.#dbg('init');
-		this.#auth = firebase.auth();
 
+		this.#auth = this.fire.auth;										// Auth for current Firebase instance
 		this.#auth
 			.onAuthStateChanged(user => this.store.dispatch(new LoginAction.Check(user)))
 	}
