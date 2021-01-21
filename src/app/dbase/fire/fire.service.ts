@@ -196,7 +196,7 @@ export class FireService {
 
 	/**
 	 * listen directly to FireStore (not via State)  
-	 * this is useful for Collections that are not sync'd to State
+	 * this is useful for Collections that are not sync'd to State (eg. Zoom | Forum)
 	 */
 	listen<T>(collection: COLLECTION, query?: fire.Query) {
 		let listener: firebase.Unsubscribe;
@@ -210,21 +210,6 @@ export class FireService {
 				)
 		}).pipe(
 			finalize(() => listener?.())							// when unsubscribe Observable, complete the onShapshot listener
-		)
-	}
-
-	listen1<T>(collection: COLLECTION, query?: fire.Query) {
-		let listener: () => void;
-
-		return new Observable<T[]>(observer => {
-			listener = this.queryRef<T>(collection, query)
-				.onSnapshot(
-					snap => { this.#dbg('NEXT'); observer.next(snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))) },
-					error => { this.#dbg('ERROR'); observer.error(error) },				// snapshot failed
-					() => { this.#dbg('COMPLETE'); observer.complete() }										// snapshot completed itself (ie no more data)
-				)
-		}).pipe(
-			finalize(() => this.#dbg('FINALIZE'))							// when unsubscribe Observable, complete the onShapshot listener
 		)
 	}
 
