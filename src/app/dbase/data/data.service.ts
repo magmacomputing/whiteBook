@@ -128,7 +128,7 @@ export class DataService {
 	}
 
 	async setDoc(doc: FireDocument) {
-		const set = docPrep(doc, await this.getCurrentUser())		// make sure we have a <key/uid> field
+		const set = docPrep(doc, await this.getCurrentUser())// make sure we have a <key/uid> field
 		return this.fire.insert(set);
 	}
 
