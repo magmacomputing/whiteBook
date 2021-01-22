@@ -19,8 +19,8 @@ export class AppComponent implements OnInit {
 	public ROLE = auth.ROLE;
 
 	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService, readonly worker: WorkerService) {
-		this.data.listen(COLLECTION.Client, { where: fire.addWhere(FIELD.Key, 'latinJ') })
-			.subscribe(console.log);
+		// this.data.listen(COLLECTION.Client, { where: fire.addWhere(FIELD.Key, 'latinJ') })
+		// 	.subscribe(console.log);
 		// this.state.getTimetableData()
 		// 	.toPromise()
 		// .then(console.log)

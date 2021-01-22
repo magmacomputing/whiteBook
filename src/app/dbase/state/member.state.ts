@@ -21,9 +21,9 @@ import { dbg } from '@library/logger.library';
 export class MemberState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor(private store: Store) { this.init(); }
+	constructor() { /*this.init();*/ }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { /** this.init(); */ }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { this.init(); }
 
 	private init() {
 		this.dbg('init:');

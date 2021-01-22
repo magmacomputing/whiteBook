@@ -21,9 +21,9 @@ import { dbg } from '@library/logger.library';
 export class ClientState implements NgxsOnInit {
 	private dbg = dbg(this);
 
-	constructor(private readonly store: Store) { this.init(); }
+	constructor(private readonly store: Store) { /** this.init(); */ }
 
-	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { }
+	ngxsOnInit(_ctx: StateContext<TStateSlice<FireDocument>>) { this.init(); }
 
 	private init() {
 		this.dbg('init:');
