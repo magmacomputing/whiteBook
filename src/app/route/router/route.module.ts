@@ -3,25 +3,13 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { RouterModule, Routes } from '@angular/router';
 
-import firebase from 'firebase/app';
-import { from, pipe } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-
 import { ROUTE } from '@route/router/route.define';
 import { ProfileGuard, DeactivateGuard, OAuthGuard, LoginGuard, AdminGuard } from '@route/router/route.guard';
+
 import { MaterialModule } from '@service/material/material.module';
 import { LoginComponent } from '@route/login/login.component';
 import { AttendComponent } from '@route/attend/attend.component';
 import { OAuthComponent } from '@route/login/oauth.component';
-
-import { auth } from '@dbase/data.define';
-import { cloneObj, getPath } from '@library/object.library';
-
-// const isAdmin = () => pipe(
-// 	switchMap(() => from(firebase.auth().currentUser?.getIdTokenResult() ?? Promise.resolve({}))),
-// 	map(token => cloneObj(token)),
-// 	map(custom => getPath<string[]>(custom, 'claims.customClaims.roles', [])!.includes(auth.ROLE.Admin)),
-// );
 
 const routes: Routes = [
 	{ path: ROUTE.OAuth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded

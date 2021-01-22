@@ -21,6 +21,7 @@ import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
+import { ActivatedRouteSnapshot } from '@angular/router';
 
 /**
  * This private service will communicate with Firebase and the FireStore database,  
@@ -198,13 +199,19 @@ export class FireService {
 	 * listen directly to FireStore (not via State)  
 	 * this is useful for Collections that are not sync'd to State (eg. Zoom | Forum)
 	 */
-	listen<T>(collection: COLLECTION, query?: fire.Query) {
+	listen<T, K extends boolean = false>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<T[]>;
+	listen<T, K extends boolean = true>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<firebase.firestore.DocumentChange<T>[]>;
+	listen<T>(collection: COLLECTION, query?: fire.Query, state = false) {
 		let listener: firebase.Unsubscribe;
 
-		return new Observable<T[]>(observer => {
+		return new Observable(observer => {
 			listener = this.queryRef<T>(collection, query)
-				.onSnapshot(
-					snap => observer.next(snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))),
+				.onSnapshot(snap =>
+					observer.next(
+						state
+							? snap.docChanges
+							: snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))
+					),
 					error => observer.error(error),				// snapshot failed
 					() => observer.complete()							// snapshot completed itself (ie no more data)
 				)
