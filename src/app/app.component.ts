@@ -5,8 +5,7 @@ import { StateService } from '@dbase/state/state.service';
 import { NavigateService } from '@route/router/navigate.service';
 import { WorkerService } from '@service/worker/worker.service';
 
-import { auth, COLLECTION, FIELD, MESSAGE } from '@dbase/data.define';
-import { fire } from '@dbase/fire/fire.library';
+import { auth, MESSAGE } from '@dbase/data.define';
 
 @Component({
 	selector: 'wb-root',
@@ -20,7 +19,7 @@ export class AppComponent implements OnInit {
 
 	constructor(readonly data: DataService, readonly state: StateService, readonly navigate: NavigateService, readonly worker: WorkerService) {
 		// this.data.listen(COLLECTION.Client, { where: fire.addWhere(FIELD.Key, 'latinJ') })
-		// 	.subscribe(console.log);
+		// 	.subscribe(snap => console.log('DEBUG: ', snap));
 		// this.state.getTimetableData()
 		// 	.toPromise()
 		// .then(console.log)

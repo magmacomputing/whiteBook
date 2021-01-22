@@ -208,12 +208,12 @@ export class FireService {
 			listener = this.queryRef<T>(collection, query)
 				.onSnapshot(snap =>
 					observer.next(
-						state
-							? snap.docChanges
+						state																// report back as 'state' object or a 'document' object
+							? snap.docChanges().map(change => ({ type: change.type, metadata: cloneObj(change.doc.metadata), doc: { ...change.doc.data(), [FIELD.Id]: change.doc.id } }))
 							: snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))
 					),
-					error => observer.error(error),				// snapshot failed
-					() => observer.complete()							// snapshot completed itself (ie no more data)
+					observer.error,												// snapshot failed
+					observer.complete											// snapshot completed itself (ie no more data)
 				)
 		}).pipe(
 			finalize(() => listener?.())							// when unsubscribe Observable, complete the onShapshot listener

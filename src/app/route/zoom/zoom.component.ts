@@ -106,13 +106,13 @@ export class ZoomComponent implements OnInit, OnDestroy {
 							fire.addWhere('body.payload.object.uuid', track.map(started => started.body.payload.object.uuid), 'in'),
 							fire.addWhere('hook', 0),
 						],
-						orderBy: fire.addOrder(FIELD.Stamp),						// order by timestamp
+						orderBy: fire.addOrder(FIELD.Stamp),			// order by timestamp
 					})
 				}
 				),
 
 				map(track => {
-					(track as zoom.Event<zoom.Started>[])								// look for Meeting.Started
+					(track as zoom.Event<zoom.Started>[])				// look for Meeting.Started
 						.filter(doc => getPath(doc, zoom.EVENT.type) === zoom.EVENT.started)
 						.forEach(doc => {
 							const { id: meeting_id, start_time, uuid, ...rest } = doc.body.payload.object;

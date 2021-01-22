@@ -14,7 +14,7 @@ import { cloneObj } from '@library/object.library';
 import { isEmpty } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 @State<TStateSlice<FireDocument>>({
 	name: COLLECTION.Client,
 	defaults: {}
