@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { State, Action, StateContext, NgxsOnInit, Store } from '@ngxs/store';
+
 import { clientAction, filterState } from '@dbase/state/state.action';
 import { TStateSlice } from '@dbase/state/state.define';
 
@@ -13,7 +14,7 @@ import { cloneObj } from '@library/object.library';
 import { isEmpty } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 @State<TStateSlice<FireDocument>>({
 	name: COLLECTION.Client,
 	defaults: {}
