@@ -11,10 +11,10 @@ import { Cipher } from '@library/cipher.library';
 import { WebStore } from '@library/browser.library';
 import { lprintf } from '@library/logger.library';
 
-export const getSource = (snaps: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>) =>
-	snaps.metadata.fromCache
+export const getSource = (snaps: firebase.firestore.SnapshotMetadata) =>
+	snaps.fromCache
 		? sync.SOURCE.Cache
-		: snaps.metadata.hasPendingWrites
+		: snaps.hasPendingWrites
 			? sync.SOURCE.Local
 			: sync.SOURCE.Server
 
@@ -44,9 +44,6 @@ const remMeta = (doc: FireDocument) => {
 	const { [FIELD.Create]: c, [FIELD.Update]: u, [FIELD.Access]: a, ...rest } = doc;
 	return rest;
 }
-
-export const addMeta = (snap: firebase.firestore.QueryDocumentSnapshot<FireDocument>) =>
-	({ ...snap.data(), [FIELD.Id]: snap.id } as FireDocument)
 
 /** Determine the ActionHandler based on the Slice listener */
 export const getMethod = (slice: COLLECTION) => {

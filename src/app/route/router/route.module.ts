@@ -13,7 +13,7 @@ import { OAuthComponent } from '@route/login/oauth.component';
 
 const routes: Routes = [
 	{ path: ROUTE.OAuth, component: OAuthComponent, canActivate: [OAuthGuard], canDeactivate: [DeactivateGuard] },		// TODO: cannot be lazy-loaded
-	{ path: ROUTE.Login, component: LoginComponent, canActivate: [LoginGuard] },
+	{ path: ROUTE.Login, component: LoginComponent },
 	{ path: ROUTE.Attend, component: AttendComponent, canActivate: [ProfileGuard] },
 	{ path: ROUTE.Profile, loadChildren: () => import('@route/profile/profile.module').then(m => m.ProfileModule), canActivate: [LoginGuard] },
 	{ path: ROUTE.About, loadChildren: () => import('@route/about/about.module').then(m => m.AboutModule) },
@@ -30,6 +30,6 @@ const routes: Routes = [
 	imports: [CommonModule, MaterialModule, HttpClientModule, RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' }),],
 	exports: [RouterModule],
 	declarations: [LoginComponent, AttendComponent, OAuthComponent],
-	providers: [DeactivateGuard, OAuthGuard],
+	providers: [DeactivateGuard, OAuthGuard, LoginGuard, ProfileGuard],
 })
 export class RoutingModule { }

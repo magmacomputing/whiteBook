@@ -34,11 +34,10 @@ export namespace sync {
 	export interface Listen {
 		key: sync.Key;												// the key to this listener
 		label: string;												// Label to display for this listener
-		streams: number;											// number of streams for this listener
 		cnt: number;													// count of snapshots received
 		uid: string | null;										// authenticated User
 		ready: Pledge<boolean>;								// indicate when snap0 is received
-		off: (() => void)[];									// used for turning off listener
+		subscription: Subscription;
 		method: {
 			setStore: typeof clientAction.Set | typeof memberAction.Set | typeof attendAction.Set | typeof deviceAction.Set | typeof adminAction.Set | typeof stageAction.Set;
 			delStore: typeof clientAction.Del | typeof memberAction.Del | typeof attendAction.Del | typeof deviceAction.Del | typeof adminAction.Del | typeof stageAction.Del;

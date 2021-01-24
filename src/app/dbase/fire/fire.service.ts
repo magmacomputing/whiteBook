@@ -13,7 +13,7 @@ import { SnackService } from '@service/material/snack.service';
 import { DBaseModule } from '@dbase/dbase.module';
 import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
 import { fire } from '@dbase/fire/fire.library';
-import { FireDocument } from '@dbase/data.schema';
+import type { FireDocument } from '@dbase/data.schema';
 import { getSlice } from '@dbase/state/state.library';
 
 import { isArray, isIterable, isObject, isDefined, isUndefined } from '@library/type.library';
@@ -21,7 +21,6 @@ import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
 import { dbg } from '@library/logger.library';
-import { ActivatedRouteSnapshot } from '@angular/router';
 
 /**
  * This private service will communicate with Firebase and the FireStore database,  
@@ -29,27 +28,30 @@ import { ActivatedRouteSnapshot } from '@angular/router';
  */
 @Injectable({ providedIn: DBaseModule })
 export class FireService {
+	#dbg = dbg(this);
+
 	#auth: firebase.auth.Auth;
 	#fire: firebase.firestore.Firestore;
 	#functions: firebase.functions.Functions;
-	#dbg = dbg(this);
 
 	constructor(private zone: NgZone, private snack: SnackService) {
-		this.#dbg('new');
-
 		const app = firebase.initializeApp(environment.firebase.prod, environment.firebase.config.name);
+
 		this.#auth = firebase.auth(app);
 		this.#fire = firebase.firestore(app);
 		this.#functions = firebase.functions(app);
 
 		this.#fire.enablePersistence({ synchronizeTabs: environment.firebase.config.synchronizeTabs });
+		this.#dbg('new: %s', app.name);
 	}
 
 	get auth() {
 		return this.#auth;
 	}
 
-	private queryRef<T>(collection: COLLECTION, query: fire.Query = {}) {
+	private collectionReference<T>(collection: COLLECTION): firebase.firestore.CollectionReference<T>;
+	private collectionReference<T>(collection: COLLECTION, query?: fire.Query): firebase.firestore.Query<T>;
+	private collectionReference(collection: COLLECTION, query: fire.Query = {}) {
 		let colRef: firebase.firestore.Query = this.#fire.collection(collection);
 
 		asArray(query.where)
@@ -60,9 +62,8 @@ export class FireService {
 				isIterable(where.value) ? asArray(where.value) : where.value)	// coerce Set to Array
 			);
 
-		if (query.orderBy)
-			asArray(query.orderBy)
-				.forEach(order => colRef = colRef.orderBy(order.fieldPath, order.directionStr));
+		asArray(query.orderBy)
+			.forEach(order => colRef = colRef.orderBy(order.fieldPath, order.directionStr));
 
 		if (isNumeric(query.limit))
 			colRef = colRef.limit(query.limit);
@@ -79,20 +80,20 @@ export class FireService {
 		if (query.endBefore)
 			colRef = colRef.endBefore(query.endBefore);
 
-		return colRef as firebase.firestore.CollectionReference<T>;
-	}
-
-	on<T>(collection: COLLECTION, query: fire.Query = {}, callBack: (snapshot: firebase.firestore.QuerySnapshot<T>) => any) {
-		return this.queryRef<T>(collection, query)
-			.onSnapshot(callBack)
+		return colRef;
 	}
 
 	/** Document Reference, for existing or new */
-	private docRef<T>(doc: FireDocument) {
+	private documentReference<T>(doc: FireDocument) {
 		const collection = getSlice(doc[FIELD.Store]);
 		const docId = doc[FIELD.Id] ?? this.newId(doc[FIELD.Store]);
 
-		return this.queryRef<T>(collection).doc(docId);
+		return this.#fire.collection(collection).doc(docId);
+	}
+
+	on<T>(collection: COLLECTION, query: fire.Query = {}, callBack: (snapshot: firebase.firestore.QuerySnapshot<T>) => any) {
+		return this.collectionReference<T>(collection, query)
+			.onSnapshot(callBack)
 	}
 
 	/** manage connectivity */
@@ -102,10 +103,11 @@ export class FireService {
 			: this.#fire.disableNetwork()							// disconnect Cloud Firestore
 	}
 
-	/** allocate a new meta-field _id */
+	/** allocate a new document _id */
 	newId(store: COLLECTION | STORE) {
 		const collection = getSlice(store);
-		return this.queryRef(collection).doc().id;
+
+		return this.#fire.collection(collection).doc().id;
 	}
 
 	/** Remove the meta-fields, undefined fields, low-values fields from a document */
@@ -143,13 +145,14 @@ export class FireService {
 	 * Wrap database-writes within a set of Batches (limited to 300 documents per).  
 	 * These documents are assumed to have a FIELD.store and (except for 'creates') a FIELD.id  
 	 * If they are Member documents and missing a <uid> field, the current User is inserted  
-	 * Perform all creates first, then all updates, finally all deletes
+	 * Perform all creates first, then all updates, finally all deletes  
+	 * NOTE: a large number of writes may be split into multiple Batches, where the first suceeds and subsequent fails.  
 	 */
 	batch(creates: FireDocument[] = [], updates: FireDocument[] = [], deletes: FireDocument[] = []) {
+		const limit = 300;
 		const cloneCreate = [...asArray(creates)];
 		const cloneUpdate = [...asArray(updates)];
 		const cloneDelete = [...asArray(deletes)];
-		const limit = 300;
 		const commits: Promise<void>[] = [];
 
 		while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
@@ -158,9 +161,9 @@ export class FireService {
 			const d = cloneDelete.splice(0, limit - c.length - u.length);
 
 			const bat = this.#fire.batch();
-			c.forEach(ins => bat.set(this.docRef(ins), this.removeMeta(ins, { setUndefined: true })));
-			u.forEach(upd => bat.update(this.docRef(upd), this.removeMeta(upd)));
-			d.forEach(del => bat.delete(this.docRef(del)));
+			c.forEach(ins => bat.set(this.documentReference(ins), this.removeMeta(ins, { setUndefined: true })));
+			u.forEach(upd => bat.update(this.documentReference(upd), this.removeMeta(upd)));
+			d.forEach(del => bat.delete(this.documentReference(del)));
 			commits.push(bat.commit());
 		}
 
@@ -175,7 +178,7 @@ export class FireService {
 		const cloneDelete = asArray(cloneObj(deletes));
 		const limit = 500;
 
-		return new Promise<boolean>((resolve, reject) => {
+		return new Promise<boolean>(resolve => {
 
 			while (cloneCreate.length + cloneUpdate.length + cloneDelete.length) {
 				const c = cloneCreate.splice(0, limit);
@@ -184,33 +187,36 @@ export class FireService {
 
 				this.#fire.runTransaction(txn => {
 					asArray(selects).forEach(ref => txn.get(ref));
-					c.forEach(ins => txn = txn.set(this.docRef(ins), this.removeMeta(ins, { setUndefined: true })));
-					u.forEach(upd => txn = txn.update(this.docRef(upd), this.removeMeta(upd)));
-					d.forEach(del => txn = txn.delete(this.docRef(del)));
+					c.forEach(ins => txn = txn.set(this.documentReference(ins), this.removeMeta(ins, { setUndefined: true })));
+					u.forEach(upd => txn = txn.update(this.documentReference(upd), this.removeMeta(upd)));
+					d.forEach(del => txn = txn.delete(this.documentReference(del)));
 
 					return Promise.resolve(true);					// if any change fails, the Transaction rejects
 				})
 			}
+
 			resolve(true);
 		})
 	}
 
+	private addMeta = <T>(snap: firebase.firestore.QueryDocumentSnapshot<T>) =>
+		({ ...snap.data(), [FIELD.Id]: snap.id } as T)
+
 	/**
-	 * listen directly to FireStore (not via State)  
-	 * this is useful for Collections that are not sync'd to State (eg. Zoom | Forum)
+	 * setup an onSnapshot listener to a FireStore query
 	 */
 	listen<T, K extends boolean = false>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<T[]>;
-	listen<T, K extends boolean = true>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<firebase.firestore.DocumentChange<T>[]>;
+	listen<T, K extends boolean = true>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<fire.FireSnap<T>[]>;
 	listen<T>(collection: COLLECTION, query?: fire.Query, state = false) {
 		let listener: firebase.Unsubscribe;
 
 		return new Observable(observer => {
-			listener = this.queryRef<T>(collection, query)
+			listener = this.collectionReference<T>(collection, query)
 				.onSnapshot(snap =>
 					observer.next(
-						state																// report back as 'state' object or a 'document' object
-							? snap.docChanges().map(change => ({ type: change.type, metadata: cloneObj(change.doc.metadata), doc: { ...change.doc.data(), [FIELD.Id]: change.doc.id } }))
-							: snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id }))
+						state																// report back as 'FireSnap' object or a 'document' array
+							? snap.docChanges().map(change => ({ type: change.type, metadata: cloneObj(change.doc.metadata), doc: this.addMeta(change.doc) } as fire.FireSnap<T>))
+							: snap.docs.map(this.addMeta)
 					),
 					observer.error,												// snapshot failed
 					observer.complete											// snapshot completed itself (ie no more data)
@@ -221,7 +227,7 @@ export class FireService {
 	}
 
 	select<T>(collection: COLLECTION, query?: fire.Query) {
-		return this.queryRef<T>(collection, query)
+		return this.collectionReference<T>(collection, query)
 			.get({ source: 'server' })								// get the server-data, rather than cache
 			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
 	}
@@ -230,7 +236,7 @@ export class FireService {
 		const docId = data[FIELD.Id] || this.newId(data[FIELD.Store]);
 
 		data = this.removeMeta(data);								// remove the meta-fields from the document
-		return this.docRef(data).set(data)
+		return this.documentReference(data).set(data)
 			.then(() => docId);
 	}
 
@@ -238,11 +244,11 @@ export class FireService {
 		const docId = data[FIELD.Id];
 
 		data = this.removeMeta(data);
-		return this.docRef(data).update(data)
+		return this.documentReference(data).update(data)
 	}
 
 	delete(data: FireDocument) {
-		return this.docRef(data).delete();
+		return this.documentReference(data).delete();
 	}
 
 	callMeta(store: STORE, docId: string) {

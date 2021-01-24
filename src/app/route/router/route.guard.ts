@@ -10,7 +10,7 @@ import { AuthModule } from '@service/auth/auth.module';
 import { DataService } from '@dbase/data/data.service';
 import { PROFILE } from '@dbase/data.define';
 
-import { isDefined } from '@library/type.library';
+import { isDefined, isUndefined } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 import { take } from 'rxjs/operators';
 
@@ -35,12 +35,12 @@ export class OAuthGuard implements CanActivate {
 export class LoginGuard implements CanActivate {
 	#dbg = dbg(this, 'LoginGuard');
 
-	constructor(private data: DataService) { this.#dbg('new') }
+	constructor(private data: DataService, private navigate: NavigateService) { this.#dbg('new') }
 
 	async canActivate(route: ActivatedRouteSnapshot) {
 		const currUser = await this.data.getCurrentUser();
 
-		return isDefined(currUser);
+		return true;
 	}
 }
 

@@ -1,4 +1,4 @@
-import { FIELD } from '@dbase/data.define';
+import type { FIELD } from '@dbase/data.define';
 import { isArray } from '@library/type.library';
 
 /** shortcuts to FireService static properties and types */
@@ -46,5 +46,12 @@ export namespace fire {
 		path: string;
 		parent: string;
 		subcollections?: string[];
+	}
+
+	/** extract from QueryDocumentSnapshot */
+	export interface FireSnap<T> {
+		type: firebase.default.firestore.DocumentChangeType;
+		metadata: firebase.default.firestore.SnapshotMetadata;
+		doc: T;
 	}
 }

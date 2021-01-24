@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { timer } from 'rxjs';
-import { map, debounce, timeout, take } from 'rxjs/operators';
+import { combineLatest, merge, timer } from 'rxjs';
+import { map, debounce, timeout, take, skip } from 'rxjs/operators';
 import { Store, Actions, ofActionDispatched, ActionType } from '@ngxs/store';
 
 import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
 import { AuthSlice } from '@dbase/state/auth.action';
-import { checkStorage, getSource, addMeta, getMethod } from '@dbase/sync/sync.library';
+import { checkStorage, getSource, getMethod } from '@dbase/sync/sync.library';
 
 import type { FireDocument } from '@dbase/data.schema';
 import { COLLECTION } from '@dbase/data.define';
@@ -15,7 +15,7 @@ import { FireService } from '@dbase/fire/fire.service';
 import { fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
-import { getEnumValues, isFunction, isUndefined } from '@library/type.library';
+import { getEnumValues, isEmpty, isFunction, isUndefined } from '@library/type.library';
 import { isEqual, quoteObj } from '@library/object.library';
 import { dbg } from '@library/logger.library';
 
@@ -36,30 +36,52 @@ export class SyncService {
 	public async on(collection: COLLECTION, query?: fire.Query, ...additional: [COLLECTION, fire.Query?][]) {
 		const ready = new Pledge<boolean>();
 		const key: sync.Key = { collection, query };
-		const off: firebase.default.Unsubscribe[] = [];		// array of listener unsubscribe functions
 
 		const label = `${quoteObj(query) ?? '[all]'} ${additional.length ? additional.map(quoteObj) : ''}`;
 		const sync = this.sync.bind(this, key);
 		const uid = await this.getAuthUID();
 
-		this.off(collection, query);											// detach any prior subscription of the same signature
-		off.push(this.fire.on(collection, query, sync));	// start primary collection listener
-		additional.forEach(([collection, query]) => 			// in case we want to append other Collection queries
-			off.push(this.fire.on(collection, query, sync)))
+		additional.splice(0, 0, [collection, query]);			// stack the intial listen-request
+		const listeners = additional											// register a listener for each collection/query
+			.map(([collection, query]) => this.fire.listen<FireDocument>(collection, query, true))
+		const first = combineLatest(listeners)						// wait for all listeners to emit, and
+			.pipe(map(arr => arr.flat()), take(1));					// only flatten the first array of results
+		const second = listeners													// wait for each listener, but
+			.map(listener => listener.pipe(skip(1)));				// from second emit onwards
 
+		this.off(collection, query);											// detach any prior subscription of the same signature
 		this.#listener.set(key, {
 			key,																						// stash reference to the key
 			label,																					// stash Listen references
-			streams: off.length,
 			ready,
-			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
 			uid,
-			off,
+			cnt: -1,																				// '-1' is not-yet-snapped, '0' is initial snapshot
+			subscription: merge(first, ...second)
+				.subscribe(sync),															// start listening
 			method: getMethod(collection),
 		})
 
+		merge(first, ...second)														// kick-off the subscription
+			.pipe(take(1))																	// and auto-complete
+			.subscribe();																		// ignore emit
 		this.#dbg('on: %s %s', key.collection, label);
 		return ready.promise;                             // indicate when snap0 is complete
+	}
+
+	/** detach an existing snapshot listener */
+	public off(collection?: COLLECTION, query?: fire.Query, trunc?: boolean) {
+		for (const [key, listen] of this.#listener.entries()) {
+			if ((collection ?? key.collection) === key.collection && isEqual(query ?? key.query, key.query)) {
+				this.#dbg('off: %s %j', key.collection, key.query || {});
+
+				listen.subscription?.unsubscribe();						// detach all listeners
+
+				if (trunc)
+					this.store.dispatch(new listen.method.clearStore());
+
+				this.#listener.delete(key);
+			}
+		}
 	}
 
 	private getAuthUID() {															// Useful for matching sync-events to the Auth'd User
@@ -107,43 +129,26 @@ export class SyncService {
 		})
 	}
 
-	/** detach an existing snapshot listener */
-	public off(collection?: COLLECTION, query?: fire.Query, trunc?: boolean) {
-		for (const [key, listen] of this.#listener.entries()) {
-			if ((collection ?? key.collection) === key.collection && isEqual(query ?? key.query, key.query)) {
-				this.#dbg('off: %s %j', key.collection, key.query || {});
-
-				listen.off
-					.forEach(off => off());												// detach all listeners
-
-				if (trunc)
-					this.store.dispatch(new listen.method.clearStore());
-
-				this.#listener.delete(key);
-			}
-		}
-	}
-
 	/** handler for snapshot listener */
-	private async sync(key: sync.Key, snaps: firebase.default.firestore.QuerySnapshot<FireDocument>) {
+	private async sync(key: sync.Key, snaps: fire.FireSnap<FireDocument>[]) {
+		const source = getSource(snaps[0].metadata);
 		const listen = this.#listener.get(key)!;
 		const { setStore, delStore, clearStore } = listen.method;
-		const source = getSource(snaps);
 
-		if (snaps.empty)
+		if (isEmpty(snaps))
 			return listen.ready.resolve(false);							// bail-out
 
-		listen.cnt += 1;
-		const debug = source === sync.SOURCE.Server && listen.cnt >= listen.streams;
+		const debug = source !== sync.SOURCE.Cache;
 		const changes = getEnumValues(sync.CHANGE);
-		const [snapAdd, snapMod, snapDel] = snaps.docChanges()
+		const [snapAdd, snapMod, snapDel] = snaps
 			.reduce((cnts, snap) => {
 				const idx = changes.indexOf(snap.type as sync.CHANGE);
 
-				cnts[idx].push(addMeta(snap.doc));
+				cnts[idx].push(snap.doc);
 				return cnts;
 			}, [[] as FireDocument[], [] as FireDocument[], [] as FireDocument[]]);
 
+		listen.cnt += 1;
 		this.#dbg('sync: %s %s #%s (ins:%s, upd:%s, del:%s) %s',
 			key.collection, source, listen.cnt, snapAdd.length, snapMod.length, snapDel.length, listen.label);
 
