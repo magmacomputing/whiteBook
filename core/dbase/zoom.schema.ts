@@ -1,29 +1,29 @@
-import { COLOR, FIELD, STORE } from '@dbase/data.define';
+import { FIELD, STORE, COLOR } from '@dbase/data.define';
 import { FireDocument } from '@dbase/data.schema';
 
 import { Instant } from '@library/instant.library';
 
 export enum EVENT {
-	type = 'body.event',
-	joined = 'meeting.participant_joined',
-	left = 'meeting.participant_left',
-	started = 'meeting.started',
-	ended = 'meeting.ended',
-	status = 'user.presence_status_updated',
+	Type = 'body.event',
+	Joined = 'meeting.participant_joined',
+	Left = 'meeting.participant_left',
+	Started = 'meeting.started',
+	Ended = 'meeting.ended',
+	Status = 'user.presence_status_updated',
 }
 
 export enum TYPE {
-	instant = 1,
-	scheduled,
-	recurring,
-	personal,
-	recurringScheduled = 8,
+	Instant = 1,
+	Scheduled,
+	Recurring,
+	Personal,
+	RecurringScheduled = 8,
 }
 
 export enum PRESENCE {
-	available = 'Available',
-	away = 'Away',
-	disturb = 'Do Not Disturb',
+	Available = 'Available',
+	Away = 'Away',
+	Disturb = 'Do Not Disturb',
 }
 
 export interface Event<T extends Started | Ended | Joined | Left | Status> extends FireDocument {
@@ -44,7 +44,7 @@ export interface Event<T extends Started | Ended | Joined | Left | Status> exten
 }
 
 export type Started = {
-	event: EVENT.started;
+	event: EVENT.Started;
 	payload: {
 		account_id: string;
 		object: {
@@ -61,7 +61,7 @@ export type Started = {
 }
 
 export type Ended = {
-	event: EVENT.ended;
+	event: EVENT.Ended;
 	payload: {
 		account_id: string;
 		object: {
@@ -79,7 +79,7 @@ export type Ended = {
 }
 
 export type Joined = {
-	event: EVENT.joined;
+	event: EVENT.Joined;
 	payload: {
 		account_id: string;
 		object: {
@@ -102,7 +102,7 @@ export type Joined = {
 }
 
 export type Left = {
-	event: EVENT.left;
+	event: EVENT.Left;
 	payload: {
 		account_id: string;
 		object: {
@@ -125,7 +125,7 @@ export type Left = {
 }
 
 export type Status = {
-	event: EVENT.status;
+	event: EVENT.Status;
 	payload: {
 		account_id: string;
 		object: {

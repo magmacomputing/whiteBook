@@ -208,10 +208,10 @@ export class FireService {
 	listen<T, K extends boolean = false>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<T[]>;
 	listen<T, K extends boolean = true>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<fire.FireSnap<T>[]>;
 	listen<T>(collection: COLLECTION, query?: fire.Query, state = false) {
-		let listener: firebase.Unsubscribe;
+		let offSnapshot: firebase.Unsubscribe;			// method to disconnect the Snapshot listener
 
 		return new Observable(observer => {
-			listener = this.collectionReference<T>(collection, query)
+			offSnapshot = this.collectionReference<T>(collection, query)
 				.onSnapshot(snap =>
 					observer.next(
 						state																// report back as 'FireSnap' object or a 'document' array
@@ -222,7 +222,7 @@ export class FireService {
 					observer.complete											// snapshot completed itself (ie no more data)
 				)
 		}).pipe(
-			finalize(() => listener?.())							// when unsubscribe Observable, complete the onShapshot listener
+			finalize(() => offSnapshot?.())						// when unsubscribe Observable, complete the onShapshot listener
 		)
 	}
 
