@@ -61,6 +61,7 @@ export function assertNever(val: never): asserts val is never { throw new Error(
 
 export type TString = string | string[];
 export type TNumber = number | number[];
+export type TPlural<T extends string> = `${T}s`;
 export type valueOf<T> = T[keyof T];
 
 export const getEnumKeys = <T>(enumType: T) => Object.keys(enumType).filter(key => isNaN(Number(key))) as (keyof T)[];

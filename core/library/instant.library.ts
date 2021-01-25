@@ -1,5 +1,5 @@
 import { asString, asNumber, toProperCase } from '@library/string.library';
-import { getType, isString, isNumber } from '@library/type.library';
+import { getType, isString, isNumber, TPlural } from '@library/type.library';
 import { fix } from '@library/number.library';
 
 interface InstantObj {							// Instant values
@@ -34,11 +34,9 @@ interface DateFmt {									// pre-configured format strings
 }
 
 type TArgs = string[] | number[];
-// type TPlural<T extends string> = `${T}s`;		// TODO:  needs Typescript 4.1
 type TMutate = 'add' | 'start' | 'mid' | 'end';
 type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
-type TUnitDiff = 'years' | 'months' | 'weeks' | 'days' | 'hours' | 'minutes' | 'seconds';
-// type TUnitDiff = TPlural<TUnitTime>;
+type TUnitDiff = TPlural<TUnitTime>;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -476,35 +474,9 @@ export namespace Instant {
 		second = TIME.second * 1_000,
 	}
 
-	/**  */
+	/** Instant variables */
 	export enum DATE {
 		maxStamp = new Date('9999-12-31').getTime() / 1_000,
 		minStamp = new Date('1000-01-01').getTime() / 1_000,
 	}
 }
-
-/** Mirror the Firestore Timestamp class */
-// class Timestamp {
-// 	#seconds: number;
-// 	#nanoseconds: number;
-// 	#now: number;
-
-// 	constructor(seconds?: number, nanoseconds?: number) {
-// 		const now = new Date();
-// 		this.#seconds = isUndefined(seconds)
-// 			? now.getSeconds()
-// 			: seconds
-// 		this.#nanoseconds = isUndefined(nanoseconds)
-// 			? now.getMilliseconds() * 1_000_000
-// 			: nanoseconds
-// 		this.#now = now.setHours(0, 0, this.#seconds, this.#nanoseconds / 1000);
-// 	}
-
-// 	get seconds() { return this.#seconds }
-// 	get nanoseconds() { return this.#nanoseconds }
-
-// 	public toDate = () => new Date(this.#now);
-// 	static fromDate = (dt: Date) => new Timestamp(dt.getSeconds(), dt.getMilliseconds() * 1_000_000);
-// 	static fromStamp = (stamp: number) => Timestamp.fromDate(new Date(stamp * 1000));
-// 	static now = new Timestamp();
-// }

@@ -3,12 +3,12 @@ import { takeUntil } from 'rxjs/operators';
 
 import { Instant } from '@library/instant.library';
 import { getCaller } from '@library/utility.library';
-import { isUndefined } from '@library/type.library';
+import { isNullish } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 /**
  * init an Observable which emits at the same time everyday.   
- * provide a callback to invoke at midnight as
+ * provide a callback to invoke on alarm, as
  * ```
  * new DayTimer(callback.bind(this))
  * ```
@@ -21,7 +21,7 @@ export class DayTimer {
 	constructor(callback?: Function, alarm?: Instant.TYPE) { this.start(callback, alarm); }
 
 	start(callback?: Function, alarm?: Instant.TYPE) {
-		if (isUndefined(alarm)) {									// assume midnight
+		if (isNullish(alarm)) {										// default midnight
 			alarm = new Instant()
 				.add(1, 'day')
 				.startOf('day');
