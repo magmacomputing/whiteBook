@@ -3,10 +3,11 @@ import { takeUntil } from 'rxjs/operators';
 
 import { Instant } from '@library/instant.library';
 import { getCaller } from '@library/utility.library';
+import { isUndefined } from '@library/type.library';
 import { dbg } from '@library/logger.library';
 
 /**
- * init an Observable which emits at midnight everyday.   
+ * init an Observable which emits at the same time everyday.   
  * provide a callback to invoke at midnight as
  * ```
  * new DayTimer(callback.bind(this))
@@ -17,18 +18,24 @@ export class DayTimer {
 	#caller = getCaller();
 	#stop$!: Subject<any>;											// notify Subscriptions to complete
 
-	constructor(callback: Function) { this.start(callback); }
+	constructor(callback?: Function, alarm?: Instant.TYPE) { this.start(callback, alarm); }
 
-	start(callback: Function) {
-		const midnight = new Instant()
-			.add(1, 'day')
-			.startOf('day');												// determine day-change
+	start(callback?: Function, alarm?: Instant.TYPE) {
+		if (isUndefined(alarm)) {									// assume midnight
+			alarm = new Instant()
+				.add(1, 'day')
+				.startOf('day');
+		} else {
+			alarm = new Instant(alarm)							// cast as Instant
+			if (alarm.time < new Instant().time)		// if time has already passed
+				alarm = alarm.add(1, 'day');					// add one-day
+		}
 
-		this.stop();															// stop the previous Subject
+		this.stop();															// stop the previous Subject (useful for a re-start)
 		this.#stop$ = new Subject<any>();					// start a new Subject
 
-		this.log('new', 0, midnight);							// show the initial DayTimer
-		timer(midnight.toDate(), Instant.TIMES.day)// start a DayTimer from midnight, and re-fires daily
+		this.log('new', 0, alarm);								// show the initial DayTimer
+		timer(alarm.toDate(), Instant.TIMES.day)	// start a timer for the alarm-time, and re-fire daily
 			.pipe(takeUntil(this.#stop$))						// until notified to stop
 			.subscribe({
 				next: (nbr) => {
@@ -36,7 +43,6 @@ export class DayTimer {
 					callback?.()												// do callback at midnight
 				},
 				complete: () => {
-					this.stop();												// tear-down Subject
 					this.log('end')
 				}
 			})
