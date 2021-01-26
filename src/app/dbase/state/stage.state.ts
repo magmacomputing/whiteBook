@@ -62,7 +62,7 @@ export class StageState implements NgxsOnInit {
 	}
 
 	@Action(stageAction.Clear)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: stageAction.Clear) {
+	clearStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: stageAction.Clear) {
 		if (debug) this.dbg('clearStage');
 		setState({});
 	}

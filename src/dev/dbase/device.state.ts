@@ -70,8 +70,8 @@ export class DeviceState implements NgxsOnInit {
 
 	// TODO: dont delete local-device store?
 	@Action(deviceAction.Clear)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: deviceAction.Clear) {
-		if (debug) this.#dbg('truncDevice');
+	clearStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: deviceAction.Clear) {
+		if (debug) this.#dbg('clearDevice');
 		setState({});
 	}
 

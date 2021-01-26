@@ -45,9 +45,9 @@ export enum STORE {
 	// Forum
 	Comment = 'comment',
 	React = 'react',
+	Booking = 'booking',
 	// Attend
 	Attend = 'attend',
-	Booking = 'booking',
 	// misc
 	Local = '@config@',
 	Log = 'log',
@@ -213,10 +213,10 @@ export namespace auth {
 	}
 
 	export enum ROLE {
+		Guest = 'guest',
 		Member = 'member',
 		Instructor = 'instructor',
 		Admin = 'admin',
-		Guest = 'guest',
 	}
 }
 

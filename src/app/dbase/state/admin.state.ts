@@ -64,8 +64,8 @@ export class AdminState implements NgxsOnInit {
 	}
 
 	@Action(adminAction.Clear)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: adminAction.Clear) {
-		if (debug) this.dbg('truncAdmin');
+	clearStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: adminAction.Clear) {
+		if (debug) this.dbg('clearAdmin');
 		setState({});
 	}
 }

@@ -69,14 +69,14 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection?: COLLECTION, query?: fire.Query, trunc?: boolean) {
+	public off(collection?: COLLECTION, query?: fire.Query, clear?: boolean) {
 		for (const [key, listen] of this.#listener.entries()) {
 			if ((collection ?? key.collection) === key.collection && isEqual(query ?? key.query, key.query)) {
 				this.#dbg('off: %s %j', key.collection, key.query || {});
 
 				listen.subscription?.unsubscribe();						// detach all listeners
 
-				if (trunc)
+				if (clear)
 					this.store.dispatch(new listen.method.clearStore());
 
 				this.#listener.delete(key);

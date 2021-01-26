@@ -36,7 +36,7 @@ export class ZoomComponent implements OnInit, OnDestroy {
 	#timer!: DayTimer;
 	#meetings: zoom.Meeting[] = [];
 	#meetingDate = new BehaviorSubject<Instant>(new Instant());
-	public meetings$!: Observable<zoom.Meeting[]>;				// the date's Meetings
+	public meetings$!: Observable<zoom.Meeting[]>;			// the date's Meetings
 
 	#color!: Record<CLASS, Class>;
 	#colorCache!: (white: zoom.White | undefined) => COLOR

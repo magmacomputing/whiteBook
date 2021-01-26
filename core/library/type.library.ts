@@ -52,7 +52,7 @@ export const isEmpty = <T>(obj?: T) => false
 	|| (getType(obj) === 'Set' && (obj as unknown as Set<T>).size === 0)
 	|| (getType(obj) === 'Map' && (obj as unknown as Map<any, T>).size === 0)
 
-export function assertCondition(condition: any, message?: string): asserts condition {
+export function assertCondition(condition: boolean, message?: string): asserts condition {
 	if (!condition)
 		throw new Error(message);
 }

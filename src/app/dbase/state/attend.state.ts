@@ -27,26 +27,18 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(attendAction.Set)
-	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: attendAction.Set) {
+	setStore({ getState, setState, dispatch }: StateContext<TStateSlice<Attend>>, { payload, debug }: attendAction.Set) {
 		const state = cloneObj(getState()) || {};
 		let empty: Record<string, boolean> = {};
 
-		asArray<Attend | Booking>(payload as (Attend | Booking)[]).forEach(doc => {
-			const store = doc[FIELD.Store];
+		asArray(payload as Attend[]).forEach(doc => {
+			const payment = doc.payment[FIELD.Id];
 
-			if (this.isAttend(doc)) {
-				const payment = doc.payment[FIELD.Id];
-
-				if (state[payment] && !state[payment].length)
-					empty[payment] = true;															// check the first instance
-				if (!empty[payment])																	// dont bother with filter, if originally empty
-					state[payment] = this.filterState(state, doc);			// remove the doc if it was previously created
-				state[payment].push(doc);															// push the changed AttendDoc into the Store
-			}
-			else {
-				state[store] = filterState(state, doc);
-				state[store].push(doc);																// push the new/changed Booking into the Store
-			}
+			if (state[payment] && !state[payment].length)
+				empty[payment] = true;														// check the first instance
+			if (!empty[payment])																// dont bother with filter, if originally empty
+				state[payment] = this.filterState(state, doc);		// remove the doc if it was previously created
+			state[payment].push(doc);														// push the changed AttendDoc into the Store
 
 			if (debug) this.dbg('setAttend: %j', doc);
 		})
@@ -56,20 +48,15 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(attendAction.Del)																	// very rare Event
-	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<FireDocument>>, { payload, debug }: attendAction.Del) {
+	delStore({ getState, setState, dispatch }: StateContext<TStateSlice<Attend>>, { payload, debug }: attendAction.Del) {
 		const state = cloneObj(getState()) || {};
 
-		asArray(payload as (Attend | Booking)[]).forEach(doc => {
-			const store = doc[FIELD.Store];
+		asArray(payload as Attend[]).forEach(doc => {
+			const payment = doc.payment[FIELD.Id];
+			state[payment] = this.filterState(state, doc);
 
-			if (this.isAttend(doc)) {
-				const payment = doc.payment[FIELD.Id];
-				state[payment] = this.filterState(state, doc);
-
-				if (state[payment].length === 0)
-					delete state[payment];														// remove Attend document from Payment slice
-			}
-			else state[store] = filterState(state, doc);													// remove Booking document from Booking slice
+			if (state[payment].length === 0)
+				delete state[payment];															// remove Attend document from Payment slice
 
 			if (debug) this.dbg('delAttend: %j', doc);
 		})
@@ -79,20 +66,16 @@ export class AttendState implements NgxsOnInit {
 	}
 
 	@Action(attendAction.Clear)
-	truncStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: attendAction.Clear) {
-		if (debug) this.dbg('truncAttend');
+	clearStore({ setState }: StateContext<TStateSlice<FireDocument>>, { debug }: attendAction.Clear) {
+		if (debug) this.dbg('clearAttend');
 		setState({});
 	}
 
 	/** remove an item from the Attend Store */
-	private filterState(state: TStateSlice<FireDocument>, payload: Attend) {
+	private filterState(state: TStateSlice<Attend>, payload: Attend) {
 		const slice = payload.payment[FIELD.Id];
 		const curr = state && slice && state[slice] || [];
 
 		return [...curr.filter(itm => itm[FIELD.Id] !== payload[FIELD.Id])];
-	}
-
-	private isAttend(doc: Attend | Booking): doc is Attend {
-		return doc[FIELD.Store] === STORE.Attend;
 	}
 }
