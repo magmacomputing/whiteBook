@@ -6,8 +6,8 @@ export type TStoreConfig = STORE.Schema | STORE.Config | STORE.Default;
 export type TStoreClient = STORE.Class | STORE.Event | STORE.Price | STORE.Plan | STORE.Provider | STORE.Schedule | STORE.Calendar | STORE.Diary | STORE.Location | STORE.Instructor | STORE.Bonus | STORE.Span | STORE.Alert | STORE.Icon;
 type TStoreAdmin = STORE.Register | STORE.Sheet | STORE.Migrate;
 type TStoreMember = STORE.Profile | STORE.Payment | STORE.Gift | STORE.Message | STORE.Status | STORE.Log;
-type TStoreAttend = STORE.Attend | STORE.Booking;
-type TStoreForum = STORE.React | STORE.Comment;
+type TStoreForum = STORE.React | STORE.Comment | STORE.Booking;
+type TStoreAttend = STORE.Attend;
 
 // These are the meta- and common-fields for a standard Firestore document
 interface BaseDocument {
