@@ -91,12 +91,12 @@ export class DeviceState implements NgxsOnInit {
 			.filter(row => !row[FIELD.Expire]);							// slice it to get Config, skip expired
 
 		config
-			.filter(row => row[FIELD.Key] === 'default')		// get the placeholder values on first pass
+			.filter(row => row[FIELD.Key] === STORE.Default)// get the placeholder values on first pass
 			.filter(row => isString(row.value))
 			.forEach(row => placeholder[row[FIELD.Type]] = row.value);
 
 		return cloneObj(config)
-			.filter(row => row[FIELD.Key] !== 'default')		// skip Config 'defaults'
+			.filter(row => row[FIELD.Key] !== STORE.Default)// skip Config 'defaults'
 			.map(row => {
 				const subst: Record<string, string> = {}
 				Object.entries<any>(row.value).forEach(item => {		// for each item in the 'value' field

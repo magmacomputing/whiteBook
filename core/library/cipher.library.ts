@@ -1,4 +1,4 @@
-import { asString } from '@library/string.library';
+import { asString, objectify, stringify } from '@library/string.library';
 import { toHex } from '@library/number.library';
 
 enum CRYPTO {
@@ -16,19 +16,26 @@ export class Cipher {
 		modulusLength: 2048,
 		publicExponent: new Uint8Array([1, 0, 1]),
 		hash: { name: CRYPTO.Algorithm },
-	}, false, ['sign', 'verify'])
+	}, false, ['sign', 'verify']);
 
-	constructor() { }
+	#keys: typeof CRYPTO;
 
-	static decodeBase64 = <T>(str: string): T =>
-		JSON.parse(window.atob(str.replace('-', '+').replace('_', '/')));
+	constructor(params = {} as typeof CRYPTO) {
+		this.#keys = Object.assign({ Algorithm: 'SHA-256', Encoding: 'utf-8', Sign: 'RSASSA-PKCS1-v1_5', Type: 'AES-GCM' }, params);
+	}
 
-	static encodeBase64 = (buf: ArrayBuffer) =>
-		window.btoa(new Uint8Array(buf).reduce((s, b) => s + String.fromCharCode(b), ''));
+	static decodeBase64 = <T>(str: string): T => {
+		const obj = window.atob(str.replace('-', '+').replace('_', '/'));
+		return objectify(obj) as T;
+	}
 
-	static hash = async (source: string | Object, len: number = 64) => {
+	static encodeBase64 = (buf: any) =>
+		window.btoa(stringify(buf));
+	// window.btoa(new Uint8Array(buf).reduce((s, b) => s + String.fromCharCode(b), ''));
+
+	static hash = async (source: string | Object, len: number = 64, alg: AlgorithmIdentifier = 'SHA-256') => {
 		const buffer = Cipher.encodeBuffer(asString(source));
-		const hash = await crypto.subtle.digest(CRYPTO.Algorithm, buffer);
+		const hash = await crypto.subtle.digest(alg, buffer);
 
 		return toHex(Array.from(new Uint8Array(hash)), len);
 	}
@@ -40,6 +47,10 @@ export class Cipher {
 		crypto.subtle.encrypt({ name: CRYPTO.TypeKey, iv: Cipher.vector }, await Cipher.cryptoKey, Cipher.encodeBuffer(data))
 			.then(result => new Uint16Array(result))
 			.then(Cipher.decodeBuffer);
+
+	async encrypt(data: any) {
+
+	}
 
 	static decrypt = async (secret: Promise<ArrayBuffer>) =>
 		crypto.subtle.decrypt({ name: CRYPTO.TypeKey, iv: Cipher.vector }, await Cipher.cryptoKey, await secret)

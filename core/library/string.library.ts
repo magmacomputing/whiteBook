@@ -164,12 +164,18 @@ export const objectify = <T>(obj: T & any) => {
 		case ifString && str.startsWith('BigInt:') && isNumeric(segment):
 			return BigInt(segment) as unknown as T;
 
-		case ifString:
-		case isNullish(obj):
-			return obj as T;
+		case ifString && str.startsWith('Null:'):
+			return null;
+
+		case ifString && str.startsWith('Undefined:'):
+			return undefined;
 
 		case isDate(obj):
 			return new Date(obj) as unknown as T;
+
+		// case ifString:
+		// case isNullish(obj):
+		// 	return obj as T;
 
 		default:
 			return ifNumeric(obj!) as unknown as T;
