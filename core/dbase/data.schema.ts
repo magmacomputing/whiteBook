@@ -385,9 +385,21 @@ export interface Attend extends AttendCollection {
 	},
 }
 
-//	/attend/booking									// intent to Attend
-export interface Booking extends Omit<Attend, FIELD.Store> {
+//	/forum/booking									// intent to Attend, with no Payment / Bonus info
+export interface Booking extends ForumCollection {
 	[FIELD.Store]: STORE.Booking;
+	timetable: {
+		[FIELD.Id]: string;
+		[FIELD.Store]: STORE.Schedule | STORE.Calendar;
+		[FIELD.Type]: SCHEDULE;
+		[FIELD.Key]: CLASS;
+		track: {
+			date: number;
+			day: Instant.WEEKDAY;
+			week: number;
+			month: number;
+		}
+	}
 }
 
 //	/forum/comment

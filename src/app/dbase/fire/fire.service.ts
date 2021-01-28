@@ -14,9 +14,9 @@ import { DBaseModule } from '@dbase/dbase.module';
 import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
 import { fire } from '@dbase/fire/fire.library';
 import type { FireDocument } from '@dbase/data.schema';
-import { getSlice } from '@dbase/state/state.library';
+import { getSlice, isCollection } from '@dbase/state/state.library';
 
-import { isArray, isIterable, isObject, isDefined, isUndefined } from '@library/type.library';
+import { isArray, isIterable, isObject, isDefined, isUndefined, getEnumKeys } from '@library/type.library';
 import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
@@ -203,11 +203,26 @@ export class FireService {
 		({ ...snap.data(), [FIELD.Id]: snap.id } as T)
 
 	/**
+	 * determine the Collection associated with a Store.  
+	 * update the Query to include the Store
+	 */
+	private storeQuery(store: COLLECTION | STORE, query: fire.Query) {
+		const collection = getSlice(store);
+		if (!isCollection(store)) {									// make sure 'store' is in where-criteria
+			query.where = asArray(query.where);
+			asArray(query.where).push(fire.addWhere(FIELD.Store, store));
+		}
+
+		return collection;
+	}
+
+	/**
 	 * setup an onSnapshot listener to a FireStore query
 	 */
-	listen<T, K extends boolean = false>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<T[]>;
-	listen<T, K extends boolean = true>(collection: COLLECTION, query?: fire.Query, state?: K): Observable<fire.FireSnap<T>[]>;
-	listen<T>(collection: COLLECTION, query?: fire.Query, state = false) {
+	listen<T, K extends boolean = false>(store: COLLECTION | STORE, query?: fire.Query, state?: K): Observable<T[]>;
+	listen<T, K extends boolean = true>(store: COLLECTION | STORE, query?: fire.Query, state?: K): Observable<fire.FireSnap<T>[]>;
+	listen<T>(store: COLLECTION | STORE, query: fire.Query = {}, state = false) {
+		const collection = this.storeQuery(store, query);
 		let offSnapshot: firebase.Unsubscribe;			// method to disconnect the Snapshot listener
 
 		return new Observable(observer => {
@@ -226,9 +241,11 @@ export class FireService {
 		)
 	}
 
-	select<T>(collection: COLLECTION, query?: fire.Query) {
+	select<T>(store: COLLECTION | STORE, query: fire.Query = {}) {
+		const collection = this.storeQuery(store, query);
+
 		return this.collectionReference<T>(collection, query)
-			.get({ source: 'server' })								// get the server-data, rather than cache
+			.get()
 			.then(snap => snap.docs.map(doc => ({ ...doc.data(), [FIELD.Id]: doc.id } as unknown as T)))
 	}
 

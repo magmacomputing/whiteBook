@@ -6,14 +6,13 @@ import { ClientState } from '@dbase/state/client.state';
 import { MemberState } from '@dbase/state/member.state';
 import { AttendState } from '@dbase/state/attend.state';
 import { AdminState } from '@dbase/state/admin.state';
-import { StageState } from '@dbase/state/stage.state';
 
 import { InfoSnackBar, WarnSnackBar, ErrorSnackBar } from '@service/material/snack.service';
 
 @NgModule({
 	imports: [
 		CommonModule,
-		NgxsModule.forFeature([ClientState, MemberState, AttendState, AdminState, StageState]),
+		NgxsModule.forFeature([ClientState, MemberState, AttendState, AdminState]),
 	],
 	declarations: [
 		InfoSnackBar,

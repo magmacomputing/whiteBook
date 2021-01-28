@@ -18,21 +18,6 @@ export namespace clientAction {
 	}
 }
 
-export namespace deviceAction {
-	export class Set {										// Add a Client object-clone into the local Store
-		static readonly type = '[Sync Service] Set Device';
-		constructor(public payload: FireDocument[], public debug: boolean = true) { }
-	}
-	export class Del {
-		static readonly type = '[Sync Service] Delete Device';
-		constructor(public payload: FireDocument[], public debug: boolean = true) { }
-	}
-	export class Clear {
-		static readonly type = '[Sync Service] Clear Device';
-		constructor(public debug: boolean = true) { }
-	}
-}
-
 export namespace memberAction {
 	export class Set {									// Add a Member object into the Store
 		static readonly type = '[Sync Service] Set Member';
@@ -78,21 +63,6 @@ export namespace adminAction {
 	}
 	export class Clear {									// Truncate Admin object from the Store
 		static readonly type = '[Sync Service] Clear Admin';
-		constructor(public debug: boolean = true) { }
-	}
-}
-
-export namespace stageAction {
-	export class Set {
-		static readonly type = '[Sync Service] Set Stage';
-		constructor(public payload: FireDocument[], public debug: boolean = true) { }
-	}
-	export class Del {
-		static readonly type = '[Sync Service] Delete Stage';
-		constructor(public payload: FireDocument[], public debug: boolean = true) { }
-	}
-	export class Clear {
-		static readonly type = '[Sync Service] Clear Stage';
 		constructor(public debug: boolean = true) { }
 	}
 }

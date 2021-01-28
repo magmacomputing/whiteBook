@@ -158,9 +158,3 @@ export interface ForumState {
 		[STORE.React]?: React[];
 	}
 }
-
-export interface StageState {
-	[COLLECTION.Stage]: {
-		[STORE.Migrate]: Migrate[];
-	}
-}

@@ -5,7 +5,7 @@ import type { FireDocument } from '@dbase/data.schema';
 import { sync } from '@dbase/sync/sync.define';
 
 import type { LState } from '@dbase/state/state.define';
-import { clientAction, memberAction, attendAction, adminAction, deviceAction, stageAction } from '@dbase/state/state.action';
+import { clientAction, memberAction, attendAction, adminAction } from '@dbase/state/state.action';
 
 import { Cipher } from '@library/cipher.library';
 import { WebStore } from '@library/browser.library';
@@ -57,14 +57,8 @@ export const getMethod = (slice: COLLECTION) => {
 		case COLLECTION.Attend:
 			return { setStore: attendAction.Set, delStore: attendAction.Del, clearStore: attendAction.Clear }
 
-		case COLLECTION.Device:
-			return { setStore: deviceAction.Set, delStore: deviceAction.Del, clearStore: deviceAction.Clear }
-
 		case COLLECTION.Admin:
 			return { setStore: adminAction.Set, delStore: adminAction.Del, clearStore: adminAction.Clear }
-
-		case COLLECTION.Stage:
-			return { setStore: stageAction.Set, delStore: stageAction.Del, clearStore: stageAction.Clear }
 
 		default:
 			console.log('snap: Unexpected slice: ', slice);

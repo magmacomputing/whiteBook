@@ -109,11 +109,11 @@ export class DataService {
 		}, {} as Record<PROFILE, any>)
 	}
 
-	select<T>(collection: COLLECTION, query?: fire.Query) {	// direct access to collection, rather than via state
+	select<T>(collection: COLLECTION | STORE, query?: fire.Query) {	// direct access to collection, rather than via state
 		return this.fire.select<T>(collection, query);
 	}
 
-	listen<T>(collection: COLLECTION, query?: fire.Query) {	// observable access to collection
+	listen<T>(collection: COLLECTION | STORE, query?: fire.Query) {	// observable access to collection
 		return this.fire.listen<T>(collection, query);
 	}
 

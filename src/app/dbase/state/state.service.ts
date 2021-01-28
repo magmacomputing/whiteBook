@@ -32,7 +32,6 @@ export class StateService {
 	@Select() member$!: OState;
 	@Select() attend$!: OState;
 	@Select() admin$!: OState;
-	@Select() stage$!: OState;
 
 	private forum$: OState = of({ forum: [] });
 
@@ -45,7 +44,6 @@ export class StateService {
 			[COLLECTION.Member]: this.member$,
 			[COLLECTION.Attend]: this.attend$,
 			[COLLECTION.Admin]: this.admin$,
-			[COLLECTION.Stage]: this.stage$,
 			[COLLECTION.Forum]: this.forum$,
 		}
 	}

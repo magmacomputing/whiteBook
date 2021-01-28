@@ -65,7 +65,7 @@ export const getState = <T>(states: IState, store: STORE, filter: fire.Query["wh
 	)
 }
 
-const isCollection = (store: COLLECTION | STORE): store is COLLECTION =>
+export const isCollection = (store: COLLECTION | STORE): store is COLLECTION =>
 	!isEmpty(outline.SLICES[store as COLLECTION]);
 
 export const getSlice = (store: COLLECTION | STORE) => {	// determine the state-slice based on the <store> field

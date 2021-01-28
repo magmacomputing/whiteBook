@@ -22,7 +22,7 @@ import { fire } from '@dbase/fire/fire.library';
 
 import { Instant, getInstant, getStamp, fmtInstant } from '@library/instant.library';
 import { cloneObj, getPath } from '@library/object.library';
-import { isUndefined, isNull, isBoolean, TString, isEmpty, isDefined, getEnumKeys, getEnumCount } from '@library/type.library';
+import { isUndefined, isNull, isBoolean, TString, isEmpty, isDefined, getEnumCount } from '@library/type.library';
 import { asString, asNumber } from '@library/string.library';
 import { Pledge } from '@library/utility.library';
 import { WebStore } from '@library/browser.library';
@@ -430,7 +430,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 	public async addAttend() {
 		const history = await this.#history.promise;
 		const [migrate, attend] = await Promise.all([
-			this.data.getStore<Migrate>(STORE.Migrate, fire.addWhere(FIELD.Uid, this.#current!.uid)),
+			this.data.select<Migrate>(STORE.Migrate, { where: fire.addWhere(FIELD.Uid, this.#current!.uid) }),
 			this.data.getStore<Attend>(STORE.Attend, fire.addWhere(FIELD.Uid, this.#current!.uid)),
 		])
 		this.#migrate = migrate;
@@ -710,7 +710,7 @@ export class MigrateComponent implements OnInit, OnDestroy {
 		const where = fire.addWhere(FIELD.Uid, this.#current!.uid);
 
 		return this.data.setDoc(migrate)
-			.then(_ => this.data.getStore<Migrate>(STORE.Migrate, where))
+			.then(_ => this.data.select<Migrate>(STORE.Migrate, { where }))
 			.then(res => this.#migrate = res);
 	}
 

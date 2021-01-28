@@ -2,7 +2,7 @@ import { Subscription } from 'rxjs';
 
 import type { fire } from '@dbase/fire/fire.library';
 import type { COLLECTION } from '@dbase/data.define';
-import type { clientAction, memberAction, attendAction, adminAction, deviceAction, stageAction } from '@dbase/state/state.action';
+import type { clientAction, memberAction, attendAction, adminAction } from '@dbase/state/state.action';
 
 import type { Pledge } from '@library/utility.library';
 
@@ -39,9 +39,9 @@ export namespace sync {
 		ready: Pledge<boolean>;								// indicate when snap0 is received
 		subscription: Subscription;
 		method: {
-			setStore: typeof clientAction.Set | typeof memberAction.Set | typeof attendAction.Set | typeof deviceAction.Set | typeof adminAction.Set | typeof stageAction.Set;
-			delStore: typeof clientAction.Del | typeof memberAction.Del | typeof attendAction.Del | typeof deviceAction.Del | typeof adminAction.Del | typeof stageAction.Del;
-			clearStore: typeof clientAction.Clear | typeof memberAction.Clear | typeof attendAction.Clear | typeof deviceAction.Clear | typeof adminAction.Clear | typeof stageAction.Clear;
+			setStore: typeof clientAction.Set | typeof memberAction.Set | typeof attendAction.Set | typeof adminAction.Set;
+			delStore: typeof clientAction.Del | typeof memberAction.Del | typeof attendAction.Del | typeof adminAction.Del;
+			clearStore: typeof clientAction.Clear | typeof memberAction.Clear | typeof attendAction.Clear | typeof adminAction.Clear;
 		}
 	}
 }
