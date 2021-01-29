@@ -70,7 +70,7 @@ export class FireService {
 			.forEach(where => colRef = colRef.where(
 				where.fieldPath,
 				(where.opStr || (isIterable(where.value) ? 'in' : '==')),
-				isIterable(where.value) ? asArray(where.value) : where.value)	// coerce Set to Array
+				isIterable(where.value) ? asArray(where.value) : where.value)	// coerce Iterable to Array
 			);
 
 		asArray(query.orderBy)
