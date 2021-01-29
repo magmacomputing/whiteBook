@@ -68,6 +68,9 @@ export const getState = <T>(states: IState, store: STORE, filter: fire.Query["wh
 export const isCollection = (store: COLLECTION | STORE): store is COLLECTION =>
 	!isEmpty(outline.SLICES[store as COLLECTION]);
 
+export const isSubcollection = (store: COLLECTION | STORE): store is COLLECTION =>
+	store.includes('/');
+
 export const getSlice = (store: COLLECTION | STORE) => {	// determine the state-slice based on the <store> field
 	if (isCollection(store))
 		return store;																					// already a collection-name

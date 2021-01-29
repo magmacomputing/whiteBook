@@ -8,6 +8,8 @@ export enum COLLECTION {
 	Forum = 'forum',								// Comments / Reactions / Feedback
 	Stage = 'stage',								// staging area for trigger actions
 	Zoom = 'zoom',									// Zoom Meeting integration
+
+	Status = 'member/{{uid}}/status',
 }
 
 export enum STORE {

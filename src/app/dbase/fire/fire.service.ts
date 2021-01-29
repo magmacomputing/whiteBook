@@ -52,7 +52,18 @@ export class FireService {
 	private collectionReference<T>(collection: COLLECTION): firebase.firestore.CollectionReference<T>;
 	private collectionReference<T>(collection: COLLECTION, query?: fire.Query): firebase.firestore.Query<T>;
 	private collectionReference(collection: COLLECTION, query: fire.Query = {}) {
-		let colRef: firebase.firestore.Query = this.#fire.collection(collection);
+		let colRef: firebase.firestore.Query;
+
+		if (collection.includes('/')) {
+			const uid = this.#auth.currentUser?.uid;												// TODO:  must always include {{uid}} ?
+			if (isUndefined(uid))
+				throw new Error('Must be signedIn to Firebasse');
+
+			const subcollection = collection.replace('{{uid}}', uid);
+			colRef = this.#fire.collectionGroup(subcollection);							// TODO:  is a sub-collection always a CollectionGroup ?
+		}
+		else
+			colRef = this.#fire.collection(collection);
 
 		asArray(query.where)
 			.filter(where => isDefined(where.value))												// discard queries for 'undefined' value; not supported
@@ -208,6 +219,7 @@ export class FireService {
 	 */
 	private storeQuery(store: COLLECTION | STORE, query: fire.Query) {
 		const collection = getSlice(store);
+
 		if (!isCollection(store)) {									// make sure 'store' is in where-criteria
 			query.where = asArray(query.where);
 			asArray(query.where).push(fire.addWhere(FIELD.Store, store));
