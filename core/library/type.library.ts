@@ -59,12 +59,12 @@ export function assertCondition(condition: boolean, message?: string): asserts c
 export function assertString(str: unknown): asserts str is string { assertCondition(isString(str), `Invalid string: ${str}`) };
 export function assertNever(val: never): asserts val is never { throw new Error(`Unexpected object: ${val}`) };
 
-export type TString = string | string[];
-export type TNumber = number | number[];
-export type TPlural<T extends string> = `${T}s`;
-export type valueOf<T> = T[keyof T];
-
 export const getEnumKeys = <T>(enumType: T) => Object.keys(enumType).filter(key => isNaN(Number(key))) as (keyof T)[];
 export const getEnumCount = (enumType: Record<string | number, any>) => getEnumKeys(enumType).length;
 export const getEnumValues = <T>(enumType: T) => getEnumKeys<T>(enumType).map(key => enumType[key]);
 export const getEnumEntries = <T>(enumType: T) => getEnumKeys(enumType).map(key => [key, enumType[key]]);
+
+export type TString = string | string[];
+export type TNumber = number | number[];
+export type TPlural<T extends string> = `${T}s`;
+export type valueOf<T> = T[keyof T];

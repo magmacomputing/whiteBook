@@ -40,8 +40,6 @@ interface KeyFields extends BaseDocument {
 	[FIELD.Hidden]?: boolean;								// valid value, but not to be displayed to the client
 	[FIELD.Disable]?: boolean;							// valid value, greyed-out to the client
 	[FIELD.Key]: string;										// primary identifier
-	[FIELD.Hidden]?: boolean;								// valid value, but not to be displayed to the client
-	[FIELD.Disable]?: boolean;							// valid value, greyed-out to the client
 }
 interface UserFields extends BaseDocument {
 	[FIELD.Uid]: string;										// all user-documents require a 'uid' field
@@ -284,7 +282,7 @@ export interface Provider extends ClientCollection {
 			grant: string;
 			response: string;
 		};
-	}
+	};
 }
 
 //	/member/message
@@ -398,8 +396,8 @@ export interface Booking extends ForumCollection {
 			day: Instant.WEEKDAY;
 			week: number;
 			month: number;
-		}
-	}
+		},
+	};
 }
 
 //	/forum/comment
