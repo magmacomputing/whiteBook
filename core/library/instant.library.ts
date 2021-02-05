@@ -35,7 +35,7 @@ interface DateFmt {									// pre-configured format strings
 
 type TArgs = string[] | number[];
 type TMutate = 'add' | 'start' | 'mid' | 'end';
-type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second';
+type TUnitTime = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond';
 type TUnitDiff = TPlural<TUnitTime>;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,6 +79,8 @@ export class Instant {
 	format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
 	/** calc diff Dates, default as \<years> */
 	diff = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
+	/** format elapsed diff Dates */
+	elapse = (dt2?: Instant.TYPE, ...args: TArgs) => this.#elapseDate(dt2, ...args);
 	/** add date offset, default as \<minutes> */
 	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
 
@@ -159,7 +161,7 @@ export class Instant {
 				const vals = args as number[];												// assumed as [MM, DD, HH, MI, SS, ms]
 				date = vals.length
 					? new Date(nbr, vals[0] - 1, ...vals.slice(1))			// change month-number to zero-indexed
-					: new Date(nbr < Instant.DATE.maxStamp ? nbr * 1000 : nbr)// assume timestamp to milliseconds
+					: new Date(nbr < Instant.DATE.maxStamp && nbr > Instant.TIME.day ? nbr * 1000 : nbr)// assume timestamp to milliseconds
 				break;
 
 			case 'Instant':																					// already have a valid Instant
@@ -189,7 +191,7 @@ export class Instant {
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).getTime();	// NewYears Day
-		const ww = Math.floor((thu - ny) / Instant.TIMES.week + 1);	// ISO Week Number
+		const ww = Math.floor((thu - ny) / Instant.TIMES.weeks + 1);	// ISO Week Number
 
 		return {
 			yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow, time,
@@ -338,7 +340,7 @@ export class Instant {
 					.replace(/S{2}/g, fix(date.ss))
 					.replace(/s{2}/g, fix(date.ss))
 					.replace(/ts/g, asString(date.ts))
-					.replace(/ms/g, asString(date.ms))
+					.replace(/ms/g, fix(date.ms, 3))
 					.replace(/w{2}/g, asString(date.ww))
 					.replace(/dow/g, asString(date.dow))
 		}
@@ -418,11 +420,32 @@ export class Instant {
 	#diffDate = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => {
 		const offset = this.#parseDate(dt2, args);
 		const diff = this.#date.time - offset.time;
-		const single = unit.substring(0, unit.length - 1) as TUnitTime;			// remove plural units
 
 		return diff < 0
-			? Math.ceil(diff / Instant.TIMES[single])
-			: Math.floor(diff / Instant.TIMES[single])
+			? Math.ceil(diff / Instant.TIMES[unit])
+			: Math.floor(diff / Instant.TIMES[unit])
+	}
+
+	/** format the elapsed time between two dates */
+	#elapseDate = (dt2?: Instant.TYPE, ...args: TArgs) => {
+		const offset = this.#parseDate(dt2, args);
+		let diff = offset.time - this.#date.time;
+
+		const dd = Math.floor(diff / Instant.TIMES.days);
+		diff -= dd * Instant.TIMES.days;
+
+		const hh = Math.floor(diff / Instant.TIMES.hours) % 24;
+		diff -= hh * Instant.TIMES.hours;
+
+		const mm = Math.floor(diff / Instant.TIMES.minutes) % 60;
+		diff -= mm * Instant.TIMES.minutes;
+
+		const ss = Math.floor(diff / Instant.TIMES.seconds);
+		diff -= ss * Instant.TIMES.seconds;
+
+		return hh
+			? fix(hh) + ':' + fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
+			: fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
 	}
 }
 
@@ -460,16 +483,18 @@ export namespace Instant {
 		hour = 3_600,
 		minute = 60,
 		second = 1,
+		millisecond = .001,
 	}
 	/** number of milliseconds per unit-of-time */
 	export enum TIMES {
-		year = TIME.year * 1_000,
-		month = TIME.month * 1_000,
-		week = TIME.week * 1_000,
-		day = TIME.day * 1_000,
-		hour = TIME.hour * 1_000,
-		minute = TIME.minute * 1_000,
-		second = TIME.second * 1_000,
+		years = TIME.year * 1_000,
+		months = TIME.month * 1_000,
+		weeks = TIME.week * 1_000,
+		days = TIME.day * 1_000,
+		hours = TIME.hour * 1_000,
+		minutes = TIME.minute * 1_000,
+		seconds = TIME.second * 1_000,
+		milliseconds = TIME.millisecond * 1_000,
 	}
 
 	/** Instant variables */

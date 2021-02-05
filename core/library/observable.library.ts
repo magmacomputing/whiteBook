@@ -35,7 +35,7 @@ export class DayTimer {
 		this.#stop$ = new Subject<any>();					// start a new Subject
 
 		this.log('new', 0, alarm);								// show the initial DayTimer
-		timer(alarm.toDate(), Instant.TIMES.day)	// start a timer for the alarm-time, and re-fire daily
+		timer(alarm.toDate(), Instant.TIMES.days)	// start a timer for the alarm-time, and re-fire daily
 			.pipe(takeUntil(this.#stop$))						// until notified to stop
 			.subscribe({
 				next: (nbr) => {
