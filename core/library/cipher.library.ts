@@ -40,17 +40,13 @@ export class Cipher {
 		return toHex(Array.from(new Uint8Array(hash)), len);
 	}
 
-	static encodeBuffer = (str: string) => new TextEncoder().encode(str);
+	static encodeBuffer = (str: string) => new Uint16Array(new TextEncoder().encode(str));
 	static decodeBuffer = (buf: Uint16Array) => new TextDecoder(CRYPTO.Encoding).decode(buf);
 
 	static encrypt = async (data: any) =>
 		crypto.subtle.encrypt({ name: CRYPTO.TypeKey, iv: Cipher.vector }, await Cipher.cryptoKey, Cipher.encodeBuffer(data))
 			.then(result => new Uint16Array(result))
 			.then(Cipher.decodeBuffer);
-
-	async encrypt(data: any) {
-
-	}
 
 	static decrypt = async (secret: Promise<ArrayBuffer>) =>
 		crypto.subtle.decrypt({ name: CRYPTO.TypeKey, iv: Cipher.vector }, await Cipher.cryptoKey, await secret)
