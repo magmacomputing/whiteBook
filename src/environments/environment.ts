@@ -40,6 +40,7 @@ export const environment = {
 			region: 'us-central1',
 			automaticDataCollectionEnabled: true,
 			synchronizeTabs: true,
+			ignoreUndefined: true,
 		}
 	}
 }

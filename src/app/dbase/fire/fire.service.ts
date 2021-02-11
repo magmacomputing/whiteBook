@@ -16,7 +16,7 @@ import { fire } from '@dbase/fire/fire.library';
 import type { FireDocument } from '@dbase/data.schema';
 import { getSlice, isCollection } from '@dbase/state/state.library';
 
-import { isArray, isIterable, isObject, isDefined, isUndefined, getEnumKeys } from '@library/type.library';
+import { isArray, isIterable, isObject, isDefined, isUndefined } from '@library/type.library';
 import { isNumeric } from '@library/string.library';
 import { cloneObj } from '@library/object.library';
 import { asArray } from '@library/array.library';
@@ -41,6 +41,7 @@ export class FireService {
 		this.#fire = firebase.firestore(app);
 		this.#functions = firebase.functions(app);
 
+		this.#fire.settings({ ignoreUndefinedProperties: environment.firebase.config.ignoreUndefined, merge: true });
 		this.#fire.enablePersistence({ synchronizeTabs: environment.firebase.config.synchronizeTabs });
 		this.#dbg('new: %s', app.name);
 	}
