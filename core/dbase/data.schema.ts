@@ -118,6 +118,7 @@ export interface Plan extends Omit<ClientCollection, FIELD.Type> {
 	[FIELD.Key]: PLAN;
 	[FIELD.Sort]: number;
 	[STORE.Bonus]?: boolean;						// allowed to claim Bonus
+	hold?: number[];										// allowed to hold Expiry
 	rule?: TString;											// free-form text to describe the intent of the Bonus
 	expiry?: number;										// number of months after which an active Payment is auto-expired
 }
