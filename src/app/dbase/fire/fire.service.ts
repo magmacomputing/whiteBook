@@ -12,7 +12,7 @@ import { SnackService } from '@service/material/snack.service';
 
 import { DBaseModule } from '@dbase/dbase.module';
 import { COLLECTION, STORE, FIELD } from '@dbase/data.define';
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 import type { FireDocument } from '@dbase/data.schema';
 import { getSlice, isCollection } from '@dbase/state/state.library';
 
@@ -51,8 +51,8 @@ export class FireService {
 	}
 
 	private collectionReference<T>(collection: COLLECTION): firebase.firestore.CollectionReference<T>;
-	private collectionReference<T>(collection: COLLECTION, query?: fire.Query): firebase.firestore.Query<T>;
-	private collectionReference(collection: COLLECTION, query: fire.Query = {}) {
+	private collectionReference<T>(collection: COLLECTION, query?: Fire.Query): firebase.firestore.Query<T>;
+	private collectionReference(collection: COLLECTION, query: Fire.Query = {}) {
 		let colRef: firebase.firestore.Query;
 
 		if (collection.includes('/')) {
@@ -103,7 +103,7 @@ export class FireService {
 		return this.#fire.collection(collection).doc(docId);
 	}
 
-	on<T>(collection: COLLECTION, query: fire.Query = {}, callBack: (snapshot: firebase.firestore.QuerySnapshot<T>) => any) {
+	on<T>(collection: COLLECTION, query: Fire.Query = {}, callBack: (snapshot: firebase.firestore.QuerySnapshot<T>) => any) {
 		return this.collectionReference<T>(collection, query)
 			.onSnapshot(callBack)
 	}
@@ -218,12 +218,12 @@ export class FireService {
 	 * determine the Collection associated with a Store.  
 	 * update the Query to include the Store
 	 */
-	private storeQuery(store: COLLECTION | STORE, query: fire.Query) {
+	private storeQuery(store: COLLECTION | STORE, query: Fire.Query) {
 		const collection = getSlice(store);
 
 		if (!isCollection(store)) {									// make sure 'store' is in where-criteria
 			query.where = asArray(query.where);
-			asArray(query.where).push(fire.addWhere(FIELD.Store, store));
+			asArray(query.where).push(Fire.addWhere(FIELD.Store, store));
 		}
 
 		return collection;
@@ -232,9 +232,9 @@ export class FireService {
 	/**
 	 * setup an onSnapshot listener to a FireStore query
 	 */
-	listen<T, K extends boolean = false>(store: COLLECTION | STORE, query?: fire.Query, state?: K): Observable<T[]>;
-	listen<T, K extends boolean = true>(store: COLLECTION | STORE, query?: fire.Query, state?: K): Observable<fire.FireSnap<T>[]>;
-	listen<T>(store: COLLECTION | STORE, query: fire.Query = {}, state = false) {
+	listen<T, K extends boolean = false>(store: COLLECTION | STORE, query?: Fire.Query, state?: K): Observable<T[]>;
+	listen<T, K extends boolean = true>(store: COLLECTION | STORE, query?: Fire.Query, state?: K): Observable<Fire.FireSnap<T>[]>;
+	listen<T>(store: COLLECTION | STORE, query: Fire.Query = {}, state = false) {
 		const collection = this.storeQuery(store, query);
 		let offSnapshot: firebase.Unsubscribe;			// method to disconnect the Snapshot listener
 
@@ -243,7 +243,7 @@ export class FireService {
 				.onSnapshot(snap =>
 					observer.next(
 						state																// report back as 'FireSnap' object or a 'document' array
-							? snap.docChanges().map(change => ({ type: change.type, metadata: cloneObj(change.doc.metadata), doc: this.addMeta(change.doc) } as fire.FireSnap<T>))
+							? snap.docChanges().map(change => ({ type: change.type, metadata: cloneObj(change.doc.metadata), doc: this.addMeta(change.doc) } as Fire.FireSnap<T>))
 							: snap.docs.map(this.addMeta)
 					),
 					observer.error,												// snapshot failed
@@ -254,7 +254,7 @@ export class FireService {
 		)
 	}
 
-	select<T>(store: COLLECTION | STORE, query: fire.Query = {}) {
+	select<T>(store: COLLECTION | STORE, query: Fire.Query = {}) {
 		const collection = this.storeQuery(store, query);
 
 		return this.collectionReference<T>(collection, query)
@@ -282,7 +282,7 @@ export class FireService {
 	}
 
 	callMeta(store: STORE, docId: string) {
-		return this.http<fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.Id]: docId }, `checking ${store}`);
+		return this.http<Fire.DocMeta>('readMeta', { collection: getSlice(store), [FIELD.Id]: docId }, `checking ${store}`);
 	}
 
 	/** This helps an Admin impersonate another Member */

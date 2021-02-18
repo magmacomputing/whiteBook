@@ -5,7 +5,7 @@ import { FireDocument, React, Comment } from '@dbase/data.schema';
 import { FIELD, STORE, REACT, COLLECTION } from '@dbase/data.define';
 
 import { ForumArgs, CommentArgs, ReactArgs } from '@service/forum/forum.define';
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 
 import { Instant, getInstant } from '@library/instant.library';
 
@@ -77,15 +77,15 @@ export class ForumService {
 		const now = getInstant(date);
 
 		const forumFilter = [
-			fire.addWhere(FIELD.Uid, uid || await this.getUid()),
-			fire.addWhere(`track.${FIELD.Date}`, now.format(Instant.FORMAT.yearMonthDay)),
+			Fire.addWhere(FIELD.Uid, uid || await this.getUid()),
+			Fire.addWhere(`track.${FIELD.Date}`, now.format(Instant.FORMAT.yearMonthDay)),
 		]
 		if (store)
-			forumFilter.push(fire.addWhere(FIELD.Store, store));
+			forumFilter.push(Fire.addWhere(FIELD.Store, store));
 		if (key)
-			forumFilter.push(fire.addWhere(FIELD.Key, key));
+			forumFilter.push(Fire.addWhere(FIELD.Key, key));
 		if (type)
-			forumFilter.push(fire.addWhere(FIELD.Type, type));
+			forumFilter.push(Fire.addWhere(FIELD.Type, type));
 
 		return this.data.select<T>(COLLECTION.Forum, { where: forumFilter });
 	}

@@ -2,14 +2,14 @@ import type { FIELD } from '@dbase/data.define';
 import { isArray } from '@library/type.library';
 
 /** shortcuts to FireService static properties and types */
-export namespace fire {
+export namespace Fire {
 
-	export const addWhere = (fieldPath: string | firebase.default.firestore.FieldPath, value: any, opStr?: fire.Where["opStr"]): fire.Where => {
+	export const addWhere = (fieldPath: string | firebase.default.firestore.FieldPath, value: any, opStr?: Fire.Where["opStr"]): Fire.Where => {
 		const operator = isArray(value) ? 'in' : '==';
 		return { fieldPath, opStr: opStr ?? operator, value };
 	}
 
-	export const addOrder = (fieldPath: string | firebase.default.firestore.FieldPath, directionStr: fire.OrderBy["directionStr"] = 'asc'): fire.OrderBy =>
+	export const addOrder = (fieldPath: string | firebase.default.firestore.FieldPath, directionStr: Fire.OrderBy["directionStr"] = 'asc'): Fire.OrderBy =>
 		({ fieldPath, directionStr });
 
 	/** Query.where */
@@ -27,8 +27,8 @@ export namespace fire {
 
 	/** Collection.Query */
 	export interface Query {
-		where?: fire.Where | fire.Where[];
-		orderBy?: fire.OrderBy | fire.OrderBy[];
+		where?: Fire.Where | Fire.Where[];
+		orderBy?: Fire.OrderBy | Fire.OrderBy[];
 		limit?: number;
 		startAt?: string;
 		startAfter?: string;

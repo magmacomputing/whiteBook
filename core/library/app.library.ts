@@ -1,6 +1,6 @@
 import { FIELD } from '@dbase/data.define';
 import type { FireDocument } from '@dbase/data.schema';
-import type { fire } from '@dbase/fire/fire.library';
+import type { Fire } from '@dbase/fire/fire.library';
 
 import { getInstant, getStamp, Instant } from '@library/instant.library';
 import { isString, isUndefined, isArray, isNullish, isDefined } from '@library/type.library';
@@ -23,7 +23,7 @@ import { asTime } from '@library/number.library';
  * ~~~~ 
  * returns only rows with store= 'price', and with type= 'full' or 'half'
  */
-export const filterTable = <T>(table: T[] = [], filters: fire.Query["where"] = []) => {
+export const filterTable = <T>(table: T[] = [], filters: Fire.Query["where"] = []) => {
 	const clone = cloneObj(table);												// clone to avoid mutating original array
 
 	return clone
@@ -78,7 +78,7 @@ export const filterTable = <T>(table: T[] = [], filters: fire.Query["where"] = [
 		})
 }
 
-export const firstRow = <T>(table: T[] = [], filters: fire.Query["where"] = []) =>
+export const firstRow = <T>(table: T[] = [], filters: Fire.Query["where"] = []) =>
 	filterTable<T>(table, filters)[0] || {} as T;
 
 /**
@@ -88,7 +88,7 @@ export const firstRow = <T>(table: T[] = [], filters: fire.Query["where"] = []) 
  *  else isEmpty().  
  * e.g. near = {start: '19:30'}   will return the table-row whose \<start> field is nearest to '19:30'
  */
-export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date: Instant.TYPE = new Instant(), near: Partial<T>) => {
+export const nearAt = <T>(table: T[] = [], cond: Fire.Query["where"] = [], date: Instant.TYPE = new Instant(), near: Partial<T>) => {
 	const [key, hhmi] = Object.entries(near)[0];		// use first key to determine which field we compare
 	const time = asTime(hhmi as string | number);		// convert HH:MM  to HHMM
 
@@ -119,7 +119,7 @@ export const nearAt = <T>(table: T[] = [], cond: fire.Query["where"] = [], date:
  * @param effect	The date to use when determining which table-rows were effective at that time, default 'today'
  * @param expire	The date to use when determining upper-limit of effective dates, default 'effect'
  */
-export const asAt = <T>(table: T[], cond: fire.Query["where"] = [], effect?: Instant.TYPE, expire?: Instant.TYPE) => {
+export const asAt = <T>(table: T[], cond: Fire.Query["where"] = [], effect?: Instant.TYPE, expire?: Instant.TYPE) => {
 	const stampStart = getStamp(effect);
 	const stampUntil = isNullish(expire) ? stampStart : getStamp(expire);
 

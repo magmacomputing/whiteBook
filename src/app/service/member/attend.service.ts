@@ -3,7 +3,7 @@ import { combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 import { DBaseModule } from '@dbase/dbase.module';
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 import { StateService } from '@dbase/state/state.service';
 import { attendAction } from '@dbase/state/state.action';
 import { sumPayment, sumAttend } from '@dbase/state/state.library';
@@ -64,22 +64,22 @@ export class AttendService {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// check we are not re-booking same Class on same Day in same Location at same ScheduleTime
 		const bookAttend = await this.data.getStore<Attend>(STORE.Attend, [
-			fire.addWhere(FIELD.Uid, data.auth.current![FIELD.Uid]),
-			fire.addWhere(`track.${FIELD.Date}`, when),
-			fire.addWhere(`timetable.${FIELD.Key}`, schedule[FIELD.Key]),
-			fire.addWhere(`timetable.${FIELD.Id}`, schedule[FIELD.Id]),// schedule has <location>, <instructor>, <startTime>
-			fire.addWhere('note', schedule[FIELD.Note]),		// a different 'note' will allow us to re-book same Class
+			Fire.addWhere(FIELD.Uid, data.auth.current![FIELD.Uid]),
+			Fire.addWhere(`track.${FIELD.Date}`, when),
+			Fire.addWhere(`timetable.${FIELD.Key}`, schedule[FIELD.Key]),
+			Fire.addWhere(`timetable.${FIELD.Id}`, schedule[FIELD.Id]),// schedule has <location>, <instructor>, <startTime>
+			Fire.addWhere('note', schedule[FIELD.Note]),		// a different 'note' will allow us to re-book same Class
 		])
 
 		// if no Note, then check if same Class / date / startTime / comment is already booked
 		if (bookAttend.length && isUndefined(schedule[FIELD.Note]) && isDefined(schedule[COLLECTION.Forum]?.[STORE.Comment])) {
 			const bookForum = await this.data.getStore<Comment>(STORE.Comment, [
-				fire.addWhere(FIELD.Uid, data.auth.current![FIELD.Uid]),
-				fire.addWhere(FIELD.Type, schedule[FIELD.Store]),
-				fire.addWhere(`track.${FIELD.Date}`, when),
-				fire.addWhere(`track.${STORE.Class}`, schedule[FIELD.Key]),
-				fire.addWhere('start', schedule.start),
-				fire.addWhere(STORE.Comment, schedule[COLLECTION.Forum]?.[STORE.Comment]),
+				Fire.addWhere(FIELD.Uid, data.auth.current![FIELD.Uid]),
+				Fire.addWhere(FIELD.Type, schedule[FIELD.Store]),
+				Fire.addWhere(`track.${FIELD.Date}`, when),
+				Fire.addWhere(`track.${STORE.Class}`, schedule[FIELD.Key]),
+				Fire.addWhere('start', schedule.start),
+				Fire.addWhere(STORE.Comment, schedule[COLLECTION.Forum]?.[STORE.Comment]),
 			])
 			if (!bookForum.length)													// if no booking for this Comment
 				bookAttend.truncate();												// then allow this Attend
@@ -177,7 +177,7 @@ export class AttendService {
 
 				if (active)
 					data.account.payment = data.account.payment.slice(1);// drop the 1st, now-inactive Payment
-				data.account.attend = await this.data.getStore(STORE.Attend, fire.addWhere(`${STORE.Payment}.${FIELD.Id}`, next[FIELD.Id]));
+				data.account.attend = await this.data.getStore(STORE.Attend, Fire.addWhere(`${STORE.Payment}.${FIELD.Id}`, next[FIELD.Id]));
 			}
 
 			if (isUndefined(next))
@@ -245,10 +245,10 @@ export class AttendService {
 			location = this.state.getDefault(timetable, STORE.Location);
 
 		for (ctr; ctr < 7; ctr++) {
-			const where: fire.Where[] = [													// loop through schedule
-				fire.addWhere('day', now.dow),											// finding a match in 'day-of-week'
-				fire.addWhere(FIELD.Key, className),								// and match in 'class'
-				fire.addWhere('location', location),								// and match in 'location'
+			const where: Fire.Where[] = [													// loop through schedule
+				Fire.addWhere('day', now.dow),											// finding a match in 'day-of-week'
+				Fire.addWhere(FIELD.Key, className),								// and match in 'class'
+				Fire.addWhere('location', location),								// and match in 'location'
 			]
 
 			const match = nearAt(timetable[COLLECTION.Client][STORE.Schedule]!, where, now,
@@ -272,8 +272,8 @@ export class AttendService {
 	 * as this will affect Bonus pricing, Gift tracking, Bank rollovers, etc.  
 	 * Safer instead to delete all Attends from a given date.
 	 */
-	public delAttend = async (where: fire.Query["where"]) => {
-		const memberUid = fire.addWhere(FIELD.Uid, (await this.data.getCurrentUser()));
+	public delAttend = async (where: Fire.Query["where"]) => {
+		const memberUid = Fire.addWhere(FIELD.Uid, (await this.data.getCurrentUser()));
 		const filter = asArray(where);
 		if (!filter.map(clause => clause.fieldPath).includes(FIELD.Uid))
 			filter.push(memberUid);															// ensure UID is present in where-clause
@@ -308,15 +308,15 @@ export class AttendService {
 		 * forum:			all the Forum content related to this reversal
 		 */
 		const [attends, payments, gifts, forum] = await Promise.all([
-			this.data.getStore<Attend>(STORE.Attend, fire.addWhere(`payment.${FIELD.Id}`, payIds)),
+			this.data.getStore<Attend>(STORE.Attend, Fire.addWhere(`payment.${FIELD.Id}`, payIds)),
 			this.data.getStore<Payment & Chain>(STORE.Payment, memberUid),
-			this.data.getStore<Gift>(STORE.Gift, [memberUid, fire.addWhere(FIELD.Id, giftIds)]),
+			this.data.getStore<Gift>(STORE.Gift, [memberUid, Fire.addWhere(FIELD.Id, giftIds)]),
 			this.data.select<React | Comment>(COLLECTION.Forum, {
 				where: [
 					memberUid,
-					fire.addWhere(FIELD.Type, STORE.Schedule),
-					fire.addWhere(FIELD.Key, scheduleIds, '=='),			// TODO: this workaround for FireStore's limit
-					fire.addWhere('track.date', dates, '=='),					//			on number of 'in' clauses in a Query
+					Fire.addWhere(FIELD.Type, STORE.Schedule),
+					Fire.addWhere(FIELD.Key, scheduleIds, '=='),			// TODO: this workaround for FireStore's limit
+					Fire.addWhere('track.date', dates, '=='),					//			on number of 'in' clauses in a Query
 				]
 			}),
 		])

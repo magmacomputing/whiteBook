@@ -1,6 +1,6 @@
 import { Subscription } from 'rxjs';
 
-import type { fire } from '@dbase/fire/fire.library';
+import type { Fire } from '@dbase/fire/fire.library';
 import type { COLLECTION } from '@dbase/data.define';
 import type { clientAction, memberAction, attendAction, adminAction } from '@dbase/state/state.action';
 
@@ -10,12 +10,12 @@ export namespace sync {
 
 	export interface Key {
 		collection: COLLECTION;
-		query?: fire.Query;
+		query?: Fire.Query;
 	}
 
 	export interface Status {
 		collection: COLLECTION;
-		query?: fire.Query;
+		query?: Fire.Query;
 		promise: Pledge.Status;
 	}
 

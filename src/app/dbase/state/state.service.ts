@@ -13,7 +13,7 @@ import { STORE, FIELD, BONUS, COLLECTION, STATUS } from '@dbase/data.define';
 import type { Register, Connect, Account, Comment, React, Sheet } from '@dbase/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 
 import { Instant, getInstant } from '@library/instant.library';
 import { cloneObj } from '@library/object.library';
@@ -52,23 +52,23 @@ export class StateService {
 	 * Fetch the current, useable values for a supplied store.  
 	 * (optional 'isHidden' to include hidden documents)
 	 */
-	getCurrent<T>(store: STORE, where?: fire.Query["where"], isHidden = false) {
+	getCurrent<T>(store: STORE, where?: Fire.Query["where"], isHidden = false) {
 		const filters = asArray(where);
-		filters.push(fire.addWhere(FIELD.Expire, 0));
-		filters.push(fire.addWhere(FIELD.Hidden, isHidden));
+		filters.push(Fire.addWhere(FIELD.Expire, 0));
+		filters.push(Fire.addWhere(FIELD.Hidden, isHidden));
 
 		return getCurrent<T>(this.#states, store, filters);
 	}
 
-	getStore<T>(store: STORE, where?: fire.Query["where"], date?: Instant.TYPE) {
+	getStore<T>(store: STORE, where?: Fire.Query["where"], date?: Instant.TYPE) {
 		return getStore<T>(this.#states, store, where, date);
 	}
 
-	getState<T>(store: STORE, where?: fire.Query["where"]) {
+	getState<T>(store: STORE, where?: Fire.Query["where"]) {
 		return getState<T>(this.#states, store, where);
 	}
 
-	getSingle<T>(store: STORE, filter: fire.Query["where"]) {
+	getSingle<T>(store: STORE, filter: Fire.Query["where"]) {
 		return this.asPromise(this.getCurrent<T>(store, filter))
 			.then(table => table[0]);				// only the first document
 	}
@@ -159,11 +159,11 @@ export class StateService {
 	 */
 	getMemberData(date?: Instant.TYPE): Observable<MemberState> {
 		const filterProfile = [
-			fire.addWhere(FIELD.Type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
-			fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`),  				// and the <uid> is current active User
+			Fire.addWhere(FIELD.Type, ['plan', 'info', 'gift', 'account']),   	// where the <type> is either 'plan', 'info', 'gift' or 'account'
+			Fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`),  				// and the <uid> is current active User
 		]
-		const filterPlan = fire.addWhere(FIELD.Key, '{{member.plan[0].plan}}');
-		const filterMessage = fire.addWhere(FIELD.Type, 'alert');
+		const filterPlan = Fire.addWhere(FIELD.Key, '{{member.plan[0].plan}}');
+		const filterMessage = Fire.addWhere(FIELD.Type, 'alert');
 
 		return this.getAuthData().pipe(
 			joinDoc(this.#states, 'application', STORE.Default, undefined, date),
@@ -180,7 +180,7 @@ export class StateService {
 	 * client.price -> has an array of asAt Price documents
 	 */
 	getPlanData(date?: Instant.TYPE): Observable<PlanState> {
-		const filterIcon = fire.addWhere(FIELD.Type, [STORE.Plan, STORE.Default]);
+		const filterIcon = Fire.addWhere(FIELD.Type, [STORE.Plan, STORE.Default]);
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.#states, COLLECTION.Client, STORE.Plan, undefined, date),
@@ -196,8 +196,8 @@ export class StateService {
 	 * client.icon			-> has an array of Provider icons
 	 */
 	getProviderData(date?: Instant.TYPE): Observable<ProviderState> {
-		const filterProvider = fire.addWhere(FIELD.Expire, 0);
-		const filterIcon = fire.addWhere(FIELD.Type, [STORE.Provider, STORE.Default]);
+		const filterProvider = Fire.addWhere(FIELD.Expire, 0);
+		const filterIcon = Fire.addWhere(FIELD.Type, [STORE.Provider, STORE.Default]);
 
 		return this.getMemberData(date).pipe(
 			joinDoc(this.#states, COLLECTION.Client, STORE.Provider, filterProvider, date),
@@ -214,12 +214,12 @@ export class StateService {
 	 */
 	getAccountData(date?: Instant.TYPE): Observable<AccountState> {
 		const filterPayment = [
-			fire.addWhere(FIELD.Store, STORE.Payment),
-			fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`),
+			Fire.addWhere(FIELD.Store, STORE.Payment),
+			Fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`),
 		];
 		const filterAttend = [
-			fire.addWhere(`payment.${FIELD.Id}`, `{{account.payment[0].${FIELD.Id}}}`),
-			fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`),
+			Fire.addWhere(`payment.${FIELD.Id}`, `{{account.payment[0].${FIELD.Id}}}`),
+			Fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`),
 		];
 
 		return this.getMemberData(date).pipe(
@@ -234,9 +234,9 @@ export class StateService {
 	 * forum.react		-> has an array of Reacts about this date's schedule
 	 */
 	getForumData(date?: Instant.TYPE): Observable<ForumState> {
-		const query: fire.Query = {
-			where: fire.addWhere('track.date', getInstant(date).format(Instant.FORMAT.yearMonthDay)),
-			orderBy: fire.addOrder(FIELD.Stamp),
+		const query: Fire.Query = {
+			where: Fire.addWhere('track.date', getInstant(date).format(Instant.FORMAT.yearMonthDay)),
+			orderBy: Fire.addOrder(FIELD.Stamp),
 		}
 
 		return this.fire.listen<React | Comment>(COLLECTION.Forum, query).pipe(
@@ -269,29 +269,29 @@ export class StateService {
 	 */
 	getScheduleData(date?: Instant.TYPE, elect?: BONUS): Observable<TimetableState> {
 		const now = getInstant(date);
-		const isMine = fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`);
+		const isMine = Fire.addWhere(FIELD.Uid, `{{auth.current.${FIELD.Uid}}}`);
 
-		const filterSchedule = fire.addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in');
-		const filterCalendar = fire.addWhere(FIELD.Key, now.format(Instant.FORMAT.yearMonthDay), '>');
-		const filterEvent = fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
-		const filterTypeClass = fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
-		const filterTypeEvent = fire.addWhere(FIELD.Key, `{{client.event.agenda}}`);
-		const filterLocation = fire.addWhere(FIELD.Key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
-		const filterInstructor = fire.addWhere(FIELD.Key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
-		const filterSpan = fire.addWhere(FIELD.Key, [`{{client.class.${FIELD.Type}}}`, `{{client.class.${FIELD.Key}}}`]);
-		const filterIcon = fire.addWhere(FIELD.Type, [STORE.Class, STORE.Default]);
-		const attendGift = [isMine, fire.addWhere(`bonus.${FIELD.Id}`, `{{member.gift[*].${FIELD.Id}}}`)];
-		const attendWeek = [isMine, fire.addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
-		const attendMonth = [isMine, fire.addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
-		const attendToday = [isMine, fire.addWhere(`track.${FIELD.Date}`, now.format(Instant.FORMAT.yearMonthDay))];
+		const filterSchedule = Fire.addWhere('day', [Instant.WEEKDAY.All, now.dow], 'in');
+		const filterCalendar = Fire.addWhere(FIELD.Key, now.format(Instant.FORMAT.yearMonthDay), '>');
+		const filterEvent = Fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
+		const filterTypeClass = Fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
+		const filterTypeEvent = Fire.addWhere(FIELD.Key, `{{client.event.agenda}}`);
+		const filterLocation = Fire.addWhere(FIELD.Key, ['{{client.schedule.location}}', '{{client.calendar.location}}']);
+		const filterInstructor = Fire.addWhere(FIELD.Key, ['{{client.schedule.instructor}}', '{{client.calendar.instructor}}']);
+		const filterSpan = Fire.addWhere(FIELD.Key, [`{{client.class.${FIELD.Type}}}`, `{{client.class.${FIELD.Key}}}`]);
+		const filterIcon = Fire.addWhere(FIELD.Type, [STORE.Class, STORE.Default]);
+		const attendGift = [isMine, Fire.addWhere(`bonus.${FIELD.Id}`, `{{member.gift[*].${FIELD.Id}}}`)];
+		const attendWeek = [isMine, Fire.addWhere('track.week', now.format(Instant.FORMAT.yearWeek))];
+		const attendMonth = [isMine, Fire.addWhere('track.month', now.format(Instant.FORMAT.yearMonth))];
+		const attendToday = [isMine, Fire.addWhere(`track.${FIELD.Date}`, now.format(Instant.FORMAT.yearMonthDay))];
 		const filterAlert = [
-			fire.addWhere(FIELD.Type, STORE.Schedule),
-			fire.addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
+			Fire.addWhere(FIELD.Type, STORE.Schedule),
+			Fire.addWhere('location', ['{{client.schedule.location}}', '{{client.calendar.location}}']),
 		]
 
 		return combineLatest([this.getClientData(date), this.getForumData(date), this.getMemberData(date)]).pipe(
 			map(([client, forum, member]) => ({ ...forum, ...member })),
-			joinDoc(this.#states, 'application', STORE.Default, fire.addWhere(FIELD.Type, STORE.Icon)),
+			joinDoc(this.#states, 'application', STORE.Default, Fire.addWhere(FIELD.Type, STORE.Icon)),
 			joinDoc(this.#states, COLLECTION.Client, STORE.Schedule, filterSchedule, date),			// whats on this weekday (or every weekday)
 			joinDoc(this.#states, COLLECTION.Client, STORE.Calendar, undefined, date, calendarDay),			// get calendar for this date
 			joinDoc(this.#states, `${COLLECTION.Client}.${STORE.Diary}`, STORE.Calendar, filterCalendar),// get future events
@@ -318,13 +318,13 @@ export class StateService {
 	 */
 	getTimetableData(date?: Instant.TYPE) {
 		const now = getInstant(date);
-		const filterClass = fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
-		const filterLocation = fire.addWhere(FIELD.Key, '{{client.schedule.location}}');
+		const filterClass = Fire.addWhere(FIELD.Key, `{{client.schedule.${FIELD.Key}}}`);
+		const filterLocation = Fire.addWhere(FIELD.Key, '{{client.schedule.location}}');
 		const filterCalendar = [
-			fire.addWhere(FIELD.Key, now.startOf('week').format(Instant.FORMAT.yearMonthDay), '>='),
-			fire.addWhere(FIELD.Key, now.endOf('week').format(Instant.FORMAT.yearMonthDay), '<='),
+			Fire.addWhere(FIELD.Key, now.startOf('week').format(Instant.FORMAT.yearMonthDay), '>='),
+			Fire.addWhere(FIELD.Key, now.endOf('week').format(Instant.FORMAT.yearMonthDay), '<='),
 		]
-		const filterEvent = fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
+		const filterEvent = Fire.addWhere(FIELD.Key, `{{client.calendar.${FIELD.Type}}}`);
 
 		return this.getClientData(date).pipe(
 			tap(data => console.log('TIMETABLE: ', data)),

@@ -12,7 +12,7 @@ import type { FireDocument } from '@dbase/data.schema';
 import { COLLECTION } from '@dbase/data.define';
 import { DBaseModule } from '@dbase/dbase.module';
 import { FireService } from '@dbase/fire/fire.service';
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 
 import { Pledge } from '@library/utility.library';
 import { getEnumValues, isEmpty, isFunction, isUndefined } from '@library/type.library';
@@ -33,7 +33,7 @@ export class SyncService {
 	 * Establish a listener to a remote Firestore Collection, and sync to an NGXS Slice.  
 	 * Additional collections can be defined, and merged into the same stream
 	 */
-	public async on(collection: COLLECTION, query?: fire.Query, ...additional: [COLLECTION, fire.Query?][]) {
+	public async on(collection: COLLECTION, query?: Fire.Query, ...additional: [COLLECTION, Fire.Query?][]) {
 		const ready = new Pledge<boolean>();
 		const key: sync.Key = { collection, query };
 
@@ -69,7 +69,7 @@ export class SyncService {
 	}
 
 	/** detach an existing snapshot listener */
-	public off(collection?: COLLECTION, query?: fire.Query, clear?: boolean) {
+	public off(collection?: COLLECTION, query?: Fire.Query, clear?: boolean) {
 		for (const [key, listen] of this.#listener.entries()) {
 			if ((collection ?? key.collection) === key.collection && isEqual(query ?? key.query, key.query)) {
 				this.#dbg('off: %s %j', key.collection, key.query || {});
@@ -130,7 +130,7 @@ export class SyncService {
 	}
 
 	/** handler for snapshot listener */
-	private async sync(key: sync.Key, snaps: fire.FireSnap<FireDocument>[]) {
+	private async sync(key: sync.Key, snaps: Fire.FireSnap<FireDocument>[]) {
 		const source = getSource(snaps[0].metadata);
 		const listen = this.#listener.get(key)!;
 		const { setStore, delStore, clearStore } = listen.method;

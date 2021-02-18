@@ -19,7 +19,7 @@ import { COLLECTION, FIELD, STORE, auth } from '@dbase/data.define';
 import type { Register } from '@dbase/data.schema';
 
 import { FireService } from '@dbase/fire/fire.service';
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 
 import { WebStore, prompt } from '@library/browser.library';
 import { getPath, cloneObj } from '@library/object.library';
@@ -211,7 +211,7 @@ export class AuthState {
 	/** Events */
 	@Action(LoginEvent.Success)												// on each LoginEvent.Success, fetch /member collection
 	private async onMember(ctx: StateContext<AuthSlice>, { user }: LoginEvent.Success) {
-		const query: fire.Query = { where: fire.addWhere(FIELD.Uid, user.uid) };
+		const query: Fire.Query = { where: Fire.addWhere(FIELD.Uid, user.uid) };
 
 		if (this.#user) {
 			this.sync.on(COLLECTION.Attend, query);
@@ -270,7 +270,7 @@ export class AuthState {
 			this.sync.off(COLLECTION.Member);							// unsubscribe from /member
 			this.sync.off(COLLECTION.Attend);							// unsubscribe from /attend
 
-			const where = fire.addWhere(FIELD.Uid, uids, isArray(uids) ? 'in' : '==');
+			const where = Fire.addWhere(FIELD.Uid, uids, isArray(uids) ? 'in' : '==');
 			this.sync.on(COLLECTION.Member, { where });		// re-subscribe to /member, with supplied UIDs
 			this.sync.on(COLLECTION.Attend, { where });		// re-subscribe to /attend, with supplied UIDs
 		}
@@ -300,7 +300,7 @@ export class AuthState {
 			this.#dbg('customClaims: %j', ctx.getState().token?.claims.customClaims);
 			if (roles.includes(auth.ROLE.Admin)) {
 				this.sync.on(COLLECTION.Admin, undefined,		// merge all /admin and /member/status  into one stream
-					[COLLECTION.Member, { where: fire.addWhere(FIELD.Store, STORE.Status) }]);
+					[COLLECTION.Member, { where: Fire.addWhere(FIELD.Store, STORE.Status) }]);
 			} else {
 				this.sync.off(COLLECTION.Admin);
 				this.navigate.route(ROUTE.Attend);

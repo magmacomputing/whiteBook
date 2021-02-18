@@ -43,9 +43,9 @@
 			]
 		}
 	},
-	"angularCompilerOptions": {
-		"strictTemplates": true,
-	},
+	// "angularCompilerOptions": {
+	// 	"strictTemplates": true,
+	// },
 	"exclude": [
 		"doc/**/*.ts",
 		"node_modules",

@@ -14,7 +14,7 @@ import { StateService } from '@dbase/state/state.service';
 import { SnackService } from '@service/material/snack.service';
 import { FireService } from '@dbase/fire/fire.service';
 
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 import { getSlice } from '@dbase/state/state.library';
 
 import type { TString } from '@library/type.library';
@@ -40,7 +40,7 @@ export class DataService {
 	}
 
 	/** Make Store data available in a Promise */
-	private snap<T>(store: STORE, query?: fire.Query) {
+	private snap<T>(store: STORE, query?: Fire.Query) {
 		const slice = getSlice(store);
 
 		if (query)
@@ -51,15 +51,15 @@ export class DataService {
 			.toPromise()
 	}
 
-	getCurrent<T>(store: STORE, where: fire.Query["where"] = [], isHidden = false) {
+	getCurrent<T>(store: STORE, where: Fire.Query["where"] = [], isHidden = false) {
 		return this.state.asPromise(this.state.getCurrent<T>(store, where, isHidden));
 	}
 
-	getStore<T>(store: STORE, where: fire.Query["where"] = [], date?: Instant.TYPE) {
+	getStore<T>(store: STORE, where: Fire.Query["where"] = [], date?: Instant.TYPE) {
 		return this.state.asPromise(this.state.getStore<T>(store, where, date));
 	}
 
-	getState<T>(store: STORE, where: fire.Query["where"] = []) {
+	getState<T>(store: STORE, where: Fire.Query["where"] = []) {
 		return this.state.asPromise(this.state.getState<T>(store, where));
 	}
 
@@ -99,7 +99,7 @@ export class DataService {
 
 	async getProfileUser() {																	// get the signIn User's Profile
 		const uid = await this.getActiveUser();
-		const profile = await this.getCurrent<Profile>(STORE.Profile, fire.addWhere(FIELD.Uid, uid));
+		const profile = await this.getCurrent<Profile>(STORE.Profile, Fire.addWhere(FIELD.Uid, uid));
 
 		return profile.reduce((acc, itm) => {
 			const type = itm[FIELD.Type];
@@ -109,11 +109,11 @@ export class DataService {
 		}, {} as Record<PROFILE, any>)
 	}
 
-	select<T>(collection: COLLECTION | STORE, query?: fire.Query) {	// direct access to collection, rather than via state
+	select<T>(collection: COLLECTION | STORE, query?: Fire.Query) {	// direct access to collection, rather than via state
 		return this.fire.select<T>(collection, query);
 	}
 
-	listen<T>(collection: COLLECTION | STORE, query?: fire.Query) {	// observable access to collection
+	listen<T>(collection: COLLECTION | STORE, query?: Fire.Query) {	// observable access to collection
 		return this.fire.listen<T>(collection, query);
 	}
 
@@ -137,7 +137,7 @@ export class DataService {
 	}
 
 	/** Expire any current matching docs, and Create new doc */
-	async insDoc(nextDocs: FireDocument, filter?: fire.Query["where"], discards: TString = []) {
+	async insDoc(nextDocs: FireDocument, filter?: Fire.Query["where"], discards: TString = []) {
 		const creates: FireDocument[] = [];											// array of documents to Create
 		const updates: FireDocument[] = [];											// array of documents to Update
 		const stamp = getStamp();																// the timestamp of the Insert
@@ -145,7 +145,7 @@ export class DataService {
 
 		const promises = asArray(nextDocs).map(async nextDoc => {
 			let tstamp = nextDoc[FIELD.Effect] || stamp;
-			let where: fire.Query["where"];
+			let where: Fire.Query["where"];
 			const collection = getSlice(nextDoc[FIELD.Store]);
 
 			try {

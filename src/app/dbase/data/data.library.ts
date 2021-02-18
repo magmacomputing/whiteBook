@@ -1,4 +1,4 @@
-import { fire } from '@dbase/fire/fire.library';
+import { Fire } from '@dbase/fire/fire.library';
 import { FireService } from '@dbase/fire/fire.service';
 
 import type { FireDocument } from '@dbase/data.schema';
@@ -12,20 +12,20 @@ import { asString } from '@library/string.library';
 import { asArray } from '@library/array.library';
 
 /** prepare a where-clause to use when identifying current documents that will clash with nextDoc */
-export const getWhere = (nextDoc: FireDocument, filter: fire.Query["where"] = []) => {
-	const where: fire.Where[] = [];
+export const getWhere = (nextDoc: FireDocument, filter: Fire.Query["where"] = []) => {
+	const where: Fire.Where[] = [];
 	const collection = getSlice(nextDoc[FIELD.Store]);
 	const filters = outline.FILTER[collection] || [];			// get the standard list of fields on which to filter
 
 	asArray(filters).forEach(field => {
 		if (nextDoc[field])                         // if that field exists in the doc, add it to the filter
-			where.push(fire.addWhere(field, getPath(nextDoc, field)));
+			where.push(Fire.addWhere(field, getPath(nextDoc, field)));
 		else throw new Error(`missing required field: ${field}`)
 	})
 
 	asArray(filter).forEach(clause => {           // add any additional match-criteria
 		if (getPath(nextDoc, clause.fieldPath as string))
-			where.push(fire.addWhere(clause.fieldPath, clause.value, clause.opStr))
+			where.push(Fire.addWhere(clause.fieldPath, clause.value, clause.opStr))
 	})
 
 	return where;
