@@ -5,7 +5,7 @@ import { Store, Actions, ofActionDispatched, ActionType } from '@ngxs/store';
 
 import { sync } from '@dbase/sync/sync.define';
 import { SLICE } from '@dbase/state/state.define';
-import { AuthSlice } from '@dbase/state/auth.action';
+import type { AuthSlice } from '@dbase/state/auth.action';
 import { checkStorage, getSource, getMethod } from '@dbase/sync/sync.library';
 
 import type { FireDocument } from '@dbase/data.schema';
