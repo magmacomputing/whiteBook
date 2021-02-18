@@ -43,9 +43,12 @@
 			]
 		}
 	},
+	"angularCompilerOptions": {
+		"strictTemplates": true,
+	},
 	"exclude": [
 		"doc/**/*.ts",
 		"node_modules",
 		"dist"
-	]
+	],
 }
