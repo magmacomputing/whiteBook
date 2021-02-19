@@ -33,6 +33,6 @@
     "@angular/cli": "^11.2.1",
     "@angular/compiler-cli": "^11.2.1",
     "@angular/language-service": "^11.2.1",
-    "@types/hammerjs": "^2.0.38"
+    "@types/hammerjs": "^2.0.39"
   }
 }
