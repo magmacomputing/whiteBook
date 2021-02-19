@@ -409,6 +409,7 @@ export interface Comment extends ForumCollection {
 		[FIELD.Uid]: string;
 		[FIELD.Stamp]: number;
 		[STORE.Comment]: TString;
+		alias: string;
 		seen?: boolean;
 	}[];
 }
