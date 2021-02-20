@@ -1,5 +1,5 @@
 import { COLLECTION, FIELD, STORE } from '@dbase/data.define';
-import { SortOption } from '@library/array.library';
+import { SortBy } from '@library/array.library';
 
 /** These variables are built in ClientState snapshots */
 export namespace outline {
@@ -10,7 +10,7 @@ export namespace outline {
 	export const FILTER: Partial<Record<COLLECTION, FIELD[]>> = {}
 
 	// STORE sort criteria
-	export const SORTBY: Partial<Record<STORE, (FIELD | SortOption)[]>> = {};
+	export const SORTBY: Partial<Record<STORE, (FIELD | SortBy)[]>> = {};
 
 	// Comment parse criteria
 	interface Pattern {

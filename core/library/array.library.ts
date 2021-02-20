@@ -23,15 +23,15 @@ export const sortInsert = <T>(arr: T[], val: T) => {
 }
 
 /** sort Object by multiple keys */
-export interface SortOption {
+export interface SortBy {
 	field: string | firebase.firestore.FieldPath;
 	dir?: firebase.firestore.OrderByDirection;
 	default?: any;
 }
 /** return a function that will apply a series of sort-keys */
 export const sortBy: {
-	(keys: (string | SortOption)[]): (a: Record<string, any>, b: Record<string, any>) => number;
-	(...keys: (string | SortOption)[]): (a: Record<string, any>, b: Record<string, any>) => number;
+	(keys: (string | SortBy)[]): (a: Record<string, any>, b: Record<string, any>) => number;
+	(...keys: (string | SortBy)[]): (a: Record<string, any>, b: Record<string, any>) => number;
 } = (...keys: any[]) => {
 	const sortOptions = keys
 		.flat()																										// flatten array-of-array
@@ -76,10 +76,10 @@ declare global {
 		groupBy(flatten: false, ...keys: string[]): Record<string, T[]>;
 
 		/** return sorted Array-of-objects */
-		orderBy(keys: (string | SortOption)[]): T[];
-		orderBy(...keys: (string | SortOption)[]): T[];
-		sortBy(keys: (string | SortOption)[]): T[];
-		sortBy(...keys: (string | SortOption)[]): T[];
+		orderBy(keys: (string | SortBy)[]): T[];
+		orderBy(...keys: (string | SortBy)[]): T[];
+		sortBy(keys: (string | SortBy)[]): T[];
+		sortBy(...keys: (string | SortBy)[]): T[];
 
 		/** return new Array with no repeated elements */
 		distinct(): T[];
@@ -112,8 +112,8 @@ if (!Array.prototype.hasOwnProperty('groupBy')) {
 					.map(key => getPath(row, key)).join(':');
 				if (flatten)
 					acc[group] = row;															// only return last match
-				// else (acc[group] ??= []).push(row);					// return all matches in array
-				else (acc[group] = acc[group] || []).push(row);	// TODO: until Typescript 4.0 supported
+				else (acc[group] ??= []).push(row);					// return all matches in array
+				// else (acc[group] = acc[group] || []).push(row);	// TODO: until Typescript 4.0 supported
 
 				return acc;
 			}, {});
