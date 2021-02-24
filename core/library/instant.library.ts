@@ -55,8 +55,13 @@ type TUnitDiff = TPlural<TUnitTime>;
  */
 export class Instant {
 	#date: InstantObj;																			// Date parsed into components
+	fmt: Record<string, string | number> = {};							// inbuilt Formats
 
-	constructor(dt?: Instant.TYPE, ...args: TArgs) { this.#date = this.#parseDate(dt, args); }
+	constructor(dt?: Instant.TYPE, ...args: TArgs) {
+		this.#date = this.#parseDate(dt, args);
+		for (const fmt in Instant.FORMAT)
+			this.fmt[fmt] = this.format(Instant.FORMAT[(fmt as keyof typeof Instant.FORMAT)])
+	}
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** 4-digit year */			get yy() { return this.#date.yy }

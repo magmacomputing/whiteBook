@@ -96,7 +96,7 @@ export class SyncService {
 
 		for (const [key, listen] of this.#listener.entries())
 			if (isUndefined(collection) || collection === key.collection)
-				result.push({ collection: key.collection, query: key.query, promise: listen.ready.status })
+				result.push({ collection: key.collection, query: key.query, promise: listen.ready.status.state })
 
 		return result;
 	}
