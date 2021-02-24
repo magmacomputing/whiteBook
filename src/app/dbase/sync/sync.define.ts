@@ -16,7 +16,7 @@ export namespace sync {
 	export interface Status {
 		collection: COLLECTION;
 		query?: Fire.Query;
-		promise: Pledge.Status;
+		promise: Pledge.State;
 	}
 
 	export enum CHANGE {

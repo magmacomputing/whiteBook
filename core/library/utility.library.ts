@@ -6,16 +6,21 @@
  * input:  tag, simply to label a Pledge
  */
 export class Pledge<T> {
-	#tag: any;
-	#status: Pledge.Status;
+	#status: {
+		tag: string | undefined;
+		value: T | Error | undefined;
+		state: Pledge.State;
+	}
 	#promise: Promise<T>;
 	#resolve!: (value: T | PromiseLike<T>) => void;
 	#reject!: (reason?: any) => void;
 
-	constructor(tag?: any) {
-		this.#tag = tag;
-		this.#status = Pledge.Status.pending;
-
+	constructor(tag?: string) {
+		this.#status = {
+			tag,
+			value: undefined,
+			state: Pledge.State.pending,
+		}
 		this.#promise = new Promise<T>((resolve, reject) => {
 			this.#resolve = resolve;										// stash resolve()
 			this.#reject = reject;											// stash reject()
@@ -23,14 +28,18 @@ export class Pledge<T> {
 	}
 
 	resolve(value: T) {
-		this.#status = Pledge.Status.fulfilled;
-		this.#resolve(value);
+		if (this.#status.state === Pledge.State.pending) {
+			Object.assign(this.#status, { state: Pledge.State.fulfilled, value });
+			this.#resolve(value);
+		}
 		return value;
 	}
 
 	reject(error?: any) {
-		this.#status = Pledge.Status.rejected;
-		this.#reject(error);
+		if (this.#status.state === Pledge.State.pending) {
+			Object.assign(this.#status, { state: Pledge.State.rejected, value: error });
+			this.#reject(error);
+		}
 		return error;
 	}
 
@@ -41,14 +50,10 @@ export class Pledge<T> {
 	get status() {
 		return this.#status;
 	}
-
-	get tag() {
-		return this.#tag;
-	}
 }
 
 export namespace Pledge {
-	export enum Status {
+	export enum State {
 		'pending' = 'pending',
 		'fulfilled' = 'fulfilled',
 		'rejected' = 'rejected',
