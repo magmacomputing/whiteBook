@@ -106,12 +106,14 @@ export class Instant {
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
 	#parseDate = (dt?: Instant.TYPE, args: TArgs = []) => {
+		const orig = dt;																					// stash original value
 		const pat = {
 			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
+			yyyyMMMdd: /(19\d{2}|20\d{2})[\/\-\ ]?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\/\-\ ]?(0[1-9]|[12][0-9]|3[01])/,			// yyyy-mmm-dd
 			ddmmyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(\d{2})$/,							// d-m-yy
 			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
-			ddmmyyyyHHMI: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3]):([0-5]\d)/,	// d-m-yyyy {HH:MI}
+			ddmmyyyyHHMI: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3])(:[0-5]\d)(:[0-5]\d)?/,	// d-m-yyyy {HH:MI|HH:MI:SS}
 			isoDate: /^(19\d{2}|20\d{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)Z$/,
 		}
 		let date: Date;
@@ -122,13 +124,15 @@ export class Instant {
 		if (isString(dt) && pat.hhmi.test(dt))										// if only HH:MI supplied...
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
 		if ((isString(dt) || isNumber(dt)) && pat.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
-			dt = asString(dt).replace(pat.yyyymmdd, '$1-$2-$3 00:00:00');				// format to look like a date-string
+			dt = asString(dt).replace(pat.yyyymmdd, '$2/$3/$1 00:00:00');				// format to look like a date-string
+		if (isString(dt) && pat.yyyyMMMdd.test(asString(dt)))
+			dt = asString(dt).replace(pat.yyyyMMMdd, '$3-$2-$1');		// Safari doesn't like ymd
 		if ((isString(dt) || isNumber(dt)) && pat.ddmmyyyy.test(asString(dt)))
-			dt = asString(dt).replace(pat.ddmmyyyy, '$2-$1-$3');		// convert to US format
+			dt = asString(dt).replace(pat.ddmmyyyy, '$2/$1/$3');		// convert to US format
 		if (isString(dt) && pat.ddmmyy.test(dt))
-			dt = dt.replace(pat.ddmmyy, '$2-$1-$3');								// convert to US format
+			dt = dt.replace(pat.ddmmyy, '$2/$1/$3');								// convert to US format
 		if (isString(dt) && pat.ddmmyyyyHHMI.test(dt))
-			dt = dt.replace(pat.ddmmyyyyHHMI, '$2-$1-$3 $4');				// convert to US format
+			dt = dt.replace(pat.ddmmyyyyHHMI, '$2/$1/$3 $4$5$6');		// convert to US format
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Null':																						// special case
@@ -185,7 +189,7 @@ export class Instant {
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
-			console.error('Invalid Date: ', dt, date);							// TODO: throw the Invalid Date?
+			console.error('Invalid Date: ', orig, dt, date);				// TODO: throw the Invalid Date?
 
 		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, dow, time] = [
 			date.getFullYear(), date.getMonth() + 1, date.getDate(),

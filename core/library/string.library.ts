@@ -1,5 +1,4 @@
-import { getType, isString, isObject, assertCondition, assertString, isNullish, isDate } from '@library/type.library';
-import { fmtInstant, Instant } from './instant.library';
+import { getType, isString, isObject, assertCondition, assertString, isDate } from '@library/type.library';
 
 // Prototype extensions
 
