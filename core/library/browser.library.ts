@@ -51,7 +51,7 @@ export class WebStore {
 				prev = prev ?? new Map();
 				if (opt.merge) {
 					(obj as Map<any, any>)													// merge into prev Map
-						.forEach(([key, val]) => (prev as Map<any, any>).set(key, val));
+						.forEach((val, key) => (prev as Map<any, any>).set(key, val));
 					return this.upd(key, prev);
 				}
 				return this.upd(key, obj);												// else overwrite new Map
