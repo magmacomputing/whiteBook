@@ -152,9 +152,10 @@ export const objectify = <T>(obj: T & any) => {
 			return JSON.parse(segment) as T;
 
 		case ifString && str.startsWith('Map:[[') && str.endsWith(']]'):
+		case ifString && str === 'Map:[]':
 			return new Map(JSON.parse(segment)) as Map<any, T>;
 
-		case ifString && str.startsWith('Set:["') && str.endsWith('"]'):
+		case ifString && str.startsWith('Set:[') && str.endsWith(']'):
 			return new Set(JSON.parse(segment)) as Set<T>;
 
 		case ifString && str.startsWith('Date:') && isNumeric(segment):
