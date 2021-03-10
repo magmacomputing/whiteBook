@@ -96,7 +96,7 @@ export class FireService {
 	}
 
 	/** Document Reference, for existing or new */
-	private documentReference<T>(doc: FireDocument) {
+	private documentReference(doc: FireDocument) {
 		const collection = getSlice(doc[FIELD.Store]);
 		const docId = doc[FIELD.Id] ?? this.newId(doc[FIELD.Store]);
 
