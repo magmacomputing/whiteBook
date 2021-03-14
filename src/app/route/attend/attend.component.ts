@@ -14,7 +14,7 @@ import { StateService } from '@dbase/state/state.service';
 
 import { isUndefined, TString } from '@library/type.library';
 import { DayTimer } from '@library/observable.library';
-import { Instant } from '@library/instant.library';
+import { fmtInstant, Instant } from '@library/instant.library';
 import { suffix } from '@library/number.library';
 import { swipe } from '@library/html.library';
 import { dbg } from '@library/logger.library';
@@ -111,7 +111,7 @@ export class AttendComponent implements OnDestroy {
 	}
 
 	getDate(dt: Instant.TYPE) {
-		return new Instant(dt).format('ddd, dd mmm yyyy');
+		return fmtInstant(Instant.FORMAT.display, dt);
 	}
 
 	private getSchedule() {
