@@ -2,7 +2,7 @@ import { asString, asNumber, toProperCase } from '@library/string.library';
 import { getType, isString, isNumber, TPlural } from '@library/type.library';
 import { fix } from '@library/number.library';
 
-interface InstantObj {							// Instant values
+interface InstantVars {							// Instant values
 	yy: number;												// year[4]
 	mm: number;												// month; Jan=1, Dec=12
 	dd: number;												// day; 1-31
@@ -13,8 +13,6 @@ interface InstantObj {							// Instant values
 	ms: number;												// milliseconds since last second
 	ww: number;												// number of weeks
 	tz: number;												// timezone offset in hours
-	mmm: keyof typeof Instant.MONTH;	// short month-name
-	ddd: keyof typeof Instant.WEEKDAY;// short day-name
 	dow: Instant.WEEKDAY;							// weekday; Mon=1, Sun=7
 	time: number;											// milliseconds since Unix epoch
 	value?: Instant.TYPE;							// original value passed to constructor
@@ -23,14 +21,15 @@ interface InstantObj {							// Instant values
 interface DateFmt {									// pre-configured format strings
 	[str: string]: string | number;		// allow for dynamic format-codes
 	"ddd, dd mmm yyyy": string;
-	"yyyy-mm-dd HH:MI": string;
+	"yyyy-mm-dd HH:mi": string;
 	"dd-mmm": string;
-	"HH:MI": string;
-	"HH:MI:SS": string;
+	"HH:mi": string;
+	"HH:mi:ss": string;
 	"hh:mi": string;
 	"yyyyww": number;
 	"yyyymm": number;
 	"yyyymmdd": number;
+	"ddd, yyyy-mmm-dd HH:mi": string;
 }
 
 type TArgs = string[] | number[];
@@ -54,8 +53,8 @@ type TUnitDiff = TPlural<TUnitTime>;
  * It has short-cut functions to work with an Instant (getInstant(), fmtInstant(), getStamp())
  */
 export class Instant {
-	#date: InstantObj;																			// Date parsed into components
-	fmt: Record<string, string | number> = {};							// inbuilt Formats
+	#date: InstantVars;														// Date parsed into components
+	fmt: Record<string, string | number> = {};		// inbuilt Formats
 
 	constructor(dt?: Instant.TYPE, ...args: TArgs) {
 		this.#date = this.#parseDate(dt, args);
@@ -64,56 +63,50 @@ export class Instant {
 	}
 
 	// Public getters	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** 4-digit year */			get yy() { return this.#date.yy }
-	/** month number */			get mm() { return this.#date.mm }
-	/** day number */				get dd() { return this.#date.dd }
-	/** 24-hour format */		get hh() { return this.#date.hh }
-	/** minutes */					get mi() { return this.#date.mi }
-	/** seconds */					get ss() { return this.#date.ss }
-	/** timestamp */				get ts() { return this.#date.ts }
-	/** milliseconds */			get ms() { return this.#date.ms }
-	/** timezone offset */	get tz() { return this.#date.tz }
-	/** number of weeks */	get ww() { return this.#date.ww }
-	/** short month name*/	get mmm() { return this.#date.mmm }
-	/** short day name */		get ddd() { return this.#date.ddd }
-	/** weekday number */		get dow() { return this.#date.dow }
-	/** milliseconds epoch*/get time() { return this.#date.time }
+	/** 4-digit year */														get yy() { return this.#date.yy }
+	/** month: Jan=1, Dec=12 */										get mm() { return this.#date.mm }
+	/** day of Month */														get dd() { return this.#date.dd }
+	/** 24-hour format */													get hh() { return this.#date.hh }
+	/** minutes */																get mi() { return this.#date.mi }
+	/** seconds */																get ss() { return this.#date.ss }
+	/** timestamp */															get ts() { return this.#date.ts }
+	/** milliseconds */														get ms() { return this.#date.ms }
+	/** timezone offset */												get tz() { return this.#date.tz }
+	/** number of weeks */												get ww() { return this.#date.ww }
+	/** short month name*/												get mmm() { return Instant.MONTH[this.#date.mm] }
+	/** long month name */												get mon() { return Instant.MONTHS[this.#date.mm] }
+	/** short weekday name */											get ddd() { return Instant.WEEKDAY[this.#date.dow] }
+	/** long weekday name */											get day() { return Instant.WEEKDAYS[this.#date.dow] }
+	/** weekday: Mon=1, Sun=7 */									get dow() { return this.#date.dow }
+	/** Unix epoch */															get time() { return this.#date.time }
+	/** as Date() */															get date() { return this.toDate() }
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	/** apply formatting*/
-	format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
-	/** calc diff Dates, default as \<years> */
-	diff = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
-	/** format elapsed diff Dates */
-	elapse = (dt2?: Instant.TYPE, ...args: TArgs) => this.#elapseDate(dt2, ...args);
-	/** add date offset, default as \<minutes> */
-	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
+	/** apply formatting */												format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
+	/** calc diff Dates, default as \<years> */		diff = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => this.#diffDate(unit, dt2, ...args);
+	/** format elapsed diff Dates */							elapse = (dt2?: Instant.TYPE, ...args: TArgs) => this.#elapseDate(dt2, ...args);
 
-	/** start offset, default as \<week> */
-	startOf = (unit: TUnitTime = 'week') => this.#setDate('start', unit);
-	midOf = (unit: TUnitTime = 'week') => this.#setDate('mid', unit);
-	endOf = (unit: TUnitTime = 'week') => this.#setDate('end', unit);
+	/** add date offset, default as \<minutes> */	add = (offset: number, unit: TUnitTime | TUnitDiff = 'minutes') => this.#setDate('add', unit, offset);
+	/** start offset, default as \<week> */				startOf = (unit: TUnitTime = 'week') => this.#setDate('start', unit);
+	/** middle offset, default as \<week> */			midOf = (unit: TUnitTime = 'week') => this.#setDate('mid', unit);
+	/** ending offset, default as \<week> */			endOf = (unit: TUnitTime = 'week') => this.#setDate('end', unit);
 
-	/** valid Instant */
-	isValid = () => !isNaN(this.#date.ts);
-	/** get raw properties */
-	toJSON = () => ({ ...this.#date });
-	/** as Date object */
-	toDate = () => this.#composeDate(this.#date);
-	/** as formatted String object */
-	toString = () => this.#formatDate(Instant.FORMAT.dayTime);
+	/** valid Instant */													isValid = () => !isNaN(this.#date.ts);
+	/** get raw properties */											toJSON = () => ({ ...this.#date });
+	/** as Date object */													toDate = () => this.#composeDate(this.#date);
+	/** as formatted String object */							toString = () => this.#formatDate(Instant.FORMAT.dayTime);
 
 	// Private methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** parse a Date, return components */
 	#parseDate = (dt?: Instant.TYPE, args: TArgs = []) => {
 		const orig = dt;																					// stash original value
-		const pat = {
-			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:MI
+		const pattern = {
+			hhmi: /^([01]\d|2[0-3]):([0-5]\d)( am| pm)?$/,					// regex to match HH:mi
 			yyyymmdd: /^(19\d{2}|20\d{2})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01])$/,
 			yyyyMMMdd: /(19\d{2}|20\d{2})[\/\-\ ]?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\/\-\ ]?(0[1-9]|[12][0-9]|3[01])/,			// yyyy-mmm-dd
 			ddmmyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(\d{2})$/,							// d-m-yy
 			ddmmyyyy: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2})$/,	// d-m-yyyy
-			ddmmyyyyHHMI: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3])(:[0-5]\d)(:[0-5]\d)?/,	// d-m-yyyy {HH:MI|HH:MI:SS}
+			ddmmyyyyHHmi: /^([1-9]|0[1-9]|[12][0-9]|3[01])[\/\-]?([1-9]|0[1-9]|1[012])[\/\-]?(19\d{2}|20\d{2}) ([01]\d|2[0-3])(:[0-5]\d)(:[0-5]\d)?/,	// d-m-yyyy {HH:mi|HH:mi:ss}
 			isoDate: /^(19\d{2}|20\d{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)Z$/,
 		}
 		let date: Date;
@@ -121,25 +114,25 @@ export class Instant {
 		// first, conform the date
 		if (isString(dt) && (dt.toLowerCase().endsWith('am') || dt.toLowerCase().endsWith('pm')))
 			dt = dt.substring(0, dt.length - 2).trimEnd() + ' ' + dt.substr(-2).toLowerCase();
-		if (isString(dt) && pat.hhmi.test(dt))										// if only HH:MI supplied...
+		if (isString(dt) && pattern.hhmi.test(dt))								// if only HH:mi supplied...
 			dt = `${new Date().toDateString()} ${dt}`;							// 	prepend current date
-		if ((isString(dt) || isNumber(dt)) && pat.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
-			dt = asString(dt).replace(pat.yyyymmdd, '$2/$3/$1 00:00:00');				// format to look like a date-string
-		if (isString(dt) && pat.yyyyMMMdd.test(asString(dt)))
-			dt = asString(dt).replace(pat.yyyyMMMdd, '$3-$2-$1');		// Safari doesn't like ymd
-		if ((isString(dt) || isNumber(dt)) && pat.ddmmyyyy.test(asString(dt)))
-			dt = asString(dt).replace(pat.ddmmyyyy, '$2/$1/$3');		// convert to US format
-		if (isString(dt) && pat.ddmmyy.test(dt))
-			dt = dt.replace(pat.ddmmyy, '$2/$1/$3');								// convert to US format
-		if (isString(dt) && pat.ddmmyyyyHHMI.test(dt))
-			dt = dt.replace(pat.ddmmyyyyHHMI, '$2/$1/$3 $4$5$6');		// convert to US format
+		if ((isString(dt) || isNumber(dt)) && pattern.yyyymmdd.test(asString(dt)))// if yyyymmdd supplied as string...
+			dt = asString(dt).replace(pattern.yyyymmdd, '$2/$3/$1 00:00:00');			// format to look like a date-string
+		if (isString(dt) && pattern.yyyyMMMdd.test(asString(dt)))
+			dt = asString(dt).replace(pattern.yyyyMMMdd, '$3-$2-$1');		// Safari doesn't like ymd
+		if ((isString(dt) || isNumber(dt)) && pattern.ddmmyyyy.test(asString(dt)))
+			dt = asString(dt).replace(pattern.ddmmyyyy, '$2/$1/$3');		// convert to US format
+		if (isString(dt) && pattern.ddmmyy.test(dt))
+			dt = dt.replace(pattern.ddmmyy, '$2/$1/$3');								// convert to US format
+		if (isString(dt) && pattern.ddmmyyyyHHmi.test(dt))
+			dt = dt.replace(pattern.ddmmyyyyHHmi, '$2/$1/$3 $4$5$6');		// convert to US format
 
 		switch (getType(dt)) {																		// convert 'dt' argument into a Date
 			case 'Null':																						// special case
-				return { value: null } as InstantObj;
+				return { value: null } as InstantVars;
 
-			case 'Undefined':																				// default to 'now'
-				date = new Date();
+			case 'Undefined':
+				date = new Date();																		// default to 'now'
 				break;
 
 			case 'Date':																						// already is a valid Date
@@ -167,10 +160,10 @@ export class Instant {
 
 			case 'Number':																					// could be timestamp, or (with args) date-components
 				const nbr = dt as number;															// cast as number
-				const vals = args as number[];												// assumed as [MM, DD, HH, MI, SS, ms]
+				const vals = args as number[];												// assumed as [mm, dd, HH, mi, ss, ms]
 				date = vals.length
 					? new Date(nbr, vals[0] - 1, ...vals.slice(1))			// change month-number to zero-indexed
-					: new Date(nbr < Instant.DATE.maxStamp && nbr > Instant.TIME.day ? nbr * 1000 : nbr)// assume timestamp to milliseconds
+					: new Date(nbr < Instant.DATE.maxStamp && nbr > Instant.TIME.day ? nbr * 1_000 : nbr)// assume timestamp to milliseconds
 				break;
 
 			case 'Instant':																					// already have a valid Instant
@@ -189,12 +182,12 @@ export class Instant {
 		}
 
 		if (isNaN(date.getTime()))																// Date not parse-able,
-			console.error('Invalid Date: ', orig, dt, date);				// TODO: throw the Invalid Date?
+			console.error('Invalid Date: ', orig, dt, date);				// TODO: log the Invalid Date
 
 		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, dow, time] = [
 			date.getFullYear(), date.getMonth() + 1, date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
-			Math.floor(date.getTime() / 1000), date.getMilliseconds(),
+			Math.floor(date.getTime() / 1_000), date.getMilliseconds(),
 			date.getTimezoneOffset(), date.getDay() || Instant.WEEKDAY.Sun, date.getTime(),
 		]
 
@@ -202,10 +195,7 @@ export class Instant {
 		const ny = new Date(date.getFullYear(), 0, 1).getTime();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.TIMES.weeks + 1);	// ISO Week Number
 
-		return {
-			yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow, time,
-			ddd: Instant.WEEKDAY[dow], mmm: Instant.MONTH[mm], value: dt
-		} as InstantObj;
+		return { yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow, time, value: dt } as InstantVars;
 	}
 
 	/** create a new offset Instant */
@@ -219,7 +209,7 @@ export class Instant {
 
 		switch (`${mutate}.${single}`) {
 			case 'start.year':
-				[date.mm, date.dd] = [1, 1];
+				[date.mm, date.dd] = [Instant.MONTH.Jan, 1];
 			case 'start.month':
 				date.dd = 1;
 				break;
@@ -240,7 +230,7 @@ export class Instant {
 				break;
 
 			case 'mid.year':
-				[date.mm, date.dd] = [7, 1];
+				[date.mm, date.dd] = [Instant.MONTH.Jul, 1];
 				break;
 			case 'mid.month':
 				date.dd = 15;
@@ -262,14 +252,17 @@ export class Instant {
 				break;
 
 			case 'end.year':
-				[date.mm, date.dd] = [12, 31];
+				[date.mm, date.dd] = [Instant.MONTH.Dec, 31];
+				[date.hh, date.mi, date.ss, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.month':
 				date.mm += 1;
 				date.dd = 0;
+				[date.hh, date.mi, date.ss, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.week':
 				date.dd = date.dd - date.dow + Instant.WEEKDAY.Sun;
+				[date.hh, date.mi, date.ss, date.ms] = [23, 59, 59, 999];
 				break;
 			case 'end.day':
 				[date.hh, date.mi, date.ss, date.ms] = [23, 59, 59, 999];
@@ -281,7 +274,7 @@ export class Instant {
 				[date.ss, date.ms] = [59, 999];
 				break;
 			case 'end.second':
-				date.ms = 999;
+				[date.ms] = [999];
 				break;
 
 			case 'add.year':
@@ -305,14 +298,17 @@ export class Instant {
 			case 'add.second':
 				date.ss += offset;
 				break;
+			case 'add.millisecond':
+				date.ms += offset;
+				break;
 		}
 
 		return new Instant(this.#composeDate(date));
 	}
 
 	/** compose a Date() from an Instant() */
-	#composeDate = (date: InstantObj) =>
-		new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms)
+	#composeDate = (date: InstantVars) =>
+		new Date(date.yy, date.mm - 1, date.dd, date.hh, date.mi, date.ss, date.ms);
 
 	/** combine Instant components to apply some standard & free-format rules */
 	#formatDate = <K extends keyof DateFmt>(fmt: K): DateFmt[K] => {
@@ -335,13 +331,13 @@ export class Instant {
 				return asString(fmt)
 					.replace(/y{4}/g, fix(date.yy))
 					.replace(/y{2}/g, fix(date.yy).substring(2, 4))
-					.replace(/m{3}/g, date.mmm)
+					.replace(/m{3}/g, this.mmm)
 					.replace(/m{2}/g, fix(date.mm))
-					.replace(/d{3}/g, date.ddd)
+					.replace(/d{3}/g, this.ddd)
 					.replace(/d{2}/g, fix(date.dd))
 					.replace(/H{2}/g, fix(date.hh))
 					.replace(/M{2}/g, fix(date.mi))
-					.replace(/MI/g, fix(date.mi))
+					.replace(/mi/g, fix(date.mi))
 					.replace(/h{2}/g, fix(date.hh >= 13 ? date.hh % 12 : date.hh))
 					.replace(/m{2}/g, fix(date.mi) + am)
 					.replace(/mi/g, fix(date.mi) + am)
@@ -361,7 +357,7 @@ export class Instant {
 	 * e.g. ('%dd-%mmm', 20, 'May') will return new Date() for 20-May in current year.
 	 */
 	#formatString = (fmt: string, ...args: TArgs) => {
-		const date = new Instant().startOf('day').toJSON()	// date components
+		const date = new Instant().startOf('day').toJSON()					// date components
 		let argCnt = 0;
 
 		fmt.split('%')
@@ -451,14 +447,32 @@ export class Instant {
 		const ss = Math.floor(diff / Instant.TIMES.seconds);
 		diff -= ss * Instant.TIMES.seconds;
 
-		return hh
-			? fix(hh) + ':' + fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
-			: fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
+		return dd
+			? fix(dd) + ':' + fix(hh) + ':' + fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
+			: hh
+				? fix(hh) + ':' + fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
+				: fix(mm) + ':' + fix(ss) + '.' + fix(diff, 3)
 	}
 }
 
 export namespace Instant {
 	export type TYPE = string | number | Date | Instant | null;
+
+	export interface TypeFmt {
+		"display": string;
+		"dayTime": string;
+		"dayFull": string;
+		"sortTime": string;
+		"monthTime": string;
+		"monthDate": string;
+		"dayMonth": string;
+		"HHmi": string;
+		"hhmi": string;
+		"log": string;
+		"yearWeek": number;
+		"yearMonth": number;
+		"yearMonthDay": number;
+	}
 
 	export enum WEEKDAY { All, Mon, Tue, Wed, Thu, Fri, Sat, Sun };
 	export enum WEEKDAYS { Everyday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday };
@@ -469,14 +483,15 @@ export namespace Instant {
 
 	export enum FORMAT {											// pre-configured format names
 		display = 'ddd, dd mmm yyyy',
-		dayTime = 'ddd, yyyy-mmm-dd hh:mi',
-		dayFull = 'ddd, yyyy-mm-dd hh:mi:ss',
+		dayTime = 'ddd, yyyy-mmm-dd HH:mi',
+		dayFull = 'ddd, yyyy-mmm-dd HH:mi:ss',	// useful for Sheets cell-format
 		dayMonth = 'dd-mmm',
-		date = 'ddd, yyyy-mm-dd',
-		sortTime = 'yyyy-mm-dd hh:mi',					// useful for sorting display-strings
-		HHMI = 'HH:MI',													// 24-hour format
+		sortTime = 'yyyy-mm-dd HH:mi',					// useful for sorting display-strings
+		monthTime = 'yyyy-mmm-dd HH:mi',				// useful for dates where dow is not needed
+		monthDate = 'yyyy-mmm-dd',
+		HHmi = 'HH:mi',													// 24-hour format
 		hhmi = 'hh:mi',													// 12-hour format
-		time = 'HH:MI:SS',											// time-format
+		log = 'HH:mi:ss.ms',										// useful for log-stamping
 		yearWeek = 'yyyyww',
 		yearMonth = 'yyyymm',
 		yearMonthDay = 'yyyymmdd',
@@ -493,6 +508,7 @@ export namespace Instant {
 		second = 1,
 		millisecond = .001,
 	}
+
 	/** number of milliseconds per unit-of-time */
 	export enum TIMES {
 		years = TIME.year * 1_000,
@@ -505,9 +521,12 @@ export namespace Instant {
 		milliseconds = TIME.millisecond * 1_000,
 	}
 
-	/** Instant variables */
-	export enum DATE {
-		maxStamp = new Date('9999-12-31').getTime() / 1_000,
-		minStamp = new Date('1000-01-01').getTime() / 1_000,
+	/** some useful Dates */
+	export const DATE = {
+		epoch: new Date(0).getTime(),
+		maxStamp: new Date('9999-12-31').getTime() / 1_000,
+		minStamp: new Date('1000-01-01').getTime() / 1_000,
+		maxDate: new Date('9999-12-31'),
+		minDate: new Date('1000-01-01'),
 	}
 }
