@@ -27,7 +27,7 @@ export class DayTimer {
 				.startOf('day');
 		} else {
 			alarm = new Instant(alarm)							// cast as Instant
-			if (alarm.time < new Instant().time)		// if time has already passed
+			if (alarm.age < new Instant().age)		// if time has already passed
 				alarm = alarm.add(1, 'day');					// add one-day
 		}
 

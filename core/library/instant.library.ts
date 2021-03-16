@@ -13,8 +13,8 @@ interface InstantVars {							// Instant values
 	ms: number;												// milliseconds since last second
 	ww: number;												// number of weeks
 	tz: number;												// timezone offset in hours
+	age: number;											// milliseconds since Unix epoch
 	dow: Instant.WEEKDAY;							// weekday; Mon=1, Sun=7
-	time: number;											// milliseconds since Unix epoch
 	value?: Instant.TYPE;							// original value passed to constructor
 }
 
@@ -71,15 +71,16 @@ export class Instant {
 	/** seconds */																get ss() { return this.#date.ss }
 	/** timestamp */															get ts() { return this.#date.ts }
 	/** milliseconds */														get ms() { return this.#date.ms }
-	/** timezone offset */												get tz() { return this.#date.tz }
 	/** number of weeks */												get ww() { return this.#date.ww }
+	/** timezone offset */												get tz() { return this.#date.tz }
+	/** milliseconds since Unix epoch */					get age() { return this.#date.age }
+	/** weekday: Mon=1, Sun=7 */									get dow() { return this.#date.dow }
 	/** short month name*/												get mmm() { return Instant.MONTH[this.#date.mm] }
 	/** long month name */												get mon() { return Instant.MONTHS[this.#date.mm] }
 	/** short weekday name */											get ddd() { return Instant.WEEKDAY[this.#date.dow] }
 	/** long weekday name */											get day() { return Instant.WEEKDAYS[this.#date.dow] }
-	/** weekday: Mon=1, Sun=7 */									get dow() { return this.#date.dow }
-	/** Unix epoch */															get time() { return this.#date.time }
-	/** as Date() */															get date() { return this.toDate() }
+	/** as date string */													get date() { return this.format(Instant.FORMAT.dayDate) }
+	/** as time string */													get time() { return this.format('HH:MI:SS') };
 
 	// Public methods	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	/** apply formatting */												format = <K extends keyof DateFmt>(fmt: K) => this.#formatDate(fmt);
@@ -184,18 +185,18 @@ export class Instant {
 		if (isNaN(date.getTime()))																// Date not parse-able,
 			console.error('Invalid Date: ', orig, dt, date);				// TODO: log the Invalid Date
 
-		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, dow, time] = [
+		const [yy, mm, dd, hh, mi, ss, ts, ms, tz, age, dow] = [
 			date.getFullYear(), date.getMonth() + 1, date.getDate(),
 			date.getHours(), date.getMinutes(), date.getSeconds(),
 			Math.floor(date.getTime() / 1_000), date.getMilliseconds(),
-			date.getTimezoneOffset(), date.getDay() || Instant.WEEKDAY.Sun, date.getTime(),
+			date.getTimezoneOffset(), date.getTime(), date.getDay() || Instant.WEEKDAY.Sun,
 		]
 
 		const thu = date.setDate(dd - dow + Instant.WEEKDAY.Thu);	// set to nearest Thursday
 		const ny = new Date(date.getFullYear(), 0, 1).getTime();	// NewYears Day
 		const ww = Math.floor((thu - ny) / Instant.TIMES.weeks + 1);	// ISO Week Number
 
-		return { yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, dow, time, value: dt } as InstantVars;
+		return { yy, mm, dd, hh, mi, ss, ts, ms, tz, ww, age, dow, value: dt } as InstantVars;
 	}
 
 	/** create a new offset Instant */
@@ -326,7 +327,9 @@ export class Instant {
 				return asNumber(`${date.yy}${fix(date.mm)}${fix(date.dd)}`);
 
 			default:
-				const am = date.hh >= 12 ? 'pm' : 'am';							// noon is considered 'pm'
+				const am = asString(fmt).includes('hh:')						// if 'twelve-hour' is present in fmtString
+					? date.hh >= 12 ? 'pm' : 'am'											// noon is considered 'pm'
+					: ''
 
 				return asString(fmt)
 					.replace(/y{4}/g, fix(date.yy))
@@ -336,17 +339,19 @@ export class Instant {
 					.replace(/d{3}/g, this.ddd)
 					.replace(/d{2}/g, fix(date.dd))
 					.replace(/H{2}/g, fix(date.hh))
-					.replace(/M{2}/g, fix(date.mi))
-					.replace(/mi/g, fix(date.mi))
-					.replace(/h{2}/g, fix(date.hh >= 13 ? date.hh % 12 : date.hh))
-					.replace(/m{2}/g, fix(date.mi) + am)
-					.replace(/mi/g, fix(date.mi) + am)
+					.replace(/MI/g, fix(date.mi))
 					.replace(/S{2}/g, fix(date.ss))
+					.replace(/h{2}$/g, fix(date.hh >= 13 ? date.hh % 12 : date.hh) + am)
+					.replace(/h{2}/g, fix(date.hh >= 13 ? date.hh % 12 : date.hh))
+					.replace(/mi$/g, fix(date.mi) + am)								// add 'am' if 'mi' at end of fmtString, and it follows 'hh'
+					.replace(/mi/g, fix(date.mi))
+					.replace(/s{2}$/g, fix(date.ss) + am)							// add 'am' if 'ss' at end of fmtString, and it follows 'hh'
 					.replace(/s{2}/g, fix(date.ss))
 					.replace(/ts/g, asString(date.ts))
 					.replace(/ms/g, fix(date.ms, 3))
 					.replace(/w{2}/g, asString(date.ww))
 					.replace(/dow/g, asString(date.dow))
+					.replace(/day/g, asString(this.day))
 		}
 	}
 
@@ -423,7 +428,7 @@ export class Instant {
 	/** calculate the difference between dates (past is positive, future is negative) */
 	#diffDate = (unit: TUnitDiff = 'years', dt2?: Instant.TYPE, ...args: TArgs) => {
 		const offset = this.#parseDate(dt2, args);
-		const diff = this.#date.time - offset.time;
+		const diff = this.#date.age - offset.age;
 
 		return diff < 0
 			? Math.ceil(diff / Instant.TIMES[unit])
@@ -433,7 +438,7 @@ export class Instant {
 	/** format the elapsed time between two dates */
 	#elapseDate = (dt2?: Instant.TYPE, ...args: TArgs) => {
 		const offset = this.#parseDate(dt2, args);
-		let diff = offset.time - this.#date.time;
+		let diff = offset.age - this.#date.age;
 
 		const dd = Math.floor(diff / Instant.TIMES.days);
 		diff -= dd * Instant.TIMES.days;
@@ -483,15 +488,16 @@ export namespace Instant {
 
 	export enum FORMAT {											// pre-configured format names
 		display = 'ddd, dd mmm yyyy',
-		dayTime = 'ddd, yyyy-mmm-dd HH:mi',
-		dayFull = 'ddd, yyyy-mmm-dd HH:mi:ss',	// useful for Sheets cell-format
+		dayTime = 'ddd, yyyy-mmm-dd HH:MI',
+		dayFull = 'ddd, yyyy-mmm-dd HH:MI:SS',	// useful for Sheets cell-format
 		dayMonth = 'dd-mmm',
-		sortTime = 'yyyy-mm-dd HH:mi',					// useful for sorting display-strings
-		monthTime = 'yyyy-mmm-dd HH:mi',				// useful for dates where dow is not needed
+		dayDate = 'ddd, yyyy-mmm-dd',
+		sortTime = 'yyyy-mm-dd HH:MI',					// useful for sorting display-strings
+		monthTime = 'yyyy-mmm-dd HH:MI',				// useful for dates where dow is not needed
 		monthDate = 'yyyy-mmm-dd',
-		HHmi = 'HH:mi',													// 24-hour format
+		HHMI = 'HH:MI',													// 24-hour format
 		hhmi = 'hh:mi',													// 12-hour format
-		log = 'HH:mi:ss.ms',										// useful for log-stamping
+		log = 'HH:MI:SS.ms',										// useful for log-stamping
 		yearWeek = 'yyyyww',
 		yearMonth = 'yyyymm',
 		yearMonthDay = 'yyyymmdd',
